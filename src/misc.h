@@ -1,6 +1,10 @@
 #ifndef _MISC_H_
 #define _MISC_H_
 
+// this is a bunch of miscellaneous functions I use 
+// to manipulate std::vectors. Furthermore, this will be used 
+// as a skeleton for building functions for grids 
+
 // add two vectors 
 std::vector <int> add_vectors(std::vector <int>* v1, std::vector <int>* v2); 
 

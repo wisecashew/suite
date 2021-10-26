@@ -20,9 +20,6 @@ int main(){
 	Gp.print_solvent();
 	Gp.print_occupied();
 
-
-
-
-
+	
 	return 0;
 }

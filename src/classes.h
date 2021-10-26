@@ -44,6 +44,8 @@ public:
 // #############################################################
 
 
+
+
 // #############################################################
 // This is my Polymer class 
 // it has the following attributes:
@@ -92,20 +94,17 @@ public:
 class Grid{
 public:
 	// attributes
-	std::vector <Particle> GRID; 
+	std::vector <Particle> GRID;				// all the particles in the grid 
+	std::vector <Polymer> pmers; 				// all the polymers in the grid 
+	std::vector <std::vector <int>> loc_list;	// all the occupied position in the grid 
 
-	std::vector <std::vector <int>> loc_list; 
-
-	int x_len; // length of grid along x-axis 
-	int y_len; // length of grid along y-axis
-	int z_len; // length of grid along z-axis 
-
-	// int total_cap {x_len*y_len*z_len}; 
-
-	// static int current_number; 
+	int x_len; 									// length of grid along x-axis 
+	int y_len; 									// length of grid along y-axis
+	int z_len; 									// length of grid along z-axis 
 
 	// constructor 
-	Grid(std::vector <Particle> g, int xl, int yl, int zl){
+	Grid(int xl, int yl, int zl){
+		std::vector <Particle> g; 
 		this->GRID = g; 
 		this->x_len = xl; 
 		this->y_len = yl; 
@@ -130,10 +129,12 @@ public:
 
 	void print_loclist();
 
+	std::vector <std::vector <int>> solvate(); 
+
 	// methods 
 };
-
-
+// END OF CLASS POLYMER
+// ##############################################################
 
 
 # endif // _MC_CLASSES_H_

@@ -24,4 +24,9 @@ void sarw(std::vector<std::vector<int>>* loc_list, int dop);
 // run a sarw with periodic boundary conditions 
 void sarw_pbc(std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y_len, int z_len); 
 
+
+// create a lattice 
+std::vector <std::vector <int>> create_lattice_pts(int x_len, int y_len, int z_len); 
+
+
 #endif 

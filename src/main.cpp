@@ -2,58 +2,44 @@
 #include <vector> 
 #include <string> 
 
-#include "Particle.h"
-#include "Polymer.h"
+// #include "Particle.h"
+//#include "Polymer.h"
+//#include "grid.h"
+#include "classes.h"
 #include "misc.h"
-#include "grid.h"
 
 int main(){
 
-	// instantiate a grid; 
-	std::vector <Particle> g; 
 	int x_len {4}, y_len{4}, z_len{4}; 
-	
 	std::vector <int> seed{0,0,0};  // this is where the first particle will fall 
-	std::vector<std::vector <int>> loc_list = {seed}; // this is the grid, basically. for now, anyway. 
-	std::vector<std::vector <int>> loc_list2 = {seed}; // this is the grid, basically. for now, anyway. 
 
-	int dop = 10; // this is the degree of polymerization 
-	sarw(&loc_list, dop-1); // dop-1 because seed is already a monomer in place, so will need dop-1 more monomers  
+	// std::vector <Particle> gp; 
+	int dop = 10;
+	Grid Gp( x_len, y_len, z_len); 
+	Gp.polymer_insertion(dop, seed);
+	// Gp.print_loclist();
 
-	// std::cout << "\nobtained loc_list, time for loc_list2..." << std::endl;
+	std::vector <std::vector <int>> lat; 
+	lat = create_lattice_pts(x_len, y_len, z_len);
 
-	sarw_pbc(&loc_list2, dop-1, 3,3,3);
+	std::vector <std::vector <int>> solv_pts; 
+	solv_pts = Gp.solvate(); 
 
-	Particle p1 (seed), p2 (seed), p3(seed); 
-	g = {p1, p2, p3}; 
+	std::cout << "printing out solvated coordinates..." << std::endl;
+	// for (auto v: solv_pts){
+	//	print(v); 
+	// }
 
-	Grid G (g, x_len, y_len, z_len); 
-	// G.get_loclist();
-	// G.print_loclist();
+	std::cout << "length of solvate coordinates is " << solv_pts.size() << std::endl; 
+	std::cout << "length of polymer coordinates is " << std::endl;
 
-	std::vector <Particle> gp; 
+	// std::cout << "Printing out lattice points: " << std::endl;
 
-	Grid Gp(gp, x_len, y_len, z_len); 
-	Gp.polymer_insertion(dop,seed);
-	Gp.print_loclist();
-
-	/*for (auto v:loc_list2){
-		print(v);
-	}
-
-	std::cout << "\nprinting out loc_list2..."<<std::endl;
+	// for (auto v: lat){
+	// 	print(v);
+	// }
 
 
-	std::vector <Particle> chain; 
-	for (int i{0}; i< dop; i++){
-		Particle p (loc_list2.at(i));
-		// print(p.loc); 
-		p.print_loc();
-
-		chain.push_back(p);
-	}
-
-	Polymer polymer {chain}; // created polymer chain */
 
 
 	return 0;

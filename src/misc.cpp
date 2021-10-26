@@ -126,8 +126,25 @@ void sarw_pbc(std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y
 	return; 
 }
 
+//===============================================================================
 
 
+//=====================================================
+// generating lattice points 
+//$====================================================
+std::vector <std::vector <int>> create_lattice_pts(int x_len, int y_len, int z_len){
+	std::vector<std::vector <int>> lattice_pts;
+	lattice_pts.reserve(x_len*y_len*z_len); 
 
+	for (int i{0}; i < x_len; i++){
+		for (int j{0}; j < y_len; j++){
+			for (int k{0}; k < z_len; k++){
+				lattice_pts.push_back({i,j,k}); 
+			}
+		}
+	} 
 
+	return lattice_pts; 
+
+} 
 

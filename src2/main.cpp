@@ -16,10 +16,13 @@ int main(){
 	Gp.polymer_insertion(dop, seed); // drop the polymer in 
 	Gp.solvate();
 
-	Gp.print_polymer(); 
-	Gp.print_solvent();
-	Gp.print_occupied();
+	// Gp.print_polymer(); 
+	// Gp.print_solvent();
+	// Gp.print_occupied();
 
-	
+	print(Gp.polymer.chain.at(0).loc);
+	std::cout << Gp.polymer.chain.at(0).ptype << std::endl; 
+
+
 	return 0;
 }

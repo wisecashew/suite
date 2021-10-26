@@ -2,9 +2,6 @@
 #include <vector> 
 #include <string> 
 
-// #include "Particle.h"
-//#include "Polymer.h"
-//#include "grid.h"
 #include "classes.h"
 #include "misc.h"
 

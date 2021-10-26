@@ -27,12 +27,7 @@ public:
 		//std::cout << "Particle has been erased from system memory." << std::endl;
 	}
 
-	void print_loc(){
-	print(loc);
-	std::cout << "print out the location of the particle" << std::endl;
-	return ; 
-	}; 
-
+	void print_loc(); 
 
 }; 
 

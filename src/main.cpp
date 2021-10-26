@@ -11,9 +11,7 @@ int main(){
 
 	// instantiate a grid; 
 	std::vector <Particle> g; 
-	const int x_len {4}, y_len{4}, z_len{4}; 
-
-	Grid (g, x_len, y_len, z_len); 
+	int x_len {4}, y_len{4}, z_len{4}; 
 	
 	std::vector <int> seed{0,0,0};  // this is where the first particle will fall 
 	std::vector<std::vector <int>> loc_list = {seed}; // this is the grid, basically. for now, anyway. 
@@ -22,11 +20,24 @@ int main(){
 	int dop = 10; // this is the degree of polymerization 
 	sarw(&loc_list, dop-1); // dop-1 because seed is already a monomer in place, so will need dop-1 more monomers  
 
-	std::cout << "\nobtained loc_list, time for loc_list2..." << std::endl;
+	// std::cout << "\nobtained loc_list, time for loc_list2..." << std::endl;
 
 	sarw_pbc(&loc_list2, dop-1, 3,3,3);
 
-	for (auto v:loc_list2){
+	Particle p1 (seed), p2 (seed), p3(seed); 
+	g = {p1, p2, p3}; 
+
+	Grid G (g, x_len, y_len, z_len); 
+	// G.get_loclist();
+	// G.print_loclist();
+
+	std::vector <Particle> gp; 
+
+	Grid Gp(gp, x_len, y_len, z_len); 
+	Gp.polymer_insertion(dop,seed);
+	Gp.print_loclist();
+
+	/*for (auto v:loc_list2){
 		print(v);
 	}
 
@@ -35,14 +46,14 @@ int main(){
 
 	std::vector <Particle> chain; 
 	for (int i{0}; i< dop; i++){
-		print(loc_list2.at(i));
 		Particle p (loc_list2.at(i));
-		// p.loc = loc_list2.at(i); 
-		print(p.loc); 
+		// print(p.loc); 
+		p.print_loc();
+
 		chain.push_back(p);
 	}
 
-	Polymer polymer {chain}; // created polymer chain 
+	Polymer polymer {chain}; // created polymer chain */
 
 
 	return 0;

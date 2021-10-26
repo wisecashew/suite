@@ -11,9 +11,8 @@ public:
 
 	// constructor 
 	Polymer(std::vector <Particle> chain_)
-	: chain {chain_} {
-		//std::cout << "creating polymer object..." << std::endl;
-	}
+	: chain {chain_} {	
+	};
 
 	// destructor 
 	~Polymer(){

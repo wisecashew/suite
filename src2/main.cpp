@@ -7,10 +7,10 @@
 
 int main(){
 
-	int x_len {20}, y_len{20}, z_len{20}; 
+	int x_len {10}, y_len{10}, z_len{10}; 
 	std::vector <int> seed{0,0,0}; 		 		// this is where the first polymer particle will fall 
 
-	int dop = 15;								// degree of polymerization 
+	int dop = 7;								// degree of polymerization 
 
 	Grid Gp( x_len, y_len, z_len); 				// instantiate Grid 
 	Gp.polymer_insertion(dop, seed); 			// drop the polymer in 
@@ -30,6 +30,8 @@ int main(){
 	for (Particle p: pvec1){
 		p.print_loc();
 	}*/
+
+	Gp.polymer.find_cranks();
 	Gp.print_polymer();
 	std::cout << "===================" << std::endl;
 
@@ -54,6 +56,18 @@ int main(){
 	std::cout << "===================" << std::endl;
 	print(Gp.polymer.find_kinks());
 	
+	Gp.kink_jump();
+	std::cout << "=================== Post kink jump 5 =================" << std::endl;
+	Gp.print_polymer();
+
+	Gp.end_rotation(); 
+	Gp.print_polymer(); 
+
+	
+	print(Gp.polymer.find_kinks());
+	Gp.kink_jump();
+	std::cout << "=================== Post kink jump 6 =================" << std::endl;
+	Gp.print_polymer();
 
 	return 0;
 }

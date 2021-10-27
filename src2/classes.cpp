@@ -88,7 +88,8 @@ std::vector <int> Polymer::find_kinks(){
         std::vector <int> v1 = subtract_vectors(&(this->p_locs.at(i+1)), &(this->p_locs.at(i)));
         std::vector <int> v2 = subtract_vectors(&(this->p_locs.at(i+2)), &(this->p_locs.at(i+1)));
 
-        if (v1==v2){            
+        if (v1==v2){
+            continue;            
         }
         else {
             kink_indices.push_back(i);  
@@ -96,11 +97,40 @@ std::vector <int> Polymer::find_kinks(){
 
     }
 
+    if (kink_indices.size() == 0){
+        std::cout << "no kinks in current structure..." << std::endl;
+    }
+
     return kink_indices; 
 
 }
 
 
+// find if there any cranks in the polymer structure 
+std::vector <int> Polymer::find_cranks(){
+
+    std::vector <int> crank_indices;
+    // obtain all locations where kinks exist in the polymer 
+    for (int i{0}; i<this->dop-3; i++){
+        std::vector <int> v1 = subtract_vectors(&(this->p_locs.at(i+1)), &(this->p_locs.at(i))); 
+        std::vector <int> v2 = subtract_vectors(&(this->p_locs.at(i+2)), &(this->p_locs.at(i+3)));
+
+        //
+
+        if (v1==v2){
+            crank_indices.push_back(i); 
+        } 
+        else {
+            continue;
+        }
+    }
+
+    if (crank_indices.size() == 0) {
+        std::cout << "there are no cranks in the current structure..." << std::endl;
+    } 
+
+    return crank_indices;
+}
 
 // END OF CLASS POLYMER 
 // ######################################
@@ -220,7 +250,7 @@ void Grid::ZeroIndexRotation(){
         if (check_avoidance( to_rot, this->polymer.p_locs) ){
             this->polymer.chain.at(0).loc = to_rot;
             this->polymer.p_locs.at(0) = to_rot;
-            this->polymer.conn[pNextToEdge].at(0) = polymer.chain.at(0);
+            this->polymer.obtain_connectivity(); 
             break;
         }
         else{
@@ -251,7 +281,7 @@ void Grid::FinalIndexRotation(){
         if (check_avoidance( to_rot, this->polymer.p_locs) ){
             this->polymer.chain.at(dop-1).loc = to_rot;
             this->polymer.p_locs.at(dop-1) = to_rot;
-            this->polymer.conn[pNextToEdge].at(0) = polymer.chain.at(dop-1);
+            this->polymer.obtain_connectivity(); 
             break;
         }
         else{
@@ -289,7 +319,113 @@ void Grid::end_rotation() {
 // END OF END ROTATION 
 
 // START OF KINK JUMP 
+void Grid::kink_jump() {
 
+    std::vector <int> k_idx = this->polymer.find_kinks();
 
+    std::shuffle(std::begin(k_idx), std::end(k_idx), std::default_random_engine() ); 
 
+    for (int idx: k_idx){
+        std::cout << "idx right before kink spot is " << idx << std::endl;
+        std::vector <int> d1 = subtract_vectors(&(this->polymer.chain.at(idx+1).loc), &(this->polymer.chain.at(idx).loc));
+        std::vector <int> d2 = subtract_vectors(&(this->polymer.chain.at(idx+2).loc), &(this->polymer.chain.at(idx+1).loc));
+
+        std::vector <int> to_check = add_vectors(&(this->polymer.chain.at(idx).loc), &d2); 
+        if (check_avoidance(to_check, this->polymer.p_locs)){
+            this->polymer.chain.at(idx+1).loc = to_check; 
+            this->polymer.p_locs.at(idx+1) = to_check; 
+            this->polymer.obtain_connectivity();
+            return; 
+        } 
+        else {
+            std::cout << "occupied..." << std::endl;
+        }
+    }
+
+    return;
+
+}
+
+// END OF KINK JUMP 
+
+// START OF CRANK SHAFT 
+void Grid::crank_shaft() {
+    std::vector <int> c_idx = this->polymer.find_cranks(); 
+
+    std::shuffle(std::begin(c_idx), std::end(c_idx), std::default_random_engine() ); 
+
+    for (int idx: c_idx){
+        std::vector <int> d1 = subtract_vectors(&(this->polymer.chain.at(idx+3).loc), &(this->polymer.chain.at(idx+2).loc)); 
+        impose_pbc(&d1, this->x_len, this->y_len, this->z_len); 
+
+        std::vector <int> to_check_1 = add_vectors(&(this->polymer.chain.at(idx).loc), &d1);
+        std::vector <int> to_check_2 = add_vectors(&(this->polymer.chain.at(idx+3).loc), &d1); 
+
+        impose_pbc(&to_check_1, this->x_len, this->y_len, this->z_len);
+        impose_pbc(&to_check_2, this->x_len, this->y_len, this->z_len);
+
+        if ((check_avoidance(to_check_1, this->polymer.p_locs)) && (check_avoidance(to_check_2, this->polymer.p_locs) )) {
+            this->polymer.chain.at(idx+1).loc = to_check_1;
+            this->polymer.chain.at(idx+2).loc = to_check_2; 
+            this->polymer.obtain_connectivity(); 
+            return;
+        }
+        else{
+            std::cout << "occupied..." << std::endl;
+        }
+
+    }    
+    return ;
+}
+
+// END OF CRANK SHAFT 
+
+// START OF REPTATION MOVE 
+
+void Grid::FinalToZero(){
+    
+    std::vector <std::vector <int>> ne_list = this->polymer.chain.at(0).nlist(this->x_len, this->y_len, this->z_len); 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(1).loc ), ne_list.end() );
+
+    std::vector <std::vector <int>> popFinal = this->polymer.p_locs.pop_back(); 
+    for (std::vector <int> to_check: ne_list){
+        if (check_avoidance(to_check, popFinal)){
+            popFinal.insert(popFinal.begin, to_check); 
+            this->polymer.p_locs = popFinal; 
+            this->polymer.chain = loc2part(popFinal, "polymer");  
+            this->polymer.obtain_connectivity(); 
+            return; 
+        }
+    }
+
+    return; 
+}
+
+void Grid::ZeroToFinal(){
+
+    int size = this->polymer.chain.size(); 
+    std::vector <std::vector <int>> ne_list = this->polymer.chain.at(size-1).nlist(this->x_len, this->y_len, this->z_len); 
+
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(size-1).loc ), ne_list.end() ); 
+
+    std::vector <std::vector <int>> popZero = this->polymer.p_locs.erase(this->polymer.p_locs.begin()); // erase first element of plocs
+
+    for (std::vector <int> to_check: ne_list){
+        if (check_avoidance(to_check, popZero)){
+            popZero.push_back(to_check); 
+            this->polymer.p_locs = popZero; 
+            this->polymer.chain = loc2part(popZero, "polymer"); 
+            this->polymer.obtain_connectivity(); 
+            return; 
+        }
+    }
+
+    return; 
+
+}
+
+void Grid::reptation() {
+
+    return;
+}
 

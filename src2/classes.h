@@ -49,7 +49,7 @@ public:
 	std::vector <Particle> loc2part(std::vector <std::vector <int>> ); 
 
 
-	// given a list of particle, obtain its neighboring site locations 
+	// given a particle, obtain its neighboring site locations 
 	std::vector <std::vector <int>> nlist (int x_len, int y_len, int z_len);
 
 
@@ -106,6 +106,8 @@ public:
 	// find if there are kinks in the polymer structure 
 	std::vector <int> find_kinks(); 
 
+	// find if there are any cranks in the polymer structure 
+	std::vector <int> find_cranks(); 
 
 };
 
@@ -209,11 +211,23 @@ public:
 	void FinalIndexRotation(); 
 	// ===================================
 
+	// requires the use of find_kinks - part of class polymer 
 	void kink_jump(); 
+	// ===================================
 
-	void crankshaft(); 
+	// requires the use of find_crank - part of class polymer 
+	void crank_shaft(); 
 
+
+	// perform Reptation moves on polymer 
+	// ===================================
+	// this code has a master function 
 	void reptation(); 
+
+	// requires two child functions
+	void FinalIndexToZeroIndex(); 
+	void ZeroIndexToFinalIndex(); 
+	// ====================================
 
 
 

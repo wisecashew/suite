@@ -7,22 +7,20 @@
 
 int main(){
 
-	int x_len {4}, y_len{4}, z_len{4}; 
-	std::vector <int> seed{0,0,0};  // this is where the first polymer particle will fall 
+	int x_len {20}, y_len{20}, z_len{20}; 
+	std::vector <int> seed{0,0,0}; 		 		// this is where the first polymer particle will fall 
 
-	// std::vector <Particle> gp; 
-	int dop = 15;
-	Grid Gp( x_len, y_len, z_len); // instantiate Grid 
-	Gp.polymer_insertion(dop, seed); // drop the polymer in 
-	Gp.solvate();
+	int dop = 15;								// degree of polymerization 
 
-	std::cout << "coordinates of monomers: " << std::endl;
-	Gp.polymer.print_loc(); // print out coordinates
-	std::cout << "=====================" << std::endl;
+	Grid Gp( x_len, y_len, z_len); 				// instantiate Grid 
+	Gp.polymer_insertion(dop, seed); 			// drop the polymer in 
+	// Gp.solvate();							// solvate the system 
+	// Gp.print_occupied();
 
-	Gp.polymer.obtain_connectivity(); // get the map
+	Gp.polymer.obtain_connectivity(); 			// get the map
+	Gp.polymer.get_plocs(); 					// get the location coordinates of where the polymer is, explicitly
 
-	std::cout << "Checking efficacy of conn..." << std::endl;
+	/*std::cout << "Checking efficacy of conn..." << std::endl;
 	std::cout << "Particle at index 5 is connected to " << std::endl;
 
 	std::map <Particle, std::vector<Particle>> adj = Gp.polymer.conn;
@@ -31,9 +29,30 @@ int main(){
 	
 	for (Particle p: pvec1){
 		p.print_loc();
-	}
+	}*/
+	Gp.print_polymer();
+	std::cout << "===================" << std::endl;
+
+	Gp.end_rotation(); 
+	std::cout << "================== Post rotation 1 ================" << std::endl;
+	Gp.print_polymer();
 
 	std::cout << "===================" << std::endl;
+	Gp.end_rotation();
+	std::cout << "=================== Post rotation 2 ==============" << std::endl;
+	Gp.print_polymer(); 
+	std::cout << "===================" << std::endl;
+
+	Gp.end_rotation(); 
+	std::cout << "================== Post rotation 3 ================" << std::endl;
+	Gp.print_polymer();
+
+	std::cout << "===================" << std::endl;
+	Gp.end_rotation();
+	std::cout << "=================== Post rotation 4 ==============" << std::endl;
+	Gp.print_polymer(); 
+	std::cout << "===================" << std::endl;
+	print(Gp.polymer.find_kinks());
 	
 
 	return 0;

@@ -1,13 +1,6 @@
 #ifndef _MC_CLASSES_H_
 #define _MC_CLASSES_H_
 
-#include <iostream> // need this for couts and stuff 
-#include <vector> // my primary data type 
-#include <string> 
-#include <map>
-#include <algorithm>
-#include "misc.h" // my collection of useful functions 
-
 
 // #########################################################
 // This is my Particle class. 
@@ -48,9 +41,17 @@ public:
 		//std::cout << "Particle has been erased from system memory." << std::endl;
 	}
 
+	// print current location of the particle 
 	void print_loc(); 
 
-	std::vector <Particle> loc2part(std::vector <std::vector <int>> loc_list); 
+
+	//  given a list of locations, convert it into a list of particles 
+	std::vector <Particle> loc2part(std::vector <std::vector <int>> ); 
+
+
+	// given a list of particle, obtain its neighboring site locations 
+	std::vector <std::vector <int>> nlist (int x_len, int y_len, int z_len);
+
 
 }; 
 
@@ -72,6 +73,8 @@ public:
 class Polymer{
 public:
 	std::vector <Particle> chain;
+	std::vector <std::vector <int>> p_locs; 
+	int dop = chain.size();
 	std::map <Particle, std::vector <Particle> > conn; 
 
 	// constructor 
@@ -94,8 +97,14 @@ public:
 	// print position of monomers in grid 
 	void print_loc(); 
 
+	// get the list of all the points the polymer is occupying 
+	void get_plocs(); 
+
 	// obtain the connectivity mapping 
 	void obtain_connectivity(); 
+
+	// find if there are kinks in the polymer structure 
+	std::vector <int> find_kinks(); 
 
 
 };
@@ -151,7 +160,7 @@ class Grid{
 public:
 	// attributes
 	std::vector <Particle> occupied;				// all the particles in the grid 
-	Polymer polymer; 				// all the polymers in the grid 
+	Polymer polymer; 								// all the polymers in the grid 
 	Solvent solvent; 
 	
 
@@ -189,6 +198,23 @@ public:
 
 	// solvate the system 
 	void solvate();
+
+	// perform Monte Carlo moves on polymer 
+	// ====================================
+	// this code has a master function:
+	void end_rotation(); 
+
+	// and two child functions 
+	void ZeroIndexRotation(); 
+	void FinalIndexRotation(); 
+	// ===================================
+
+	void kink_jump(); 
+
+	void crankshaft(); 
+
+	void reptation(); 
+
 
 
 };

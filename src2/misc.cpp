@@ -4,8 +4,8 @@
 #include <map>
 #include "misc.h"
 
-const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; // unit directions 
-const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  // vector of unit directions 
+const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
+const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  							// vector of unit directions 
 
 //=====================================================
 // impose periodic boundary conditions on vector 
@@ -39,6 +39,15 @@ void print(std::vector <int> v){
 	}
 	std::cout << std::endl;
 }
+
+void print(std::vector <std::vector <int>>vv){
+	for (std::vector <int> v: vv){
+		print(v);
+	}
+}
+
+
+
 //======================================================
 
 //=====================================================
@@ -54,6 +63,22 @@ std::vector <int> add_vectors(std::vector <int>* v1, std::vector <int>* v2){
 	return v3; 
 }
 //======================================================
+
+//=====================================================
+// function to subtract two vectors 
+//$====================================================
+std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2){
+	size_t s = (*v1).size(); 
+	std::vector <int> v3 (s,0); 
+	for (int i{0}; i < s; i++){
+		v3.at(i) = (*v1).at(i) -  (*v2).at(i);
+	}
+
+	return v3; 
+}
+
+
+
 
 //=====================================================
 // function to check for avoidance in the walk 
@@ -149,4 +174,21 @@ std::vector <std::vector <int>> create_lattice_pts(int x_len, int y_len, int z_l
 	return lattice_pts; 
 
 } 
+
+
+//=====================================================
+// generating neighbor lists  
+//$====================================================
+std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len, int y_len, int z_len){
+	std::vector <std::vector <int>> nl;
+	nl.reserve(6); 
+	for (std::vector <int> d: drns){
+		std::vector <int> v = add_vectors(&loc, &d); 
+		impose_pbc(&v, x_len, y_len, z_len); 
+		nl.push_back(v);
+	}
+
+	return nl; 
+
+}
 

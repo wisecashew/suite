@@ -4,6 +4,8 @@
 #include <iostream> // need this for couts and stuff 
 #include <vector> // my primary data type 
 #include <string> 
+#include <map>
+#include <algorithm>
 #include "misc.h" // my collection of useful functions 
 
 
@@ -22,6 +24,10 @@ public:
 	// energetic interaction 
 	// isotropy vs anisotropy
 
+	bool operator<(const Particle& rhs )const{
+		return loc < rhs.loc; 
+	};
+
 	// constructor 
 
 	Particle(){
@@ -30,7 +36,6 @@ public:
 
 	Particle(std::vector <int> &loc){
 		this->loc = loc; 
-		//std::cout << "Particle has been generated." << std::endl; 
 	} 
 
 	Particle(std::vector <int> &loc, std::string s){
@@ -67,6 +72,7 @@ public:
 class Polymer{
 public:
 	std::vector <Particle> chain;
+	std::map <Particle, std::vector <Particle> > conn; 
 
 	// constructor 
 	Polymer(){
@@ -85,7 +91,12 @@ public:
 		//std::cout << "Polymer object has been destroyed from machine."<<std::endl;
 	}
 
+	// print position of monomers in grid 
 	void print_loc(); 
+
+	// obtain the connectivity mapping 
+	void obtain_connectivity(); 
+
 
 };
 

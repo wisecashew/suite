@@ -1,7 +1,7 @@
 #include <iostream> 
 #include <vector> 
 #include <string> 
-
+#include <map>
 #include "classes.h"
 #include "misc.h"
 
@@ -16,13 +16,25 @@ int main(){
 	Gp.polymer_insertion(dop, seed); // drop the polymer in 
 	Gp.solvate();
 
-	// Gp.print_polymer(); 
-	// Gp.print_solvent();
-	// Gp.print_occupied();
+	std::cout << "coordinates of monomers: " << std::endl;
+	Gp.polymer.print_loc(); // print out coordinates
+	std::cout << "=====================" << std::endl;
 
-	print(Gp.polymer.chain.at(0).loc);
-	std::cout << Gp.polymer.chain.at(0).ptype << std::endl; 
+	Gp.polymer.obtain_connectivity(); // get the map
 
+	std::cout << "Checking efficacy of conn..." << std::endl;
+	std::cout << "Particle at index 5 is connected to " << std::endl;
+
+	std::map <Particle, std::vector<Particle>> adj = Gp.polymer.conn;
+
+	std::vector <Particle> pvec1 = adj[Gp.polymer.chain.at(5)]; 
+	
+	for (Particle p: pvec1){
+		p.print_loc();
+	}
+
+	std::cout << "===================" << std::endl;
+	
 
 	return 0;
 }

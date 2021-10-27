@@ -1,6 +1,8 @@
 #include <iostream> 
 #include <vector> 
+#include <string>
 #include <algorithm> 
+#include <map>
 #include "particle.h"
 
 int main() {
@@ -17,6 +19,18 @@ int main() {
 	else {
 		std::cout << "the item was not found. " << std::endl;
 	}
+
+	std::vector <int> v {1,2}; 
+
+	std::map <std::string, std::vector <int> > M; 
+	M["Turf"] = v;
+
+	for (int i: M["Turf"]){
+		std::cout << i << std::endl;
+	}
+
+	std::map <Particle, std::vector <Particle>> pmaps; 
+
 
 	return 0; 
 }

@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector> 
 #include <string> 
+#include <map>
 #include <algorithm> 
 #include "classes.h"
 #include "misc.h" 
@@ -34,11 +35,31 @@ std::vector <Particle> loc2part(std::vector<std::vector<int>> loc_list, std::str
 void Polymer::print_loc(){
     for (Particle p: this->chain){
         p.print_loc(); 
-        std::cout <<"particle type is " << p.ptype << std::endl;
     }
     return; 
 }
 
+
+// only works for linear polymers 
+void Polymer::obtain_connectivity() {
+    int size = this->chain.size(); 
+    std::cout << "size of chain is " << size << std::endl; 
+    for (int i{0}; i<size; i++){
+        if (i==0){
+            
+            this->conn[this->chain.at(i)] = { (this->chain.at(i+1)) };
+        }
+        else if (i==(size-1)){
+            // std::vector <Particle> pvec = { (this->chain.at(i-1)) }; 
+            this->conn[this->chain.at(i)] = { (this->chain.at(i-1)) }; 
+        }
+        else {
+            std::vector <Particle> pvec = {this->chain.at(i-1), this->chain.at(i+1)};
+            this->conn[this->chain.at(i)] = {this->chain.at(i-1), this->chain.at(i+1)}; 
+        }
+    }
+    return;
+}; 
 
 // END OF CLASS POLYMER 
 // ######################################

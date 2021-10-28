@@ -491,4 +491,36 @@ void Grid::reptation() {
 }
 
 
+int Grid::CalculateEnergy(){
+
+    // get all the neighboring sites for the polymer 
+    std::vector <std::vector <int>> poly_ne_list; 
+    std::vector <std::vector <int>> nl;
+    for (Particle p: this->polymer.chain){
+
+        nl = obtain_ne_list(p.loc, this->x_len, this->y_len, this->z_len);     // get the neighbor list for particle p
+
+        for (Particle np: this->polymer.conn[p]){
+             nl.erase(std::find(nl.begin(), nl.end(), np.loc) );               // erase bonded units locations present in the list 
+        }
+
+        poly_ne_list.insert( poly_ne_list.end(), nl.begin(), nl.end() );       // concatenate all neighbor lists
+    }    
+
+    // get rid of redundant neighbors present in the list 
+    std::sort( poly_ne_list.begin(), poly_ne_list.end() );                     
+    poly_ne_list.erase( std::unique (poly_ne_list.begin(), poly_ne_list.end() ), poly_ne_list.end() ); 
+
+    print(poly_ne_list); 
+    std::cout << "size of polymer neighbor list is " << poly_ne_list.size() << std::endl;
+
+    int intr_energy = -1; 
+
+    int net_energy = poly_ne_list.size()*intr_energy; 
+
+    return net_energy;  
+
+}
+
+
 

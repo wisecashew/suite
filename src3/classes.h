@@ -54,7 +54,7 @@ public:
 // 1. chain - this is a std::vector of Particles. 
 //
 // it has the following methods:
-// (nothing yet)...  
+  
 
 
 class Polymer{
@@ -213,6 +213,11 @@ public:
 	void FinalToZero(); 
 	void ZeroToFinal(); 
 	// ====================================
+
+	// calculate energy of the grid 
+	int CalculateEnergy(); 
+
+
 
 
 

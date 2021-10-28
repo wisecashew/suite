@@ -7,7 +7,7 @@
 
 int main(){
 
-	int x_len {5}, y_len{5}, z_len{5}; 
+	int x_len {10}, y_len{10}, z_len{10}; 
 	std::vector <int> seed{0,0,0}; 		 		// this is where the first polymer particle will fall 
 
 	int dop = 7;								// degree of polymerization 
@@ -18,9 +18,34 @@ int main(){
 	// Gp.print_occupied();
 
 	Gp.polymer.obtain_connectivity(); 			// get the map
-
 	Gp.print_polymer();
-	Gp.FinalToZero();
+
+	std::cout << "=======================" << std::endl;
+	std::cout << "Outputting all neighbors..." << std::endl;
+	int energy = Gp.CalculateEnergy();
+
+	std::cout <<"Energy of the system is " << energy << std::endl; 
+
+	acceptance(1, 1); 
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/*Gp.FinalToZero();
 	std::cout << "============= Performed reptation ============" << std::endl;
 	Gp.print_polymer();
 
@@ -81,7 +106,7 @@ int main(){
 	print(Gp.polymer.find_kinks());
 	Gp.kink_jump();
 	std::cout << "=================== Post kink jump 6 =================" << std::endl;
-	Gp.print_polymer();
+	Gp.print_polymer();*/
 	
 
 	return 0;

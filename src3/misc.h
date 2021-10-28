@@ -47,4 +47,7 @@ std::vector <Particle> loc2part (std::vector <std::vector <int>> loc_list, std::
 // given a vector of particles, obtain a vector of locations 
 std::vector <std::vector <int> > part2loc (std::vector <Particle> pVec); 
 
+// run an acceptance criterion for two polymers 
+bool acceptance(int dE, double kT); 
+
 #endif 

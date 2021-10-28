@@ -2,6 +2,9 @@
 #include <vector>
 #include <string>
 #include <map>
+#include <cmath>
+#include <random>
+#include <chrono>
 #include "misc.h"
 
 const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
@@ -39,6 +42,10 @@ void print(std::vector <int> v){
 	}
 	std::cout << std::endl;
 }
+
+//=====================================================
+// function to print out contents of a vector of vectors 
+//$====================================================
 
 void print(std::vector <std::vector <int>>vv){
 	for (std::vector <int> v: vv){
@@ -221,4 +228,35 @@ std::vector <std::vector <int> > part2loc (std::vector <Particle> pVec){
 
 	return loc_list; 
 }
+
+// ===================================================================
+// decide on whether polymer configuration is to be accepted or not
+// ===================================================================
+bool acceptance(int dE, double kT){
+	// prob = min(1, exp(-1/(kT)*dE))
+	std::vector <double> P {1, std::exp(-dE/kT)}; 
+	double prob = *std::min_element(P.begin(), P.end()) ; 
+
+
+	// rng stuff 
+	std::default_random_engine generator; 
+	std::uniform_real_distribution <double> distribution (0.0, 1.0); 
+	generator.seed(std::chrono::system_clock::now().time_since_epoch().count());
+	double num = distribution (generator); 
+
+
+	//
+
+	
+	std::cout << "probability is " << prob << std::endl;
+	std::cout << "number generated from distro is " << num << std::endl; 
+	if (num <= prob){
+		return true;
+	}
+	else{
+		return false; 
+	}
+
+}
+
 

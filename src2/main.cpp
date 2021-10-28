@@ -7,7 +7,7 @@
 
 int main(){
 
-	int x_len {10}, y_len{10}, z_len{10}; 
+	int x_len {5}, y_len{5}, z_len{5}; 
 	std::vector <int> seed{0,0,0}; 		 		// this is where the first polymer particle will fall 
 
 	int dop = 7;								// degree of polymerization 
@@ -20,6 +20,19 @@ int main(){
 	Gp.polymer.obtain_connectivity(); 			// get the map
 	Gp.polymer.get_plocs(); 					// get the location coordinates of where the polymer is, explicitly
 
+	Gp.print_polymer();
+	Gp.FinalToZero();
+	std::cout << "============= Performed reptation ============" << std::endl;
+	Gp.print_polymer();
+
+	Gp.FinalToZero();
+	std::cout << "============= Performed reptation ============" << std::endl;
+	Gp.print_polymer();
+
+	Gp.ZeroToFinal();
+	std::cout << "============= Performed reptation ============" << std::endl;
+	Gp.print_polymer();
+
 	/*std::cout << "Checking efficacy of conn..." << std::endl;
 	std::cout << "Particle at index 5 is connected to " << std::endl;
 
@@ -30,7 +43,7 @@ int main(){
 	for (Particle p: pvec1){
 		p.print_loc();
 	}*/
-
+	/*
 	Gp.polymer.find_cranks();
 	Gp.print_polymer();
 	std::cout << "===================" << std::endl;
@@ -68,6 +81,7 @@ int main(){
 	Gp.kink_jump();
 	std::cout << "=================== Post kink jump 6 =================" << std::endl;
 	Gp.print_polymer();
+	*/ 
 
 	return 0;
 }

@@ -225,8 +225,8 @@ public:
 	void reptation(); 
 
 	// requires two child functions
-	void FinalIndexToZeroIndex(); 
-	void ZeroIndexToFinalIndex(); 
+	void FinalToZero(); 
+	void ZeroToFinal(); 
 	// ====================================
 
 

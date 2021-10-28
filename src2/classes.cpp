@@ -385,12 +385,16 @@ void Grid::crank_shaft() {
 void Grid::FinalToZero(){
     
     std::vector <std::vector <int>> ne_list = this->polymer.chain.at(0).nlist(this->x_len, this->y_len, this->z_len); 
+
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(1).loc ), ne_list.end() );
 
-    std::vector <std::vector <int>> popFinal = this->polymer.p_locs.pop_back(); 
+    this->polymer.p_locs.pop_back();
+    
+    std::vector <std::vector <int>> popFinal = this->polymer.p_locs; 
+
     for (std::vector <int> to_check: ne_list){
         if (check_avoidance(to_check, popFinal)){
-            popFinal.insert(popFinal.begin, to_check); 
+            popFinal.insert(popFinal.begin(), to_check); 
             this->polymer.p_locs = popFinal; 
             this->polymer.chain = loc2part(popFinal, "polymer");  
             this->polymer.obtain_connectivity(); 
@@ -408,7 +412,9 @@ void Grid::ZeroToFinal(){
 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(size-1).loc ), ne_list.end() ); 
 
-    std::vector <std::vector <int>> popZero = this->polymer.p_locs.erase(this->polymer.p_locs.begin()); // erase first element of plocs
+    this->polymer.p_locs.erase(this->polymer.p_locs.begin()); 
+
+    std::vector <std::vector <int>> popZero = this->polymer.p_locs; // erase first element of plocs
 
     for (std::vector <int> to_check: ne_list){
         if (check_avoidance(to_check, popZero)){

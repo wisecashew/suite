@@ -17,24 +17,31 @@ void Particle::print_loc(){
     return;
 }
 
-std::vector <Particle> loc2part(std::vector<std::vector<int>> loc_list, std::string s ){
-    std::vector <Particle> pvec; 
-    for (std::vector <int> loc: loc_list){
-        Particle p(loc, s); 
-        pvec.push_back(p);
-    }; 
-
-    return pvec; 
-}
 
 
-std::vector <std::vector <int> > Particle::nlist(int x_len, int y_len, int z_len){
-    return obtain_ne_list(this->loc, x_len, y_len, z_len); 
-}
 
 
-// END OF METHODS FOR CLASS PARTICLE
-// #####################################
+
+
+
+
+
+
+// END OF METHODS FOR CLASS PARTICLE 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // methods for class Polymer :
 
@@ -67,26 +74,16 @@ void Polymer::obtain_connectivity() {
     return;
 }; 
 
-// get the plocs attribute 
-void Polymer::get_plocs(){
-    this->p_locs.reserve(this->chain.size());
-
-    for (Particle p: this->chain ){
-        this->p_locs.push_back(p.loc);
-    }
-    return ;
-}
-
 
 // find if there are any kinks in the polymer structure 
 std::vector <int> Polymer::find_kinks(){
-
+    int dop = this->chain.size(); 
     std::vector <int> kink_indices; 
     
     // obtain all location where kinks exist in the polymer 
-    for (int i{0}; i<this->dop-2; i++){
-        std::vector <int> v1 = subtract_vectors(&(this->p_locs.at(i+1)), &(this->p_locs.at(i)));
-        std::vector <int> v2 = subtract_vectors(&(this->p_locs.at(i+2)), &(this->p_locs.at(i+1)));
+    for (int i{0}; i< dop-2; i++){
+        std::vector <int> v1 = subtract_vectors(&(this->chain.at(i+1).loc), &(this->chain.at(i).loc) );
+        std::vector <int> v2 = subtract_vectors(&(this->chain.at(i+2).loc), &(this->chain.at(i+1).loc) );
 
         if (v1==v2){
             continue;            
@@ -108,12 +105,12 @@ std::vector <int> Polymer::find_kinks(){
 
 // find if there any cranks in the polymer structure 
 std::vector <int> Polymer::find_cranks(){
-
+    int dop = this->chain.size(); 
     std::vector <int> crank_indices;
     // obtain all locations where kinks exist in the polymer 
-    for (int i{0}; i<this->dop-3; i++){
-        std::vector <int> v1 = subtract_vectors(&(this->p_locs.at(i+1)), &(this->p_locs.at(i))); 
-        std::vector <int> v2 = subtract_vectors(&(this->p_locs.at(i+2)), &(this->p_locs.at(i+3)));
+    for (int i{0}; i< dop-3; i++){
+        std::vector <int> v1 = subtract_vectors(&(this->chain.at(i+1).loc), &(this->chain.at(i).loc) ); 
+        std::vector <int> v2 = subtract_vectors(&(this->chain.at(i+2).loc), &(this->chain.at(i+3).loc) );
 
         //
 
@@ -136,6 +133,30 @@ std::vector <int> Polymer::find_cranks(){
 // ######################################
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // methods for class Solvent:
 
 void Solvent::print_loc(){
@@ -149,6 +170,20 @@ void Solvent::print_loc(){
 
 // END OF CLASS SOLVENT
 // #####################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // methods for class Grid 
@@ -186,12 +221,12 @@ void Grid::polymer_insertion(int dop, std::vector <int> seed ){
     // the assumption of this method is that the seed is an available spot 
     
     // this->occupied = loc2part(loc_list);
-    this->polymer = loc2part(loc_list, "polymer"); 
+    this->polymer.chain = loc2part(loc_list, "polymer"); 
 
     for (Particle p: this->polymer.chain){
         this->occupied.push_back(p); 
     }
-
+    this->polymer.obtain_connectivity();
     return; 
 
 };
@@ -232,10 +267,8 @@ void Grid::solvate(){
 
 void Grid::ZeroIndexRotation(){
 
-    Particle pNextToEdge = this->polymer.chain.at(1);         // .at(.size()-2) for the other edge 
-
     // get this particles neighborlist 
-    std::vector <std::vector <int> > ne_list = pNextToEdge.nlist(this->x_len, this->y_len, this->z_len); 
+    std::vector <std::vector <int> > ne_list = obtain_ne_list(this->polymer.chain.at(1).loc, this->x_len, this->y_len, this->z_len); 
 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(0).loc ), ne_list.end() );
@@ -247,11 +280,10 @@ void Grid::ZeroIndexRotation(){
 
     std::shuffle(std::begin(ne_list), std::end(ne_list), std::default_random_engine() ); 
     for (std::vector <int> to_rot:  ne_list ) {
-        if (check_avoidance( to_rot, this->polymer.p_locs) ){
+        if (check_avoidance( to_rot, part2loc(this->polymer.chain)) ){
 
             
             this->polymer.chain.at(0).loc = to_rot;
-            this->polymer.p_locs.at(0) = to_rot;
             this->polymer.obtain_connectivity(); 
             break;
         }
@@ -268,7 +300,7 @@ void Grid::FinalIndexRotation(){
     int dop = polymer.chain.size(); 
     Particle pNextToEdge = this->polymer.chain.at(dop-2);         // .at(.size()-2) for the other edge 
     // get this particles neighborlist 
-    std::vector <std::vector <int> > ne_list = pNextToEdge.nlist(this->x_len, this->y_len, this->z_len); 
+    std::vector <std::vector <int> > ne_list = obtain_ne_list(this->polymer.chain.at(dop-2).loc, this->x_len, this->y_len, this->z_len); 
 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(dop-1).loc ), ne_list.end() );
@@ -280,11 +312,10 @@ void Grid::FinalIndexRotation(){
 
     std::shuffle(std::begin(ne_list), std::end(ne_list), std::default_random_engine() ); 
     for (std::vector <int> to_rot:  ne_list ) {
-        if (check_avoidance( to_rot, this->polymer.p_locs) ){
+        if (check_avoidance( to_rot, part2loc(this->polymer.chain) ) ){
 
 
             this->polymer.chain.at(dop-1).loc = to_rot;
-            this->polymer.p_locs.at(dop-1) = to_rot;
             this->polymer.obtain_connectivity(); 
             break;
         }
@@ -312,7 +343,7 @@ void Grid::end_rotation() {
 
     else{
         std::cout << "Final index is being rotated!" << std::endl;
-        FinalIndexRotation();
+        this->FinalIndexRotation();
     }
 
     return; 
@@ -333,11 +364,10 @@ void Grid::kink_jump() {
         std::vector <int> d2 = subtract_vectors(&(this->polymer.chain.at(idx+2).loc), &(this->polymer.chain.at(idx+1).loc));
 
         std::vector <int> to_check = add_vectors(&(this->polymer.chain.at(idx).loc), &d2); 
-        if (check_avoidance(to_check, this->polymer.p_locs)){
+        if (check_avoidance(to_check, part2loc(this->polymer.chain)) ) {
 
 
             this->polymer.chain.at(idx+1).loc = to_check; 
-            this->polymer.p_locs.at(idx+1) = to_check; 
             this->polymer.obtain_connectivity();
             return; 
         } 
@@ -368,12 +398,11 @@ void Grid::crank_shaft() {
         impose_pbc(&to_check_1, this->x_len, this->y_len, this->z_len);
         impose_pbc(&to_check_2, this->x_len, this->y_len, this->z_len);
 
-        if ((check_avoidance(to_check_1, this->polymer.p_locs)) && (check_avoidance(to_check_2, this->polymer.p_locs) )) {
+        if ((check_avoidance(to_check_1, part2loc(this->polymer.chain)) ) && (check_avoidance(to_check_2, part2loc(this->polymer.chain)) ) ) {
 
             // reupdate polymer now that I have changed it 
             this->polymer.chain.at(idx+1).loc = to_check_1;
             this->polymer.chain.at(idx+2).loc = to_check_2; 
-            this->polymer.get_plocs();
             this->polymer.obtain_connectivity(); 
             return;
         }
@@ -391,13 +420,13 @@ void Grid::crank_shaft() {
 
 void Grid::FinalToZero(){
     
-    std::vector <std::vector <int>> ne_list = this->polymer.chain.at(0).nlist(this->x_len, this->y_len, this->z_len); 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list(this->polymer.chain.at(0).loc, this->x_len, this->y_len, this->z_len); 
 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(1).loc ), ne_list.end() );
 
-    this->polymer.p_locs.pop_back();
+    this->polymer.chain.pop_back();
 
-    std::vector <std::vector <int>> popFinal = this->polymer.p_locs; 
+    std::vector <std::vector <int>> popFinal = part2loc(this->polymer.chain); 
 
     for (std::vector <int> to_check: ne_list){
         if (check_avoidance(to_check, popFinal)){
@@ -405,7 +434,6 @@ void Grid::FinalToZero(){
 
             // since I have changed the position of my polymer, I am required to update it 
 
-            this->polymer.p_locs = popFinal; 
             this->polymer.chain = loc2part(popFinal, "polymer");  
             this->polymer.obtain_connectivity(); 
             return; 
@@ -418,21 +446,19 @@ void Grid::FinalToZero(){
 void Grid::ZeroToFinal(){
 
     int size = this->polymer.chain.size(); 
-    std::vector <std::vector <int>> ne_list = this->polymer.chain.at(size-1).nlist(this->x_len, this->y_len, this->z_len); 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list(this->polymer.chain.at(size-1).loc, this->x_len, this->y_len, this->z_len); 
 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->polymer.chain.at(size-1).loc ), ne_list.end() ); 
 
-    this->polymer.p_locs.erase(this->polymer.p_locs.begin()); 
+    this->polymer.chain.erase(this->polymer.chain.begin() ); 
 
-    std::vector <std::vector <int>> popZero = this->polymer.p_locs; // erase first element of plocs
+    std::vector <std::vector <int>> popZero = part2loc(this->polymer.chain) ; // erase first element of plocs
 
     for (std::vector <int> to_check: ne_list){
         if (check_avoidance(to_check, popZero)){
             popZero.push_back(to_check); 
 
             // since I have changed the position of my polymer, I am required to update it 
-
-            this->polymer.p_locs = popZero; 
             this->polymer.chain = loc2part(popZero, "polymer"); 
             this->polymer.obtain_connectivity(); 
             return; 

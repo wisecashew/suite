@@ -7,10 +7,10 @@
 
 int main(){
 
-	int x_len {100}, y_len{100}, z_len{100}; 
+	int x_len {16}, y_len{16}, z_len{16}; 
 	std::vector <int> seed{0,0,0}; 		 		// this is where the first polymer particle will fall 
 
-	int dop = 40;								// degree of polymerization 
+	int dop = 12;								// degree of polymerization 
 
 	Grid Gp( x_len, y_len, z_len); 				// instantiate Grid 
 	Gp.polymer_insertion(dop, seed); 			// drop the polymer in 

@@ -479,7 +479,7 @@ void Grid::reptation() {
 
 int Grid::CalcEn(){
 
-    return PolymerEnergySolvation(this->polymer.chain, this->x_len, this->y_len, this->z_len, -1); 
+    return PolymerEnergySolvation(this->polymer.chain, this->x_len, this->y_len, this->z_len, -1, -1); 
 
 }
 
@@ -492,7 +492,7 @@ int Grid::CalcEn(){
 void Grid::ZeroIndexRotation_MC(){
 
     std::vector <Particle> cPolymer = this->polymer.chain;         // current configuration in cPolymer
-    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
     std::cout << "E1 is " << E1 << std::endl;
     // get this particles neighborlist 
     std::vector <std::vector <int> > ne_list = obtain_ne_list(this->polymer.chain.at(1).loc, this->x_len, this->y_len, this->z_len); 
@@ -509,7 +509,7 @@ void Grid::ZeroIndexRotation_MC(){
         if (check_avoidance( to_rot, part2loc(cPolymer)) ){
             
             cPolymer.at(0).loc = to_rot;
-            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); // -1 is interaction energy
+            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); // -1 is interaction energy
 
             if ( acceptance( E2-E1, 1)){
                 this->polymer.chain.at(0).loc = to_rot;
@@ -540,7 +540,7 @@ void Grid::FinalIndexRotation_MC(){
     int dop = polymer.chain.size(); 
 
     std::vector <Particle> cPolymer = this->polymer.chain;         // current configuration of polymer 
-    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
     std::cout << "E1 is " << E1 << std::endl;
     // get this particles neighborlist 
     std::vector <std::vector <int> > ne_list = obtain_ne_list(this->polymer.chain.at(dop-2).loc, this->x_len, this->y_len, this->z_len); 
@@ -558,7 +558,7 @@ void Grid::FinalIndexRotation_MC(){
         if (check_avoidance( to_rot, part2loc(cPolymer)) ){
 
             cPolymer.at(dop-1).loc = to_rot;
-            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
 
             if (acceptance (E2-E1, 1)){
 
@@ -612,7 +612,7 @@ void Grid::FinalToZero_MC(){
 
     // this is the critical energy calculation move 
 
-    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
     std::cout << "E1 is " << E1 << std::endl;
 
     std::vector <std::vector <int>> ne_list = obtain_ne_list(this->polymer.chain.at(0).loc, this->x_len, this->y_len, this->z_len); 
@@ -629,7 +629,7 @@ void Grid::FinalToZero_MC(){
         if (check_avoidance(to_check, popFinal)){
             popFinal.insert(popFinal.begin(), to_check); 
             cPolymer = loc2part(popFinal, "polymer"); 
-            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
 
             if (acceptance((E2-E1), 1)){
             this->polymer.chain = loc2part(popFinal, "polymer");  
@@ -659,7 +659,7 @@ void Grid::ZeroToFinal_MC(){
 
     // critical energy calculation move 
 
-    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
     std::cout << "E1 is " << E1 << std::endl;
 
     std::vector <std::vector <int>> ne_list = obtain_ne_list(this->polymer.chain.at(size-1).loc, this->x_len, this->y_len, this->z_len); 
@@ -676,7 +676,7 @@ void Grid::ZeroToFinal_MC(){
         if (check_avoidance(to_check, popZero)){
             popZero.push_back(to_check); 
             cPolymer = loc2part(popZero, "polymer"); 
-            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
 
             if (acceptance((E2-E1), 1)){
             // since I have changed the position of my polymer, I am required to update it 
@@ -727,7 +727,7 @@ void Grid::reptation_MC() {
 void Grid::kink_jump_MC() {
 
     std::vector <Particle> cPolymer = this->polymer.chain; 
-    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
     std::cout << "E1 is " << E1 << std::endl;    
 
 
@@ -744,7 +744,7 @@ void Grid::kink_jump_MC() {
         if (check_avoidance(to_check, part2loc(this->polymer.chain)) ) {
 
             cPolymer.at(idx+1).loc = to_check; 
-            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
 
             if (acceptance(E2-E1, 1)){
             this->polymer.chain.at(idx+1).loc = to_check; 
@@ -771,7 +771,7 @@ void Grid::kink_jump_MC() {
 void Grid::crank_shaft_MC() {
 
     std::vector <Particle> cPolymer = this->polymer.chain; 
-    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+    int E1 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
     std::cout << "E1 is " << E1 << std::endl;
 
     std::vector <int> c_idx = this->polymer.find_cranks(); 
@@ -799,7 +799,7 @@ void Grid::crank_shaft_MC() {
             cPolymer.at(idx+1).loc = to_check_1; 
             cPolymer.at(idx+2).loc = to_check_1; 
 
-            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1); 
+            int E2 = PolymerEnergySolvation(cPolymer, this->x_len, this->y_len, this->z_len, -1, -1); 
 
             if (acceptance(E2-E1, 1)){
             this->polymer.chain.at(idx+1).loc = to_check_1;

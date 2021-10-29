@@ -53,6 +53,6 @@ bool acceptance(int dE, double kT);
 // calculate energy of polymer-solvent interaction only 
 int PolymerEnergySolvent(std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy);
 
-int PolymerEnergySolvation(std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy);
+int PolymerEnergySolvation(std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy, int intr_energymm);
 
 #endif 

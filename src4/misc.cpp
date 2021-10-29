@@ -264,29 +264,49 @@ bool acceptance(int dE, double kT){
 // calculate energy of a polymeric chain, with edge lengths  
 // ===================================================================
 
-int PolymerEnergySolvation(std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy){
+int PolymerEnergySolvation(std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy, int intr_energymm){
 
 	// get all the neighboring sites for the polymer 
-	
+	// this only works for a single polymer 
+
 	std::vector <std::vector <int>> poly_ne_list;
 	std::vector <std::vector <int>> nl; 
 	std::vector <std::vector <int>> loc_list = part2loc(polymer); 
 	
+	int count = 0; 
+	int z = 6; // coordination number in 3d 
+	int mm_intrs = 0; 
 	for (Particle p: polymer){
 
 		nl = obtain_ne_list(p.loc, x_len, y_len, z_len); 
-		
+
 		for (std::vector <int> v: loc_list){
 			
 			nl.erase(std::remove(nl.begin(), nl.end(), v), nl.end());
-			
 		}
-		
 
+
+		if (count==0){
+			mm_intrs += (z-nl.size()-1); 
+			}
+		else if (count == polymer.size()-1){
+				mm_intrs += (z-nl.size()-1); 
+			}
+		else {
+				mm_intrs += (z-nl.size()-2);
+			}
+		
+		count += 1; 
 		poly_ne_list.insert( poly_ne_list.end(), nl.begin(), nl.end() ); // concatenate all neighbors in a location
 	}
 
-	int net_energy = poly_ne_list.size()*intr_energy_ms;
+	// std::cout << "mm intrx energy is " << intr_energymm << std::endl;
+	// std::cout << "# of mm intrxs is " << mm_intrs << std::endl;
+	// std::cout <<"0.5*mm_intrs*intr_energymm = " << 0.5*mm_intrs*intr_energymm << std::endl;
+	int ms_energy = poly_ne_list.size()*intr_energy; 
+	int mm_energy = 0.5*mm_intrs*intr_energymm;
+
+	int net_energy = ms_energy + mm_energy;
 
 	return net_energy;
 

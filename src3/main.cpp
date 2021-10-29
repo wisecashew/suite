@@ -21,12 +21,16 @@ int main(){
 	Gp.print_polymer();
 
 	std::cout << "=======================" << std::endl;
-	std::cout << "Outputting all neighbors..." << std::endl;
+	// std::cout << "Outputting all neighbors..." << std::endl;
 	int energy = Gp.CalculateEnergy();
 
 	std::cout <<"Energy of the system is " << energy << std::endl; 
 
 	acceptance(1, 1); 
+
+	std::cout << "hello"<< std::endl;
+	Gp.ZeroIndexRotation();
+	Gp.print_polymer();
 
 	
 

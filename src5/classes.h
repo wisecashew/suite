@@ -103,8 +103,7 @@ public:
     // plant the polymer from input file 
     void plantPolymersInGrid(std::string filename);  
 
-    // check validity of input coords
-    bool checkValidityOfCoords(std::vector <int> v);
+
 
 
     int ExtractNumberOfPolymers(std::string filename);
@@ -115,6 +114,12 @@ public:
     
 
     void CalculateEnergy(); 
+
+
+    // check validity of input coords
+    bool checkValidityOfCoords(std::vector <int> v);
+    bool checkForOverlaps(std::vector <Polymer> PolymerVector); 
+    bool checkConnectivity(std::vector <Polymer> PolymerVector); 
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // terminal end rotation 
@@ -153,6 +158,10 @@ public:
     void Reptation(int polymer_index); 
     void Reptation_MC(int polymer_index); 
 
+
+
+    void MonteCarloExecuter(int move_index, int polymer_index);
+    void TheElementaryGridEvolver();
 }; 
 
 

@@ -33,7 +33,76 @@ void impose_pbc(std::vector <int>* vect, int x_len, int y_len, int z_len){
 	
 	return; 
 }
+
+
 //=====================================================
+
+int modified_modulo(int divident, int divisor){
+	double midway = static_cast<double>(divisor/2); 
+	int result; 
+	if (divident%divisor > midway){
+		result = (divident%divisor)-divisor; 
+		return result; 
+	}
+	else {
+		return (divident%divisor);
+	}
+
+}
+
+//=====================================================
+
+int rng_uniform(int start, int end){
+	unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (start, end);
+
+    return distribution(generator); 
+
+}
+
+double rng_uniform(double start, double end){
+	
+	std::default_random_engine generator; 
+	std::uniform_real_distribution <double> distribution (start, end); 
+	generator.seed(std::chrono::system_clock::now().time_since_epoch().count());
+	
+	return distribution (generator); 
+
+}
+
+
+
+
+
+
+
+//=====================================================
+std::vector <std::vector <int>> HingeSwingDirections(std::vector <int>* HingeToHinge, std::vector <int>* HingeToKink, int x, int y, int z){
+    
+    (*HingeToHinge).at(0) = modified_modulo((*HingeToHinge).at(0), x); 
+    (*HingeToHinge).at(1) = modified_modulo((*HingeToHinge).at(1), y); 
+    (*HingeToHinge).at(2) = modified_modulo((*HingeToHinge).at(2), z); 
+
+    (*HingeToKink).at(0) = modified_modulo((*HingeToKink).at(0), x); 
+    (*HingeToKink).at(1) = modified_modulo((*HingeToKink).at(1), y); 
+    (*HingeToKink).at(2) = modified_modulo((*HingeToKink).at(2), z); 
+
+
+    std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1};     // unit directions 
+    std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};                           // vector of unit directions 
+
+
+    // get rid of HingeToHinge and its negative from drns 
+    std::vector <int> nHingeToHinge = {-(*HingeToHinge).at(0), -(*HingeToHinge).at(1), -(*HingeToHinge).at(2)}; 
+
+    drns.erase(std::remove(drns.begin(), drns.end(), *HingeToHinge), drns.end() ); 
+    drns.erase(std::remove(drns.begin(), drns.end(), nHingeToHinge), drns.end() );  
+    drns.erase(std::remove(drns.begin(), drns.end(), *HingeToKink), drns.end() ); 
+
+    return drns; 
+
+}
 
 
 //=====================================================
@@ -101,7 +170,11 @@ bool check_avoidance(const std::vector <int> to_check, const std::vector<std::ve
 	}
 	return true;
 }
+
 //=====================================================
+// function to get rid of unnecesaary directions for crank shafts 
+//=====================================================
+
 
 
 //=====================================================
@@ -254,8 +327,8 @@ bool acceptance(int dE, double kT){
 	// std::cout << "probability of move is " << prob << std::endl; 
 	// std::cout << "rng is " << num << std::endl;
 	
-	std::cout << "random number is " << num << std::endl; 
-	std::cout << "probability is " << prob << std::endl;
+	// std::cout << "random number is " << num << std::endl; 
+	// std::cout << "probability is " << prob << std::endl;
 	if (num <= prob){
 		return true;
 	}

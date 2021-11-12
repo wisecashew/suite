@@ -30,10 +30,8 @@ void Grid::instantiateOccupancyMap(){
 }
 
 
-
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
 bool Grid::checkValidityOfCoords(std::vector <int> v){
@@ -46,6 +44,68 @@ bool Grid::checkValidityOfCoords(std::vector <int> v){
 }
 
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+bool Grid::checkForOverlaps(std::vector <Polymer> PolymerVector){
+    
+    std::vector <std::vector <int>> loc_list; 
+
+    for (Polymer pmer: PolymerVector){
+        for (Particle p: pmer.chain){
+            // check if element exists in vector 
+                if (std::find(loc_list.begin(), loc_list.end(), p.coords) != loc_list.end() ){
+                    std::cerr << "you have a repeated element." << std::endl;
+                    // std::cout << "current element is: " << std::endl;
+                    // print(p.coords); 
+                    // print(loc_list);
+                    return false; 
+                    }
+            
+                else{
+                    loc_list.push_back(p.coords);  
+                }
+            }
+        }    
+    
+    std::cout << "Input file has no overlaps!" << std::endl;
+    return true;
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+bool Grid::checkConnectivity(std::vector <Polymer> PolymerVector) {
+    std::vector <int> d1 = {0, 0, 1}; 
+    std::vector <int> d4 = {0, 0, 9}; 
+    for (Polymer pmer: PolymerVector){
+        size_t length = pmer.chain.size(); 
+        std::vector <int> connection; 
+        for (int i{1}; i<length; i++){
+            connection = subtract_vectors(&(pmer.chain.at(i).coords), &(pmer.chain.at(i-1).coords));
+            impose_pbc(&connection, this->x, this->y, this->z);
+            std::sort(connection.begin(), connection.end()); 
+            if (connection == d1 || connection == d4 ){
+                continue; 
+            }
+            else {
+                std::cerr << "you have bad connectivity inside one (or maybe more) polymers." << std::endl;
+                return false; 
+            }
+
+        }
+    }
+
+    std::cout << "Input polymers are well-connected!" << std::endl;
+    return true;
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
@@ -146,7 +206,7 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
         if (!this->checkValidityOfCoords(loc)){
             std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
-            return;
+            exit(EXIT_FAILURE); 
         }
         Particle p (loc); 
         // print(loc);
@@ -173,9 +233,29 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
 
     }
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+    if(!(this->checkForOverlaps(PolymerVector))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Overlap detected." << std::endl;
+        exit(EXIT_FAILURE);  
+    }
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    // throw in a check for connectivity of polymer chains 
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    if (!(this->checkConnectivity(PolymerVector))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Monomer units are not adjacent to one another on the lattice." << std::endl;
+        exit(EXIT_FAILURE); 
+    }
     
 
     this->PolymersInGrid = PolymerVector;
+    this->CalculateEnergy();
     return; 
 }
 
@@ -289,7 +369,10 @@ void Grid::ZeroIndexRotation_MC(int index){
     // find a location that is unoccupied 
     // use the occupancy map 
 
-    for (std::vector <int> to_rot: ne_list){
+    int choice = rng_uniform(0, static_cast<int>(ne_list.size()-1));
+    std::vector <int> to_rot = ne_list.at(choice); 
+
+    // for (std::vector <int> to_rot: ne_list){//
         if (this->OccupancyMap[to_rot]==0){
             // make the copy 
             G_temp.PolymersInGrid.at(index).chain.at(0).coords=to_rot;
@@ -326,7 +409,7 @@ void Grid::ZeroIndexRotation_MC(int index){
             std::cout << "this location is occupied..." << std::endl;
         }
 
-    }
+    // }//
 
     return; 
 }    
@@ -410,7 +493,11 @@ void Grid::FinalIndexRotation_MC(int index){
     // find a location that is unoccupied 
     // use the occupancy map 
 
-    for (std::vector <int> to_rot: ne_list){
+    int choice = rng_uniform(0, static_cast<int>(ne_list.size()-1));
+    std::vector <int> to_rot = ne_list.at(choice); 
+
+
+    // for (std::vector <int> to_rot: ne_list){ //
         if (this->OccupancyMap[to_rot]==0){
             // make the copy 
             G_temp.PolymersInGrid.at(index).chain.at(DoP-1).coords = to_rot; 
@@ -423,8 +510,8 @@ void Grid::FinalIndexRotation_MC(int index){
             double Ef = G_temp.Energy;
 
             std::cout << "Test config energy is " << Ef << std::endl;
-            std::cout << "Chain configuration is" <<std::endl;
-            G_temp.PolymersInGrid.at(index).printChainCoords();
+            // std::cout << "Chain configuration is" <<std::endl;
+            // G_temp.PolymersInGrid.at(index).printChainCoords();
 
             if (acceptance (Ef-Ei, this->kT)){
                 // update OccupancyMap 
@@ -450,7 +537,7 @@ void Grid::FinalIndexRotation_MC(int index){
             print(to_rot); 
             std::cout << "this location is occupied..." << std::endl;
         }
-    }
+    //} //
 
     return; 
 
@@ -495,13 +582,13 @@ void Grid::EndRotation_MC(int index){
     std::mt19937 generator(seed); 
     std::uniform_int_distribution<int> distribution (0,1); 
     int num = distribution(generator); 
-    std::cout << "rng is " << num << std::endl;
+    // std::cout << "rng is " << num << std::endl;
     if (num==0){
-        std::cout << "Zero index rotation!" << std::endl;
+        // std::cout << "Zero index rotation!" << std::endl;
         this->ZeroIndexRotation_MC(index); 
     }
     else {
-        std::cout << "Final index rotation!" << std::endl;
+        // std::cout << "Final index rotation!" << std::endl;
         this->FinalIndexRotation_MC(index); 
 
     }
@@ -578,8 +665,11 @@ void Grid::KinkJump_MC(int index) {
 
     std::shuffle(std::begin(k_idx), std::end(k_idx), std::default_random_engine() ); 
 
-    for (int idx: k_idx){
-        std::cout << "idx right before kink spot is " << idx << std::endl;
+    int choice = rng_uniform(0, static_cast<int>(k_idx.size()-1));
+    int idx = k_idx.at(choice); 
+
+    // for (int idx: k_idx){
+        // std::cout << "idx right before kink spot is " << idx << std::endl;
 
         std::vector <int> d1 = subtract_vectors (&(this->PolymersInGrid.at(index).chain.at(idx+1).coords), &(this->PolymersInGrid.at(index).chain.at(idx).coords) );
         std::vector <int> d2 = subtract_vectors (& (this->PolymersInGrid.at(index).chain.at(idx+2).coords), &(this->PolymersInGrid.at(index).chain.at(idx+1).coords) ); 
@@ -623,12 +713,12 @@ void Grid::KinkJump_MC(int index) {
         }
 
         else {
-            print(to_check);
+            // print(to_check);
             std::cout << "this location is occupied..." << std::endl;
         }
 
 
-    }
+    //}
 
     return; 
 
@@ -690,6 +780,9 @@ void Grid::CrankShaft(int index){
 
 void Grid::CrankShaft_MC(int index){
 
+    double Ei = this->Energy; 
+    std::cout << "initial energy is " << Ei << std::endl;
+    
     std::vector <int> c_idx = this->PolymersInGrid.at(index).findCranks(); 
     if ( c_idx.size()==0 ){
         std::cout << "No cranks in this polymer..." << std::endl; 
@@ -703,14 +796,32 @@ void Grid::CrankShaft_MC(int index){
     G_temp.OccupancyMap = this->OccupancyMap; 
 
     // get energy of the current system 
-    double Ei = this->Energy; 
-    std::cout << "initial energy is " << Ei << std::endl;
 
-    for (int idx: c_idx){
-        std::vector <int> d1 = subtract_vectors (&(this->PolymersInGrid.at(index).chain.at(idx+3).coords), &(this->PolymersInGrid.at(index).chain.at(idx+2).coords));
+    int choice_idx = rng_uniform(0, static_cast<int>(c_idx.size()-1)); 
+    int idx = c_idx.at(choice_idx); 
 
-        std::vector <int> to_check_1 = add_vectors(&(this->PolymersInGrid.at(index).chain.at(idx).coords), &d1);
-        std::vector <int> to_check_2 = add_vectors(&(this->PolymersInGrid.at(index).chain.at(idx+3).coords), &d1);
+    // for (int idx: c_idx){//
+
+        // there are three ways to crank shaft 
+
+        // complete 180, positive 90, negative 90 
+
+        // first I need to get the currated vector of directions 
+        std::vector <int> HingeToKink = subtract_vectors (&(this->PolymersInGrid.at(index).chain.at(idx+2).coords), &(this->PolymersInGrid.at(index).chain.at(idx+3).coords));
+        std::vector <int> HingeToHinge = subtract_vectors(&(this->PolymersInGrid.at(index).chain.at(idx+3).coords), &(this->PolymersInGrid.at(index).chain.at(idx).coords) );
+
+        std::vector <std::vector <int>> drns = HingeSwingDirections(&(HingeToHinge), &(HingeToKink), this->x, this->y, this->z); 
+
+        // pick a direction to swing in 
+
+        int choice = rng_uniform(0, 2); 
+        // std::cout << "choice is " << choice << std::endl; 
+        
+        std::vector <int> d1 = drns.at(choice); 
+        // print(d1);
+
+        std::vector <int> to_check_1 = add_vectors (&(this->PolymersInGrid.at(index).chain.at(idx).coords), &d1);
+        std::vector <int> to_check_2 = add_vectors (&(this->PolymersInGrid.at(index).chain.at(idx+3).coords), &d1);
         impose_pbc(&to_check_1, this->x, this->y, this->z); 
         impose_pbc(&to_check_2, this->x, this->y, this->z); 
 
@@ -730,7 +841,7 @@ void Grid::CrankShaft_MC(int index){
             // get the new energy 
             G_temp.CalculateEnergy(); 
             double Ef = G_temp.Energy; 
-            std::cout << "Test config energy for kink is " << Ef << std::endl;
+            std::cout << "Test config energy for crank is " << Ef << std::endl;
 
             if (acceptance(Ef-Ei, this->kT)){
                 // update OccupancyMap idx+1
@@ -763,7 +874,7 @@ void Grid::CrankShaft_MC(int index){
 
 
 
-    }    
+    //}    //
 
 
 
@@ -826,7 +937,11 @@ void Grid::ZeroToFinalReptation_MC(int index){
     // get rid of second to last monomer position from ne list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->PolymersInGrid.at(index).chain.at(size-2).coords), ne_list.end() );
 
-    for (std::vector <int> v: ne_list){
+    int choice = rng_uniform(0, static_cast<int>(ne_list.size()-1));
+    std::vector <int> v = ne_list.at(choice); 
+
+
+    // for (std::vector <int> v: ne_list){ //
         if (this->OccupancyMap[v] == 0){
 
             G_temp.OccupancyMap[G_temp.PolymersInGrid.at(index).chain.at(0).coords] = 0;
@@ -864,10 +979,10 @@ void Grid::ZeroToFinalReptation_MC(int index){
         }
 
         else {
-            print(v); 
+            // print(v); 
             std::cout << "this location is occupied..." << std::endl;
         }
-    }
+    //} // 
 
     return;
 
@@ -897,6 +1012,7 @@ void Grid::FinalToZeroReptation(int index){
             this->PolymersInGrid.at(index).chain.insert(this->PolymersInGrid.at(index).chain.begin(), p);
             this->OccupancyMap[v] = 1; 
             this->PolymersInGrid.at(index).ChainToConnectivityMap(); 
+
 
             return;  
         }
@@ -929,7 +1045,10 @@ void Grid::FinalToZeroReptation_MC(int index){
     // get rid of second to last monomer position from ne list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), this->PolymersInGrid.at(index).chain.at(1).coords), ne_list.end() ); 
 
-    for (std::vector <int> v: ne_list){
+    int choice = rng_uniform(0, static_cast<int>(ne_list.size()-1));
+    std::vector <int> v = ne_list.at(choice); 
+
+    //for (std::vector <int> v: ne_list){ //
         if (this->OccupancyMap[v]==0){
 
             G_temp.OccupancyMap[G_temp.PolymersInGrid.at(index).chain.at(size-1).coords] = 0; 
@@ -965,10 +1084,10 @@ void Grid::FinalToZeroReptation_MC(int index){
         }
 
         else {
-            print(v); 
+            // print(v); 
             std::cout << "this location is occupied... " << std::endl;
         }
-    }
+    // }
 
     return; 
 }
@@ -981,7 +1100,7 @@ void Grid::Reptation_MC(int index){
     std::mt19937 generator(seed); 
     std::uniform_int_distribution<int> distribution (0,1); 
     int num = distribution(generator); 
-    std::cout << "rng is " << num << std::endl;
+    // std::cout << "rng is " << num << std::endl;
     if (num==0){
         std::cout << "Zero-To-Final slither!" << std::endl;
         this->ZeroToFinalReptation_MC(index); 
@@ -1000,7 +1119,61 @@ void Grid::Reptation_MC(int index){
 
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
+
+void Grid::MonteCarloExecuter(int move_index, int polymer_index){
+
+    if (move_index == 1){
+        std::cout << "Running EndRotation on Polymer #" << polymer_index << std::endl;
+        this->EndRotation_MC(polymer_index);
+        return;
+    }
+    else if (move_index == 2){
+        std::cout << "Running Reptation_MC on Polymer #" << polymer_index << std::endl;
+        this->Reptation_MC(polymer_index); 
+        return; 
+    }
+    else if (move_index == 3){
+        std::cout << "Running KinkJump_MC on Polymer #" << polymer_index << std::endl;
+        this->KinkJump_MC(polymer_index); 
+        return;
+    }
+    else if (move_index == 4){
+        std::cout << "Running CrankShaft_MC on Polymer #" << polymer_index << std::endl;
+        this->CrankShaft_MC(polymer_index);
+        return; 
+    }
+
+    else {
+        std::cerr << "ERROR: bad move_index provided. it has to be between 1 and 4." << std::endl;
+        exit(EXIT_FAILURE); 
+    }
+
+    return;
+
+
+}
+
+
+void Grid::TheElementaryGridEvolver(){
+
+    // pick a polymer for a monte carlo move 
+    int polymer_idx = rng_uniform(0, static_cast<int>(this->PolymersInGrid.size()-1));  
+    int move_idx = rng_uniform(1, 4); // look at MonteCarloExecuter for the mapping 
+
+    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#" << std::endl << std::endl;
+
+    this->MonteCarloExecuter(move_idx, polymer_idx); 
+
+    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#" << std::endl<< std::endl;
+
+    return; 
+
+
+
+}
 
 
 
@@ -1123,9 +1296,6 @@ std::vector <int> Polymer::findCranks(){
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-
-
 
 
 

@@ -14,9 +14,20 @@ int main() {
     std::uniform_int_distribution<int> distribution (0,1); 
 	for (int i{0}; i<10; i++){
 
-    std::cout << "rng is " << distribution(generator) << std::endl;
+   // std::cout << "rng is " << distribution(generator) << std::endl;
 
 	}
+
+	std::vector <int> v = {5, 3, 2, 1, 3}; 
+	std::sort(v.begin(), v.end()) ; 
+	for (int i: v){
+		std::cout << i << " | ";
+	}
+	std::cout << std::endl;
+
+
+
+
 /*
 	std::vector <int> l {1, 2 , 3}, m { 2,3,3}, n {1,3,5};  
 

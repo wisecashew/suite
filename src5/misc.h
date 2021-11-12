@@ -61,8 +61,11 @@ int ExtractNumberOfPolymers(std::string filename);
 std::vector <std::string> ExtractContentFromFile(std::string filename);
 std::vector <Polymer> ExtractPolymersFromFile(std::string filename);
 
+std::vector <std::vector <int>> HingeSwingDirections(std::vector <int>* HingeToHinge, std::vector <int>* HingeToKink, int x, int y, int z); 
 
 
+int rng_uniform(int start, int end);
+double rng_uniform(double start, double end);
 
 
 #endif 

@@ -4,9 +4,20 @@
 #include <algorithm> 
 #include <map>
 #include "particle.h"
-
+#include <random>
+#include <chrono>
 int main() {
 
+
+	unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+	for (int i{0}; i<10; i++){
+
+    std::cout << "rng is " << distribution(generator) << std::endl;
+
+	}
+/*
 	std::vector <int> l {1, 2 , 3}, m { 2,3,3}, n {1,3,5};  
 
 	int a {2}; 
@@ -31,6 +42,6 @@ int main() {
 
 	std::map <Particle, std::vector <Particle>> pmaps; 
 
-
+*/
 	return 0; 
 }

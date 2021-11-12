@@ -131,7 +131,27 @@ public:
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // kink jump
     void KinkJump(int polymer_index); 
+    void KinkJump_MC(int polymer_index);
 
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    // crank shaft 
+    void CrankShaft(int polymer_index); 
+    void CrankShaft_MC(int polymer_index); 
+
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    // reptation 
+    void ZeroToFinalReptation(int index);
+    void ZeroToFinalReptation_MC(int index);
+
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    void FinalToZeroReptation(int index); 
+    void FinalToZeroReptation_MC(int index); 
+
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    void Reptation(int polymer_index); 
+    void Reptation_MC(int polymer_index); 
 
 }; 
 

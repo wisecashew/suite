@@ -17,7 +17,7 @@ int main() {
     G.ExtractPolymersFromFile("positions.txt");
     G.PolymersInGrid.at(0).printChainCoords();
     std::cout << "~=~=~+~+~+~+~+" << std::endl;
-    G.PolymersInGrid.at(1).printChainCoords();
+    //G.PolymersInGrid.at(1).printChainCoords();
     std::cout << "~=~=~+~+~+~+~+" << std::endl;
     G.CalculateEnergy(); 
     std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
@@ -25,15 +25,88 @@ int main() {
     // =============================
 
 
-    G.ZeroIndexRotation_MC(0); 
+    /*G.EndRotation_MC(0); 
+    G.CalculateEnergy(); 
+
+    G.PolymersInGrid.at(0).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    //G.PolymersInGrid.at(1).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+
+    //==============================
+
+    
+    G.EndRotation_MC(0); 
     G.CalculateEnergy(); 
 
     G.PolymersInGrid.at(0).printChainCoords();
     std::cout << "~=~=~+~+~+~+~+" << std::endl;
     G.PolymersInGrid.at(1).printChainCoords();
     std::cout << "~=~=~+~+~+~+~+" << std::endl;
-        std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+    std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+    
 
+    //==============================
+    G.KinkJump_MC(0);
+    G.CalculateEnergy(); 
+
+    G.PolymersInGrid.at(0).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    //G.PolymersInGrid.at(1).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+*/
+
+    //==============================
+    G.CrankShaft_MC(0);
+    G.CalculateEnergy(); 
+
+    
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    G.PolymersInGrid.at(0).printChainCoords();
+    //G.PolymersInGrid.at(1).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+
+
+    //==============================
+    G.ZeroToFinalReptation_MC(0);
+    G.CalculateEnergy(); 
+
+    
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    G.PolymersInGrid.at(0).printChainCoords();
+    //G.PolymersInGrid.at(1).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+
+    //==============================
+    G.FinalToZeroReptation_MC(0);
+    G.CalculateEnergy(); 
+
+    
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    G.PolymersInGrid.at(0).printChainCoords();
+    //G.PolymersInGrid.at(1).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+
+    for (int j=0; j< 3; j ++){
+    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
+    //==============================
+    G.Reptation_MC(0);
+    G.CalculateEnergy(); 
+
+    
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    G.PolymersInGrid.at(0).printChainCoords();
+    //G.PolymersInGrid.at(1).printChainCoords();
+    std::cout << "~=~=~+~+~+~+~+" << std::endl;
+    std::cout << "Energy of the system is " << G.Energy << std::endl << std::endl;
+
+
+    }
 
    
 

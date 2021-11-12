@@ -254,7 +254,8 @@ bool acceptance(int dE, double kT){
 	// std::cout << "probability of move is " << prob << std::endl; 
 	// std::cout << "rng is " << num << std::endl;
 	
-	
+	std::cout << "random number is " << num << std::endl; 
+	std::cout << "probability is " << prob << std::endl;
 	if (num <= prob){
 		return true;
 	}

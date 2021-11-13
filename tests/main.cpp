@@ -3,56 +3,49 @@
 #include <string>
 #include <algorithm> 
 #include <map>
-#include "particle.h"
 #include <random>
 #include <chrono>
-int main() {
+#include <getopt.h>
+#include <stdlib.h>
 
+int main(int argc, char *argv[])
+{
+  int opt;
 
-	unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
-    std::mt19937 generator(seed); 
-    std::uniform_int_distribution<int> distribution (0,1); 
-	for (int i{0}; i<10; i++){
+  int a; 
 
-   // std::cout << "rng is " << distribution(generator) << std::endl;
+  while ((opt = getopt(argc, argv, ":a:b:X")) != -1) 
+  {
+     switch (opt) 
+     {
+      case 'a':
+      	std::cout << "Option a has arg: "<<optarg << std::endl;
+      	a = atoi(optarg);
+        break;
+      case 'b':
+      	std::cout << "Option b has arg: "<<optarg << std::endl;
+        break;
+      case 'X':
+      	std::cout << "Option X was provided." << std::endl;
+        break;
+      case '?':
+        std::cout << "Unknown option " << optarg << " was provided." << std::endl;
+        break;
+      case ':':
+      	std::cout << "Missing arg for " << static_cast<char>(optopt) << std::endl;
+        break;
+     }
+  }
 
-	}
-
-	std::vector <int> v = {5, 3, 2, 1, 3}; 
-	std::sort(v.begin(), v.end()) ; 
-	for (int i: v){
-		std::cout << i << " | ";
-	}
-	std::cout << std::endl;
-
-
-
-
-/*
-	std::vector <int> l {1, 2 , 3}, m { 2,3,3}, n {1,3,5};  
-
-	int a {2}; 
-
-	std::vector <std::vector <int>> l2 = {l, m, n}; 
-
-	if ( std::find(l2.begin(), l2.end(), l) != l2.end() ){
-		std::cout << "the item was found" << std::endl;
-	} 
-	else {
-		std::cout << "the item was not found. " << std::endl;
-	}
-
-	std::vector <int> v {1,2}; 
-
-	std::map <std::string, std::vector <int> > M; 
-	M["Turf"] = v;
-
-	for (int i: M["Turf"]){
-		std::cout << i << std::endl;
-	}
-
-	std::map <Particle, std::vector <Particle>> pmaps; 
-
-*/
-	return 0; 
+    /* Get all of the non-option arguments */
+  std::cout << "a has value " << a << std::endl;
+  if (optind < argc) 
+  {
+    printf("Non-option args: ");
+    while (optind < argc)
+      printf("%s ", argv[optind++]);
+    printf("\n");
+  }
+  
+  return 0;
 }

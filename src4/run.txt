@@ -1,2 +1,0 @@
-
-g++ main.cpp misc.cpp classes.cpp -o exec

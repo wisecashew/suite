@@ -9,6 +9,7 @@
 #include <sstream> 
 #include <fstream> 
 #include <regex>
+#include <tuple> 
 
 const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
 const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  							// vector of unit directions 
@@ -115,6 +116,13 @@ void print(std::vector <int> v){
 	std::cout << std::endl;
 }
 
+void print(std::vector <double> v){
+	for (double i: v){
+		std::cout << i << " | ";
+	}
+	std::cout << std::endl;
+}
+
 //=====================================================
 // function to print out contents of a vector of vectors 
 //$====================================================
@@ -125,6 +133,11 @@ void print(std::vector <std::vector <int>>vv){
 	}
 }
 
+void print(std::vector <std::vector <double>>vv){
+	for (std::vector <double> v: vv){
+		print(v);
+	}
+}
 
 
 //======================================================
@@ -394,177 +407,90 @@ int PolymerEnergySolvation(std::vector <Particle> polymer, int x_len, int y_len,
 
 
 // ===================================================================
-// extract polymer 
+// extract information
 // ===================================================================
-/*
-int ExtractNumberOfPolymers(std::string filename){
-	std::regex start("START"); 
-	std::regex end ("END"); 
-	std::ifstream myfile (filename); 
 
-	std::string myString; 
-	std::vector <std::string> StartContents; 
-	std::vector <std::string> EndContents; 
 
-	int numberOfStarts {0}, numberOfEnds {0}; 
+std::vector <double> NumberExtractor(std::string s){
 
-	if (myfile.is_open()) {
-		while (myfile.good()) {
-			std::getline(myfile, myString); // pipe file's content into stream 
+	std::vector <double> info; 
+	std::stringstream ss (s); 
+	std::string temp; 
 
-			if (std::regex_search(myString, start)){
-				numberOfStarts++; 
-			}
-			else if (std::regex_search(myString, end)){
-				numberOfEnds++; 
-			}
+	double found; 
+
+	while (!(ss.eof()) ) {
+		ss >> temp; 
+
+		if (std::stringstream(temp) >> found){
+			info.push_back(found); 
 		}
+
+		temp = "" ; //not sure what this is for; 
 	}
 
-	if (numberOfStarts==numberOfEnds){
-		return numberOfStarts;
-	}
-	else {
-		std::cerr << "Number of starts is not the same as number of ends. Bad input file." << std::endl;
-		return 0;
-	}
+	return info; 
 
 }
 
-std::vector <std::string> ExtractContentFromFile(std::string filename){
-	std::ifstream myfile (filename); 
-	std::string mystring; 
-	std::vector <std::string> contents; 
 
-	if (myfile.is_open() ){
-		while (myfile.good()) {
-			std::getline(myfile, mystring); // pipe file's content into stream 
-			contents.push_back(mystring); 
-		}
-	}
-
-	return contents; 
-
-};
-
-
-bool checkValidityOfCoords(std::vector <int> v, x, y, z){
-    if (v.at(0)>this->x || v.at(0) < 0 || v.at(1)>this->y || v.at(1)<0 || v.at(2)>this->z || v.at(2)<0){
-        return false;
-    }
-    else {
-        return true;
-    }
-}
-
-std::vector <Polymer> ExtractPolymersFromFile(std::string filename, x, y, z){
-
-	int NumberOfPolymers = ExtractNumberOfPolymers(filename); 
-
-	std::vector <Polymer> PolymerVector; 
-	PolymerVector.reserve(NumberOfPolymers);
-	std::vector <Particle> ParticleVector;
-
-	std::vector <std::string> contents = ExtractContentFromFile(filename); 
-
-	std::regex start ("START"), end ("END"); 
-
-	
-
-	int startCount{0}, endCount {0}; 
-
-	for (std::string s: contents){
-		 
-		std::stringstream ss(s); 
-		if (std::regex_search(s, start) ){
-			startCount++;
-			continue; 
-		}
-
-		else if (std::regex_search(s, end) ) {
-			endCount++;
-		}
-
-		else{
-			std::vector <int> loc; 
-			for (int i=0; ss>>i; ){
-
-				loc.push_back(i);
-			}
-
-		if (!checkValidityOfCoords(loc, x, y, z)){
-			std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
-		}
-		Particle p (loc); 
-
-		ParticleVector.push_back(p); 
-		} 
-
-		if (startCount > endCount){
-			
-			continue; 
-		}
-
-		else{
-			Polymer pmer (ParticleVector);
-
-			PolymerVector.push_back(pmer);
-			ParticleVector.clear(); 
-		}
-
-
-
-	}
-
-
-	return PolymerVector; 
-}*/
-
-std::vector <double> ExtractTopologyFromFile(std::string filename){
+std::tuple <std::vector <double>, std::vector<std::vector<double>> > ExtractTopologyFromFile(std::string filename){
     
     std::vector <double> info_vec; 
+    std::vector <std::vector <double>> energy_mat; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
-    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"); 
-    std::cout << "we hit this spot: 271" << std::endl;
+    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), mat ("ENERGY INTERACTION MATRIX"); 
+    bool out_mat = true; 
+
     for (std::string s: contents){
 
-        std::stringstream ss; 
-        ss << s; 
-        std::string temp; 
-        int found; 
-        while (std::getline (ss, temp, ' ')) {
-            if (std::regex_search(s, x)){
-        
-                if (std::stringstream(temp) >> found){
-                    info_vec.push_back(found); 
-                    continue;
-                }
-            }
-            else if (std::regex_search(s, y)) {
-                if (std::stringstream(temp) >> found){
-                    info_vec.push_back(found); 
-                    continue;
-                }
-            }
-            else if (std::regex_search(s, z)) {
-                if (std::stringstream(temp) >> found){
-                    info_vec.push_back(found);
-                    continue; 
-                }
-            }
-            else if (std::regex_search(s, kT)) {
-                if (std::stringstream(temp) >> found){
-                    info_vec.push_back(found);
-                    continue; 
-                }
-            }
-            
-        }
+    	if (std::regex_search(s, x)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
+    		continue; 
+    	}
+
+    	else if (std::regex_search(s, y)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
+    		continue; 
+    	}
+
+    	else if (std::regex_search(s, z)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
+    		continue; 
+    	}
+
+		else if (std::regex_search(s, kT)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
+    		continue; 
+    	}
+
+    	else if (std::regex_search (s, mat)){
+    		out_mat = false;
+    		continue; 
+    	}    	
+
+    	else if (!out_mat){
+    		energy_mat.push_back(NumberExtractor(s)); 
+    		continue; 
+    		}
+
+    	else {
+    		std::cerr << "ERROR: There is a nonstandard input provided." << std::endl;
+    		exit(EXIT_FAILURE); 
+    	}
 
     }
-    return info_vec; 
-}
+
+
+
+    return std::make_tuple(info_vec, energy_mat);
+
+};
 
 
 

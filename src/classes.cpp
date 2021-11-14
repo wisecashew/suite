@@ -18,11 +18,22 @@
 // Methods for class grid 
 
 
-Grid CreateGridObject(int x, int y, int z, double kT, std::string positions, std::string topology){
-    Grid G(x, y, z, kT); 
+Grid CreateGridObject(std::string positions, std::string topology){ 
+    std::vector <double> info_vec; 
+    std::vector <std::vector <double>> energy_mat; 
+    tie(info_vec, energy_mat) = ExtractTopologyFromFile(topology);
+    
+    double Emm = energy_mat.at(0).at(0); 
+    double Ems = energy_mat.at(0).at(1); 
+    double Ess = energy_mat.at(1).at(1);
+
+    Grid G (info_vec.at(0), info_vec.at(1), info_vec.at(2), info_vec.at(3), Emm, Ems, Ess) ; 
+
     int N = G.ExtractNumberOfPolymers(positions);
     std::cout << "Number of polymers provided is " << N << std::endl;
     G.ExtractPolymersFromFile(positions);
+    
+
     std::cout << "Polymers extracted successfuly!" << std::endl;
     std::cout <<"Energy of the system is " << G.Energy << std::endl;
 
@@ -233,8 +244,8 @@ void Grid::ExtractPolymersFromFile(std::string filename){
         }
         Particle p (loc); 
         // print(loc);
-        std::cout << "checking coordinates of polymers..." << std::endl;
-        print(loc);
+        // std::cout << "checking coordinates of polymers..." << std::endl;
+        // print(loc);
         this->OccupancyMap[loc] = 1; 
 
         ParticleVector.push_back(p); 
@@ -418,7 +429,7 @@ void Grid::ZeroIndexRotation(int index){
 void Grid::ZeroIndexRotation_MC(int index){
     // create a dummy grid object 
 
-    Grid G_temp (this->x, this->y, this->z, this->kT);
+    Grid G_temp (this->x, this->y, this->z, this->kT, this->Emm, this->Ems, this->Ess);
     G_temp.PolymersInGrid = this->PolymersInGrid;
     G_temp.OccupancyMap = this->OccupancyMap; 
 
@@ -542,7 +553,7 @@ void Grid::FinalIndexRotation_MC(int index){
 
     // create a dummy grid object 
 
-    Grid G_temp (this->x, this->y, this->z, this->kT);
+    Grid G_temp (this->x, this->y, this->z, this->kT, this->Emm, this->Ems, this->Ess);
     G_temp.PolymersInGrid = this->PolymersInGrid; 
     G_temp.OccupancyMap = this->OccupancyMap; 
 
@@ -726,7 +737,7 @@ void Grid::KinkJump_MC(int index) {
         return; 
     }
 
-    Grid G_temp (this->x, this->y, this->z, this->kT); 
+    Grid G_temp (this->x, this->y, this->z, this->kT, this->Emm, this->Ems, this->Ess); 
     G_temp.PolymersInGrid = this->PolymersInGrid;
     G_temp.OccupancyMap = this->OccupancyMap; 
 
@@ -862,7 +873,7 @@ void Grid::CrankShaft_MC(int index){
 
     std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
 
-    Grid G_temp (this->x, this->y, this->z, this->kT); 
+    Grid G_temp (this->x, this->y, this->z, this->kT, this->Emm, this->Ems, this->Ess); 
     G_temp.PolymersInGrid = this->PolymersInGrid; 
     G_temp.OccupancyMap = this->OccupancyMap; 
 
@@ -993,7 +1004,7 @@ void Grid::ZeroToFinalReptation(int index){
 void Grid::ZeroToFinalReptation_MC(int index){
 
 
-    Grid G_temp (this->x, this->y, this->z, this->kT);
+    Grid G_temp (this->x, this->y, this->z, this->kT, this->Emm, this->Ems, this->Ess);
     G_temp.PolymersInGrid = this->PolymersInGrid; 
     G_temp.OccupancyMap = this->OccupancyMap; 
 
@@ -1101,7 +1112,7 @@ void Grid::FinalToZeroReptation(int index){
 
 void Grid::FinalToZeroReptation_MC(int index){
 
-    Grid G_temp (this->x, this->y, this->z, this->kT); 
+    Grid G_temp (this->x, this->y, this->z, this->kT, this->Emm, this->Ems, this->Ess); 
     G_temp.PolymersInGrid = this->PolymersInGrid; 
     G_temp.OccupancyMap = this->OccupancyMap; 
 
@@ -1197,7 +1208,7 @@ void Grid::Reptation_MC(int index){
 void Grid::MonteCarloExecuter(int move_index, int polymer_index){
 
     if (move_index == 1){
-        std::cout << "Running EndRotation on Polymer #" << polymer_index << std::endl;
+        std::cout << "Running EndRotation_MC on Polymer #" << polymer_index << std::endl;
         this->EndRotation_MC(polymer_index);
         return;
     }
@@ -1242,19 +1253,7 @@ void Grid::TheElementaryGridEvolver(){
 
     return; 
 
-
-
 }
-
-
-
-
-
-
-
-
-
-
 
 
 

@@ -12,9 +12,9 @@ int main(int argc, char** argv) {
 
     int opt; 
     int Nmov, dfreq;
-    std::string positions, energy;  
+    std::string positions, topology;  
 
-    while ( (opt = getopt(argc, argv, ":f:N:p:h")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:N:p:t:h")) != -1 )
     {
         switch (opt) 
         {
@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<
                 "Number of MC moves       [-N]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" << 
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates\n" <<
-                "Energy and geometry      [-e]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds\n"; 
+                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds\n"; 
                 exit(EXIT_SUCCESS);
                 break;
 
@@ -49,8 +49,8 @@ int main(int argc, char** argv) {
                 positions = optarg;
                 break;    
 
-            case 'e':
-                energy = optarg; 
+            case 't':
+                topology = optarg; 
                 break;
 
 
@@ -67,21 +67,17 @@ int main(int argc, char** argv) {
         }
     }
 
-    // const int x{15}, y{15}, z{15}, kT{1}; 
-
-    std::vector <double> info_vec = ExtractTopologyFromFile("energy.txt"); 
-
-    for (auto i: info_vec){
-        std::cout << i << " | ";
-    }
-    /*Grid G = CreateGridObject(x, y, z, kT, positions);
+   
+    Grid G = CreateGridObject(positions, topology);
 
     G.PolymersInGrid.at(0).printChainCoords();
+    
     auto start = std::chrono::high_resolution_clock::now(); 
 
     for (int i{0}; i < Nmov; i++){
 
         G.TheElementaryGridEvolver();
+        G.PolymersInGrid.at(0).printChainCoords();
     
     }
 
@@ -91,7 +87,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Your simulation ran for " << duration.count() << " seconds." << std::endl;
 
-*/
+    
     return 0;
 
 }

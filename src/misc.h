@@ -17,9 +17,11 @@ bool check_avoidance(std::vector <int> to_check, std::vector<std::vector <int>> 
 
 // print out a vector 
 void print(std::vector <int> v); 
+void print(std::vector <double> v);
 
 // print out a list of vectors
 void print(std::vector <std::vector <int>> v); 
+void print(std::vector <std::vector <double>> v); 
 
 // impose periodic boundary conditions on a vector 
 void impose_pbc(std::vector <int>* vect, int x_len, int y_len, int z_len); 
@@ -68,8 +70,10 @@ int rng_uniform(int start, int end);
 double rng_uniform(double start, double end);
 
 
-std::vector <double> ExtractTopologyFromFile(std::string filename);
+std::tuple <std::vector <double>, std::vector<std::vector<double>> > ExtractTopologyFromFile(std::string filename);
 
 std::vector <std::string> ExtractContentFromFile(std::string filename);
+
+std::vector <double> NumberExtractor(std::string s);
 
 #endif 

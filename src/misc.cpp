@@ -520,11 +520,71 @@ std::vector <Polymer> ExtractPolymersFromFile(std::string filename, x, y, z){
 	return PolymerVector; 
 }*/
 
+std::vector <double> ExtractTopologyFromFile(std::string filename){
+    
+    std::vector <double> info_vec; 
+    std::string mystring; 
+    std::vector <std::string> contents = ExtractContentFromFile(filename); 
+    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"); 
+    std::cout << "we hit this spot: 271" << std::endl;
+    for (std::string s: contents){
+
+        std::stringstream ss; 
+        ss << s; 
+        std::string temp; 
+        int found; 
+        while (std::getline (ss, temp, ' ')) {
+            if (std::regex_search(s, x)){
+        
+                if (std::stringstream(temp) >> found){
+                    info_vec.push_back(found); 
+                    continue;
+                }
+            }
+            else if (std::regex_search(s, y)) {
+                if (std::stringstream(temp) >> found){
+                    info_vec.push_back(found); 
+                    continue;
+                }
+            }
+            else if (std::regex_search(s, z)) {
+                if (std::stringstream(temp) >> found){
+                    info_vec.push_back(found);
+                    continue; 
+                }
+            }
+            else if (std::regex_search(s, kT)) {
+                if (std::stringstream(temp) >> found){
+                    info_vec.push_back(found);
+                    continue; 
+                }
+            }
+            
+        }
+
+    }
+    return info_vec; 
+}
 
 
 
 
 
+std::vector <std::string> ExtractContentFromFile(std::string filename){
+    std::ifstream myfile (filename); 
+    std::string mystring; 
+    std::vector <std::string> contents; 
+
+    if (myfile.is_open() ){
+        while (myfile.good()) {
+            std::getline(myfile, mystring); // pipe file's content into stream 
+            contents.push_back(mystring); 
+        }
+    }
+
+    return contents; 
+
+};
 
 
 

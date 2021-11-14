@@ -11,63 +11,33 @@
 #include <getopt.h>
 #include <stdlib.h>
 
-  int getIntFromString(std::string s){
-    std::stringstream ss; 
-    ss << s;  // convert the string s into stringstream 
-    std::string temp_s; 
-    int i; 
-    while (!ss.eof()) {
-      ss >> temp_s; 
-      if (std::stringstream(temp_s) >> i){
-        return i; 
-      }
+
+
+int main(int argc, char* argv[]){
+
+    std::ifstream myfile ("energy.txt"); 
+    std::string mystring; 
+    std::vector <std::string> contents; 
+
+    if (myfile.is_open() ){
+        while (myfile.good()) {
+            std::getline(myfile, mystring); // pipe file's content into stream 
+            contents.push_back(mystring); 
+        }
     }
 
-    return -1;
+for (auto input: contents){
+  std::stringstream ss;
+  ss << input;
+  int found;
+  std::string temp;
+
+  while(std::getline(ss, temp,' ')) {
+    if(std::stringstream(temp)>>found)
+      {
+        std::cout<<found<<std::endl;
+      }
+    }
   }
-
-
-int main(int argc, char* argv[])
-{
-
-  std::cout << getIntFromString("check check=33") << std::endl;
-
-  std::regex x ("x ="); 
-  std::regex y ("y ="); 
-  std::regex z ("z ="); 
-  std::regex kT ("kT ="); 
-  std::regex mat("ENERGY INTERACTION MATRIX");
-  std::string myString; 
-  std::ifstream file ("energy.txt"); 
-  if (file.is_open()) {
-    while (file.good()) {
-      std::getline(file, myString); 
-
-      if (std::regex_search(myString, x)){
-        int x_val = getIntFromString(myString);
-        std::cout << "xval is " << x_val << std::endl;
-      }
-      else if (std::regex_search(myString, y)){
-        int y_val = getIntFromString(myString); 
-        std::cout << "yval is " << y_val << std::endl;
-      }
-      else if (std::regex_search(myString, z)){
-        int z_val = getIntFromString(myString); 
-        std::cout << "zval is " << z_val << std::endl;
-      }
-      else if (std::regex_search(myString, kT)){
-        int kT = getIntFromString(myString); 
-        std::cout << "kT is " << kT << std::endl;
-        break;
-      }
-
-
-  }
-
-}
-
-
-  
-  return 0;
-
+return 0;
 }

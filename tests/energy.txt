@@ -1,7 +1,4 @@
-x=10
-y=10
-z=10 
-kT=1   
-ENERGY INTERACTION MATRIX 
--1	|	0	
-0	|	-0.1
+x | 1
+y |10
+z | 10 
+kT | 1   

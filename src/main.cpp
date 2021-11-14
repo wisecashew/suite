@@ -67,11 +67,16 @@ int main(int argc, char** argv) {
         }
     }
 
-    const int x{10}, y{10}, z{10}, kT{1}; 
+    // const int x{15}, y{15}, z{15}, kT{1}; 
 
-    Grid G = CreateGridObject(x, y, z, kT, positions);
+    std::vector <double> info_vec = ExtractTopologyFromFile("energy.txt"); 
 
+    for (auto i: info_vec){
+        std::cout << i << " | ";
+    }
+    /*Grid G = CreateGridObject(x, y, z, kT, positions);
 
+    G.PolymersInGrid.at(0).printChainCoords();
     auto start = std::chrono::high_resolution_clock::now(); 
 
     for (int i{0}; i < Nmov; i++){
@@ -86,7 +91,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Your simulation ran for " << duration.count() << " seconds." << std::endl;
 
-
+*/
     return 0;
 
 }

@@ -68,4 +68,8 @@ int rng_uniform(int start, int end);
 double rng_uniform(double start, double end);
 
 
+std::vector <double> ExtractTopologyFromFile(std::string filename);
+
+std::vector <std::string> ExtractContentFromFile(std::string filename);
+
 #endif 

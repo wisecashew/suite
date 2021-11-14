@@ -18,7 +18,7 @@
 // Methods for class grid 
 
 
-Grid CreateGridObject(int x, int y, int z, double kT, std::string positions){
+Grid CreateGridObject(int x, int y, int z, double kT, std::string positions, std::string topology){
     Grid G(x, y, z, kT); 
     int N = G.ExtractNumberOfPolymers(positions);
     std::cout << "Number of polymers provided is " << N << std::endl;
@@ -97,15 +97,18 @@ bool Grid::checkForOverlaps(std::vector <Polymer> PolymerVector){
 
 bool Grid::checkConnectivity(std::vector <Polymer> PolymerVector) {
     std::vector <int> d1 = {0, 0, 1}; 
-    std::vector <int> d4 = {0, 0, 9}; 
+    std::vector <int> dx = {0, 0, this->x-1}; 
+    std::vector <int> dy = {0, 0, this->y-1}; 
+    std::vector <int> dz = {0, 0, this->z-1}; 
     for (Polymer pmer: PolymerVector){
         size_t length = pmer.chain.size(); 
         std::vector <int> connection; 
         for (int i{1}; i<length; i++){
+            
             connection = subtract_vectors(&(pmer.chain.at(i).coords), &(pmer.chain.at(i-1).coords));
             impose_pbc(&connection, this->x, this->y, this->z);
             std::sort(connection.begin(), connection.end()); 
-            if (connection == d1 || connection == d4 ){
+            if (connection == d1 || connection == dx || connection == dy || connection == dz){
                 continue; 
             }
             else {
@@ -230,6 +233,8 @@ void Grid::ExtractPolymersFromFile(std::string filename){
         }
         Particle p (loc); 
         // print(loc);
+        std::cout << "checking coordinates of polymers..." << std::endl;
+        print(loc);
         this->OccupancyMap[loc] = 1; 
 
         ParticleVector.push_back(p); 
@@ -253,6 +258,8 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
 
     }
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 

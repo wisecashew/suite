@@ -17,6 +17,22 @@
 
 // Methods for class grid 
 
+
+Grid CreateGridObject(int x, int y, int z, double kT, std::string positions){
+    Grid G(x, y, z, kT); 
+    int N = G.ExtractNumberOfPolymers(positions);
+    std::cout << "Number of polymers provided is " << N << std::endl;
+    G.ExtractPolymersFromFile(positions);
+    std::cout << "Polymers extracted successfuly!" << std::endl;
+    std::cout <<"Energy of the system is " << G.Energy << std::endl;
+
+    return G; 
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
 void Grid::instantiateOccupancyMap(){
     for (int i{0}; i<this->x; i++){
         for (int j{0}; j<this->y; j++){
@@ -115,8 +131,8 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
     std::ifstream myfile (filename); 
 
     std::string myString; 
-    std::vector <std::string> StartContents; 
-    std::vector <std::string> EndContents; 
+    // std::vector <std::string> StartContents; 
+    // std::vector <std::string> EndContents; 
 
     int numberOfStarts {0}, numberOfEnds {0}; 
 
@@ -129,6 +145,10 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
             }
             else if (std::regex_search(myString, end)){
                 numberOfEnds++; 
+            }
+            else if ( myString.empty()){
+                std::cerr << "ERROR: Empty line found. Bad POSITIONS.TXT file. " << std::endl;
+                exit (EXIT_FAILURE);
             }
         }
     }
@@ -267,6 +287,8 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
 void Grid::CalculateEnergy(){
     double Energy {0.0}; 
+    
+    // polymer-polymer interaction energies 
     for (Polymer pmer: this->PolymersInGrid){
         for (Particle p: pmer.chain){
 
@@ -285,18 +307,60 @@ void Grid::CalculateEnergy(){
             //print(ne_list);
 
 
+            int solventNeighbors {0}; 
+            int monomerNeighbors {0}; 
 
-            int nNeighbors {0}; 
             for (std::vector <int> nei: ne_list){
                 
-                nNeighbors += this->OccupancyMap[nei]; 
+                if (this->OccupancyMap[nei]==0){
+                    solventNeighbors += 1; 
+                }
+                monomerNeighbors += this->OccupancyMap[nei]; 
 
             }
-            Energy += nNeighbors*(this->mmintrxenergy)*0.5; 
+            Energy += solventNeighbors*(this->Ems); 
+            Energy += monomerNeighbors*(this->Emm)*0.5; 
 
         }
     }
 
+    
+    // consider solvent-solvent interaction 
+    //int polymercount = 0;
+    //int solventcount = 0; 
+    for (auto const& loc: this->OccupancyMap){
+        std::vector <int> key = loc.first;
+        
+        // start evaluating neighbors of solvent molecules 
+        if (OccupancyMap[key]==1){
+            //polymercount += 1;
+            continue;
+        }
+        else {
+            //solventcount += 1;
+            // check out neighbors of the solvent molecule 
+            std::vector <std::vector <int>> ne_list = obtain_ne_list(key, this->x, this->y, this->z); 
+
+            // get rid of neighbors that are occupied by polymer molecules
+
+            for (std::vector <int> v: ne_list){
+                
+                if (OccupancyMap[v]==1){
+                    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), key), ne_list.end() ); 
+                }
+
+            }
+
+            // everything else remaining in the ne list is a solvent molecule 
+
+            Energy += ne_list.size()*(this->Ess)*0.5; 
+
+        }
+
+    }
+
+    //std::cout << "number of monomer units is " << polymercount << std::endl; 
+    //std::cout << "number of solvent units is " << solventcount << std::endl;
     this->Energy = Energy; 
     return; 
 }

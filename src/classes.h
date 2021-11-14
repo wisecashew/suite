@@ -2,6 +2,9 @@
 #define _MC_CLASSES_H_ 
 
 
+
+
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
@@ -79,12 +82,15 @@ public:
     const int x;                                        // length of x-edge of grid 
     const int y;                                        // length of y-edge of grid 
     const int z;                                        // length of z-edge of grid 
-    const double mmintrxenergy {-1}; 
+    const double Emm {-1}; 
+    const double Ems {-0.5};
+    const double Ess {0}; 
+
     double Energy; 
     std::map <std::vector <int>, int> OccupancyMap;     // a map that checks occupancy of a spot 
     double kT; 
 
-    Grid(int xlen, int ylen, int zlen, double kT_): x (xlen), y (ylen), z (zlen), mmintrxenergy (-1), kT (kT_) {        // Constructor of class
+    Grid(int xlen, int ylen, int zlen, double kT_): x (xlen), y (ylen), z (zlen), Emm (-1), kT (kT_) {        // Constructor of class
         this->instantiateOccupancyMap(); 
     };
 
@@ -165,7 +171,7 @@ public:
 }; 
 
 
-
+Grid CreateGridObject(int x, int y, int z, double kT, std::string positions);
 
 
 

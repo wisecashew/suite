@@ -5,47 +5,69 @@
 #include <map>
 #include <random>
 #include <chrono>
+#include <regex> 
+#include <sstream>
+#include <fstream>
 #include <getopt.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[])
+  int getIntFromString(std::string s){
+    std::stringstream ss; 
+    ss << s;  // convert the string s into stringstream 
+    std::string temp_s; 
+    int i; 
+    while (!ss.eof()) {
+      ss >> temp_s; 
+      if (std::stringstream(temp_s) >> i){
+        return i; 
+      }
+    }
+
+    return -1;
+  }
+
+
+int main(int argc, char* argv[])
 {
-  int opt;
 
-  int a; 
+  std::cout << getIntFromString("check check=33") << std::endl;
 
-  while ((opt = getopt(argc, argv, ":a:b:X")) != -1) 
-  {
-     switch (opt) 
-     {
-      case 'a':
-      	std::cout << "Option a has arg: "<<optarg << std::endl;
-      	a = atoi(optarg);
+  std::regex x ("x ="); 
+  std::regex y ("y ="); 
+  std::regex z ("z ="); 
+  std::regex kT ("kT ="); 
+  std::regex mat("ENERGY INTERACTION MATRIX");
+  std::string myString; 
+  std::ifstream file ("energy.txt"); 
+  if (file.is_open()) {
+    while (file.good()) {
+      std::getline(file, myString); 
+
+      if (std::regex_search(myString, x)){
+        int x_val = getIntFromString(myString);
+        std::cout << "xval is " << x_val << std::endl;
+      }
+      else if (std::regex_search(myString, y)){
+        int y_val = getIntFromString(myString); 
+        std::cout << "yval is " << y_val << std::endl;
+      }
+      else if (std::regex_search(myString, z)){
+        int z_val = getIntFromString(myString); 
+        std::cout << "zval is " << z_val << std::endl;
+      }
+      else if (std::regex_search(myString, kT)){
+        int kT = getIntFromString(myString); 
+        std::cout << "kT is " << kT << std::endl;
         break;
-      case 'b':
-      	std::cout << "Option b has arg: "<<optarg << std::endl;
-        break;
-      case 'X':
-      	std::cout << "Option X was provided." << std::endl;
-        break;
-      case '?':
-        std::cout << "Unknown option " << optarg << " was provided." << std::endl;
-        break;
-      case ':':
-      	std::cout << "Missing arg for " << static_cast<char>(optopt) << std::endl;
-        break;
-     }
+      }
+
+
   }
 
-    /* Get all of the non-option arguments */
-  std::cout << "a has value " << a << std::endl;
-  if (optind < argc) 
-  {
-    printf("Non-option args: ");
-    while (optind < argc)
-      printf("%s ", argv[optind++]);
-    printf("\n");
-  }
+}
+
+
   
   return 0;
+
 }

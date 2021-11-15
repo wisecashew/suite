@@ -286,6 +286,9 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 		nl.push_back(v);
 	}
 
+	std::sort(nl.begin(), nl.end() );
+	nl.erase(std::unique (nl.begin(), nl.end() ), nl.end() );  
+
 	return nl; 
 
 }

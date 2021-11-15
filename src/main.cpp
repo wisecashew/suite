@@ -1,4 +1,5 @@
 #include <iostream> 
+#include <fstream>
 #include <vector> 
 #include <string> 
 #include <map>
@@ -11,8 +12,8 @@
 int main(int argc, char** argv) {
 
     int opt; 
-    int Nmov, dfreq;
-    std::string positions, topology;  
+    int Nmov {-1}, dfreq {-1};
+    std::string positions {"blank"}, topology {"blank"};  
 
     while ( (opt = getopt(argc, argv, ":f:N:p:t:h")) != -1 )
     {
@@ -67,17 +68,36 @@ int main(int argc, char** argv) {
         }
     }
 
-   
+    
+    if (Nmov == -1 || dfreq == -1){
+        std::cerr << "ERROR: No value for option N (number of MC moves to perform) and/or for option f (frequency of dumping) was provided. Exiting..." << std::endl;
+        exit (EXIT_FAILURE);
+    }
+    else if (positions=="blank" || topology == "blank"){
+        std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) was provided. Exiting..." << std::endl;
+        exit (EXIT_FAILURE);    
+    }
+
+
+    // 
+    // 
+
+    std::ofstream dump_file ("dumpfile.txt");
+    dump_file.close(); 
+
     Grid G = CreateGridObject(positions, topology);
 
-    G.PolymersInGrid.at(0).printChainCoords();
-    
+
+
     auto start = std::chrono::high_resolution_clock::now(); 
 
     for (int i{0}; i < Nmov; i++){
-
+        if (i%dfreq==0){
+            G.dumpPositionsOfPolymers(i);
+        }
         G.TheElementaryGridEvolver();
-        G.PolymersInGrid.at(0).printChainCoords();
+        
+        
     
     }
 

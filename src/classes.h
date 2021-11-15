@@ -122,6 +122,8 @@ public:
 
     void CalculateEnergy(); 
 
+    void dumpPositionsOfPolymers (int step); 
+
 
     // check validity of input coords
     bool checkValidityOfCoords(std::vector <int> v);

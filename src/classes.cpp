@@ -8,6 +8,7 @@
 #include <sstream>
 #include <regex>
 #include <chrono>
+#include <cstdio>
 #include <random>
 #include "classes.h"
 #include "misc.h" 
@@ -17,6 +18,30 @@
 
 // Methods for class grid 
 
+
+void Grid::dumpPositionsOfPolymers (int step){
+    std::ofstream dump_file("dumpfile.txt", std::ios::app); 
+    dump_file <<"Dumping coordinates at step " << step << ".\n";
+    int count = 0; 
+    for (Polymer pmer: this->PolymersInGrid){
+        
+        dump_file <<"Dumping coordinates of Polymer # " << count << ".\n";
+        for (Particle p: pmer.chain){
+            for (std::vector <int>::const_iterator i = p.coords.begin(); i!=p.coords.end(); ++i){
+                dump_file << *i << " | "; 
+            }
+            dump_file << "\n"; 
+        }
+        count ++; 
+    }
+    dump_file <<"~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n";
+    dump_file.close();
+    return; 
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# 
 
 Grid CreateGridObject(std::string positions, std::string topology){ 
     std::vector <double> info_vec; 
@@ -487,8 +512,8 @@ void Grid::ZeroIndexRotation_MC(int index){
             }
         }
         else {
-            print(to_rot);
-            std::cout << "this location is occupied..." << std::endl;
+            // print(to_rot);
+            std::cout << "configuration contains overlaps. move rejected..." << std::endl;
         }
 
     // }//
@@ -616,8 +641,9 @@ void Grid::FinalIndexRotation_MC(int index){
         }
 
         else {
-            print(to_rot); 
-            std::cout << "this location is occupied..." << std::endl;
+            // print(to_rot); 
+            std::cout << "configuration contains overlaps. move rejected..." << std::endl;
+            // std::cout << "this location is occupied..." << std::endl;
         }
     //} //
 

@@ -6,6 +6,7 @@
 #include <random>
 #include <chrono>
 #include "misc.h"
+#include "classes.h"
 #include <sstream> 
 #include <fstream> 
 #include <regex>
@@ -138,6 +139,20 @@ void print(std::vector <std::vector <double>>vv){
 		print(v);
 	}
 }
+
+void print(std::vector <std::string>vv){
+	for (std::string s: vv){
+		std::cout << s << std::endl;
+	}
+}
+
+void print(std::vector <Particle> pvec){
+	for (Particle p: pvec){
+		p.printCoords();
+		// std::cout << p.ptype << std::endl;
+	}
+}
+
 
 
 //======================================================
@@ -298,7 +313,7 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 // generating a vector of particles given a list of locations
 // ================================================================
 
-std::vector <Particle> loc2part (std::vector <std::vector <int>> loc_list){
+/*std::vector <Particle> loc2part (std::vector <std::vector <int>> loc_list){
 
 	std::vector <Particle> pVec; 
 	for (std::vector <int> pos: loc_list){
@@ -308,7 +323,7 @@ std::vector <Particle> loc2part (std::vector <std::vector <int>> loc_list){
 
 	return pVec; 
 
-}
+}*/
 
 // ===================================================================
 // generating a vector of locations from a vector of particles
@@ -354,61 +369,6 @@ bool acceptance(int dE, double kT){
 
 }
 
-
-// ===================================================================
-// calculate energy of a polymeric chain, with edge lengths  
-// ===================================================================
-
-int PolymerEnergySolvation(std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy, int intr_energymm){
-
-	// get all the neighboring sites for the polymer 
-	// this only works for a single polymer 
-
-	std::vector <std::vector <int>> poly_ne_list;
-	std::vector <std::vector <int>> nl; 
-	std::vector <std::vector <int>> loc_list = part2loc(polymer); 
-	
-	int count = 0; 
-	int z = 6; // coordination number in 3d 
-	int mm_intrs = 0; 
-	for (Particle p: polymer){
-
-		nl = obtain_ne_list(p.coords, x_len, y_len, z_len); 
-
-		for (std::vector <int> v: loc_list){
-			
-			nl.erase(std::remove(nl.begin(), nl.end(), v), nl.end());
-		}
-
-
-		if (count==0){
-			mm_intrs += (z-nl.size()-1); 
-			}
-		else if (count == polymer.size()-1){
-				mm_intrs += (z-nl.size()-1); 
-			}
-		else {
-				mm_intrs += (z-nl.size()-2);
-			}
-		
-		count += 1; 
-		poly_ne_list.insert( poly_ne_list.end(), nl.begin(), nl.end() ); // concatenate all neighbors in a location
-	}
-
-	// std::cout << "mm intrx energy is " << intr_energymm << std::endl;
-	// std::cout << "# of mm intrxs is " << mm_intrs << std::endl;
-	// std::cout <<"0.5*mm_intrs*intr_energymm = " << 0.5*mm_intrs*intr_energymm << std::endl;
-	int ms_energy = poly_ne_list.size()*intr_energy; 
-	int mm_energy = 0.5*mm_intrs*intr_energymm;
-
-	int net_energy = ms_energy + mm_energy;
-
-	return net_energy;
-
-}
-
-
-
 // ===================================================================
 // extract information
 // ===================================================================
@@ -437,14 +397,16 @@ std::vector <double> NumberExtractor(std::string s){
 }
 
 
-std::tuple <std::vector <double>, std::vector<std::vector<double>> > ExtractTopologyFromFile(std::string filename){
+std::vector <double> ExtractTopologyFromFile(std::string filename){
     
     std::vector <double> info_vec; 
-    std::vector <std::vector <double>> energy_mat; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
-    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), mat ("ENERGY INTERACTION MATRIX"); 
-    bool out_mat = true; 
+    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm ("Emm"), Ess ("Ess"), Ems_a ("Ems_a"), Ems_n ("Ems_n"), eof ("END OF FILE"); 
+    //bool out_mat = true; 
+
+    // print(contents);
+
 
     for (std::string s: contents){
 
@@ -472,30 +434,45 @@ std::tuple <std::vector <double>, std::vector<std::vector<double>> > ExtractTopo
     		continue; 
     	}
 
-    	else if (std::regex_search (s, mat)){
-    		out_mat = false;
+    	else if (std::regex_search (s, Emm)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
     		continue; 
-    	}    	
+    	}
 
-    	else if (!out_mat){
-    		energy_mat.push_back(NumberExtractor(s)); 
+    	else if (std::regex_search (s, Ess)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
     		continue; 
-    		}
+    	}
+
+    	else if (std::regex_search (s, Ems_a)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
+    		continue; 
+    	}
+
+    	else if (std::regex_search (s, Ems_n)){
+    		std::vector <double> info = NumberExtractor(s); 
+    		info_vec.push_back(info.at(0)); 
+    		continue; 
+    	}
+
+    	else if (std::regex_search(s, eof)){
+    		// std::cout << "End of topology file." << std::endl;
+    		break;
+    	}
 
     	else {
-    		std::cerr << "ERROR: There is a nonstandard input provided." << std::endl;
+    		std::cout << s << std::endl;
+    		std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
     		exit(EXIT_FAILURE); 
     	}
 
     }
 
-    if (!isSymmetric(energy_mat)){
-    	std::cerr << "ERROR: energy matrix is not symmetric." << std::endl;
-    	exit (EXIT_FAILURE);
-    }
 
-
-    return std::make_tuple(info_vec, energy_mat);
+    return info_vec;
 
 };
 
@@ -547,5 +524,30 @@ bool isSymmetric(std::vector <std::vector <double>> mat){
 	return true; 
 
 }
+
+// ===============================================================
+Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_m){
+	std::vector <int> pmer_spins; 
+    
+    for (int i=0; i<locations.size(); i++){
+        unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+        std::mt19937 generator(seed); 
+        std::uniform_int_distribution<int> distribution (0,1); 
+        pmer_spins.push_back(distribution(generator));
+    }
+
+    std::vector <Particle> ptc_vec; 
+
+    for (int i=0;i<locations.size(); i++ ){
+        Particle p (locations.at(i), type_m, pmer_spins.at(i)); 
+        ptc_vec.push_back(p); 
+    }
+
+    Polymer pmer (ptc_vec);
+
+    return pmer; 
+}
+
+
 
 

@@ -3,6 +3,7 @@
 #include <vector> 
 #include <string> 
 #include <map>
+#include <random>
 #include <chrono>
 #include <getopt.h> 
 #include <stdlib.h> 
@@ -10,6 +11,7 @@
 #include "misc.h"
 
 int main(int argc, char** argv) {
+
 
     int opt; 
     int Nmov {-1}, dfreq {-1};
@@ -40,7 +42,7 @@ int main(int argc, char** argv) {
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<
                 "Number of MC moves       [-N]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" << 
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates\n" <<
-                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds\n"; 
+                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology\n"; 
                 exit(EXIT_SUCCESS);
                 break;
 
@@ -78,30 +80,22 @@ int main(int argc, char** argv) {
         exit (EXIT_FAILURE);    
     }
 
-
-
-
-
-
-    auto start = std::chrono::high_resolution_clock::now(); 
-
-    for (int i{0}; i < Nmov; i++){
-        if (i%dfreq==0){
-            G.dumpPositionsOfPolymers(i);
-        }
-        G.TheElementaryGridEvolver();
-        
-        
     
-    }
+    // ---------------------------------------
 
-    auto stop = std::chrono::high_resolution_clock::now(); 
+    std::ofstream dump_file ("dumpfile.txt");
+    dump_file.close(); 
 
-    auto duration = std::chrono::duration_cast<std::chrono::seconds>(stop-start); 
+    // ----------------------------------------
 
-    std::cout << "Your simulation ran for " << duration.count() << " seconds." << std::endl;
 
+    Grid G = CreateGridObject(positions, topology);
+
+    G.instantiateOccupancyMap();
     
+    G.CalculateEnergy();
+    std::cout << "Energy of box is: " << G.Energy << std::endl;
+
     return 0;
 
 }

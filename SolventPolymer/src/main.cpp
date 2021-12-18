@@ -101,12 +101,8 @@ int main(int argc, char** argv) {
     
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
-
-
-
-    // Grid G2 = IsingFlip(G); 
     
-    Grid G3 = FinalToZero_Reptation(G, 0); 
+    Grid G3 = FinalToZero_Reptation (G, 0) ; 
 
 
 /*    for (std::map <std::vector <int>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){

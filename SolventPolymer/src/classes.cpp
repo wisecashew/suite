@@ -1695,13 +1695,18 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
             NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
 
             // update position of the solvent particle you displaced during this move 
+            int c =0; 
             for (Particle P: NewG.SolventInGrid){
-                if (P.coords == to_rot){
-                    P.coords = loc_0; 
+                c++; 
+                if (P.coords == to_rot){ 
+                     
                     break;
                 }
 
             }
+            NewG.SolventInGrid.at(c-1).coords = p2.coords; 
+            std::cout << "coordinates of p2 are ";
+            print(p2.coords);
             break;
             // std::cout << "Something is up, line 1700: classes.cpp" << std::endl;
 

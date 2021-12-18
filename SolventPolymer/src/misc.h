@@ -2,6 +2,7 @@
 #define _MISC_H_
 #include "classes.h"
 
+
 // this is a bunch of miscellaneous functions I use 
 // to manipulate std::vectors. Furthermore, this will be used 
 // as a skeleton for building functions for grids 
@@ -72,13 +73,10 @@ double rng_uniform(double start, double end);
 
 
 std::vector <double> ExtractTopologyFromFile(std::string filename);
-
 std::vector <std::string> ExtractContentFromFile(std::string filename);
-
 std::vector <double> NumberExtractor(std::string s);
-
 bool isSymmetric(std::vector <std::vector <double>> mat);
-
 Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_m="monomer");
+void ClusterFlip(std::vector <Particle>*);
 
 #endif 

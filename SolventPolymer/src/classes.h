@@ -4,18 +4,19 @@
 
 
 
-
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
 class Particle{
 public: 
     std::vector <int> coords;                                        // the coordinates of the particles
     std::string ptype; 
-    int orientation; 
+    int orientation;
+
     bool operator<(const Particle& rhs)const{
         return coords < rhs.coords; 
     }
+
+    bool operator==(const Particle& rhs){
+        return std::tie(coords, ptype, orientation) == std::tie(rhs.coords, rhs.ptype, rhs.orientation);
+    } 
 
 
     // constructor 
@@ -78,6 +79,55 @@ public:
 };
 
 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+
+
+/*
+class ClusterParticle{
+public:
+    Particle p; 
+    std::string cluster_name = "None"; 
+
+
+    // constructors 
+    ClusterParticle(Particle p_, std::string name_): p(p_), cluster_name(name_) {};
+    ClusterParticle(Particle p_): p(p_), cluster_name("None") {}; 
+};
+
+class Cluster{
+public:
+    std::string cluster_name;
+    std::vector <ClusterParticle> cparticles; 
+
+    // constructors 
+    Cluster(std::string name): cluster_name(name){};
+};
+*/
+
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 This is the Grid Class. 
 This is the master class. Everything cool happens to this guy over here. 
@@ -130,6 +180,38 @@ public:
     void dumpPositionsOfPolymers (int step); 
 
 
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    double EnergyPredictor(Particle p1, Particle p2){
+        if (p1.ptype == "monomer" && p2.ptype == "monomer"){
+            return this->Emm;
+        }
+        else if (p1.ptype=="solvent" && p2.ptype == "solvent"){
+            return this->Ess; 
+        }
+        else if (p1.ptype == "monomer" && p2.ptype == "solvent"){
+            if (p1.orientation == p2.orientation){
+                return this->Ems_a;
+            }
+            else {
+                return this->Ems_n;
+            }
+        }
+        else if (p1.ptype=="solvent" && p2.ptype == "monomer"){
+            if (p1.orientation == p2.orientation){
+                return this->Ems_a;
+            }
+            else {
+                return this->Ems_n;
+            }
+
+        }
+        else {
+            std::cout << "There is a bad energetic interaction."; 
+            exit(EXIT_FAILURE);
+        }
+    };
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+
     // check validity of input coords
     bool checkValidityOfCoords(std::vector <int> v);
     bool checkForOverlaps(std::vector <Polymer> PolymerVector); 
@@ -176,13 +258,25 @@ public:
 
     void MonteCarloExecuter(int move_index, int polymer_index);
     void TheElementaryGridEvolver();
+
+    std::vector <Particle> ClusterParticleMaker();
+    std::vector <Particle> ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count=0); 
+    // std::vector <Cluster> ClusterMaker(); 
+
 }; 
 
 
 Grid CreateGridObject(std::string positions, std::string topology);
-
-
-
+Grid IsingFlip(Grid InitialG);
+Grid ZeroIndexRotation(Grid InitialG, int index);
+Grid FinalIndexRotation(Grid InitialG, int index);
+Grid EndRotation(Grid InitialG, int index); 
+Grid KinkJump(Grid InitialG, int index); 
+Grid CrankShaft(Grid InitialG, int index); 
+Grid ZeroToFinal_Reptation(Grid InitialG, int index); 
+Grid FinalToZero_Reptation(Grid InitialG, int index);
+Grid Reptation(Grid InitialG, int index);
+Grid Translation(Grid InitialG, int index, std::vector <int> direction);  
 
 
 #endif 

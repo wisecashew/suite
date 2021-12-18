@@ -10,6 +10,7 @@
 #include "classes.h"
 #include "misc.h"
 
+
 int main(int argc, char** argv) {
 
 
@@ -88,6 +89,11 @@ int main(int argc, char** argv) {
 
     // ----------------------------------------
 
+    /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
+    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
+    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
+    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
+    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~*/
 
     Grid G = CreateGridObject(positions, topology);
 
@@ -95,6 +101,33 @@ int main(int argc, char** argv) {
     
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
+
+
+
+    // Grid G2 = IsingFlip(G); 
+    
+    Grid G3 = FinalToZero_Reptation(G, 0); 
+
+
+/*    for (std::map <std::vector <int>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
+
+        std::vector <int> key = iter->first; 
+
+        if (G.OccupancyMap[key].ptype != G3.OccupancyMap[key].ptype){
+            
+            std::cout << "A particle was displaced from the location ";
+            print(G3.OccupancyMap[key].coords); 
+            
+        }
+    }
+*/
+    std::cout << "Coordinates of monomer units are: " << std::endl;
+    G3.PolymersInGrid.at(0).printChainCoords();
+    
+
+
+
+
 
     return 0;
 

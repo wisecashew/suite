@@ -526,6 +526,8 @@ bool isSymmetric(std::vector <std::vector <double>> mat){
 }
 
 // ===============================================================
+
+
 Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_m){
 	std::vector <int> pmer_spins; 
     
@@ -547,6 +549,39 @@ Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_
 
     return pmer; 
 }
+
+
+// ===============================================================
+
+
+void ClusterFlip(std::vector <Particle>* cluster){
+
+
+	if ((*cluster).at(0).orientation==1){
+		// std::cout << "hello, is this being hit? o=1?" << std::endl;
+		for (int i=0; i<(*cluster).size(); i++ ){ 
+			(*cluster).at(i).orientation = 0;
+			// std::cout << "p.orientation is " << (*cluster).at(i).orientation << std::endl;
+			// std::cout <<"--> orientation reported above should be 0" << std::endl;
+		}
+	}
+	else {
+		// std::cout << "hello, is this being hit? o=0?" << std::endl;
+		for (int i=0; i<(*cluster).size(); i++ ){ 
+			(*cluster).at(i).orientation = 1;
+			// std::cout << "p.orientation is " << (*cluster).at(i).orientation << std::endl;
+			// std::cout <<"--> orientation reported above should be 1" << std::endl;
+		}
+		
+	}
+
+	return; 
+}
+
+
+
+
+
 
 
 

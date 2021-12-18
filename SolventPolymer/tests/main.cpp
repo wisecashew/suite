@@ -21,6 +21,10 @@ public:
         return coords < rhs.coords; 
     }
 
+    bool operator==(const Particle& rhs){
+        return std::tie(coords, ptype, orientation) == std::tie(rhs.coords, rhs.ptype, rhs.orientation);
+    }
+
     // constructor
     Particle () {};
 
@@ -45,8 +49,12 @@ int main(int argc, char* argv[]){
 
   std::map <std::vector <int>, Particle> OccupancyMap;
 
-  Particle p ({0,0,0}, "monomer", 0); 
-  std::cout << p.ptype << std::endl;
-  OccupancyMap[p.coords] = p ;
-  std::cout << OccupancyMap[p.coords].orientation << std::endl;
+  Particle p1 ({0,0,0}, "monomer", 0); 
+  Particle p2 ({0,0,0}, "monomer", 0); 
+  std::cout << std::boolalpha;
+  bool b = (p1==p2);
+  std::cout << "Check equality of p1, p2: " << b << std::endl;
+  //std::cout << p.ptype << std::endl;
+  //OccupancyMap[p.coords] = p ;
+  //std::cout << OccupancyMap[p.coords].orientation << std::endl;
 }

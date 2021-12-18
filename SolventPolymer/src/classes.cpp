@@ -9,6 +9,7 @@
 #include <regex>
 #include <chrono>
 #include <cstdio>
+#include <cmath>
 #include <random>
 #include "classes.h"
 #include "misc.h" 
@@ -401,10 +402,201 @@ void Grid::CalculateEnergy(){
 
     }
 
-
     this->Energy = Energy; 
     return; 
+
 }
+
+
+std::vector <Particle> Grid::ClusterParticleMaker(){
+    
+    std::vector <Particle> Particles; 
+
+    std::vector <std::vector <int>> solvent_locations;  
+
+    for (Polymer pmer: this->PolymersInGrid){
+
+        for (Particle p: pmer.chain){
+ 
+                Particles.push_back (p); 
+                std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z);
+
+                // std::cout << "The polymer particle I added to list is: "; 
+                // print(p.coords); 
+
+                for (std::vector <int> v: ne_list){
+
+                    if (this->OccupancyMap[v].ptype=="solvent" ){
+                        
+                        if (std::find(solvent_locations.begin(), solvent_locations.end(), this->OccupancyMap[v].coords) != solvent_locations.end() ){
+                            // std::cout << "this solvent location has been accounted for." << std::endl;
+                        }
+
+                        else {
+                            solvent_locations.push_back(this->OccupancyMap[v].coords) ;
+                            Particles.push_back(this->OccupancyMap[v]); 
+                            // std::cout << "The solvent molecule is at: "; 
+                            // print(this->OccupancyMap[v].coords); 
+                        }
+                    }
+                }
+        }
+    }
+
+
+    return Particles; 
+}
+
+
+
+std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count){
+
+    if (Particles.size() == 0 ){
+        return final; 
+    }
+
+    if (count==0){
+
+        std::vector <Particle> to_send; 
+        int r = rng_uniform(0, Particles.size()); 
+
+        Particle p = Particles.at(r); 
+
+        std::cout << "I am just making the cluster here. The orientation of the first particle is " << p.orientation << std::endl << std::endl;
+
+        final.push_back(p); 
+        std::vector <std::vector <int>> location_list; 
+
+        for (Particle pa: Particles){
+            location_list.push_back(pa.coords); 
+        }
+
+        std::vector <Particle> neighbors;
+
+        std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z); 
+
+        if (p.ptype=="solvent"){
+            for (std::vector <int> v: ne_list){
+                if (std::find(location_list.begin(), location_list.end(), v) != location_list.end() ){
+
+                    if (this->OccupancyMap[v].orientation == p.orientation){
+                        neighbors.push_back(this->OccupancyMap[v]); 
+                    }
+                }
+            }
+        }
+        else {
+            for (std::vector <int> v: ne_list){
+                if (this->OccupancyMap[v].orientation == p.orientation){
+                        neighbors.push_back(this->OccupancyMap[v]); 
+                    }
+            }
+        }
+
+
+        for (Particle pcle: neighbors){
+            double coupling = 2*1/this->kT*EnergyPredictor(p, pcle); 
+            // std::cout << "coupling is " << coupling << std::endl;
+            double prob = std::exp(coupling); 
+            double check = rng_uniform(0.0,1.0);
+
+            if (check < prob){
+                // std::cout << "prob is " << prob << std::endl; 
+                // std::cout << "check is " << check << std::endl;
+
+                final.push_back(pcle); 
+                to_send.push_back(pcle); 
+                // std::cout << "neighbor approved :"; 
+                // print(pcle.coords);
+            }
+            else {
+                continue; 
+            }
+        }
+    for (Particle p: final)
+    this->ClusterMaker(to_send, final, 1); 
+
+    }
+
+    else if (count==1){
+        // std::cout << "print at line 525, classes.cpp" << std::endl;
+        for (Particle p: Particles){
+            
+            std::vector <std::vector <int>> location_list; 
+            std::vector <Particle> to_send; 
+
+            for (Particle px: Particles){
+                location_list.push_back(px.coords); 
+            }
+            std::vector <Particle> neighbors;
+
+            std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z); 
+
+            if (p.ptype=="solvent"){
+                for (std::vector <int> v: ne_list){
+                    if (std::find(location_list.begin(), location_list.end(), v) != location_list.end() ){
+                        // std::cout << "particle in the cluster located." << std::endl;
+                        if (this->OccupancyMap[v].orientation == p.orientation){
+                        neighbors.push_back(this->OccupancyMap[v]); 
+                        }
+                    }
+                }
+            }
+            else {
+                for (std::vector <int> v: ne_list){
+                    if (this->OccupancyMap[v].orientation == p.orientation){
+                        neighbors.push_back(this->OccupancyMap[v]); 
+                    }
+                    
+                }
+            }
+
+
+            for (Particle pcle: neighbors){
+                double coupling = 2*1/this->kT*EnergyPredictor(p, pcle); 
+                double prob = std::exp(coupling); 
+
+                if (rng_uniform(0.0,1.0) < prob){
+                    final.push_back(pcle); 
+                    to_send.push_back(pcle); 
+                }
+                else {
+                    continue; 
+                }
+            }
+
+            this->ClusterMaker(to_send, final, 1); 
+        }
+
+
+
+    }
+
+    return final; 
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//void Grid::ClusterMove(){
+
+    // cluster particles 
+    // flip them with a probability of half 
+    // check if this configuration is accepted by Metropolis 
+    // update Grid object 
+
+//}
+
+
+// this is a function that clusters particles to run the swendsen-wang algorithm on them 
+
+
+
+
+
+
+
 
 
 
@@ -1404,13 +1596,6 @@ std::vector <int> Polymer::findCranks(){
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
-
-
-
-
-
-
-
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
@@ -1420,3 +1605,464 @@ void Particle::printCoords(){
     print(this->coords); 
     return; 
 }
+
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+// MONTE CARLO MOVES 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+Grid IsingFlip(Grid InitialG){
+
+    std::vector <Particle> Particles = InitialG.ClusterParticleMaker(); 
+    std::vector <Particle> an_empty_vector_for_ClusterMaker; 
+    std::vector <Particle> cluster = InitialG.ClusterMaker(Particles, an_empty_vector_for_ClusterMaker, 0);
+
+    ClusterFlip (&cluster);                       // flip the cluster! 
+
+    Grid NewG (InitialG);                         // make a copy of the original Grid 
+
+    for (Particle P: cluster){
+        NewG.OccupancyMap[P.coords] = P;          // update the OccupancyMap of NewG
+    }
+
+
+    // update PolymersInGrid 
+    for (Polymer pmer: NewG.PolymersInGrid){
+        for (Particle p: pmer.chain){
+            p = NewG.OccupancyMap[p.coords]; 
+        }
+    }
+
+    // update SolventInGrid 
+    for (Particle p: NewG.SolventInGrid){
+        p = NewG.OccupancyMap[p.coords]; 
+    }
+
+
+    return NewG; 
+
+
+}
+
+
+//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+Grid ZeroIndexRotation(Grid InitialG, int index){
+
+    Grid NewG (InitialG);
+
+    // get the neighborlist of particle at index 1 
+    std::vector <int> loc_0 = InitialG.PolymersInGrid.at(index).chain.at(0).coords; 
+    std::vector <int> loc_1 = InitialG.PolymersInGrid.at(index).chain.at(1).coords;
+    std::vector <int> loc_2 = InitialG.PolymersInGrid.at(index).chain.at(2).coords; 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
+
+    // get the locations of particles it is connected to, and then erase them from the neighbor list 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0 ), ne_list.end() ); 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2 ), ne_list.end() ); 
+
+    // find a location that is not occupied by monomer 
+    // use the occupancy map 
+
+    for (std::vector <int> to_rot: ne_list){
+
+        if (InitialG.OccupancyMap[to_rot].ptype=="solvent"){
+
+            // update OccupancyMap 
+            Particle p1 (NewG.OccupancyMap[loc_0]);
+            p1.coords = to_rot;  
+            Particle p2 (NewG.OccupancyMap[to_rot]); 
+            p2.coords = loc_0; 
+
+            NewG.OccupancyMap[to_rot] = p1;  
+            NewG.OccupancyMap[loc_0] = p2; 
+
+            // update positions in polymers in grid 
+
+            NewG.PolymersInGrid.at(index).chain.at(0).coords = to_rot; 
+            NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
+
+            // update position of the solvent particle you displaced during this move 
+            for (Particle P: NewG.SolventInGrid){
+                if (P.coords == to_rot){
+                    P.coords = loc_0; 
+                    break;
+                }
+
+            }
+            break;
+            // std::cout << "Something is up, line 1700: classes.cpp" << std::endl;
+
+        }
+
+
+    }
+
+    return NewG;
+}
+
+//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+Grid FinalIndexRotation(Grid InitialG, int index){
+
+    Grid NewG (InitialG);
+
+    int dop = InitialG.PolymersInGrid.at(index).chain.size(); 
+
+    // get the neighborlist of particle at index DoP-2
+    std::vector <int> loc_0 = InitialG.PolymersInGrid.at(index).chain.at(dop-1).coords;
+    std::vector <int> loc_1 = InitialG.PolymersInGrid.at(index).chain.at(dop-2).coords;
+    std::vector <int> loc_2 = InitialG.PolymersInGrid.at(index).chain.at(dop-3).coords;
+
+    // obtain neighbor list 
+    std::vector <std::vector <int> > ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
+
+    // get the locations of particles it is connected to, and then erase them from the neighbor list 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0), ne_list.end() ); 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2), ne_list.end() );
+
+    // find a location that is unoccupied by monomer 
+    // use the occupancy map  
+
+    for (std::vector <int> to_rot: ne_list){
+
+        if (NewG.OccupancyMap[to_rot].ptype == "solvent") {
+
+            // update OccupancyMap 
+            Particle p1 (NewG.OccupancyMap[loc_0]); 
+            Particle p2(NewG.OccupancyMap[to_rot]); 
+            p1.coords = to_rot; 
+            p2.coords = loc_0; 
+
+            NewG.OccupancyMap[to_rot] = p1; 
+            NewG.OccupancyMap[loc_0] = p2;
+
+            // update positions in polymers in grid 
+            NewG.PolymersInGrid.at(index).chain.at(dop-1).coords = to_rot; 
+            NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
+
+            // update position of the solvent particle you displaced during this move
+            for (Particle P: NewG.SolventInGrid){
+                if (P.coords == to_rot){
+                    P.coords = loc_0; 
+                    break;
+                }
+
+            }
+            break;
+            // std::cout << "Something is up, line 1700: classes.cpp" << std::endl;
+
+
+        }
+    }
+
+
+    return NewG;
+}
+
+//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+Grid EndRotation(Grid InitialG, int index){
+
+    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = distribution(generator); 
+    // std::cout << "rng is " << num << std::endl;
+    if (num==0){
+        // std::cout << "Zero index rotation!" << std::endl;
+        return ZeroIndexRotation(InitialG, index); 
+    }
+    else {
+        // std::cout << "Final index rotation!" << std::endl;
+        return FinalIndexRotation(InitialG, index); 
+
+    }
+    
+
+}
+
+
+//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+Grid KinkJump(Grid InitialG, int index){
+
+    Grid NewG(InitialG); 
+
+    std::vector <int> k_idx = InitialG.PolymersInGrid.at(index).findKinks(); 
+
+    if (k_idx.size() == 0 ){
+        std::cout << "No kinks found in polymer..." << std::endl;
+        return InitialG;
+    }
+
+    std::shuffle(std::begin(k_idx), std::end(k_idx), std::default_random_engine() ); 
+
+    for (int idx: k_idx){
+
+        std::cout << "idx right before kink spot is " << idx << std::endl; 
+
+        std::vector <int> d1 = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx).coords) );
+        std::vector <int> d2 = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords) ); 
+
+        std::vector <int> to_check = add_vectors( &(InitialG.PolymersInGrid.at(index).chain.at(idx).coords), &d2); 
+
+        if (NewG.OccupancyMap[to_check].ptype=="solvent"){
+
+            //update occupancy map
+            Particle p1 ( NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+1).coords] );  // this will be the monomer particle
+            Particle p2 ( NewG.OccupancyMap[to_check] ) ;                                             // this will be the solvent particle
+            p1.coords = to_check; 
+            p2.coords = NewG.PolymersInGrid.at(index).chain.at(idx+1).coords;
+
+            NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+1).coords] = p2;
+            NewG.OccupancyMap[to_check] = p1; 
+
+            // update PolymersInGrid 
+            NewG.PolymersInGrid.at(index).chain.at(idx+1) = p1; 
+            NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
+
+            // update position of the solvent particle you displaced during this move 
+            for (Particle P: NewG.SolventInGrid){
+                if (P.coords == to_check){
+                    P.coords = InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords; 
+                    break;
+                }
+
+            }
+            break;
+
+
+
+        }
+        else {
+            std::cout << "This spot is taken by a monomer... no kink jumping." << std::endl;
+        }
+
+
+
+    }
+
+    return NewG; 
+
+}
+
+//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+Grid CrankShaft(Grid InitialG, int index){
+
+    Grid NewG(InitialG); 
+
+    std::vector <int> c_idx = InitialG.PolymersInGrid.at(index).findCranks(); 
+
+    if ( c_idx.size()==0 ){
+        std::cout << "No cranks in this polymer..." << std::endl; 
+        return InitialG; 
+    }
+
+    std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
+
+    for (int idx: c_idx){
+
+        std::vector <int> d1 = subtract_vectors( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx+2).coords) );
+
+        std::vector <int> to_check_1 = add_vectors ( &(NewG.PolymersInGrid.at(index).chain.at(idx).coords), &d1 ); 
+        std::vector <int> to_check_2 = add_vectors ( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &d1 ); 
+        impose_pbc(&to_check_1, InitialG.x, InitialG.y, InitialG.z); 
+        impose_pbc(&to_check_2, InitialG.x, InitialG.y, InitialG.z);  
+
+        if ( (InitialG.OccupancyMap[to_check_1].ptype=="solvent") && (InitialG.OccupancyMap[to_check_2].ptype=="solvent") ){
+
+            // update OccupancyMap
+            Particle p1 ( NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+1).coords] );
+            Particle s1 ( NewG.OccupancyMap[to_check_1]); 
+
+            p1.coords = to_check_1;
+            s1.coords = NewG.PolymersInGrid.at(index).chain.at(idx+1).coords; 
+
+            Particle p2 ( NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+2).coords]); 
+            Particle s2 ( NewG.OccupancyMap[to_check_2] );
+
+            p2.coords = to_check_2; 
+            s2.coords = NewG.PolymersInGrid.at(index).chain.at(idx+2).coords; 
+
+            NewG.OccupancyMap[to_check_1] = p1; 
+            NewG.OccupancyMap[to_check_2] = p2; 
+
+            NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+1).coords] = s1; 
+            NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+2).coords] = s2; 
+
+            // update PolymersInGrid 
+            NewG.PolymersInGrid.at(index).chain.at(idx+1) = p1; 
+            NewG.PolymersInGrid.at(index).chain.at(idx+2) = p2; 
+            NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
+
+
+            // update position of the solvent particle you displaced during this move 
+            int count = 0; 
+            for (Particle P: NewG.SolventInGrid){
+                if (P.coords == to_check_1){
+                    P.coords = s1.coords;             //InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords; 
+                    count ++ ;
+                }
+                else if (P.coords == to_check_2){
+                    P.coords = s2.coords;             //InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords; 
+                    count++; 
+                }
+
+                else if (count==2){
+                    break;
+                }
+
+            }
+            break;
+
+        }
+        else {
+            std::cout << "This position is occupied by monomer... No cranking." << std::endl;
+        }
+
+
+    }
+
+    return NewG;
+
+}
+
+//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+Grid ZeroToFinal_Reptation(Grid InitialG, int index){
+
+    Grid NewG (InitialG); 
+    // get size of polymer chain 
+    int size = InitialG.PolymersInGrid.at(index).chain.size(); 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list( InitialG.PolymersInGrid.at(index).chain.at(size-1).coords, InitialG.x, InitialG.y, InitialG.z ); 
+
+    // get rid of second to last monomer position from ne list 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), InitialG.PolymersInGrid.at(index).chain.at(size-2).coords), ne_list.end() ); 
+
+
+    for (std::vector <int> v: ne_list){
+        if (InitialG.OccupancyMap[v].ptype == "solvent"){
+            Particle p = InitialG.OccupancyMap[v];
+            p.ptype = "monomer"; 
+            
+            Particle s = InitialG.OccupancyMap[InitialG.PolymersInGrid.at(index).chain.at(0).coords]; 
+            s.ptype = "solvent"; 
+
+            // update occupancy map 
+            NewG.OccupancyMap[v] = p;
+            NewG.OccupancyMap[InitialG.PolymersInGrid.at(index).chain.at(0).coords] = s; 
+
+            // update polymers in grid 
+            NewG.PolymersInGrid.at(index).chain.erase(NewG.PolymersInGrid.at(index).chain.begin() ); 
+            NewG.PolymersInGrid.at(index).chain.push_back(p); 
+            NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
+
+            //update solvents in grid 
+            for (Particle P: NewG.SolventInGrid){
+                if (P.coords == v){
+                    P.coords = s.coords; 
+                    break;
+                }
+            }
+
+            break;
+
+        }
+        else {
+            std::cout << "No place to slither... " << std::endl;
+        }
+    }
+
+    return NewG; 
+
+}; 
+
+//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+Grid FinalToZero_Reptation(Grid InitialG, int index){
+    
+    Grid NewG(InitialG); 
+
+    // get initial size of the polymer chain 
+    int size = InitialG.PolymersInGrid.at(index).chain.size(); 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list( InitialG.PolymersInGrid.at(index).chain.at(0).coords, InitialG.x, InitialG.y, InitialG.z); 
+
+    // get rid of second monomer from the ne list 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), InitialG.PolymersInGrid.at(index).chain.at(1).coords), ne_list.end() ); 
+
+    for (std::vector <int> v: ne_list){
+
+        if (InitialG.OccupancyMap[v].ptype == "solvent"){
+            Particle p = InitialG.OccupancyMap[v]; 
+            p.ptype = "monomer"; 
+
+            Particle s = InitialG.OccupancyMap[InitialG.PolymersInGrid.at(index).chain.at(size-1).coords]; 
+            s.ptype = "solvent"; 
+
+            // update occupancy map 
+            NewG.OccupancyMap[v] = p; 
+            NewG.OccupancyMap[InitialG.PolymersInGrid.at(index).chain.at(size-1).coords] = s; 
+
+            // update polymers in grid 
+            NewG.PolymersInGrid.at(index).chain.pop_back(); // pop the final particle 
+            NewG.PolymersInGrid.at(index).chain.insert(NewG.PolymersInGrid.at(index).chain.begin(), p); // add one particle to the head of the chain 
+            NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); // make sure the connectivity map is maintained 
+
+            // update solvents 
+
+            for (Particle P: NewG.SolventInGrid){
+                if (P.coords == v){
+                    P.coords = s.coords;
+                    break; 
+                }
+            }
+
+            break;
+        }
+
+        else {
+            std::cout << "No place to slither..." << std::endl;
+        }
+
+    }
+
+    return NewG; 
+};
+
+
+Grid Reptation(Grid InitialG, int index){
+
+    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = distribution(generator); 
+    // std::cout << "rng is " << num << std::endl;
+    if (num==0){
+        // std::cout << "Zero index rotation!" << std::endl;
+        return FinalToZero_Reptation(InitialG, index); 
+    }
+    else {
+        // std::cout << "Final index rotation!" << std::endl;
+        return ZeroToFinal_Reptation(InitialG, index); 
+
+    }
+    
+};

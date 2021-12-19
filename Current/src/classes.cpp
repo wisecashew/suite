@@ -1626,6 +1626,12 @@ Grid IsingFlip(Grid InitialG){
     std::vector <Particle> an_empty_vector_for_ClusterMaker; 
     std::vector <Particle> cluster = InitialG.ClusterMaker(Particles, an_empty_vector_for_ClusterMaker, 0);
 
+    std::cout << "original cluster is: " << std::endl; 
+
+    for (auto c: cluster){
+        print(c.coords);
+    }
+
     ClusterFlip (&cluster);                       // flip the cluster! 
 
     Grid NewG (InitialG);                         // make a copy of the original Grid 
@@ -1636,14 +1642,14 @@ Grid IsingFlip(Grid InitialG){
 
 
     // update PolymersInGrid 
-    for (Polymer pmer: NewG.PolymersInGrid){
-        for (Particle p: pmer.chain){
+    for (Polymer& pmer: NewG.PolymersInGrid){
+        for (Particle& p: pmer.chain){
             p = NewG.OccupancyMap[p.coords]; 
         }
     }
 
     // update SolventInGrid 
-    for (Particle p: NewG.SolventInGrid){
+    for (Particle& p: NewG.SolventInGrid){
         p = NewG.OccupancyMap[p.coords]; 
     }
 

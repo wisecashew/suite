@@ -16,9 +16,9 @@ int main(int argc, char** argv) {
 
     int opt; 
     int Nmov {-1}, dfreq {-1};
-    std::string positions {"blank"}, topology {"blank"};  
+    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"};  
 
-    while ( (opt = getopt(argc, argv, ":f:N:p:t:h")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:N:o:p:t:h")) != -1 )
     {
         switch (opt) 
         {
@@ -43,7 +43,8 @@ int main(int argc, char** argv) {
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<
                 "Number of MC moves       [-N]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" << 
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates\n" <<
-                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology\n"; 
+                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology\n" <<
+                "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer\n";  
                 exit(EXIT_SUCCESS);
                 break;
 
@@ -57,6 +58,9 @@ int main(int argc, char** argv) {
                 topology = optarg; 
                 break;
 
+            case 'o':
+                dfile = optarg;
+                break;
 
             case '?':
                 std::cout << "ERROR: Unknown option " << static_cast<char>(optopt) << " was provided." << std::endl;
@@ -76,15 +80,15 @@ int main(int argc, char** argv) {
         std::cerr << "ERROR: No value for option N (number of MC moves to perform) and/or for option f (frequency of dumping) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);
     }
-    else if (positions=="blank" || topology == "blank"){
-        std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) was provided. Exiting..." << std::endl;
+    else if (positions=="blank" || topology == "blank" || dfile=="blank"){
+        std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);    
     }
 
     
     // ---------------------------------------
 
-    std::ofstream dump_file ("dumpfile.txt");
+    std::ofstream dump_file (dfile);
     dump_file.close(); 
 
     // ----------------------------------------
@@ -96,35 +100,42 @@ int main(int argc, char** argv) {
     ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~*/
 
     Grid G = CreateGridObject(positions, topology);
-
-    G.instantiateOccupancyMap();
-    
+    G.dumpPositionsOfPolymers(0, dfile); 
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
+    std::cout << "Next..." << std::endl;
     
-    Grid G3 = FinalToZero_Reptation (G, 0) ; 
-
-
-/*    for (std::map <std::vector <int>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
-
-        std::vector <int> key = iter->first; 
-
-        if (G.OccupancyMap[key].ptype != G3.OccupancyMap[key].ptype){
-            
-            std::cout << "A particle was displaced from the location ";
-            print(G3.OccupancyMap[key].coords); 
-            
+    Grid G_ (G); 
+    
+    for (int i{0}; i< Nmov; i++){
+        std::cout << "Move number " << i+1 << ". " ;
+        // choose a move 
+        G_ = MoveChooser(G, 0);  
+        std::cout << "Executed." << std::endl;
+        if (MetropolisAcceptance(G.Energy, G_.Energy, G.kT)){
+            // accepted
+            // replace old config with new config 
+            std::cout << "Accepted." << std::endl;
+            G = G_;
+            // G_.PolymersInGrid.at(0).printChainCoords();
         }
+        else {
+            std::cout << "Not accepted." << std::endl;
+            // continue;
+        }
+
+        if (i % dfreq == 0){
+            G.dumpPositionsOfPolymers(i+1, dfile);
+        }
+
     }
-*/
-    std::cout << "Coordinates of monomer units are: " << std::endl;
-    G3.PolymersInGrid.at(0).printChainCoords();
     
 
 
 
 
-
+    
+    
     return 0;
 
 }

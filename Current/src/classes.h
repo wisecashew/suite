@@ -80,45 +80,6 @@ public:
 
 
 
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-
-
-
-/*
-class ClusterParticle{
-public:
-    Particle p; 
-    std::string cluster_name = "None"; 
-
-
-    // constructors 
-    ClusterParticle(Particle p_, std::string name_): p(p_), cluster_name(name_) {};
-    ClusterParticle(Particle p_): p(p_), cluster_name("None") {}; 
-};
-
-class Cluster{
-public:
-    std::string cluster_name;
-    std::vector <ClusterParticle> cparticles; 
-
-    // constructors 
-    Cluster(std::string name): cluster_name(name){};
-};
-*/
-
-
-
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-
-
-
-
-
-
 
 
 
@@ -137,15 +98,15 @@ class Grid{
 
 public:
     std::vector <Polymer> PolymersInGrid;                 // all the polymers in the grid 
-    std::vector <Particle> SolventInGrid;                // solvent molecules in the grid 
-    const int x;                                          // length of x-edge of grid 
-    const int y;                                          // length of y-edge of grid 
-    const int z;                                          // length of z-edge of grid 
-    const double kT;                                      // energy factor 
-    const double Emm ;                                    // monomer-monomer interaction 
-    const double Ess ;                                    // solvent-solvent interaction 
-    const double Ems_n ;                                  // monomer-solvent when Not aligned 
-    const double Ems_a ;                                  // monomer-solvent when Aligned
+    std::vector <Particle> SolventInGrid;                 // solvent molecules in the grid 
+    int x;                                          // length of x-edge of grid 
+    int y;                                          // length of y-edge of grid 
+    int z;                                          // length of z-edge of grid 
+    double kT;                                      // energy factor 
+    double Emm ;                                    // monomer-monomer interaction 
+    double Ess ;                                    // solvent-solvent interaction 
+    double Ems_n ;                                  // monomer-solvent when Not aligned 
+    double Ems_a ;                                  // monomer-solvent when Aligned
 
     double Energy; 
     std::map <std::vector <int>, Particle> OccupancyMap;     // a map that gives the particle given the location
@@ -155,9 +116,19 @@ public:
         // this->instantiateOccupancyMap(); 
     };
 
-    ~Grid(){                                    // Destructor of class 
+
+    // Destructor of class 
+    ~Grid(){                                    
 
     }; 
+
+    Grid& operator=(Grid other){
+        std::swap(PolymersInGrid, other.PolymersInGrid); 
+        std::swap(SolventInGrid, other.SolventInGrid); 
+        std::swap(Energy, other.Energy); 
+        std::swap(OccupancyMap, other.OccupancyMap);
+        return *this; 
+    } 
 
     // get the initial completed unoccupied map
     void instantiateOccupancyMap();      
@@ -177,7 +148,7 @@ public:
 
     void CalculateEnergy(); 
 
-    void dumpPositionsOfPolymers (int step); 
+    void dumpPositionsOfPolymers (int step, std::string filename="dumpfile.txt"); 
 
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
@@ -218,46 +189,7 @@ public:
     bool checkConnectivity(std::vector <Polymer> PolymerVector); 
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    // terminal end rotation 
-    void ZeroIndexRotation(int polymer_index);
-    void FinalIndexRotation(int polymer_index); 
-    void EndRotation(int polymer_index); 
 
-    // include MC criterion 
-    void ZeroIndexRotation_MC(int polymer_index);
-    void FinalIndexRotation_MC(int polymer_index); 
-    void EndRotation_MC(int polymer_index); 
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    // kink jump
-    void KinkJump(int polymer_index); 
-    void KinkJump_MC(int polymer_index);
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    // crank shaft 
-    void CrankShaft(int polymer_index); 
-    void CrankShaft_MC(int polymer_index); 
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    // reptation 
-    void ZeroToFinalReptation(int index);
-    void ZeroToFinalReptation_MC(int index);
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    void FinalToZeroReptation(int index); 
-    void FinalToZeroReptation_MC(int index); 
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    void Reptation(int polymer_index); 
-    void Reptation_MC(int polymer_index); 
-
-
-
-    void MonteCarloExecuter(int move_index, int polymer_index);
-    void TheElementaryGridEvolver();
 
     std::vector <Particle> ClusterParticleMaker();
     std::vector <Particle> ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count=0); 
@@ -277,6 +209,7 @@ Grid ForwardReptation(Grid InitialG, int index);
 Grid BackwardReptation(Grid InitialG, int index);
 Grid Reptation(Grid InitialG, int index);
 Grid Translation(Grid InitialG, int index, std::vector <int> direction);  
+Grid MoveChooser(Grid InitialG, int index); 
 
 
 #endif 

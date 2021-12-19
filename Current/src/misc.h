@@ -79,4 +79,6 @@ bool isSymmetric(std::vector <std::vector <double>> mat);
 Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_m="monomer");
 void ClusterFlip(std::vector <Particle>*);
 
+bool MetropolisAcceptance(double E1, double E2, double kT); 
+
 #endif 

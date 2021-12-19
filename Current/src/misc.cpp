@@ -578,7 +578,24 @@ void ClusterFlip(std::vector <Particle>* cluster){
 	return; 
 }
 
+// ===============================================================
+// ===============================================================
 
+bool MetropolisAcceptance(double E1, double E2, double kT){
+
+	double dE = E2-E1; 
+	double prob = std::exp(-1/kT*dE); 
+	double r = rng_uniform(0.0, 1.0); 
+	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
+	// std::cout << "RNG is " << r << "." << std::endl;
+	if (r < prob){
+		return true; 
+	}
+	else {
+		return false; 
+	}
+
+}
 
 
 

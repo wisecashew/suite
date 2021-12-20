@@ -12,6 +12,11 @@
 #include <regex>
 #include <tuple> 
 
+/* ==================================================
+These are some objects I have defined which I tend to use often. 
+Helpful definitions which are employed often in the context of the z=6 lattice I am using.
+====================================================*/ 
+
 const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
 const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  							// vector of unit directions 
 
@@ -482,6 +487,12 @@ std::vector <double> ExtractTopologyFromFile(std::string filename){
 
 std::vector <std::string> ExtractContentFromFile(std::string filename){
     std::ifstream myfile (filename); 
+
+    if ( !myfile ){
+    	std::cerr << "File named " << filename << " could not be opened!" << std::endl; 
+    	exit(EXIT_FAILURE);
+    }
+
     std::string mystring; 
     std::vector <std::string> contents; 
 
@@ -587,8 +598,8 @@ bool MetropolisAcceptance(double E1, double E2, double kT){
 	double prob = std::exp(-1/kT*dE); 
 	double r = rng_uniform(0.0, 1.0); 
 
-	std::cout << "Probability of acceptance is " << prob << "." << std::endl;
-	std::cout << "RNG is " << r << "." << std::endl;
+	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
+	// std::cout << "RNG is " << r << "." << std::endl;
 	if (r < prob){
 		return true; 
 	}
@@ -599,7 +610,16 @@ bool MetropolisAcceptance(double E1, double E2, double kT){
 }
 
 
+// ===============================================================
+// ===============================================================
 
+void StringToFile(std::string filename, std::string to_send){
+	std::ofstream send_file(filename, std::ios::app); 
+	send_file << to_send;
+    send_file.close();
+
+    return; 
+}
 
 
 

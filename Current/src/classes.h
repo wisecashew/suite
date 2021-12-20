@@ -122,6 +122,7 @@ public:
 
     }; 
 
+    // assignment operator that allows for a correct transfer of properties. Important to functioning of program. 
     Grid& operator=(Grid other){
         std::swap(PolymersInGrid, other.PolymersInGrid); 
         std::swap(SolventInGrid, other.SolventInGrid); 
@@ -139,9 +140,12 @@ public:
     // plant the polymer from input file 
     void plantPolymersInGrid(std::string filename);  
 
+    // extract number of polymers from the topology file 
     int ExtractNumberOfPolymers(std::string filename);
 
+    // extract topology from the topology file 
     std::vector <std::string> ExtractContentFromFile(std::string filename); 
+
 
     void ExtractPolymersFromFile(std::string filename);
     
@@ -193,11 +197,12 @@ public:
 
     std::vector <Particle> ClusterParticleMaker();
     std::vector <Particle> ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count=0); 
-    // std::vector <Cluster> ClusterMaker(); 
+    
 
 }; 
 
 
+// 
 Grid CreateGridObject(std::string positions, std::string topology);
 Grid IsingFlip(Grid InitialG);
 Grid ZeroIndexRotation(Grid InitialG, int index);
@@ -209,7 +214,7 @@ Grid ForwardReptation(Grid InitialG, int index);
 Grid BackwardReptation(Grid InitialG, int index);
 Grid Reptation(Grid InitialG, int index);
 Grid Translation(Grid InitialG, int index, std::vector <int> direction);  
-Grid MoveChooser(Grid InitialG); 
+Grid MoveChooser(Grid InitialG, bool v); 
 
 
 #endif 

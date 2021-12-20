@@ -17,7 +17,27 @@
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
-// Methods for class grid 
+//                 METHODS FOR CLASS GRID 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+//============================================================
+//============================================================
+//
+// NAME OF FUNCTION: dumpPositionsOfPolymers 
+//
+// PARAMETERS: (int step, std::string filename), and some attributes present in the Grid Object 
+// 'step' is the current time step we are at. This is an integer which is likely defined in the driver code.  
+// 'filename' is the file to which I am going to print out coordinate information about the polymer. 
+//
+// WHAT THE FUNCTION DOES: It takes the coordinates of the polymers in the current Grid object \, and prints them 
+// out to a text file.  
+//
+// DEPENDENCIES: No custom function required. All can be done from C++ STL. 
+//
+// THE CODE: 
 
 
 void Grid::dumpPositionsOfPolymers (int step, std::string filename){
@@ -44,8 +64,29 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
 
 }
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of dumpPositionsOfPolymer. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~# 
+
+//============================================================
+//============================================================
+//
+// NAME OF FUNCTION: CreateGridObject 
+//
+// PARAMETERS: (std::string positions, std::string topology), and some attributes present in the Grid Object 
+// 'positions' is the name of the file with coordinates of the polymer, so something like "coords.txt"
+// 'topology' is the name of the file with the geometric and energetic information of the system, so something like "topology.txt"
+// WHAT THE FUNCTION DOES: It looks at the topology file, which contains the geometric dimensions of the box 
+// the polymer solution is in and the energy surface ie the interaction energies between the different particle 
+// types present in the box. 
+//
+// DEPENDENCIES: ExtractTopologyFromFile, ExtractNumberOfPolymers, create_lattice_pts, InstantiateOccupancyMap, CalculateEnergy. 
+//
+// THE CODE: 
+
 
 Grid CreateGridObject(std::string positions, std::string topology){ 
     std::vector <double> info_vec; 
@@ -101,7 +142,26 @@ Grid CreateGridObject(std::string positions, std::string topology){
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of CreateGridObject. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+
+//============================================================
+//============================================================
+//
+// !!!!!!!!! CRITICAL OBJECT TO RUN SIMULATION ACCURATELY !!!!!!!!!!!!!!!!!!!
+// 
+// NAME OF FUNCTION: instantiateOccupancyMap
+//
+// PARAMETERS: Some attributes of the Grid Object
+// WHAT THE FUNCTION DOES: It looks at the PolymersInGrid object and SolventInGrid object and creates a map
+// that takes in the location of a point on the lattice, and returns the particle occupying that location
+//
+// DEPENDENCIES: No custom functions required apart from those defined previously in object Grid. 
+//
+// THE CODE: 
 
 void Grid::instantiateOccupancyMap(){
     
@@ -120,10 +180,25 @@ void Grid::instantiateOccupancyMap(){
     return; 
 }
 
-
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of instantiateOccupancyMap. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: checkValidityOfCoords
+//
+// PARAMETERS: std::vector <int> v, some attributes of the Grid Object
+// WHAT THE FUNCTION DOES: It look at a singular location coordinate and checks if it is a "good" location, 
+// and does not lie outside the box, or something unphysical like that. 
+
+// DEPENDENCIES: No custom functions required apart from those defined previously in object Grid. 
+//
+// THE CODE: 
 
 bool Grid::checkValidityOfCoords(std::vector <int> v){
     if (v.at(0)>this->x || v.at(0) < 0 || v.at(1)>this->y || v.at(1)<0 || v.at(2)>this->z || v.at(2)<0){
@@ -134,9 +209,26 @@ bool Grid::checkValidityOfCoords(std::vector <int> v){
     }
 }
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of checkValidityOfCoords. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: checkForOverlaps
+//
+// PARAMETERS: std::vector <int> PolymerVector
+// 
+// WHAT THE FUNCTION DOES: It looks at a vector of polymers that are supposed to go into the Grid. If
+// two (or more) monomer units occupy the same spot, it will freak out and exit out of compilation. 
+// 
+// DEPENDENCIES: No custom functions required apart from those defined previously in object Grid. 
+//
+// THE CODE: 
 
 
 bool Grid::checkForOverlaps(std::vector <Polymer> PolymerVector){
@@ -168,7 +260,23 @@ bool Grid::checkForOverlaps(std::vector <Polymer> PolymerVector){
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of checkForOverlaps. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: checkConnectivity
+//
+// PARAMETERS: std::vector <int> PolymerVector
+// 
+// WHAT THE FUNCTION DOES: It looks at a vector of polymers that are supposed to go into the Grid. If
+// two adjacent monomer units in the polymer vector do not have adjacent coordinates, you have bad connectivity.  
+// 
+// DEPENDENCIES: subtract_vectors 
+//
+// THE CODE: 
 
 bool Grid::checkConnectivity(std::vector <Polymer> PolymerVector) {
     std::vector <int> d1 = {0, 0, 1}; 
@@ -201,12 +309,31 @@ bool Grid::checkConnectivity(std::vector <Polymer> PolymerVector) {
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of checkConnectivity. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractNumberOfPolymers 
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts the number of polymers from that file. 
+// 
+// DEPENDENCIES: subtract_vectors 
+//
+// THE CODE: 
 
 
 int Grid::ExtractNumberOfPolymers(std::string filename){
     std::regex start("START"); 
     std::regex end ("END"); 
     std::ifstream myfile (filename); 
+
+
 
     std::string myString; 
     // std::vector <std::string> StartContents; 
@@ -225,7 +352,7 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
                 numberOfEnds++; 
             }
             else if ( myString.empty()){
-                std::cerr << "ERROR: Empty line found. Bad POSITIONS.TXT file. " << std::endl;
+                std::cerr << "ERROR: Empty line found. Bad positions file. " << std::endl;
                 exit (EXIT_FAILURE);
             }
         }
@@ -248,6 +375,12 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
 
 std::vector <std::string> Grid::ExtractContentFromFile(std::string filename){
     std::ifstream myfile (filename); 
+
+    if ( !myfile ){
+        std::cerr << "File named " << filename << " could not be opened!" << std::endl; 
+        exit(EXIT_FAILURE);
+    }
+
     std::string mystring; 
     std::vector <std::string> contents; 
 
@@ -355,7 +488,20 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
-
+//============================================================
+//============================================================
+// 
+// !!!!!!!!! CRITICAL OBJECT TO RUN SIMULATION ACCURATELY !!!!!!!!!!!!!!!!!!!
+// 
+// NAME OF FUNCTION: CalculateEnergy
+//
+// PARAMETERS: some attributes of the Grid Object
+// WHAT THE FUNCTION DOES: Calculates energy of the current Grid. Critical to correctly evolve system. 
+// includes nearest neighbor interactions with and without directional effects.  
+//
+// DEPENDENCIES: obtain_ne_list 
+//
+// THE CODE: 
 
 void Grid::CalculateEnergy(){
     double Energy {0.0}; 
@@ -419,6 +565,12 @@ void Grid::CalculateEnergy(){
     return; 
 
 }
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of calculateEnergy. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
 
 
 std::vector <Particle> Grid::ClusterParticleMaker(){
@@ -477,7 +629,7 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
 
         std::vector <Particle> to_send; 
         int r = rng_uniform(0, Particles.size()-1); 
-        std::cout << "Length of Particles is " << Particles.size() << std::endl;
+        // std::cout << "Length of Particles is " << Particles.size() << std::endl;
         
         
         Particle p = Particles.at(r); 
@@ -608,15 +760,29 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
 }
 
 
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
-// Methods for class polymer 
+//                    POLYMER METHODS. 
 
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: printChainCoords
+//
+// PARAMETERS: none, method on a Polymer
+// 
+// WHAT THE FUNCTION DOES: Given a Polymer, it will print out coordinates of the polymers in a nice way 
+//
+// DEPENDENCIES: print
+//
+// THE CODE: 
+
 
 void Polymer::printChainCoords(){
     for (Particle p: this->chain){
@@ -625,9 +791,26 @@ void Polymer::printChainCoords(){
     return; 
 }
 
-
-
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//                     End of printChainCoords. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: printOrientation
+//
+// PARAMETERS: none, method on a Polymer
+// 
+// WHAT THE FUNCTION DOES: Given a Polymer, it will print out Ising orientation of monomer units
+//
+// DEPENDENCIES: print
+//
+// THE CODE: 
+
 
 void Polymer::printOrientation(){
     for (Particle p:this->chain){
@@ -637,8 +820,29 @@ void Polymer::printOrientation(){
     return;
 }
 
-
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//                  End of printOrientation. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// !!!!!!!! CRITICAL OBJECT FOR ACCURATE SIMULATION !!!!!!!
+//
+// NAME OF FUNCTION: ChainToConnectivityMap
+//
+// PARAMETERS: none, method on a Polymer
+// 
+// WHAT THE FUNCTION DOES: Given a Polymer, it will construct a connectivity map. Given a monomer unit, it 
+// will give locations of particles it is bonded to. 
+// 
+// !!!!!! NOTE: THIS ONLY WORKS FOR LINEAR POLYMERS !!!!!!!!
+//
+// DEPENDENCIES: print
+//
+// THE CODE: 
 
 void Polymer::ChainToConnectivityMap(){
 
@@ -664,7 +868,27 @@ void Polymer::ChainToConnectivityMap(){
 };
 
 
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//                End of ChainToConnectivityMap. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+//
+// NAME OF FUNCTION: findKinks
+//
+// PARAMETERS: none, method on a Polymer
+// 
+// WHAT THE FUNCTION DOES: Given a Polymer, it will find kinks in the polymer structure.  
+//
+// DEPENDENCIES: subtract_vectors 
+//
+// THE CODE: 
 
 
 std::vector <int> Polymer::findKinks(){
@@ -692,8 +916,26 @@ std::vector <int> Polymer::findKinks(){
 
 }
 
-
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//                End of findKinks. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+//
+// NAME OF FUNCTION: findCranks
+//
+// PARAMETERS: none, method on a Polymer
+// 
+// WHAT THE FUNCTION DOES: Given a Polymer, it will find kinks in the polymer structure.  
+//
+// DEPENDENCIES: subtract_vectors 
+//
+// THE CODE: 
 
 
 std::vector <int> Polymer::findCranks(){
@@ -716,7 +958,7 @@ std::vector <int> Polymer::findCranks(){
     }
 
     if (crank_indices.size() == 0) {
-        std::cout << "there are no cranks in the current structure..." << std::endl;
+        // std::cout << "there are no cranks in the current structure..." << std::endl;
     } 
 
     return crank_indices;
@@ -724,43 +966,79 @@ std::vector <int> Polymer::findCranks(){
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//                End of findCranks. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
-// Methods for class particle
+//                    PARTICLE METHODS. 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: printCoords
+//
+// PARAMETERS: none, method on a particle
+// 
+// WHAT THE FUNCTION DOES: Given a particle, it will print out coordinates in a nice way 
+//
+// DEPENDENCIES: print
+//
+// THE CODE: 
 
 void Particle::printCoords(){
     print(this->coords); 
     return; 
 }
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of printCoords. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+//                    MONTE CARLO MOVES. 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
-
-
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-// MONTE CARLO MOVES 
-
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: IsingFlip
+//
+// PARAMETERS: a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform an IsingFlip on a certain cluster of particles. Clusters
+// are made using ClusterParticleMaker + ClusterMaker. Clusters are flipped using ClusterFlip. 
+//
+// DEPENDENCIES: ClusterParticleMaker, ClusterMaker, ClusterFlip
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully.    
+//
+// THE CODE: 
 
 
 Grid IsingFlip(Grid InitialG){
 
     std::vector <Particle> Particles = InitialG.ClusterParticleMaker(); 
-
+    
     std::vector <Particle> an_empty_vector_for_ClusterMaker; 
 
     std::vector <Particle> cluster = InitialG.ClusterMaker(Particles, an_empty_vector_for_ClusterMaker, 0);
-    
+
     ClusterFlip (&cluster);                       // flip the cluster! 
 
     Grid NewG (InitialG);                         // make a copy of the original Grid 
@@ -787,8 +1065,29 @@ Grid IsingFlip(Grid InitialG){
 
 }
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of IsingFlip. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ZeroIndexRotation
+//
+// PARAMETERS: index of a polymer to perform ZeroIndexRotation, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer at the first index (the tail)
+// of the polymer. As it stands, this function only rotates one molecule at the tail.
+//
+// PLANNED EXTENSION: Multiple molecules at the tail need to be rotated.    
+//
+// DEPENDENCIES: obtain_ne_list, ChainToConnectivityMap
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully.    
+//
+// THE CODE: 
 
 Grid ZeroIndexRotation(Grid InitialG, int index){
 
@@ -849,7 +1148,31 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
     return NewG;
 }
 
-//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ZeroIndexRotation. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: FinalIndexRotation
+//
+// PARAMETERS: index of polymer to perform FinalIndexRotation on, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer at the final index (the head)
+// of the polymer. As it stands, this function only rotates one molecule at the head.
+//
+// PLANNED EXTENSION: Multiple molecules at the head need to be rotated.    
+//
+// DEPENDENCIES: obtain_ne_list, ChainToConnectivityMap
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
+
 
 Grid FinalIndexRotation(Grid InitialG, int index){
 
@@ -908,7 +1231,30 @@ Grid FinalIndexRotation(Grid InitialG, int index){
     return NewG;
 }
 
-//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of FinalIndexRotation. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: EndRotation
+//
+// PARAMETERS: index of polymer to perform EndRotation on, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer at the terminal index (the tail or head)
+// of the polymer. As it stands, this function only rotates one molecule at the tail or head. The choice of head 
+// or tail rotation comes from a random distribution. 
+//
+// PLANNED EXTENSION: Multiple molecules at the termini need to be rotated.    
+//
+// DEPENDENCIES: ZeroIndexRotation, FinalIndexRotation
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
 
 
 Grid EndRotation(Grid InitialG, int index){
@@ -931,8 +1277,26 @@ Grid EndRotation(Grid InitialG, int index){
 
 }
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of EndRotation. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: KinkJump
+//
+// PARAMETERS: index of which polymer to perform KinkJump on, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a kink jump when it finds a kink. 
+// The kinks are shuffled before any is chosen. 
+//
+// DEPENDENCIES: findKinks, ChainToConnectivityMap, add_vectors, subtract_vectors
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
 
 
 Grid KinkJump(Grid InitialG, int index){
@@ -989,15 +1353,33 @@ Grid KinkJump(Grid InitialG, int index){
             // std::cout << "This spot is taken by a monomer... no kink jumping." << std::endl;
         }
 
-
-
     }
 
     return NewG; 
 
 }
 
-//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of KinkJump. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: CrankShaft
+//
+// PARAMETERS: index of a polymer to perform CrankShaft on, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a kink jump when it finds a kink. 
+// The kinks are shuffled before any is chosen. 
+//
+// DEPENDENCIES: findKinks, ChainToConnectivityMap, add_vectors, subtract_vectors
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
 
 
 Grid CrankShaft(Grid InitialG, int index){
@@ -1079,7 +1461,35 @@ Grid CrankShaft(Grid InitialG, int index){
 
 }
 
-//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of CrankShaft. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+//
+// !!!!!!! 
+// NOTE FOR REPTATION CODE: The code is about all updating only the positions 
+// of each particle in PolymersInGrid. One of the termini will move to a spot occupied by solvent. 
+// If the monomer at index 0 is moving to a new spot, monomer at index 1 will take on coordinates of monomer 0 in the initial config, 
+// monomer at index 2 will take coordinates of monomer at index 1 in the initial config, and so on. 
+// Reverse the process if monomer at final index is moving to a new spot. 
+// !!!!!!!
+// 
+// NAME OF FUNCTION: ForwardReptation 
+//
+// PARAMETERS: index of a polymer to reptate forward, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: index of polymer on which to perform ForwardReptation, given a Grid, it will perform a kink jump when it finds a kink. 
+// The kinks are shuffled before any is chosen. 
+//
+// DEPENDENCIES: obtain_ne_list, ChainToConnectivityMap 
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
 
 Grid ForwardReptation(Grid InitialG, int index){
 
@@ -1130,7 +1540,7 @@ Grid ForwardReptation(Grid InitialG, int index){
 
         }
         else {
-            std::cout << "No place to slither... " << std::endl;
+            // std::cout << "No place to slither... " << std::endl;
         }
     }
 
@@ -1138,8 +1548,34 @@ Grid ForwardReptation(Grid InitialG, int index){
 
 }; 
 
-//#~#~#~#~#~#~~#~#~###~##~##~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ForwardReptation. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+//============================================================
+//============================================================
+// 
+// !!!!!!! 
+// NOTE FOR REPTATION CODE: The code is about all updating only the positions 
+// of each particle in PolymersInGrid. One of the termini will move to a spot occupied by solvent. 
+// If the monomer at index 0 is moving to a new spot, monomer at index 1 will take on coordinates of monomer 0 in the initial config, 
+// monomer at index 2 will take coordinates of monomer at index 1 in the initial config, and so on. 
+// Reverse the process if monomer at final index is moving to a new spot. 
+// !!!!!!!
+//
+// NAME OF FUNCTION: BackwardReptation 
+//
+// PARAMETERS: index of a polymer to reptate forward, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: index of polymer on which to perform BackwardReptation, given a Grid, it will perform a kink jump when it finds a kink. 
+// The kinks are shuffled before any is chosen. 
+//
+// DEPENDENCIES: obtain_ne_list, ChainToConnectivityMap 
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
 
 Grid BackwardReptation(Grid InitialG, int index){
     
@@ -1200,6 +1636,36 @@ Grid BackwardReptation(Grid InitialG, int index){
 };
 
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ForwardReptation. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+//
+// !!!!!!! 
+// NOTE FOR REPTATION CODE: The code is about all updating only the positions 
+// of each particle in PolymersInGrid. One of the termini will move to a spot occupied by solvent. 
+// If the monomer at index 0 is moving to a new spot, monomer at index 1 will take on coordinates of monomer 0 in the initial config, 
+// monomer at index 2 will take coordinates of monomer at index 1 in the initial config, and so on. 
+// Reverse the process if monomer at final index is moving to a new spot. 
+// !!!!!!!
+// 
+// NAME OF FUNCTION: Reptation 
+//
+// PARAMETERS: index of a polymer to reptate forward or backward, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: index of polymer on which to perform Reptation, given a Grid, it will perform a kink jump when it finds a kink. 
+// The kinks are shuffled before any is chosen. 
+//
+// DEPENDENCIES: obtain_ne_list, ChainToConnectivityMap 
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
+
 Grid Reptation(Grid InitialG, int index){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
@@ -1219,39 +1685,85 @@ Grid Reptation(Grid InitialG, int index){
     
 };
 
-Grid MoveChooser(Grid InitialG){
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of Reptation. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: MoveChooser 
+//
+// PARAMETERS: a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a certain Monte Carlo move on the Grid. 
+// The move could be from any of the following: 
+// 1. End Rotation
+// 2. Kink Jump
+// 3. Crank Shaft
+// 4. Reptation
+// 5. Ising Flip
+//
+// DEPENDENCIES: rng_uniform, CalculateEnergy, EndRotation, KinkJump, CrankShaft, Reptation, IsingFlip  
+//
+// THE CODE: 
+
+Grid MoveChooser(Grid InitialG,  bool v){
 
     int index = rng_uniform(0, static_cast<int>(InitialG.PolymersInGrid.size())-1); 
-    std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
+    // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ (InitialG); 
     int r = rng_uniform(1, 5);
     if (r==1){
-        std::cout << "Performing end rotations." << std::endl;
+        if (v){
+           std::cout << "Performing end rotations." << std::endl; 
+        }
+        // 
         G_ = EndRotation(InitialG, index);
         G_.CalculateEnergy(); 
         
     }
     else if (r == 2){
-        std::cout << "Performing ising flip." << std::endl;
+        if (v){
+           std::cout << "Performing ising flip." << std::endl; 
+        }
+        // std::cout << "Performing ising flip." << std::endl;
         G_ = IsingFlip(InitialG); 
         G_.CalculateEnergy();
 
     }
     else if (r == 3){
-        std::cout << "Performing crank shaft." << std::endl;
+        if (v){
+           std::cout << "Performing crank shaft." << std::endl; 
+        }
+        // std::cout << "Performing crank shaft." << std::endl;
         G_ = CrankShaft(InitialG, index);
         G_.CalculateEnergy();
     }
     else if (r == 4) {
-        std::cout << "Performing reptation." << std::endl;
+        if (v){
+           std::cout << "Performing reptation." << std::endl; 
+        }
+        // std::cout << "Performing reptation." << std::endl;
         G_ = Reptation(InitialG, index); 
         G_.CalculateEnergy();
     }
     else {
-        std::cout << "Performing kink jump." << std::endl;
+        if (v){
+           std::cout << "Performing kink jump." << std::endl; 
+        }
+        // std::cout << "Performing kink jump." << std::endl;
         G_ = KinkJump(InitialG, index);
         G_.CalculateEnergy();        
     }
 
     return G_;
 }
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of MoveChooser. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

@@ -1,0 +1,9 @@
+x = 10
+y = 10
+z = 10 
+kT = 1   
+Emm = -3
+Ess = -2
+Ems_a = -1
+Ems_n = 0
+END OF FILE

@@ -81,4 +81,6 @@ void ClusterFlip(std::vector <Particle>*);
 
 bool MetropolisAcceptance(double E1, double E2, double kT); 
 
+void StringToFile(std::string filename, std::string to_send);
+
 #endif 

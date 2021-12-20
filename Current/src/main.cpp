@@ -16,9 +16,10 @@ int main(int argc, char** argv) {
     // set up 
     int opt; 
     int Nmov {-1}, dfreq {-1};
-    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"};  
+    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"verbose.txt"};  
+    bool v = false;
 
-    while ( (opt = getopt(argc, argv, ":f:N:o:p:t:h")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:N:o:p:t:e:vh")) != -1 )
     {
         switch (opt) 
         {
@@ -40,6 +41,7 @@ int main(int argc, char** argv) {
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
+                "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<
                 "Number of MC moves       [-N]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" << 
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates\n" <<
@@ -62,15 +64,28 @@ int main(int argc, char** argv) {
                 dfile = optarg;
                 break;
 
+            case 'e':
+                efile = optarg;
+                break;
+
+
             case '?':
                 std::cout << "ERROR: Unknown option " << static_cast<char>(optopt) << " was provided." << std::endl;
                 exit(EXIT_FAILURE); 
                 break;
 
+            case 'v':
+                std::cout << "Output to console will be verbose. " << std::endl;
+                v = true;
+                break;
+
 
             case ':':
+                
                 std::cout << "ERROR: Missing arg for " << static_cast <char> (optopt) << std::endl;
                 exit(EXIT_FAILURE);
+                
+                
                 break; 
         }
     }
@@ -85,11 +100,14 @@ int main(int argc, char** argv) {
         exit (EXIT_FAILURE);    
     }
 
-    
+    if (v){
+        std::cout << "\nVERBOSE OUTPUT HAS BEEN TOGGLED.\n" << std::endl;
+    }
 
     std::ofstream dump_file (dfile);
+    std::ofstream verbose_output_file (efile);
+    verbose_output_file.close(); 
     dump_file.close(); 
-
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
@@ -98,38 +116,58 @@ int main(int argc, char** argv) {
 
     // driver 
 
+    auto start = std::chrono::high_resolution_clock::now(); 
+
     Grid G = CreateGridObject(positions, topology);
+    std::cout << "Temperature of box is " << G.kT << "." << std::endl;
     G.dumpPositionsOfPolymers(0, dfile); 
     G.CalculateEnergy();
-    std::cout << "Energy of box is: " << G.Energy << std::endl;
-    std::cout << "Next..." << std::endl;
     
+    if (v){
+        std::cout << "Energy of box is: " << G.Energy << std::endl;
+        std::cout << "Next..." << std::endl;
+    }
+
     Grid G_ (G); 
     
     for (int i{0}; i< Nmov; i++){
-        std::cout << "Move number " << i+1 << ". " ;
+        if ( v && (i%dfreq==0) ){
+            std::cout << "Move number " << i+1 << ". " ;
+        }
         // choose a move 
-        G_ = MoveChooser(G);  
-        std::cout << "Executed." << std::endl;
-        if (MetropolisAcceptance(G.Energy, G_.Energy, G.kT)){
+        G_ = MoveChooser(G, v);  
+        if ( v && (i%dfreq==0) ){
+            std::cout << "Executed." << std::endl;
+        }
+        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) ) {
             // accepted
-            // replace old config with new config 
-            std::cout << "Accepted." << std::endl;
-            std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
+            // replace old config with new config
+            if ( v && (i%dfreq==0) ){ 
+                std::cout << "Accepted." << std::endl;
+                std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
+            }
             G = G_;
         }
         else {
-            std::cout << "Not accepted." << std::endl;
-            std::cout << "Energy of the suggested system is " << G_.Energy << "." << std::endl;
+            if ( v && (i%dfreq==0) ){
+                std::cout << "Not accepted." << std::endl;
+                std::cout << "Energy of the suggested system is " << G_.Energy << ", while energy of the initial system is " << G.Energy << "." << std::endl;
+            }
             // continue;
         }
 
         if (i % dfreq == 0){
-            G.dumpPositionsOfPolymers(i+1, dfile);
+            G.dumpPositionsOfPolymers (i+1, dfile) ;
         }
 
     }
     
+
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+
+     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds" << std::endl;
+
 
     return 0;
 

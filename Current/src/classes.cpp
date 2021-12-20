@@ -363,8 +363,13 @@ void Grid::CalculateEnergy(){
     // polymer-polymer interaction energies 
     for (Polymer pmer: this->PolymersInGrid){
         for (Particle p: pmer.chain){
-            
+            //std::cout << "monomer one is "; 
+            //print(p.coords); 
             std::vector <Particle> part_vec = pmer.ConnectivityMap[p];
+            // std::cout << "Spitting out contents of connectivity map: " << std::endl;
+            //for (auto p: part_vec){
+            //    print(p.coords);
+            //}
 
             std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z); // get neighbor list 
 
@@ -379,6 +384,8 @@ void Grid::CalculateEnergy(){
 
                 std::string type = this->OccupancyMap[loc].ptype; 
                 if (type=="monomer"){
+                    // std::cout << "second monomer is ";
+                    // print(loc);
                     Energy += (this->Emm)*0.5; 
                 }
                 else {
@@ -407,7 +414,7 @@ void Grid::CalculateEnergy(){
         }
 
     }
-
+    // std::cout << "Energy is " << Energy << std::endl; 
     this->Energy = Energy; 
     return; 
 
@@ -435,7 +442,7 @@ std::vector <Particle> Grid::ClusterParticleMaker(){
                     if (this->OccupancyMap[v].ptype=="solvent" ){
                         
                         if (std::find(solvent_locations.begin(), solvent_locations.end(), this->OccupancyMap[v].coords) != solvent_locations.end() ){
-                            // std::cout << "this solvent location has been accounted for." << std::endl;
+                            
                         }
 
                         else {
@@ -448,7 +455,10 @@ std::vector <Particle> Grid::ClusterParticleMaker(){
                 }
         }
     }
-
+    // std::cout << "Locations of particle to Ising flip are: " << std::endl;
+    // for (auto part: Particles){
+    //     print(part.coords); 
+    // }
 
     return Particles; 
 }
@@ -458,17 +468,21 @@ std::vector <Particle> Grid::ClusterParticleMaker(){
 std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count){
 
     if (Particles.size() == 0 ){
+        // std::cout << "When does this get hit?" << std::endl;
         return final; 
     }
 
     if (count==0){
+        
 
         std::vector <Particle> to_send; 
-        int r = rng_uniform(0, Particles.size()); 
-
+        int r = rng_uniform(0, Particles.size()-1); 
+        std::cout << "Length of Particles is " << Particles.size() << std::endl;
+        
+        
         Particle p = Particles.at(r); 
 
-        // std::cout << "I am just making the cluster here. The orientation of the first particle is " << p.orientation << std::endl << std::endl;
+        
 
         final.push_back(p); 
         std::vector <std::vector <int>> location_list; 
@@ -480,6 +494,8 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
         std::vector <Particle> neighbors;
 
         std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z); 
+
+        
 
         if (p.ptype=="solvent"){
             for (std::vector <int> v: ne_list){
@@ -495,7 +511,7 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
             for (std::vector <int> v: ne_list){
                 if (this->OccupancyMap[v].orientation == p.orientation){
                         neighbors.push_back(this->OccupancyMap[v]); 
-                    }
+                }
             }
         }
 
@@ -521,6 +537,7 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
         }
     for (Particle p: final)
     this->ClusterMaker(to_send, final, 1); 
+    
 
     }
 
@@ -543,7 +560,7 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
                     if (std::find(location_list.begin(), location_list.end(), v) != location_list.end() ){
                         // std::cout << "particle in the cluster located." << std::endl;
                         if (this->OccupancyMap[v].orientation == p.orientation){
-                        neighbors.push_back(this->OccupancyMap[v]); 
+                            neighbors.push_back(this->OccupancyMap[v]); 
                         }
                     }
                 }
@@ -577,6 +594,14 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
 
 
     }
+
+    /*
+    std::cout << "The particles in cluster are " << std::endl; 
+    for (auto part: final){
+        std::cout << "Particle type is " << part.ptype << ", location is: ";
+        print(part.coords);
+    }
+    */
 
     return final; 
 
@@ -731,23 +756,19 @@ void Particle::printCoords(){
 Grid IsingFlip(Grid InitialG){
 
     std::vector <Particle> Particles = InitialG.ClusterParticleMaker(); 
+
     std::vector <Particle> an_empty_vector_for_ClusterMaker; 
+
     std::vector <Particle> cluster = InitialG.ClusterMaker(Particles, an_empty_vector_for_ClusterMaker, 0);
-
-    // std::cout << "original cluster is: " << std::endl; 
-
-    // for (auto c: cluster){
-    //    print(c.coords);
-    // }
-
+    
     ClusterFlip (&cluster);                       // flip the cluster! 
 
     Grid NewG (InitialG);                         // make a copy of the original Grid 
 
     for (Particle P: cluster){
         NewG.OccupancyMap[P.coords] = P;          // update the OccupancyMap of NewG
-    }
 
+    }
 
     // update PolymersInGrid 
     for (Polymer& pmer: NewG.PolymersInGrid){
@@ -760,7 +781,6 @@ Grid IsingFlip(Grid InitialG){
     for (Particle& p: NewG.SolventInGrid){
         p = NewG.OccupancyMap[p.coords]; 
     }
-
 
     return NewG; 
 
@@ -1166,7 +1186,7 @@ Grid BackwardReptation(Grid InitialG, int index){
                     break; 
                 }
             }
-
+            NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
             break;
         }
 
@@ -1199,37 +1219,38 @@ Grid Reptation(Grid InitialG, int index){
     
 };
 
+Grid MoveChooser(Grid InitialG){
 
-
-Grid MoveChooser(Grid InitialG, int index){
-
+    int index = rng_uniform(0, static_cast<int>(InitialG.PolymersInGrid.size())-1); 
+    std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ (InitialG); 
-    int r = rng_uniform(1,4);
+    int r = rng_uniform(1, 5);
     if (r==1){
-        std::cout << "Performed end rotations." << std::endl;
+        std::cout << "Performing end rotations." << std::endl;
         G_ = EndRotation(InitialG, index);
         G_.CalculateEnergy(); 
         
     }
     else if (r == 2){
-        std::cout << "Performed kink jump." << std::endl;
-        G_ = KinkJump(InitialG, index);
+        std::cout << "Performing ising flip." << std::endl;
+        G_ = IsingFlip(InitialG); 
         G_.CalculateEnergy();
+
     }
     else if (r == 3){
-        std::cout << "Performed crank shaft." << std::endl;
+        std::cout << "Performing crank shaft." << std::endl;
         G_ = CrankShaft(InitialG, index);
         G_.CalculateEnergy();
     }
     else if (r == 4) {
-        std::cout << "Performed reptation." << std::endl;
+        std::cout << "Performing reptation." << std::endl;
         G_ = Reptation(InitialG, index); 
         G_.CalculateEnergy();
     }
     else {
-        std::cout << "Performed ising flip." << std::endl;
-        G_ = IsingFlip(InitialG); 
-        G_.CalculateEnergy();
+        std::cout << "Performing kink jump." << std::endl;
+        G_ = KinkJump(InitialG, index);
+        G_.CalculateEnergy();        
     }
 
     return G_;

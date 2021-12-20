@@ -13,7 +13,7 @@
 
 int main(int argc, char** argv) {
 
-
+    // set up 
     int opt; 
     int Nmov {-1}, dfreq {-1};
     std::string positions {"blank"}, topology {"blank"}, dfile {"blank"};  
@@ -86,18 +86,17 @@ int main(int argc, char** argv) {
     }
 
     
-    // ---------------------------------------
 
     std::ofstream dump_file (dfile);
     dump_file.close(); 
 
-    // ----------------------------------------
 
-    /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
-    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
-    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
-    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
-    ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~*/
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+
+    // driver 
 
     Grid G = CreateGridObject(positions, topology);
     G.dumpPositionsOfPolymers(0, dfile); 
@@ -110,17 +109,18 @@ int main(int argc, char** argv) {
     for (int i{0}; i< Nmov; i++){
         std::cout << "Move number " << i+1 << ". " ;
         // choose a move 
-        G_ = MoveChooser(G, 0);  
+        G_ = MoveChooser(G);  
         std::cout << "Executed." << std::endl;
         if (MetropolisAcceptance(G.Energy, G_.Energy, G.kT)){
             // accepted
             // replace old config with new config 
             std::cout << "Accepted." << std::endl;
+            std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
             G = G_;
-            // G_.PolymersInGrid.at(0).printChainCoords();
         }
         else {
             std::cout << "Not accepted." << std::endl;
+            std::cout << "Energy of the suggested system is " << G_.Energy << "." << std::endl;
             // continue;
         }
 
@@ -131,11 +131,6 @@ int main(int argc, char** argv) {
     }
     
 
-
-
-
-    
-    
     return 0;
 
 }

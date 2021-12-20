@@ -2,8 +2,8 @@ x = 15
 y = 15
 z = 15 
 kT = 1   
-Emm = -1
-Ess = 0
-Ems_a = 0
+Emm = -3
+Ess = -2
+Ems_a = -1
 Ems_n = 0
 END OF FILE

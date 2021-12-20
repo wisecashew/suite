@@ -242,6 +242,10 @@ int main(int argc, char** argv) {
     }    
 
     
+    
+
+
+
 
     std::cout<<"\n\ntime for the main event: OccupancyMap." << std::endl << std::endl;
 

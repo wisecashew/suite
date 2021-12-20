@@ -209,7 +209,7 @@ Grid ForwardReptation(Grid InitialG, int index);
 Grid BackwardReptation(Grid InitialG, int index);
 Grid Reptation(Grid InitialG, int index);
 Grid Translation(Grid InitialG, int index, std::vector <int> direction);  
-Grid MoveChooser(Grid InitialG, int index); 
+Grid MoveChooser(Grid InitialG); 
 
 
 #endif 

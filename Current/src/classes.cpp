@@ -74,6 +74,49 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
 //============================================================
 //============================================================
 //
+// NAME OF FUNCTION: dumpEnergyOfGrid 
+//
+// PARAMETERS: (int step, std::string filename), and some attributes present in the Grid Object 
+// 'step' is the current time step we are at. This is an integer which is likely defined in the driver code.  
+// 'filename' is the file to which I am going to print out coordinate information about the polymer. 
+//
+// WHAT THE FUNCTION DOES: It takes the coordinates of the polymers in the current Grid object \, and prints them 
+// out to a text file.  
+//
+// DEPENDENCIES: No custom function required. All can be done from C++ STL. 
+//
+// THE CODE: 
+
+
+void Grid::dumpEnergyOfGrid (int step, std::string filename, bool first_call){
+    std::ofstream dump_file(filename, std::ios::app); 
+    if (first_call){
+        dump_file <<"This file contains energy of the Grid at certain points in the simulation.\n";
+        dump_file <<"Energy | Step_Number" << std::endl;
+    }
+    
+    dump_file <<this->Energy << " | " << step << std::endl;
+
+    
+    dump_file.close();
+
+    
+
+    return; 
+
+}
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of dumpPositionsOfPolymer. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+//============================================================
+//============================================================
+//
 // NAME OF FUNCTION: CreateGridObject 
 //
 // PARAMETERS: (std::string positions, std::string topology), and some attributes present in the Grid Object 

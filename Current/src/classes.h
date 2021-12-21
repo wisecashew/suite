@@ -176,9 +176,9 @@ public:
     // calculate energy of Grid 
     void CalculateEnergy(); 
 
-    // dump coordinates of polymers in Grid into a text file 
+    // dump coordinates of polymers in Grid and energy of grid into a text file 
     void dumpPositionsOfPolymers (int step, std::string filename="dumpfile.txt"); 
-
+    void dumpEnergyOfGrid (int step, std::string filename, bool first_call);
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // a function to calculate energy of interaction between two particles. 

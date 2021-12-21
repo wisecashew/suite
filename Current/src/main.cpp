@@ -16,10 +16,10 @@ int main(int argc, char** argv) {
     // set up 
     int opt; 
     int Nmov {-1}, dfreq {-1};
-    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"verbose.txt"};  
+    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"energydump.txt"};  
     bool v = false;
 
-    while ( (opt = getopt(argc, argv, ":f:N:o:p:t:e:vh")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:N:o:u:p:t:e:vh")) != -1 )
     {
         switch (opt) 
         {
@@ -42,11 +42,12 @@ int main(int argc, char** argv) {
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
-                "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<
+                "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of MC moves       [-N]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" << 
-                "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates\n" <<
-                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology\n" <<
-                "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer\n";  
+                "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates.\n" <<
+                "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Dump energy of grid at each step in a file.\n"<<
+                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology.\n" <<
+                "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer.\n";  
                 exit(EXIT_SUCCESS);
                 break;
 
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
                 dfile = optarg;
                 break;
 
-            case 'e':
+            case 'u':
                 efile = optarg;
                 break;
 
@@ -105,8 +106,8 @@ int main(int argc, char** argv) {
     }
 
     std::ofstream dump_file (dfile);
-    std::ofstream verbose_output_file (efile);
-    verbose_output_file.close(); 
+    std::ofstream energy_dump_file (efile);
+    energy_dump_file.close(); 
     dump_file.close(); 
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
@@ -120,7 +121,10 @@ int main(int argc, char** argv) {
 
     Grid G = CreateGridObject(positions, topology);
     std::cout << "Temperature of box is " << G.kT << "." << std::endl;
-    G.dumpPositionsOfPolymers(0, dfile); 
+    G.dumpPositionsOfPolymers(0, dfile);
+    bool call {true}; 
+    G.dumpEnergyOfGrid(0, efile, true); 
+    call = false; 
     G.CalculateEnergy();
     
     if (v){
@@ -165,6 +169,7 @@ int main(int argc, char** argv) {
 
         if (i % dfreq == 0){
             G.dumpPositionsOfPolymers (i, dfile) ;
+            G.dumpEnergyOfGrid(i, efile, call) ; 
         }
 
     }

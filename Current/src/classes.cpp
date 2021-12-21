@@ -83,7 +83,7 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
 // the polymer solution is in and the energy surface ie the interaction energies between the different particle 
 // types present in the box. 
 //
-// DEPENDENCIES: ExtractTopologyFromFile, ExtractNumberOfPolymers, create_lattice_pts, InstantiateOccupancyMap, CalculateEnergy. 
+// DEPENDENCIES: ExtractTopologyFromFile, ExtractNumberOfPolymers, ExtractPolymersFromFile, create_lattice_pts, InstantiateOccupancyMap, CalculateEnergy. 
 //
 // THE CODE: 
 
@@ -344,9 +344,12 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
 
     int numberOfStarts {0}, numberOfEnds {0}; 
 
+    // std::cout << "This is from ExtractNumberOfPolymers..." << std::endl;
     if (myfile.is_open()) {
-        while (myfile.good()) {
-            std::getline(myfile, myString); // pipe file's content into stream 
+        while ( std::getline(myfile, myString) ) {
+            
+            // std::cout << myString << std::endl; 
+            // std::getline(myfile, myString); // pipe file's content into stream 
 
             if (std::regex_search(myString, start)){
                 numberOfStarts++; 
@@ -404,8 +407,8 @@ std::vector <std::string> Grid::ExtractContentFromFile(std::string filename){
     std::vector <std::string> contents; 
 
     if (myfile.is_open() ){
-        while (myfile.good()) {
-            std::getline(myfile, mystring); // pipe file's content into stream 
+        while ( std::getline(myfile, mystring) ) {
+            // pipe file's content into stream 
             contents.push_back(mystring); 
         }
     }
@@ -451,8 +454,10 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
 
     int startCount{0}, endCount {0}; 
-
+    
+    
     for (std::string s: contents){
+        
         
          
         std::stringstream ss(s); 
@@ -463,8 +468,10 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
         else if (std::regex_search(s, end) ) {
             endCount++;
+            
             Polymer pmer = makePolymer(locations);
             PolymerVector.push_back(pmer);
+            
             locations.clear();
             
         }
@@ -472,26 +479,24 @@ void Grid::ExtractPolymersFromFile(std::string filename){
         else{
             std::vector <int> loc; 
             for (int i=0; ss>>i; ){
-
+                
                 loc.push_back(i);
+
             }
-        
 
             if (!this->checkValidityOfCoords(loc)){
             std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
             exit(EXIT_FAILURE); 
             }
         
-            // print(loc);
-            // std::cout << "checking coordinates of polymers..." << std::endl;
-            // print(loc);
-
             locations.push_back(loc); 
-        
+            
         
         }
     }
     
+    
+
     if(!(this->checkForOverlaps(PolymerVector))){
         std::cerr << "ERROR: There is a problem with the input file for positions. Overlap detected." << std::endl;
         exit(EXIT_FAILURE);  
@@ -508,9 +513,8 @@ void Grid::ExtractPolymersFromFile(std::string filename){
         exit(EXIT_FAILURE); 
     }
     
-
     this->PolymersInGrid = PolymerVector;
-    // this->CalculateEnergy();
+
     return; 
 }
 
@@ -542,13 +546,9 @@ void Grid::CalculateEnergy(){
     // polymer-polymer interaction energies 
     for (Polymer pmer: this->PolymersInGrid){
         for (Particle p: pmer.chain){
-            //std::cout << "monomer one is "; 
-            //print(p.coords); 
+            
             std::vector <Particle> part_vec = pmer.ConnectivityMap[p];
-            // std::cout << "Spitting out contents of connectivity map: " << std::endl;
-            //for (auto p: part_vec){
-            //    print(p.coords);
-            //}
+            
 
             std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z); // get neighbor list 
 
@@ -1465,7 +1465,7 @@ Grid CrankShaft(Grid InitialG, int index){
     std::vector <int> c_idx = InitialG.PolymersInGrid.at(index).findCranks(); 
 
     if ( c_idx.size()==0 ){
-        std::cout << "No cranks in this polymer..." << std::endl; 
+        // std::cout << "No cranks in this polymer..." << std::endl; 
         return InitialG; 
     }
 
@@ -1703,7 +1703,7 @@ Grid BackwardReptation(Grid InitialG, int index){
         }
 
         else {
-            std::cout << "No place to slither..." << std::endl;
+            // std::cout << "No place to slither..." << std::endl;
         }
 
     }

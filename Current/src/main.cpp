@@ -130,7 +130,9 @@ int main(int argc, char** argv) {
 
     Grid G_ (G); 
     
-    for (int i{0}; i< Nmov; i++){
+    for (int i{1}; i< (Nmov+1); i++){
+
+
         if ( v && (i%dfreq==0) ){
             std::cout << "Move number " << i+1 << ". " ;
         }
@@ -161,9 +163,8 @@ int main(int argc, char** argv) {
             // continue;
         }
 
-
         if (i % dfreq == 0){
-            G.dumpPositionsOfPolymers (i+1, dfile) ;
+            G.dumpPositionsOfPolymers (i, dfile) ;
         }
 
     }

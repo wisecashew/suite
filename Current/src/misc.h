@@ -71,16 +71,24 @@ std::vector <std::vector <int>> HingeSwingDirections(std::vector <int>* HingeToH
 int rng_uniform(int start, int end);
 double rng_uniform(double start, double end);
 
-
+// extracting info from files 
 std::vector <double> ExtractTopologyFromFile(std::string filename);
 std::vector <std::string> ExtractContentFromFile(std::string filename);
 std::vector <double> NumberExtractor(std::string s);
+
+// checking if info is accurate 
 bool isSymmetric(std::vector <std::vector <double>> mat);
+
+// making a polymer from a bunch of locations 
 Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_m="monomer");
+
+// flipping the orientation of a bunch of particles 
 void ClusterFlip(std::vector <Particle>*);
 
+// metropolis acceptance criterion
 bool MetropolisAcceptance(double E1, double E2, double kT); 
 
+// sending a string to a file
 void StringToFile(std::string filename, std::string to_send);
 
 #endif 

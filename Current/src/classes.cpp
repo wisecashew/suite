@@ -286,7 +286,7 @@ bool Grid::checkConnectivity(std::vector <Polymer> PolymerVector) {
     for (Polymer pmer: PolymerVector){
         size_t length = pmer.chain.size(); 
         std::vector <int> connection; 
-        for (int i{1}; i<length; i++){
+        for (int i{1}; i<static_cast<int>(length); i++){
             
             connection = subtract_vectors(&(pmer.chain.at(i).coords), &(pmer.chain.at(i-1).coords));
             impose_pbc(&connection, this->x, this->y, this->z);
@@ -333,7 +333,10 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
     std::regex end ("END"); 
     std::ifstream myfile (filename); 
 
-
+    if ( !myfile ){
+        std::cerr << "File named " << filename << " could not be opened!" << std::endl; 
+        exit(EXIT_FAILURE);
+    }
 
     std::string myString; 
     // std::vector <std::string> StartContents; 
@@ -370,8 +373,24 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractNumberOfPolymers. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractContentFromFile
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts all the data from the file 
+// in the form of a vector of strings.  
+// 
+// DEPENDENCIES: subtract_vectors 
+//
+// THE CODE: 
 
 std::vector <std::string> Grid::ExtractContentFromFile(std::string filename){
     std::ifstream myfile (filename); 
@@ -397,7 +416,25 @@ std::vector <std::string> Grid::ExtractContentFromFile(std::string filename){
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractContentFromFile. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractContentFromFile
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts all the data from the file 
+// in the form of a vector of strings.  
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
 
 
 void Grid::ExtractPolymersFromFile(std::string filename){
@@ -454,14 +491,6 @@ void Grid::ExtractPolymersFromFile(std::string filename){
         
         }
     }
-
-
-
-    
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     
     if(!(this->checkForOverlaps(PolymerVector))){
         std::cerr << "ERROR: There is a problem with the input file for positions. Overlap detected." << std::endl;
@@ -485,6 +514,10 @@ void Grid::ExtractPolymersFromFile(std::string filename){
     return; 
 }
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractContentFromFile. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
@@ -572,6 +605,20 @@ void Grid::CalculateEnergy(){
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ClusterParticleMaker
+//
+// PARAMETERS: a well-defined Grid  
+// 
+// WHAT THE FUNCTION DOES: it looks at the Polymers In Grid and charts out all the solvent molecules that interact 
+// with the polymers. The idea is that you dont need to update the orientation of the entire box, because it doesnt 
+// matter if solvent molecules not in contact with the polymer are flipped.    
+// 
+// DEPENDENCIES: obtain_ne_list, OccupancyMap
+//
+// THE CODE: 
 
 std::vector <Particle> Grid::ClusterParticleMaker(){
     
@@ -616,6 +663,28 @@ std::vector <Particle> Grid::ClusterParticleMaker(){
 }
 
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ClusterParticleMaker. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ClusterMaker
+//
+// PARAMETERS: a well-defined Grid  
+// 
+// WHAT THE FUNCTION DOES: Once the particles that can POTENTIALLY be part of a cluster have been identified, 
+// the next thing to do is make the network. You pick a particle at random from the potential cluster, consider all
+// the neighbors with in the cluster with the same orientation. You form a bond with those neighbors with a probability of 
+// exp(-2\beta J). Once the network has been formed, flip orientation of every particle in network. 
+// 
+// DEPENDENCIES: ExtractContentFromFile, energy predictor 
+//
+// THE CODE: 
 
 std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count){
 
@@ -758,6 +827,13 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
     return final; 
 
 }
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ClusterParticleMaker. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
 
 
 

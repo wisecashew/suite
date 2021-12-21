@@ -136,9 +136,12 @@ int main(int argc, char** argv) {
         }
         // choose a move 
         G_ = MoveChooser(G, v);  
+
         if ( v && (i%dfreq==0) ){
             std::cout << "Executed." << std::endl;
         }
+
+
         if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) ) {
             // accepted
             // replace old config with new config
@@ -148,6 +151,8 @@ int main(int argc, char** argv) {
             }
             G = G_;
         }
+
+
         else {
             if ( v && (i%dfreq==0) ){
                 std::cout << "Not accepted." << std::endl;
@@ -156,6 +161,7 @@ int main(int argc, char** argv) {
             // continue;
         }
 
+
         if (i % dfreq == 0){
             G.dumpPositionsOfPolymers (i+1, dfile) ;
         }
@@ -163,10 +169,12 @@ int main(int argc, char** argv) {
     }
     
 
+    
     auto stop = std::chrono::high_resolution_clock::now(); 
+    
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds" << std::endl;
+    std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds" << std::endl;
 
 
     return 0;

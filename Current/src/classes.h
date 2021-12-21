@@ -3,6 +3,14 @@
 
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+//                 DEFINITIONS FOR CLASS PARTICLE 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 
 class Particle{
 public: 
@@ -31,17 +39,27 @@ public:
 
     }
 
-    // Particle( const Particle &other); // copy constructor for some reason i dont know
-
     // print location of the particle 
     void printCoords(); 
 
 };
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
+// =====       END OF CLASS PARTICLE       =====
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+//                 DEFINITIONS FOR CLASS POLYMER 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 
 class Polymer{
 public: 
@@ -78,16 +96,22 @@ public:
 
 };
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+// =====       END OF CLASS POLYMER      =====
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
+// =====       DEFINITIONS FOR CLASS GRID       ===== 
 
-
-
-
-
-
-
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 This is the Grid Class. 
@@ -146,16 +170,19 @@ public:
     // extract topology from the topology file 
     std::vector <std::string> ExtractContentFromFile(std::string filename); 
 
-
+    // extract polymer coordinates from a file 
     void ExtractPolymersFromFile(std::string filename);
     
-
+    // calculate energy of Grid 
     void CalculateEnergy(); 
 
+    // dump coordinates of polymers in Grid into a text file 
     void dumpPositionsOfPolymers (int step, std::string filename="dumpfile.txt"); 
 
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    // a function to calculate energy of interaction between two particles. 
+
     double EnergyPredictor(Particle p1, Particle p2){
         if (p1.ptype == "monomer" && p2.ptype == "monomer"){
             return this->Emm;
@@ -194,7 +221,7 @@ public:
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
 
-
+    // create clusters meant for Ising flips
     std::vector <Particle> ClusterParticleMaker();
     std::vector <Particle> ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count=0); 
     
@@ -202,7 +229,24 @@ public:
 }; 
 
 
-// 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+// =====       END OF CLASS GRID      =====
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+// =====       DEFINITIONS OF MONTE CARLO MOVES       ===== 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 Grid CreateGridObject(std::string positions, std::string topology);
 Grid IsingFlip(Grid InitialG);
 Grid ZeroIndexRotation(Grid InitialG, int index);
@@ -215,6 +259,17 @@ Grid BackwardReptation(Grid InitialG, int index);
 Grid Reptation(Grid InitialG, int index);
 Grid Translation(Grid InitialG, int index, std::vector <int> direction);  
 Grid MoveChooser(Grid InitialG, bool v); 
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+// =====       END OF MONTE CARLO MOVES      =====
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
 
 
 #endif 

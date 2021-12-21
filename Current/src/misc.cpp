@@ -42,6 +42,9 @@ void impose_pbc(std::vector <int>* vect, int x_len, int y_len, int z_len){
 }
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 //=====================================================
 
 int modified_modulo(int divident, int divisor){
@@ -56,6 +59,10 @@ int modified_modulo(int divident, int divisor){
 	}
 
 }
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 
 //=====================================================
 
@@ -79,6 +86,8 @@ double rng_uniform(double start, double end){
 }
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
 
@@ -111,6 +120,8 @@ std::vector <std::vector <int>> HingeSwingDirections(std::vector <int>* HingeToH
 
 }
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 //=====================================================
 // function to print out contents of a vector 
@@ -128,6 +139,10 @@ void print(std::vector <double> v){
 	}
 	std::cout << std::endl;
 }
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 
 //=====================================================
 // function to print out contents of a vector of vectors 
@@ -158,6 +173,8 @@ void print(std::vector <Particle> pvec){
 	}
 }
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
 //======================================================
@@ -168,13 +185,17 @@ void print(std::vector <Particle> pvec){
 std::vector <int> add_vectors(std::vector <int>* v1, std::vector <int>* v2){
 	size_t s = (*v1).size(); 
 	std::vector <int> v3 (s,0); 
-	for (int i{0}; i < s; i++){
+	for (int i{0}; i < static_cast<int>(s); i++){
 		v3.at(i) = (*v2).at(i) + (*v1).at(i);
 	}
 
 	return v3; 
 }
-//======================================================
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 
 //=====================================================
 // function to subtract two vectors 
@@ -182,7 +203,7 @@ std::vector <int> add_vectors(std::vector <int>* v1, std::vector <int>* v2){
 std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2){
 	size_t s = (*v1).size(); 
 	std::vector <int> v3 (s,0); 
-	for (int i{0}; i < s; i++){
+	for (int i{0}; i < static_cast<int>(s); i++){
 		v3.at(i) = (*v1).at(i) -  (*v2).at(i);
 	}
 
@@ -190,6 +211,8 @@ std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2)
 }
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
 //=====================================================
@@ -292,6 +315,8 @@ std::vector <std::vector <int>> create_lattice_pts(int x_len, int y_len, int z_l
 } 
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
 //=====================================================
@@ -313,6 +338,8 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 
 }
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 // ================================================================
 // generating a vector of particles given a list of locations
@@ -342,6 +369,11 @@ std::vector <std::vector <int> > part2loc (std::vector <Particle> pVec){
 
 	return loc_list; 
 }
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
 
 // ===================================================================
 // decide on whether polymer configuration is to be accepted or not
@@ -374,6 +406,10 @@ bool acceptance(int dE, double kT){
 
 }
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
 // ===================================================================
 // extract information
 // ===================================================================
@@ -400,6 +436,10 @@ std::vector <double> NumberExtractor(std::string s){
 	return info; 
 
 }
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 
 
 std::vector <double> ExtractTopologyFromFile(std::string filename){
@@ -481,6 +521,10 @@ std::vector <double> ExtractTopologyFromFile(std::string filename){
 
 };
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
 
@@ -506,6 +550,14 @@ std::vector <std::string> ExtractContentFromFile(std::string filename){
     return contents; 
 
 };
+
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
 
 
 bool isSymmetric(std::vector <std::vector <double>> mat){
@@ -536,13 +588,19 @@ bool isSymmetric(std::vector <std::vector <double>> mat){
 
 }
 
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 // ===============================================================
 
 
 Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_m){
 	std::vector <int> pmer_spins; 
     
-    for (int i=0; i<locations.size(); i++){
+    for (int i=0; i<static_cast<int>(locations.size()); i++){
         unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
         std::mt19937 generator(seed); 
         std::uniform_int_distribution<int> distribution (0,1); 
@@ -551,7 +609,7 @@ Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_
 
     std::vector <Particle> ptc_vec; 
 
-    for (int i=0;i<locations.size(); i++ ){
+    for (int i=0;i<static_cast<int>(locations.size()); i++ ){
         Particle p (locations.at(i), type_m, pmer_spins.at(i)); 
         ptc_vec.push_back(p); 
     }
@@ -562,6 +620,11 @@ Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_
 }
 
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 // ===============================================================
 
 
@@ -570,7 +633,7 @@ void ClusterFlip(std::vector <Particle>* cluster){
 
 	if ((*cluster).at(0).orientation==1){
 		// std::cout << "hello, is this being hit? o=1?" << std::endl;
-		for (int i=0; i<(*cluster).size(); i++ ){ 
+		for (int i=0; i<static_cast<int>((*cluster).size()); i++ ){ 
 			(*cluster).at(i).orientation = 0;
 			// std::cout << "p.orientation is " << (*cluster).at(i).orientation << std::endl;
 			// std::cout <<"--> orientation reported above should be 0" << std::endl;
@@ -578,7 +641,7 @@ void ClusterFlip(std::vector <Particle>* cluster){
 	}
 	else {
 		// std::cout << "hello, is this being hit? o=0?" << std::endl;
-		for (int i=0; i<(*cluster).size(); i++ ){ 
+		for (int i=0; i<static_cast<int>((*cluster).size()); i++ ){ 
 			(*cluster).at(i).orientation = 1;
 			// std::cout << "p.orientation is " << (*cluster).at(i).orientation << std::endl;
 			// std::cout <<"--> orientation reported above should be 1" << std::endl;
@@ -589,8 +652,12 @@ void ClusterFlip(std::vector <Particle>* cluster){
 	return; 
 }
 
-// ===============================================================
-// ===============================================================
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
 
 bool MetropolisAcceptance(double E1, double E2, double kT){
 
@@ -609,6 +676,10 @@ bool MetropolisAcceptance(double E1, double E2, double kT){
 
 }
 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 // ===============================================================
 // ===============================================================
@@ -620,6 +691,11 @@ void StringToFile(std::string filename, std::string to_send){
 
     return; 
 }
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
 

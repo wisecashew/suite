@@ -126,6 +126,10 @@ int main(int argc, char** argv) {
     G.dumpEnergyOfGrid(0, efile, true); 
     call = false; 
     G.CalculateEnergy();
+
+    std::cout << "Energy surface check: " << std::endl; 
+    std::cout << "monomer-monomer is " << G.Emm <<"\nsolvent-solvent is " << G.Ess <<"\nmonomer-solvent, aligned is " << G.Ems_a <<
+    "\nmonomer-solvent, misaligned is " << G.Ems_n << std::endl; 
     
     if (v){
         std::cout << "Energy of box is: " << G.Energy << std::endl;

@@ -4,6 +4,7 @@
 
 import numpy as np 
 import argparse 
+import copy 
 
 # use argparse to set up the options 
 '''
@@ -33,6 +34,24 @@ print("The file path you have provided is " + args.i[0])
 print("The name of your output file is " + args.o[0]) 
 '''
 directions = np.asarray([[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]] ) 
+
+
+##########################################################
+### create a lattice 
+##########################################################
+
+def OccupancyMap(x, y, z): 
+    OccupancyMap = { }    
+    for i in range(x):
+        for j in range(y):
+            for k in range(z): 
+                lpoint = np.asarray( [int(i), int(j), int(k)] )
+                OccupancyMap [lpoint] = 0 
+    
+    return OccupancyMap
+
+
+##########################################################    
 
 ##########################################################
 ### impose periodic boundary conditions on monomer
@@ -78,30 +97,72 @@ def sarw_pbc(positions, DOP, x, y, z):
     return positions
 ##########################################################
 
-
-dop_list = [8, 16, 24, 32, 48, 64]
-
-for dop in dop_list:
-    # box dimensions 
-    x = dop+2
-    y = dop+2 
-    z = dop+2
-
-    polymer = np.asarray([[0,0,0]]) # seed location 
-
-    polymer = sarw_pbc(polymer, dop-1, x, y, z)
- 
-    # print(polymer) 
-
-    # send locations of polymer to coordinate file 
-    f = open("positions_"+ str(dop) + ".txt", "w")
-    f.write("START POLYMER 1\n")
-    for coords in polymer:
-        f.write(str(coords[0]) + " " + str(coords[1]) + " " + str(coords[2]) + "\n")
-    f.write("END POLYMER 1")
-    f.close()             
-            
-
-
+def sarw_add(existing, pmer, DOP, x, y, z):
     
+    if (DOP == 0): 
+        return existing, pmer 
+    
+    np.random.shuffle(directions) 
+    # print("existing is:")
+    # print(existing)
+    
+    for increment in directions: 
+        possible_next = existing[-1] + increment 
+        possible_next = impose_pbc (possible_next, x, y, z) 
+        
+        if (not (possible_next.tolist() in existing.tolist() ) ):
+            DOP -= 1 
+            # print(pmer)
+            pmer = np.vstack ( (pmer, possible_next) )
+            existing = np.vstack( (existing, possible_next) )
+            
+            return sarw_add (existing, pmer, DOP, x, y, z) 
+    
+    print("No good solutions found...")
+    return existing, pmer
+    
+##########################################################
 
+# necessary inputs 
+deg_poly = 10
+num_poly = 5
+xlen = deg_poly + 2 
+ylen = deg_poly + 2
+zlen = deg_poly + 2
+
+
+# seed monomer 
+polymer = np.asarray( [[0,0,0]] ) 
+
+# define a polymer 
+polymer = sarw_pbc (polymer, deg_poly-1, xlen, ylen, zlen) 
+
+plocs = copy.deepcopy(polymer) 
+
+# appending to the global polymer list 
+PolymerList = [polymer]
+
+# add polymers in box 
+for i in range(4):
+    plocs, new_polymer = sarw_add (plocs, np.empty((0,3)), deg_poly, xlen, ylen, zlen) 
+    PolymerList.append (new_polymer) 
+
+
+
+
+# send locations of polymer to coordinate file 
+f = open("positions_degpoly"+ str(deg_poly) + "_numpoly" + str(num_poly) + ".txt", "w")
+
+for i in range(len(PolymerList)):
+
+    f.write("START POLYMER {:1.0f}\n".format(int(i)) )
+    for coords in PolymerList[i]:
+        f.write(str(int(coords[0])) + " " + str(int(coords[1])) + " " + str(int(coords[2])) + "\n")
+        
+    if (i==len(PolymerList)-1):
+        f.write("END POLYMER {:1.0f}".format(int(i)) )
+    else:
+        f.write("END POLYMER {:1.0f}\n".format (int(i)) )
+
+f.close()                         
+ 

@@ -142,13 +142,13 @@ int main(int argc, char** argv) {
 
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Move number " << i+1 << ". " ;
+            std::cout << "Move number " << i << ". " ;
         }
         // choose a move 
         G_ = MoveChooser(G, v);  
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Executed." << std::endl;
+            std::cout << "Executing..." << std::endl;
         }
 
 

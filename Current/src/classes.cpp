@@ -1516,7 +1516,13 @@ Grid CrankShaft(Grid InitialG, int index){
 
     for (int idx: c_idx){
 
-        std::vector <int> d1 = subtract_vectors( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx+2).coords) );
+        std::vector <int> HingeToKink = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx+3).coords) ); 
+        std::vector <int> HingeToHinge = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+3).coords ), &(InitialG.PolymersInGrid.at(index).chain.at(idx).coords ) );
+
+        std::vector <std::vector <int>> drns = HingeSwingDirections (& (HingeToHinge), &(HingeToKink), InitialG.x, InitialG.y, InitialG.z); 
+        int choice = rng_uniform(0,2); 
+
+        std::vector <int> d1 = drns.at(choice);  //subtract_vectors( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx+2).coords) );
 
         std::vector <int> to_check_1 = add_vectors ( &(NewG.PolymersInGrid.at(index).chain.at(idx).coords), &d1 ); 
         std::vector <int> to_check_2 = add_vectors ( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &d1 ); 

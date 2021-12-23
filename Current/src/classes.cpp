@@ -458,7 +458,7 @@ std::vector <std::string> Grid::ExtractContentFromFile(std::string filename){
 
     return contents; 
 
-};
+}
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -984,7 +984,7 @@ void Polymer::ChainToConnectivityMap(){
     }
 
     return; 
-};
+}
 
 
 
@@ -1671,7 +1671,7 @@ Grid ForwardReptation(Grid InitialG, int index){
 
     return NewG; 
 
-}; 
+} 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -1758,7 +1758,7 @@ Grid BackwardReptation(Grid InitialG, int index){
     }
 
     return NewG; 
-};
+}
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -1808,7 +1808,7 @@ Grid Reptation(Grid InitialG, int index){
 
     }
     
-};
+}
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

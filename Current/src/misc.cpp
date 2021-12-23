@@ -519,7 +519,7 @@ std::vector <double> ExtractTopologyFromFile(std::string filename){
 
     return info_vec;
 
-};
+}
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -549,7 +549,7 @@ std::vector <std::string> ExtractContentFromFile(std::string filename){
 
     return contents; 
 
-};
+}
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

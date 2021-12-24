@@ -729,16 +729,17 @@ std::vector <Particle> Grid::ClusterParticleMaker(){
 //
 // THE CODE: 
 
-std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count){
+std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, std::vector <Particle> to_send_, int count){
 
-    if (Particles.size() == 0 ){
-        // std::cout << "When does this get hit?" << std::endl;
+    if ( static_cast<int>(to_send_.size()) == 0 && count == 1){
+
+        // std::cout << "There is nothing to send..." << std::endl;
         return final; 
     }
 
     if (count==0){
         
-
+        // std::cout << "ENTRY POINT!" << std::endl;
         std::vector <Particle> to_send; 
         int r = rng_uniform(0, Particles.size()-1); 
         // std::cout << "Length of Particles is " << Particles.size() << std::endl;
@@ -746,7 +747,8 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
         
         Particle p = Particles.at(r); 
 
-        
+        // std::cout << "The absolute first particle is "; 
+        // print(p.coords);
 
         final.push_back(p); 
         std::vector <std::vector <int>> location_list; 
@@ -779,13 +781,16 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
             }
         }
 
-
+        // std::cout << "Number of good neighbors is " << neighbors.size() << std::endl;
         for (Particle pcle: neighbors){
             double coupling = 2*1/this->kT*EnergyPredictor(p, pcle); 
             // std::cout << "coupling is " << coupling << std::endl;
             double prob = std::exp(coupling); 
+            // std::cout << "Probability of coupling is " << prob << std::endl;
             double check = rng_uniform(0.0,1.0);
-
+            // std::cout << "check is " << check << std::endl;
+            // std::cout << "for particle "; 
+            // print(pcle.coords); 
             if (check < prob){
                 // std::cout << "prob is " << prob << std::endl; 
                 // std::cout << "check is " << check << std::endl;
@@ -799,17 +804,32 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
                 continue; 
             }
         }
-    for (Particle p: final)
-    this->ClusterMaker(to_send, final, 1); 
+
+        count = 1 ;
+        /*
+        std::cout << "This has to be hit only once!!!!!!!!!!!!!! " << std::endl; 
+        std::cout << "Count is " <<count << std::endl;
+        std::cout << "printing out first final"<<std::endl;
+        for (auto ppp: final){
+            print(ppp.coords); 
+
+        }
+        std::cout << "printing out first to_send" <<std::endl;
+        for (auto pppp: to_send){
+            print(pppp.coords);
+        }
+        */
+        final = this->ClusterMaker(Particles, final, to_send, count); 
+
     
 
     }
 
     else if (count==1){
-        // std::cout << "print at line 525, classes.cpp" << std::endl;
-        for (Particle p: Particles){
+        
+        for (Particle p: to_send_){
             
-            std::vector <std::vector <int>> location_list; 
+            std::vector <std::vector <int>> location_list; // this will contain the original master cluster 
             std::vector <Particle> to_send; 
 
             for (Particle px: Particles){
@@ -817,33 +837,55 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
             }
             std::vector <Particle> neighbors;
 
-            std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z); 
+            std::vector <std::vector <int>> final_list; 
+
+            for (Particle pf: final){
+                final_list.push_back(pf.coords); 
+
+            }
+
+            std::vector <std::vector <int>> ne_list = obtain_ne_list(p.coords, this->x, this->y, this->z); // obtaining the neighbors of the main guy 
 
             if (p.ptype=="solvent"){
                 for (std::vector <int> v: ne_list){
-                    if (std::find(location_list.begin(), location_list.end(), v) != location_list.end() ){
-                        // std::cout << "particle in the cluster located." << std::endl;
-                        if (this->OccupancyMap[v].orientation == p.orientation){
-                            neighbors.push_back(this->OccupancyMap[v]); 
+                    
+                    if ( std::find(location_list.begin(), location_list.end(), v) != location_list.end() ){
+
+                            if ( !(std::find ( final_list.begin(), final_list.end(), v) != final_list.end() ) ){
+                        
+                                if ( this->OccupancyMap[v].orientation == p.orientation){
+
+                                    neighbors.push_back(this->OccupancyMap[v]); // added to potential neighbor list  
+                                }
                         }
                     }
                 }
             }
             else {
                 for (std::vector <int> v: ne_list){
-                    if (this->OccupancyMap[v].orientation == p.orientation){
-                        neighbors.push_back(this->OccupancyMap[v]); 
+                    if ( !(std::find ( final_list.begin(), final_list.end(), v) != final_list.end() ) ){
+                        if (this->OccupancyMap[v].orientation == p.orientation){
+                            neighbors.push_back(this->OccupancyMap[v]);     // added to potential neighbor list 
+                        }
                     }
-                    
                 }
             }
 
+            // std::cout << "For particle "; 
+            // print(p.coords);
+            // std::cout << "Number of good neighbors is " << neighbors.size() << std::endl;
 
             for (Particle pcle: neighbors){
+                // std::cout << "Energy is " << EnergyPredictor(p, pcle) << std::endl;
                 double coupling = 2*1/this->kT*EnergyPredictor(p, pcle); 
                 double prob = std::exp(coupling); 
+                // std::cout << "Probability of coupling is " << prob << std::endl;
 
-                if (rng_uniform(0.0,1.0) < prob){
+                double check = rng_uniform(0.0,1.0);
+                // std::cout << "check is " << check << std::endl;
+                // std::cout << "for particle "; 
+                // print(pcle.coords); 
+                if (check < prob){
                     final.push_back(pcle); 
                     to_send.push_back(pcle); 
                 }
@@ -851,8 +893,26 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
                     continue; 
                 }
             }
+            count = 1;
+            
+            /*
+            std::cout << "Given current particle as: ";
+            print(p.coords);  
+            std::cout << "printing out the next iteration of final:" << std::endl;
 
-            this->ClusterMaker(to_send, final, 1); 
+            for (auto ppp: final){
+                std::cout << ppp.orientation << ", ";
+                print(ppp.coords); 
+            }
+            
+            std::cout << "size of final cluster is " << final.size() << std::endl;
+            std::cout << "printing out new to_send" <<std::endl;
+            for (auto pppp: to_send){
+                print(pppp.coords);
+            }
+            */
+
+            final = this->ClusterMaker(Particles, final, to_send, count); 
         }
 
 
@@ -1152,11 +1212,18 @@ void Particle::printCoords(){
 
 Grid IsingFlip(Grid InitialG){
 
+    
+
     std::vector <Particle> Particles = InitialG.ClusterParticleMaker(); 
     
-    std::vector <Particle> an_empty_vector_for_ClusterMaker; 
 
-    std::vector <Particle> cluster = InitialG.ClusterMaker(Particles, an_empty_vector_for_ClusterMaker, 0);
+    std::vector <Particle> an_empty_vector_for_ClusterMaker_1;
+    std::vector <Particle> an_empty_vector_for_ClusterMaker_2; 
+
+    
+    std::vector <Particle> cluster = InitialG.ClusterMaker(Particles, an_empty_vector_for_ClusterMaker_1, an_empty_vector_for_ClusterMaker_2, 0);
+
+    
 
     ClusterFlip (&cluster);                       // flip the cluster! 
 
@@ -1840,7 +1907,7 @@ Grid MoveChooser(Grid InitialG,  bool v){
     int index = rng_uniform(0, static_cast<int>(InitialG.PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ (InitialG); 
-    int r = rng_uniform(1, 5);
+    int r = 2; //rng_uniform(1, 5);
     if (r==1){
         if (v){
            std::cout << "Performing end rotations." << std::endl; 
@@ -1855,7 +1922,10 @@ Grid MoveChooser(Grid InitialG,  bool v){
            std::cout << "Performing ising flip." << std::endl; 
         }
         // std::cout << "Performing ising flip." << std::endl;
-        G_ = IsingFlip(InitialG); 
+        G_ = IsingFlip(InitialG);
+        if (v){
+        std::cout << "performed isingflip successfully" << std::endl;
+        }
         G_.CalculateEnergy();
 
     }

@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		"This version number 1.0.0 of the Monte Carlo Engine. Set up on Dec 23, 2021.\n" << 
+		"This version number 1.1.0 of the Monte Carlo Engine. Set up on Dec 23, 2021, 8 PM.\n" << 
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
         if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) ) {
             // accepted
             // replace old config with new config
-            if ( v && (i%dfreq==0) ){ 
+            if ( v ){ 
                 std::cout << "Accepted." << std::endl;
                 std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
             }

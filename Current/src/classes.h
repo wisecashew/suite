@@ -223,7 +223,7 @@ public:
 
     // create clusters meant for Ising flips
     std::vector <Particle> ClusterParticleMaker();
-    std::vector <Particle> ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, int count=0); 
+    std::vector <Particle> ClusterMaker(std::vector <Particle> Particles, std::vector <Particle> final, std::vector <Particle> to_send_, int count=0); 
     
 
 }; 

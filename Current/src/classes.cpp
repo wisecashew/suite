@@ -1907,7 +1907,7 @@ Grid MoveChooser(Grid InitialG,  bool v){
     int index = rng_uniform(0, static_cast<int>(InitialG.PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ (InitialG); 
-    int r = 2; //rng_uniform(1, 5);
+    int r = rng_uniform(1, 4);
     if (r==1){
         if (v){
            std::cout << "Performing end rotations." << std::endl; 
@@ -1917,7 +1917,7 @@ Grid MoveChooser(Grid InitialG,  bool v){
         G_.CalculateEnergy(); 
         
     }
-    else if (r == 2){
+    else if (r == 5){
         if (v){
            std::cout << "Performing ising flip." << std::endl; 
         }
@@ -1945,7 +1945,8 @@ Grid MoveChooser(Grid InitialG,  bool v){
         G_ = Reptation(InitialG, index); 
         G_.CalculateEnergy();
     }
-    else {
+    else if (r==2) {
+
         if (v){
            std::cout << "Performing kink jump." << std::endl; 
         }

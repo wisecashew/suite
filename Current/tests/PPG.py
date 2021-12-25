@@ -7,7 +7,7 @@ import argparse
 import copy 
 
 # use argparse to set up the options 
-'''
+
 # set up the description 
 parser = argparse.ArgumentParser(description="Get cubical box dimensions (x, y, z) and number of polymers with degree of polymerization to get a valid location file. ")
 
@@ -20,6 +20,11 @@ parser.add_argument("-y", metavar="Y dimension", type=int, nargs=1, help="Enter 
 # -z is going to be your flag for inputting the .pdb file you want to convert 
 parser.add_argument("-z", metavar="Z dimension", type=int, nargs=1, help="Enter length of z-edge of box") 
 
+# -d is the degree of polymerization of the polymers in the box 
+parser.add_argument("-d", metavar="Degree of polymerization", type=int, nargs=1, help="Enter the degree of polymerization of the monodisperse polymers in box")
+
+# -n is the number of polymers in the box 
+parser.add_argument("-n", metavar="Number of polymers in the box", type=int, nargs=1, help="Enter the number of polymers in the box")
 
 # -o is going to be your flag for defining your output file 
 parser.add_argument("-o", metavar="positions.txt", type=str, nargs=1, help="Enter name of file which will be filled with coordinates") 
@@ -30,9 +35,9 @@ parser.add_argument("-o", metavar="positions.txt", type=str, nargs=1, help="Ente
 
 args = parser.parse_args() 
 
-print("The file path you have provided is " + args.i[0]) 
-print("The name of your output file is " + args.o[0]) 
-'''
+# print("The file path you have provided is " + args.i[0]) 
+# print("The name of your output file is " + args.o[0]) 
+
 directions = np.asarray([[1,0,0], [-1,0,0], [0,1,0], [0,-1,0], [0,0,1], [0,0,-1]] ) 
 
 
@@ -124,11 +129,11 @@ def sarw_add(existing, pmer, DOP, x, y, z):
 ##########################################################
 
 # necessary inputs 
-deg_poly = 10
-num_poly = 5
-xlen = deg_poly + 2 
-ylen = deg_poly + 2
-zlen = deg_poly + 2
+deg_poly = args.d[0]
+num_poly = args.n[0]
+xlen = args.x[0] 
+ylen = args.y[0]
+zlen = args.z[0]
 
 
 # seed monomer 
@@ -143,7 +148,7 @@ plocs = copy.deepcopy(polymer)
 PolymerList = [polymer]
 
 # add polymers in box 
-for i in range(4):
+for i in range(num_poly-1):
     plocs, new_polymer = sarw_add (plocs, np.empty((0,3)), deg_poly, xlen, ylen, zlen) 
     PolymerList.append (new_polymer) 
 
@@ -151,7 +156,7 @@ for i in range(4):
 
 
 # send locations of polymer to coordinate file 
-f = open("positions_degpoly"+ str(deg_poly) + "_numpoly" + str(num_poly) + ".txt", "w")
+f = open(args.o[0], "w")
 
 for i in range(len(PolymerList)):
 

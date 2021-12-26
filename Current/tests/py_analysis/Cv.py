@@ -17,9 +17,13 @@ for file in files:
                     Cv.append( float(re.findall("\d+\.\d+", line)[0]) )
                     break 
             f.close() 
-          
+
+plt.xlabel("Temperature (in $k_b$T)")          
+plt.ylabel("Heat capacity (in $k_b$)"
 plt.scatter(T, Cv)
-plt.show() 
+
+# plt.show() 
+plt.savefig("heat_cap.png", dpi=1200) 
 
 Cv = [x for _, x in sorted(zip(T, Cv))] 
 T = sorted(T) 

@@ -61,11 +61,11 @@ def get_Rg(coord_arr, xlen, ylen, zlen):
     # sc_coords = np.zeros((1,3))
     
     for i in range(N): 
-        rsum += np.linalg.norm( coord_arr[i,:]- r_com ) 
+        rsum += ( np.linalg.norm( coord_arr[i,:]- r_com ) )**2 
     
     rsum = rsum/N 
     
-    return rsum 
+    return np.sqrt(rsum)  
 
 
 if __name__ == "__main__":

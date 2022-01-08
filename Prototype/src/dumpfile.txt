@@ -1,0 +1,30 @@
+Dumping coordinates at step 0.
+Dumping coordinates of Polymer # 0.
+11 | 0 | 0 | 
+12 | 0 | 0 | 
+12 | 1 | 0 | 
+13 | 1 | 0 | 
+13 | 0 | 0 | 
+14 | 0 | 0 | 
+14 | 1 | 0 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 4.
+Dumping coordinates of Polymer # 0.
+11 | 0 | 0 | 
+12 | 0 | 0 | 
+12 | 1 | 0 | 
+13 | 1 | 0 | 
+13 | 0 | 0 | 
+14 | 0 | 0 | 
+14 | 1 | 0 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 8.
+Dumping coordinates of Polymer # 0.
+12 | 0 | 0 | 
+12 | 1 | 0 | 
+13 | 1 | 0 | 
+13 | 0 | 0 | 
+14 | 0 | 0 | 
+14 | 1 | 0 | 
+0 | 1 | 0 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

@@ -1907,7 +1907,7 @@ Grid MoveChooser(Grid InitialG,  bool v){
     int index = rng_uniform(0, static_cast<int>(InitialG.PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ (InitialG); 
-    int r = rng_uniform(1, 4);
+    int r = rng_uniform(1, 5);
     if (r==1){
         if (v){
            std::cout << "Performing end rotations." << std::endl; 

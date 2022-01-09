@@ -6,6 +6,7 @@
 #include <random>
 #include <chrono>
 #include <getopt.h> 
+#include <stdexcept>
 #include <stdlib.h> 
 #include "classes.h"
 #include "misc.h"
@@ -131,7 +132,7 @@ int main(int argc, char** argv) {
         exit(EXIT_FAILURE);
     }
 
-    for (int i=0; i<G.PolymersInGrid.size(); i++){
+    for (size_t i=0; i<G.PolymersInGrid.size(); i++){
         std::cout << "Check: Check number of elements in Polymers " << i << " in both G and G3." << std::endl; 
         std::cout << "Number of elements in Polymer " << i << " in G is " << G.PolymersInGrid.at(i).chain.size() 
         << " and in G3 is " << G3.PolymersInGrid.at(i).chain.size() << "." << std::endl; 
@@ -143,17 +144,9 @@ int main(int argc, char** argv) {
     }
 
 
-    std::cout << "Check: Check number of elements in SolventInGrid in both G and G3." << std::endl; 
-    std::cout << "number of elements in SolventInGrid in G is " << G.SolventInGrid.size() << " and in G3 is " << G3.SolventInGrid.size() << "." << std::endl;
-    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl; 
-    if (G.SolventInGrid.size() != G3.SolventInGrid.size() ){
-        std::cerr << "Error in # of SolventInGrid." << std::endl;
-        exit(EXIT_FAILURE);
-    }
-
     std::cout << "Find discrepancy in PolymersInGrid." << std::endl; 
-    for (int i=0; i<G.PolymersInGrid.size(); i++){
-        for (int j=0; j<G.PolymersInGrid.at(i).chain.size(); j++){
+    for (size_t i=0; i<G.PolymersInGrid.size(); i++){
+        for (size_t j=0; j<G.PolymersInGrid.at(i).chain.size(); j++){
             if (!(G.PolymersInGrid.at(i).chain.at(j) == G3.PolymersInGrid.at(i).chain.at(j)) ){
                 std::cout << "---------------FOUND THE DISPLACED PARTICLE---------------" << std::endl;
                 std::cout << "The orientation of the particle originally is " << G.PolymersInGrid.at(i).chain.at(j).orientation << std::endl;
@@ -167,47 +160,22 @@ int main(int argc, char** argv) {
                 
                 if (!(G.PolymersInGrid.at(i).chain.at(j).orientation == G3.PolymersInGrid.at(i).chain.at(j).orientation) ){
                     std::cerr << "There is a problem in orientation." << std::endl;
-                    exit(EXIT_FAILURE);
+                    exit (EXIT_FAILURE);
                 }
                 else if (!(G.PolymersInGrid.at(i).chain.at(j).ptype == G3.PolymersInGrid.at(i).chain.at(j).ptype)) {
                     std::cerr << "There is a problem in type." << std::endl;
-                    exit(EXIT_FAILURE);   
+                    exit (EXIT_FAILURE);   
                 }
 
             }
         }
     }
     std::cout << "\n\n"; 
-    std::cout << "Find solvent particles..." << std::endl << std::endl;
-
-    for (int i=0; i<G.SolventInGrid.size(); i++){
-        // std::cout <<"hello?" << std::endl;
-        if (! (G.SolventInGrid.at(i) == G3.SolventInGrid.at(i) )){
-
-            std::cout << "The orientation of the particle originally is " << G.SolventInGrid.at(i).orientation << std::endl;
-            std::cout << "The orientation of the after is " << G3.SolventInGrid.at(i).orientation << std::endl;
-            std::cout << "The position of the particle originally is ";
-            print( G.SolventInGrid.at(i).coords ) ; 
-            std::cout << "The position of the particle after is ";
-            print( G3.SolventInGrid.at(i).coords ) ; 
-            std::cout << "The type of the particle originally is " << G.SolventInGrid.at(i).ptype << std::endl;
-            std::cout << "The type of the particle after is " << G3.SolventInGrid.at(i).ptype << std::endl;
-                
-            if (!(G.SolventInGrid.at(i).orientation == G3.SolventInGrid.at(i).orientation) ){
-                std::cerr << "There is a problem in orientation." << std::endl;
-                exit(EXIT_FAILURE);
-            }
-            else if (!(G.SolventInGrid.at(i).ptype == G3.SolventInGrid.at(i).ptype)) {
-                std::cerr << "There is a problem in type." << std::endl;
-                exit(EXIT_FAILURE);   
-            }
-        }
-    }
 
     std::cout << "In the original case, G..." << std::endl;
-    for (int i=0; i<G.PolymersInGrid.size(); i++){
+    for (size_t i=0; i<G.PolymersInGrid.size(); i++){
         std::cout << "For Polymer " << i << ":" << std::endl;
-        for (int j=0; j<G.PolymersInGrid.at(i).chain.size(); j++){
+        for (size_t j=0; j<G.PolymersInGrid.at(i).chain.size(); j++){
 
             // print out the particle and its connections 
             std::vector <Particle> pvec; 
@@ -222,9 +190,9 @@ int main(int argc, char** argv) {
         }
     }
     std::cout << "\n\nIn the MOVED case, G3..." << std::endl;
-    for (int i=0; i<G3.PolymersInGrid.size(); i++){
+    for (size_t i=0; i<G3.PolymersInGrid.size(); i++){
         std::cout << "\n\nFor Polymer " << i << ":" << std::endl;
-        for (int j=0; j<G3.PolymersInGrid.at(i).chain.size(); j++){
+        for (size_t j=0; j<G3.PolymersInGrid.at(i).chain.size(); j++){
 
             // print out the particle and its connections 
             std::vector <Particle> pvec; 
@@ -245,30 +213,39 @@ int main(int argc, char** argv) {
 
     for (std::map <std::vector <int>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
 
-        std::vector <int> key = iter->first; 
+        std::vector <int> key = iter->first;  
+        std::cout << "key is "; 
+        print(key);
+        std::vector <int> v = {0,0,0};
+        if (key.at(0) == v.at(0) && key.at(1) == v.at(1) && key.at(2) == v.at(2)){
+            std::cout << "problem key is ";
+            print(v);
+            continue;
+        }
 
-        if ( !(G.OccupancyMap[key] == G3.OccupancyMap[key]) ){
+        if ( (G.OccupancyMap.at(key) == G3.OccupancyMap.at(key)) ){
             
+            std::cout << "key is "; print(key);
             std::cout << "The coordinates of the particle originally were: ";
-            print(G.OccupancyMap[key].coords); 
+            print(G.OccupancyMap.at(key).coords); 
             std::cout << "The coordinates of the particle after is: ";
-            print(G3.OccupancyMap[key].coords);
-            std::cout << "The orientation of the particle was " << G.OccupancyMap[key].orientation << std::endl;
-            std::cout << "The orientation of the particle is " << G3.OccupancyMap[key].orientation << std::endl; 
-            std::cout << "The particle type was " << G.OccupancyMap[key].ptype << std::endl;
-            std::cout << "The particle type was " << G3.OccupancyMap[key].ptype << std::endl;
+            print(G3.OccupancyMap.at(key).coords);
+            std::cout << "The orientation of the particle was " << G.OccupancyMap.at(key).orientation << std::endl;
+            std::cout << "The orientation of the particle is " << G3.OccupancyMap.at(key).orientation << std::endl; 
+            std::cout << "The particle type was " << G.OccupancyMap.at(key).ptype << std::endl;
+            std::cout << "The particle type was " << G3.OccupancyMap.at(key).ptype << std::endl;
 
-            // if (!(G.OccupancyMap[key].orientation == G3.OccupancyMap[key].orientation) ){
-            //    std::cerr << "There is a problem in orientation." << std::endl;
-            //    exit(EXIT_FAILURE);
-            // }
-            // else if ( !(G.OccupancyMap[key].ptype == G3.OccupancyMap[key].ptype) ) {
-            //    std::cerr << "There is a problem in type." << std::endl;
-            //    exit(EXIT_FAILURE);   
-            // }
-            // else {
-            //    continue; 
-            // }
+            if (!(G.OccupancyMap.at(key).orientation == G3.OccupancyMap.at(key).orientation) ){
+                std::cerr << "There is a problem in orientation." << std::endl;
+                exit(EXIT_FAILURE);
+            }
+            else if ( !(G.OccupancyMap.at(key).ptype == G3.OccupancyMap.at(key).ptype) ) {
+                std::cerr << "There is a problem in type." << std::endl;
+                exit(EXIT_FAILURE);   
+            }
+            else {
+                continue; 
+            }
         }
             
     }

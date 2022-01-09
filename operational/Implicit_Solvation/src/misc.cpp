@@ -447,7 +447,7 @@ std::vector <double> ExtractTopologyFromFile(std::string filename){
     std::vector <double> info_vec; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
-    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm ("Emm"), Ess ("Ess"), Ems_a ("Ems_a"), Ems_n ("Ems_n"), eof ("END OF FILE"); 
+    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm_a ("Emm_a"), Emm_n ("Emm_n"), Ems ("Ems"), eof ("END OF FILE"); 
     //bool out_mat = true; 
 
     // print(contents);
@@ -479,25 +479,19 @@ std::vector <double> ExtractTopologyFromFile(std::string filename){
     		continue; 
     	}
 
-    	else if (std::regex_search (s, Emm)){
+    	else if (std::regex_search (s, Emm_a)){
     		std::vector <double> info = NumberExtractor(s); 
     		info_vec.push_back(info.at(0)); 
     		continue; 
     	}
 
-    	else if (std::regex_search (s, Ess)){
+    	else if (std::regex_search (s, Emm_n)){
     		std::vector <double> info = NumberExtractor(s); 
     		info_vec.push_back(info.at(0)); 
     		continue; 
     	}
 
-    	else if (std::regex_search (s, Ems_a)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
-    		continue; 
-    	}
-
-    	else if (std::regex_search (s, Ems_n)){
+    	else if (std::regex_search (s, Ems)){
     		std::vector <double> info = NumberExtractor(s); 
     		info_vec.push_back(info.at(0)); 
     		continue; 
@@ -603,7 +597,7 @@ Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_
     for (int i=0; i<static_cast<int>(locations.size()); i++){
         unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
         std::mt19937 generator(seed); 
-        std::uniform_int_distribution<int> distribution (0,1); 
+        std::uniform_int_distribution<int> distribution (0,5); 
         pmer_spins.push_back(distribution(generator));
     }
 
@@ -665,8 +659,8 @@ bool MetropolisAcceptance(double E1, double E2, double kT){
 	double prob = std::exp(-1/kT*dE); 
 	double r = rng_uniform(0.0, 1.0); 
 
-	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
-	// std::cout << "RNG is " << r << "." << std::endl;
+	std::cout << "Probability of acceptance is " << prob << "." << std::endl;
+	std::cout << "RNG is " << r << "." << std::endl;
 	if (r < prob){
 		return true; 
 	}

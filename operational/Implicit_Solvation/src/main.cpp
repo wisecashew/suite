@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		"This version number 1.1.0 of the Monte Carlo Engine. Set up on Dec 23, 2021, 8 PM.\n" << 
+		"This version number 1.1.0 of the Monte Carlo Engine. Set up on Jan 8, 2022, 10 PM.\n" << 
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
@@ -98,6 +98,7 @@ int main(int argc, char** argv) {
         exit (EXIT_FAILURE);
     }
     else if (positions=="blank" || topology == "blank" || dfile=="blank"){
+        std::cerr << "positions is " << positions <<", topology is " << topology <<", dfile is " << dfile << std::endl;
         std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);    
     }
@@ -121,6 +122,7 @@ int main(int argc, char** argv) {
     auto start = std::chrono::high_resolution_clock::now(); 
 
     Grid G = CreateGridObject(positions, topology);
+
     std::cout << "Temperature of box is " << G.kT << "." << std::endl;
     G.dumpPositionsOfPolymers(0, dfile);
     bool call {true}; 
@@ -128,14 +130,18 @@ int main(int argc, char** argv) {
     call = false; 
     G.CalculateEnergy();
 
+
     std::cout << "Energy surface check: " << std::endl; 
-    std::cout << "monomer-monomer is " << G.Emm <<"\nsolvent-solvent is " << G.Ess <<"\nmonomer-solvent, aligned is " << G.Ems_a <<
-    "\nmonomer-solvent, misaligned is " << G.Ems_n << std::endl; 
+    std::cout << "monomer-monomer aligned interaction is " << G.Emm_a <<"\nmonomer-monomer misaligned interaction is " << G.Emm_n <<"\nmonomer-solvent " << G.Ems
+    << std::endl; 
     
     if (v){
         std::cout << "Energy of box is: " << G.Energy << std::endl;
         std::cout << "Next..." << std::endl;
     }
+
+
+    
 
     Grid G_ (G); 
     
@@ -176,10 +182,12 @@ int main(int argc, char** argv) {
             G.dumpPositionsOfPolymers (i, dfile) ;
             G.dumpEnergyOfGrid(i, efile, call) ; 
         }
+        G.PolymersInGrid.at(0).printChainCoords();
+
 
     }
     
-
+    
     
     auto stop = std::chrono::high_resolution_clock::now(); 
     
@@ -187,7 +195,7 @@ int main(int argc, char** argv) {
 
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds" << std::endl;
 
-
+    
     return 0;
 
 }

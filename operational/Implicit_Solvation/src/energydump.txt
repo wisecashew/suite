@@ -1,8 +1,13 @@
 This file contains energy of the Grid at certain points in the simulation.
 Energy | Step_Number
--2961 | 0
--2961 | 10
--2961 | 20
--2961 | 30
--2961 | 40
--2961 | 50
+-10 | 0
+-9 | 1
+-10 | 2
+-9 | 3
+-10 | 4
+-10 | 5
+-9 | 6
+-8 | 7
+-8 | 8
+-10 | 9
+-12 | 10

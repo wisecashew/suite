@@ -121,22 +121,19 @@ This is the master class. Everything cool happens to this guy over here.
 class Grid{
 
 public:
-    std::vector <Polymer> PolymersInGrid;                 // all the polymers in the grid 
-    std::vector <Particle> SolventInGrid;                 // solvent molecules in the grid 
-    int x;                                          // length of x-edge of grid 
-    int y;                                          // length of y-edge of grid 
-    int z;                                          // length of z-edge of grid 
-    double kT;                                      // energy factor 
-    double Emm ;                                    // monomer-monomer interaction 
-    double Ess ;                                    // solvent-solvent interaction 
-    double Ems_n ;                                  // monomer-solvent when Not aligned 
-    double Ems_a ;                                  // monomer-solvent when Aligned
-
-    double Energy; 
+    std::vector <Polymer> PolymersInGrid;                    // all the polymers in the grid 
+    int x;                                                   // length of x-edge of grid 
+    int y;                                                   // length of y-edge of grid 
+    int z;                                                   // length of z-edge of grid 
+    double kT;                                               // energy factor 
+    double Emm_n ;                                           // monomer-solvent when Not aligned 
+    double Emm_a ;                                           // monomer-solvent when Aligned
+    double Ems;                                              // monomer-solvent interaction
+    double Energy;                                           // energy of grid 
     std::map <std::vector <int>, Particle> OccupancyMap;     // a map that gives the particle given the location
     
 
-    Grid(int xlen, int ylen, int zlen, double kT_, double Emm_, double Ess_, double Ems_n_, double Ems_a_): x (xlen), y (ylen), z (zlen), kT (kT_), Emm(Emm_), Ess (Ess_), Ems_n (Ems_n_), Ems_a (Ems_a_) {        // Constructor of class
+    Grid(int xlen, int ylen, int zlen, double kT_, double Emm_a_, double Emm_n_, double Ems_): x (xlen), y (ylen), z (zlen), kT (kT_), Emm_n(Emm_n_), Emm_a (Emm_a_), Ems (Ems_) {        // Constructor of class
         // this->instantiateOccupancyMap(); 
     };
 
@@ -149,7 +146,6 @@ public:
     // assignment operator that allows for a correct transfer of properties. Important to functioning of program. 
     Grid& operator=(Grid other){
         std::swap(PolymersInGrid, other.PolymersInGrid); 
-        std::swap(SolventInGrid, other.SolventInGrid); 
         std::swap(Energy, other.Energy); 
         std::swap(OccupancyMap, other.OccupancyMap);
         return *this; 
@@ -183,35 +179,11 @@ public:
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // a function to calculate energy of interaction between two particles. 
 
-    double EnergyPredictor(Particle p1, Particle p2){
-        if (p1.ptype == "monomer" && p2.ptype == "monomer"){
-            return this->Emm;
-        }
-        else if (p1.ptype=="solvent" && p2.ptype == "solvent"){
-            return this->Ess; 
-        }
-        else if (p1.ptype == "monomer" && p2.ptype == "solvent"){
-            if (p1.orientation == p2.orientation){
-                return this->Ems_a;
-            }
-            else {
-                return this->Ems_n;
-            }
-        }
-        else if (p1.ptype=="solvent" && p2.ptype == "monomer"){
-            if (p1.orientation == p2.orientation){
-                return this->Ems_a;
-            }
-            else {
-                return this->Ems_n;
-            }
-
-        }
-        else {
-            std::cout << "There is a bad energetic interaction."; 
-            exit(EXIT_FAILURE);
-        }
-    };
+    // double EnergyPredictor(Particle p1, Particle p2){
+    //    if (p1.orientation == p2.orientation){
+    //        return this->Emm_a, 
+    //    }
+    // };
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
 
     // check validity of input coords

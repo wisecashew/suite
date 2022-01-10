@@ -599,11 +599,13 @@ void Grid::CalculateEnergy(){
             //     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), ple.coords), ne_list.end());
             // }
 
-
+            // std::cout << "printing out neighboring monomer units included in energy calculation..." << std::endl; 
+            // std::cout << "current monomer unit is "; print(p.coords);
             for (std::vector <int> loc: ne_list){
-
+                // std::cout << "neighbor list is: "; print (loc); 
                 if (this->OccupancyMap.find(loc) != this->OccupancyMap.end() ){ // loc is in the map 
-                
+                    // std::cout << "inside if loop is: "; print(loc); 
+
                     if (p.orientation == this->OccupancyMap[loc].orientation){
                         Energy += (this->Emm_a)*0.5;     
                     }
@@ -1272,7 +1274,8 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
     std::vector <int> loc_1 = InitialG.PolymersInGrid.at(index).chain.at(1).coords;
     std::vector <int> loc_2 = InitialG.PolymersInGrid.at(index).chain.at(2).coords; 
     std::vector <std::vector <int>> ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
-
+    std::cout << "neighbort list is " << std::endl; 
+    print(ne_list); 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into
@@ -1350,7 +1353,8 @@ Grid FinalIndexRotation(Grid InitialG, int index){
 
     // obtain neighbor list 
     std::vector <std::vector <int> > ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
-
+    std::cout << "neighbort list is " << std::endl; 
+    print(ne_list); 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0), ne_list.end() ); 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2), ne_list.end() );
@@ -1480,6 +1484,7 @@ Grid KinkJump(Grid InitialG, int index){
         std::vector <int> d2 = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords) ); 
 
         std::vector <int> to_check = add_vectors( &(InitialG.PolymersInGrid.at(index).chain.at(idx).coords), &d2); 
+        impose_pbc(&to_check, InitialG.x, InitialG.y, InitialG.z); 
 
         if ( !( NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end()) ){
 

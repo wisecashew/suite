@@ -1279,7 +1279,7 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
     std::shuffle(std::begin(ne_list), std::end(ne_list), std::default_random_engine());
     // find a location that is not occupied by monomer 
     // use the occupancy map 
-
+	size_t tries = 0; 
     for (std::vector <int> to_rot: ne_list){
 
         if (!( InitialG.OccupancyMap.find(to_rot) != InitialG.OccupancyMap.end() ) ){
@@ -1299,9 +1299,15 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
             break;
 
         }
+		else {
+			tries++; 
+		}
 
     }
-
+	
+	if (tries == ne_list.size() ){
+		std::cout << "no place to rotate! configuration will be accepted by default!" << std::endl;
+	}
     return NewG;
 }
 
@@ -1352,7 +1358,7 @@ Grid FinalIndexRotation(Grid InitialG, int index){
 
     // find a location that is unoccupied by monomer 
     // use the occupancy map  
-
+	size_t tries = 0; 
     for (std::vector <int> to_rot: ne_list){
 
         if ( !(NewG.OccupancyMap.find(to_rot) != NewG.OccupancyMap.end()) ) {
@@ -1373,9 +1379,15 @@ Grid FinalIndexRotation(Grid InitialG, int index){
             break;            
 
         }
+
+		else {
+		tries++; 
+		}
     }
 
-
+	if (tries == ne_list.size() ){
+		std::cout << "no place to rotate! position will be accepted by default!" << std::endl;
+	}
     return NewG;
 }
 
@@ -1459,7 +1471,7 @@ Grid KinkJump(Grid InitialG, int index){
     }
 
     std::shuffle(std::begin(k_idx), std::end(k_idx), std::default_random_engine() ); 
-
+	size_t tries = 0; 
     for (int idx: k_idx){
 
         // std::cout << "idx right before kink spot is " << idx << std::endl; 
@@ -1479,7 +1491,8 @@ Grid KinkJump(Grid InitialG, int index){
 
             int p_erase = NewG.OccupancyMap.erase( NewG.PolymersInGrid.at(index).chain.at(idx+1).coords ); 
             p_erase++;
-
+			// std::cout << "kink will jump to: "; 
+			// print(p1.coords); 
             // update PolymersInGrid 
             NewG.PolymersInGrid.at(index).chain.at(idx+1) = p1; 
             NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
@@ -1488,11 +1501,15 @@ Grid KinkJump(Grid InitialG, int index){
 
         }
         else {
+			tries++;
             // std::cout << "This spot is taken by a monomer... no kink jumping." << std::endl;
         }
-
+	
     }
-
+	
+	if (tries == k_idx.size()) {
+		std::cout << "No spot was available to kink jump! Position will be accepted by default!" << std::endl;
+	}
     return NewG; 
 
 }
@@ -1532,7 +1549,7 @@ Grid CrankShaft(Grid InitialG, int index){
     }
 
     std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
-
+	size_t tries = 0; 
     for (int idx: c_idx){
 
         std::vector <int> HingeToKink = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx+3).coords) ); 
@@ -1575,12 +1592,15 @@ Grid CrankShaft(Grid InitialG, int index){
 
         }
         else {
+			tries++; 
             // std::cout << "This position is occupied by monomer... No cranking." << std::endl;
         }
 
 
     }
-
+	if (tries == c_idx.size()){
+		std::cout << "No position was available for a crankshaft! position will be accepted by default!" << std::endl;
+	}
     return NewG;
 
 }
@@ -1624,7 +1644,7 @@ Grid ForwardReptation(Grid InitialG, int index){
     // get rid of second to last monomer position from ne list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), InitialG.PolymersInGrid.at(index).chain.at(size-2).coords), ne_list.end() ); 
 
-
+	size_t tries = 0; 
     for (std::vector <int> v: ne_list){
         if (InitialG.OccupancyMap[v].ptype != "monomer"){
             Particle p = InitialG.OccupancyMap[v];
@@ -1657,10 +1677,13 @@ Grid ForwardReptation(Grid InitialG, int index){
 
         }
         else {
+			tries++; 
             std::cout << "No place to slither... " << std::endl;
         }
     }
-
+	if (tries == ne_list.size() ){
+		std::cout << "There is no place to slither! Will be accepted by default!" << std::endl;
+	}
     return NewG; 
 
 } 
@@ -1704,7 +1727,7 @@ Grid BackwardReptation(Grid InitialG, int index){
 
     // get rid of second monomer from the ne list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), InitialG.PolymersInGrid.at(index).chain.at(1).coords), ne_list.end() ); 
-
+	size_t tries = 0; 
     for (std::vector <int> v: ne_list){
 
         if (InitialG.OccupancyMap[v].ptype != "monomer"){
@@ -1738,6 +1761,10 @@ Grid BackwardReptation(Grid InitialG, int index){
         }
 
     }
+
+	if (tries == ne_list.size() ){
+		std::cout << "No place to slither! Position will be accepted by default!" << std::endl;
+	}
 
     return NewG; 
 }

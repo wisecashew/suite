@@ -1855,51 +1855,42 @@ Grid MoveChooser(Grid InitialG,  bool v){
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ (InitialG); 
     int r = rng_uniform(1, 4);
-    if (r==1){
-        if (v){
-           std::cout << "Performing end rotations." << std::endl; 
-        }
-        // 
-        G_ = EndRotation(InitialG, index);
-        G_.CalculateEnergy(); 
+    switch (r) {
+        case (1):
+            if (v){
+               std::cout << "Performing end rotations." << std::endl; 
+            }
+            // 
+            G_ = EndRotation(InitialG, index);
+            G_.CalculateEnergy(); 
+            break;     
         
-    }
-    /*else if (r == 5){
-        if (v){
-           std::cout << "Performing ising flip." << std::endl; 
-        }
-        // std::cout << "Performing ising flip." << std::endl;
-        G_ = IsingFlip(InitialG);
-        if (v){
-        std::cout << "performed isingflip successfully" << std::endl;
-        }
-        G_.CalculateEnergy();
+        case (2):
+            if (v){
+               std::cout << "Performing crank shaft." << std::endl; 
+            }
+            // std::cout << "Performing crank shaft." << std::endl;
+            G_ = CrankShaft(InitialG, index);
+            G_.CalculateEnergy();
+            break; 
 
-    }*/
-    else if (r == 3){
-        if (v){
-           std::cout << "Performing crank shaft." << std::endl; 
-        }
-        // std::cout << "Performing crank shaft." << std::endl;
-        G_ = CrankShaft(InitialG, index);
-        G_.CalculateEnergy();
-    }
-    else if (r == 4) {
-        if (v){
-           std::cout << "Performing reptation." << std::endl; 
-        }
-        // std::cout << "Performing reptation." << std::endl;
-        G_ = Reptation(InitialG, index); 
-        G_.CalculateEnergy();
-    }
-    else if (r==2) {
+        case (3):
+            if (v){
+               std::cout << "Performing reptation." << std::endl; 
+            }
+            // std::cout << "Performing reptation." << std::endl;
+            G_ = Reptation(InitialG, index); 
+            G_.CalculateEnergy();
+            break; 
 
-        if (v){
-           std::cout << "Performing kink jump." << std::endl; 
-        }
-        // std::cout << "Performing kink jump." << std::endl;
-        G_ = KinkJump(InitialG, index);
-        G_.CalculateEnergy();        
+        case (4):
+            if (v){
+               std::cout << "Performing kink jump." << std::endl; 
+            }
+            // std::cout << "Performing kink jump." << std::endl;
+            G_ = KinkJump(InitialG, index);
+            G_.CalculateEnergy ( );        
+            break; 
     }
 
     return G_;

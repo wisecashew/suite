@@ -167,8 +167,7 @@ int main(int argc, char** argv) {
                 std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
             }
 			acceptance_count++; 
-			std::cout << "Number of acceptances is " << acceptance_count << std::endl;
-            G = G_;
+            G = std::move(G_);
         }
 
 
@@ -196,7 +195,7 @@ int main(int argc, char** argv) {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds" << std::endl;
-
+    std::cout << "Number of acceptances is " << acceptance_count << std::endl;
     
     return 0;
 

@@ -1762,7 +1762,7 @@ Grid BackwardReptation(Grid InitialG, int index){
         }
 
         else {
-            std::cout << "No place to slither..." << std::endl;
+            // std::cout << "No place to slither..." << std::endl;
         }
 
     }

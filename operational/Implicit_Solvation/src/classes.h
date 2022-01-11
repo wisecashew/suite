@@ -137,7 +137,7 @@ public:
         // this->instantiateOccupancyMap(); 
     };
 
-
+    /*
     // Destructor of class 
     ~Grid(){                                    
 
@@ -150,7 +150,7 @@ public:
         std::swap(OccupancyMap, other.OccupancyMap);
         return *this; 
     } 
-
+    */
     // get the initial completed unoccupied map
     void instantiateOccupancyMap();      
 

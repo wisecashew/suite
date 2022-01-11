@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
     
 
     Grid G_ (G); 
-    
+    int acceptance_count = 0; 
     for (int i{1}; i< (Nmov+1); i++){
 
 
@@ -166,6 +166,8 @@ int main(int argc, char** argv) {
                 std::cout << "Accepted." << std::endl;
                 std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
             }
+			acceptance_count++; 
+			std::cout << "Number of acceptances is " << acceptance_count << std::endl;
             G = G_;
         }
 
@@ -182,7 +184,7 @@ int main(int argc, char** argv) {
             G.dumpPositionsOfPolymers (i, dfile) ;
             G.dumpEnergyOfGrid(i, efile, call) ; 
         }
-        G.PolymersInGrid.at(0).printChainCoords();
+        // G.PolymersInGrid.at(0).printChainCoords();
 
 
     }

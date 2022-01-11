@@ -1274,8 +1274,8 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
     std::vector <int> loc_1 = InitialG.PolymersInGrid.at(index).chain.at(1).coords;
     std::vector <int> loc_2 = InitialG.PolymersInGrid.at(index).chain.at(2).coords; 
     std::vector <std::vector <int>> ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
-    std::cout << "neighbort list is " << std::endl; 
-    print(ne_list); 
+    // std::cout << "neighbort list is " << std::endl; 
+    // print(ne_list); 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into
@@ -1353,8 +1353,8 @@ Grid FinalIndexRotation(Grid InitialG, int index){
 
     // obtain neighbor list 
     std::vector <std::vector <int> > ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
-    std::cout << "neighbort list is " << std::endl; 
-    print(ne_list); 
+    // std::cout << "neighbort list is " << std::endl; 
+    // print(ne_list); 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0), ne_list.end() ); 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2), ne_list.end() );

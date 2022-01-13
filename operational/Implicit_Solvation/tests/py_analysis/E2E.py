@@ -137,9 +137,9 @@ if __name__ == "__main__":
         e2e.append( get_e2e(master_dict[key][0], xlen, ylen, zlen ) ) 
     
     auto_corr = [] 
-    delays = np.arange(0, len(e2e), 1)
+    delays = np.arange(0, int(len(e2e)/2))
     
-    for i in range(len(e2e)): 
+    for i in range(int(len(e2e)/2)): 
         rsum=0 
         for j in range(len(e2e) - i ): 
             # print(j)
@@ -150,9 +150,9 @@ if __name__ == "__main__":
     
     auto_corr = auto_corr/auto_corr[0] 
     
-    plt.plot(delays[0::10], auto_corr[0::10], '-')
-    plt.xlabel("$t_d$")
-    plt.ylabel("$ \\frac { \\langle R(t_d) R(0) \\rangle } { \\langle R(0) \\cdot R(0) \\rangle }$")
+    plt.plot(delays, auto_corr, '-')
+    plt.xlabel("$\delta$")
+    plt.ylabel("$ \\frac { \\langle R(\delta) R(0) \\rangle } { \\langle R(0) \\cdot R(0) \\rangle }$")
     plt.savefig("end2end_autocorr.png", dpi=1200) 
     plt.show() 
     

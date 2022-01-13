@@ -154,7 +154,7 @@ if __name__ == "__main__":
     plt.xlabel("$\delta$")
     plt.ylabel("$ \\frac { \\langle R(\delta) R(0) \\rangle } { \\langle R(0) \\cdot R(0) \\rangle }$")
     plt.savefig("end2end_autocorr.png", dpi=1200) 
-    plt.show() 
+    # plt.show() 
     
     
     

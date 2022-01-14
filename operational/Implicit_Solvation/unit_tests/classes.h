@@ -19,11 +19,11 @@ public:
     int orientation;
 
     bool operator<(const Particle& rhs)const{
-        return coords < rhs.coords; 
+        return (this->coords) < (rhs.coords); 
     }
 
     bool operator==(const Particle& rhs){
-        return std::tie(coords, ptype, orientation) == std::tie(rhs.coords, rhs.ptype, rhs.orientation);
+        return std::tie(coords, ptype, orientation) == std::tie(rhs.coords, rhs.ptype, rhs.orientation );
     } 
 
 
@@ -64,7 +64,7 @@ public:
 class Polymer{
 public: 
     std::vector <Particle> chain;                                     // all the particles in the polymer chain
-    std::map <Particle, std::vector <Particle>> ConnectivityMap;      // the particles one particular polymer bead is connected to 
+    std::map <Particle, std::vector <Particle> > ConnectivityMap;      // the particles one particular polymer bead is connected to 
 
 
     // constructor 
@@ -133,11 +133,13 @@ public:
     std::map <std::vector <int>, Particle> OccupancyMap;     // a map that gives the particle given the location
     
 
+    Grid() {}; 
+
     Grid(int xlen, int ylen, int zlen, double kT_, double Emm_a_, double Emm_n_, double Ems_): x (xlen), y (ylen), z (zlen), kT (kT_), Emm_n(Emm_n_), Emm_a (Emm_a_), Ems (Ems_) {        // Constructor of class
         // this->instantiateOccupancyMap(); 
     };
 
-
+    /*
     // Destructor of class 
     ~Grid(){                                    
 
@@ -150,7 +152,7 @@ public:
         std::swap(OccupancyMap, other.OccupancyMap);
         return *this; 
     } 
-
+    */
     // get the initial completed unoccupied map
     void instantiateOccupancyMap();      
 
@@ -221,16 +223,16 @@ public:
 
 Grid CreateGridObject(std::string positions, std::string topology);
 Grid IsingFlip(Grid InitialG);
-Grid ZeroIndexRotation(Grid InitialG, int index);
-Grid FinalIndexRotation(Grid InitialG, int index);
-Grid EndRotation(Grid InitialG, int index); 
-Grid KinkJump(Grid InitialG, int index); 
-Grid CrankShaft(Grid InitialG, int index); 
-Grid ForwardReptation(Grid InitialG, int index); 
-Grid BackwardReptation(Grid InitialG, int index);
-Grid Reptation(Grid InitialG, int index);
-Grid Translation(Grid InitialG, int index, std::vector <int> direction);  
-Grid MoveChooser(Grid InitialG, bool v); 
+Grid ZeroIndexRotation(Grid* InitialG, int index);
+Grid FinalIndexRotation(Grid* InitialG, int index);
+Grid EndRotation(Grid* InitialG, int index); 
+Grid KinkJump(Grid* InitialG, int index); 
+Grid CrankShaft(Grid* InitialG, int index); 
+Grid ForwardReptation(Grid* InitialG, int index); 
+Grid BackwardReptation(Grid* InitialG, int index);
+Grid Reptation(Grid* InitialG, int index);
+Grid Translation(Grid* InitialG, int index, std::vector <int> direction);  
+Grid MoveChooser(Grid* InitialG, bool v); 
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

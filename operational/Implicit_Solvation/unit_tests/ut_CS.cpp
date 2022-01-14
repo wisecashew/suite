@@ -98,8 +98,8 @@ int main(int argc, char** argv) {
     
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
-    
-    Grid G3 = CrankShaft(G, 0) ; 
+    // Grid G3;     
+    Grid G3 = CrankShaft(&G, 0) ; 
 
 
     std::cout << "On the surface..." << std::endl; 
@@ -219,6 +219,19 @@ int main(int argc, char** argv) {
         std::vector <int> key = iter->first; 
         std::cout << "the key is "; 
         print(key); 
+
+        std::vector <int> v1 = {1,9,2}; 
+        std::vector <int> v2 = {1,0,2}; 
+        if (key.at(0) == v1.at(0) && key.at(1) == v1.at(1) && key.at(2) == v1.at(2) ){
+            std::cout << "problem particle is "; 
+            print(v1); 
+            continue; 
+        }
+        else if (key.at(0) == v2.at(0) && key.at(1) == v2.at(1) && key.at(2) == v2.at(2)) {
+            std::cout << "problem particle is "; 
+            print(v2); 
+            continue;             
+        }
 
         if ( (G.OccupancyMap.at(key) == G3.OccupancyMap.at(key)) ){
             

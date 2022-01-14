@@ -599,11 +599,13 @@ void Grid::CalculateEnergy(){
             //     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), ple.coords), ne_list.end());
             // }
 
-
+            // std::cout << "printing out neighboring monomer units included in energy calculation..." << std::endl; 
+            // std::cout << "current monomer unit is "; print(p.coords);
             for (std::vector <int> loc: ne_list){
-
+                // std::cout << "neighbor list is: "; print (loc); 
                 if (this->OccupancyMap.find(loc) != this->OccupancyMap.end() ){ // loc is in the map 
-                
+                    // std::cout << "inside if loop is: "; print(loc); 
+
                     if (p.orientation == this->OccupancyMap[loc].orientation){
                         Energy += (this->Emm_a)*0.5;     
                     }
@@ -1263,39 +1265,33 @@ Grid IsingFlip(Grid InitialG){
 //
 // THE CODE: 
 
-Grid ZeroIndexRotation(Grid InitialG, int index){
-    std::cout << "is this being hit...?" << std::endl;
-    Grid NewG (InitialG);
+Grid ZeroIndexRotation(Grid* InitialG, int index){
+
+    Grid NewG (*InitialG);
 
     // get the neighborlist of particle at index 1 
-    std::vector <int> loc_0 = InitialG.PolymersInGrid.at(index).chain.at(0).coords; 
-    std::vector <int> loc_1 = InitialG.PolymersInGrid.at(index).chain.at(1).coords;
-    std::vector <int> loc_2 = InitialG.PolymersInGrid.at(index).chain.at(2).coords; 
-    std::vector <std::vector <int>> ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
-
+    std::vector <int> loc_0 = NewG.PolymersInGrid.at(index).chain.at(0).coords; 
+    std::vector <int> loc_1 = NewG.PolymersInGrid.at(index).chain.at(1).coords;
+    std::vector <int> loc_2 = NewG.PolymersInGrid.at(index).chain.at(2).coords; 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list(loc_1, (*InitialG).x, (*InitialG).y, (*InitialG).z) ; 
+    // std::cout << "neighbort list is " << std::endl; 
+    // print(ne_list); 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into
     std::shuffle(std::begin(ne_list), std::end(ne_list), std::default_random_engine());
     // find a location that is not occupied by monomer 
     // use the occupancy map 
-
+	size_t tries = 0; 
     for (std::vector <int> to_rot: ne_list){
 
-        if (!( InitialG.OccupancyMap.find(to_rot) != InitialG.OccupancyMap.end() ) ){
+        if (!( NewG.OccupancyMap.find(to_rot) != (NewG).OccupancyMap.end() ) ){
 
             // update OccupancyMap
              
-            Particle p1 ( NewG.OccupancyMap[loc_0] );
+            Particle p1 (NewG.OccupancyMap.at(loc_0));
             p1.coords = to_rot;   
             NewG.OccupancyMap[to_rot] = p1;  
-            std::cout << "to_rot is "; 
-            print(to_rot);
-
-            std::cout << "orientation of particle in NewG is " << p1.orientation <<std::endl; 
-            std::cout << "type of particle is " << p1.ptype << std::endl; 
-            std::cout << "coords of particle are "; 
-            print(p1.coords); 
             
             int p_erase = NewG.OccupancyMap.erase(loc_0); 
             p_erase++;
@@ -1306,9 +1302,15 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
             break;
 
         }
+		else {
+			tries++; 
+		}
 
     }
-
+	
+	if (tries == ne_list.size() ){
+		std::cout << "no place to rotate! configuration will be accepted by default!" << std::endl;
+	}
     return NewG;
 }
 
@@ -1338,20 +1340,21 @@ Grid ZeroIndexRotation(Grid InitialG, int index){
 // THE CODE: 
 
 
-Grid FinalIndexRotation(Grid InitialG, int index){
+Grid FinalIndexRotation(Grid* InitialG, int index){
 
-    Grid NewG (InitialG);
+    Grid NewG (*InitialG);
 
-    int dop = InitialG.PolymersInGrid.at(index).chain.size(); 
+    int dop = NewG.PolymersInGrid.at(index).chain.size(); 
 
     // get the neighborlist of particle at index DoP-2
-    std::vector <int> loc_0 = InitialG.PolymersInGrid.at(index).chain.at(dop-1).coords;
-    std::vector <int> loc_1 = InitialG.PolymersInGrid.at(index).chain.at(dop-2).coords;
-    std::vector <int> loc_2 = InitialG.PolymersInGrid.at(index).chain.at(dop-3).coords;
+    std::vector <int> loc_0 = NewG.PolymersInGrid.at(index).chain.at(dop-1).coords;
+    std::vector <int> loc_1 = NewG.PolymersInGrid.at(index).chain.at(dop-2).coords;
+    std::vector <int> loc_2 = NewG.PolymersInGrid.at(index).chain.at(dop-3).coords;
 
     // obtain neighbor list 
-    std::vector <std::vector <int> > ne_list = obtain_ne_list(loc_1, InitialG.x, InitialG.y, InitialG.z); 
-
+    std::vector <std::vector <int> > ne_list = obtain_ne_list(loc_1, NewG.x, NewG.y, NewG.z); 
+    // std::cout << "neighbort list is " << std::endl; 
+    // print(ne_list); 
     // get the locations of particles it is connected to, and then erase them from the neighbor list 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0), ne_list.end() ); 
     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2), ne_list.end() );
@@ -1359,7 +1362,7 @@ Grid FinalIndexRotation(Grid InitialG, int index){
 
     // find a location that is unoccupied by monomer 
     // use the occupancy map  
-
+	size_t tries = 0; 
     for (std::vector <int> to_rot: ne_list){
 
         if ( !(NewG.OccupancyMap.find(to_rot) != NewG.OccupancyMap.end()) ) {
@@ -1380,9 +1383,15 @@ Grid FinalIndexRotation(Grid InitialG, int index){
             break;            
 
         }
+
+		else {
+		tries++; 
+		}
     }
 
-
+	if (tries == ne_list.size() ){
+		std::cout << "no place to rotate! position will be accepted by default!" << std::endl;
+	}
     return NewG;
 }
 
@@ -1412,7 +1421,7 @@ Grid FinalIndexRotation(Grid InitialG, int index){
 // THE CODE: 
 
 
-Grid EndRotation(Grid InitialG, int index){
+Grid EndRotation(Grid* InitialG, int index){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
@@ -1454,39 +1463,41 @@ Grid EndRotation(Grid InitialG, int index){
 // THE CODE: 
 
 
-Grid KinkJump(Grid InitialG, int index){
+Grid KinkJump(Grid* InitialG, int index){
 
-    Grid NewG (InitialG); 
+    Grid NewG (*InitialG); 
 
-    std::vector <int> k_idx = InitialG.PolymersInGrid.at(index).findKinks(); 
+    std::vector <int> k_idx = NewG.PolymersInGrid.at(index).findKinks(); 
 
     if (k_idx.size() == 0 ){
         // std::cout << "No kinks found in polymer..." << std::endl;
-        return InitialG;
+        return NewG;
     }
 
     std::shuffle(std::begin(k_idx), std::end(k_idx), std::default_random_engine() ); 
-
+	size_t tries = 0; 
     for (int idx: k_idx){
 
         // std::cout << "idx right before kink spot is " << idx << std::endl; 
 
-        std::vector <int> d1 = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx).coords) );
-        std::vector <int> d2 = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords) ); 
+        std::vector <int> d1 = subtract_vectors(&(NewG.PolymersInGrid.at(index).chain.at(idx+1).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx).coords) );
+        std::vector <int> d2 = subtract_vectors(&(NewG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx+1).coords) ); 
 
-        std::vector <int> to_check = add_vectors( &(InitialG.PolymersInGrid.at(index).chain.at(idx).coords), &d2); 
+        std::vector <int> to_check = add_vectors( &(NewG.PolymersInGrid.at(index).chain.at(idx).coords), &d2); 
+        impose_pbc(&to_check, (NewG).x, (NewG).y, (NewG).z); 
 
         if ( !( NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end()) ){
 
             //update occupancy map
-            Particle p1 ( NewG.OccupancyMap.at(NewG.PolymersInGrid.at(index).chain.at(idx+1).coords) );  // this will be the monomer particle
+            Particle p1 ( NewG.OccupancyMap.at( NewG.PolymersInGrid.at(index).chain.at(idx+1).coords) );  // this will be the monomer particle
             p1.coords = to_check; 
             
             NewG.OccupancyMap[to_check] = p1; 
 
             int p_erase = NewG.OccupancyMap.erase( NewG.PolymersInGrid.at(index).chain.at(idx+1).coords ); 
             p_erase++;
-
+			// std::cout << "kink will jump to: "; 
+			// print(p1.coords); 
             // update PolymersInGrid 
             NewG.PolymersInGrid.at(index).chain.at(idx+1) = p1; 
             NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
@@ -1495,11 +1506,15 @@ Grid KinkJump(Grid InitialG, int index){
 
         }
         else {
+			tries++;
             // std::cout << "This spot is taken by a monomer... no kink jumping." << std::endl;
         }
-
+	
     }
-
+	
+	if (tries == k_idx.size()) {
+		std::cout << "No spot was available to kink jump! Position will be accepted by default!" << std::endl;
+	}
     return NewG; 
 
 }
@@ -1527,35 +1542,35 @@ Grid KinkJump(Grid InitialG, int index){
 // THE CODE: 
 
 
-Grid CrankShaft(Grid InitialG, int index){
+Grid CrankShaft(Grid* InitialG, int index){
 
-    Grid NewG(InitialG); 
+    Grid NewG(*InitialG); 
 
-    std::vector <int> c_idx = InitialG.PolymersInGrid.at(index).findCranks(); 
+    std::vector <int> c_idx = NewG.PolymersInGrid.at(index).findCranks(); 
 
     if ( c_idx.size()==0 ){
         // std::cout << "No cranks in this polymer..." << std::endl; 
-        return InitialG; 
+        return NewG; 
     }
 
     std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
-
+	size_t tries = 0; 
     for (int idx: c_idx){
 
-        std::vector <int> HingeToKink = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(InitialG.PolymersInGrid.at(index).chain.at(idx+3).coords) ); 
-        std::vector <int> HingeToHinge = subtract_vectors(&(InitialG.PolymersInGrid.at(index).chain.at(idx+3).coords ), &(InitialG.PolymersInGrid.at(index).chain.at(idx).coords ) );
+        std::vector <int> HingeToKink = subtract_vectors(&(NewG.PolymersInGrid.at(index).chain.at(idx+2).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords) ); 
+        std::vector <int> HingeToHinge = subtract_vectors(&(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords ), &(NewG.PolymersInGrid.at(index).chain.at(idx).coords ) );
 
-        std::vector <std::vector <int>> drns = HingeSwingDirections (& (HingeToHinge), &(HingeToKink), InitialG.x, InitialG.y, InitialG.z); 
+        std::vector <std::vector <int>> drns = HingeSwingDirections (& (HingeToHinge), &(HingeToKink), NewG.x, NewG.y, NewG.z); 
         int choice = rng_uniform(0,2); 
 
         std::vector <int> d1 = drns.at(choice);  //subtract_vectors( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx+2).coords) );
 
         std::vector <int> to_check_1 = add_vectors ( &(NewG.PolymersInGrid.at(index).chain.at(idx).coords), &d1 ); 
         std::vector <int> to_check_2 = add_vectors ( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &d1 ); 
-        impose_pbc(&to_check_1, InitialG.x, InitialG.y, InitialG.z); 
-        impose_pbc(&to_check_2, InitialG.x, InitialG.y, InitialG.z);  
+        impose_pbc(&to_check_1, NewG.x, NewG.y, NewG.z); 
+        impose_pbc(&to_check_2, NewG.x, NewG.y, NewG.z);  
 
-        if ( !(InitialG.OccupancyMap.find(to_check_1) != InitialG.OccupancyMap.end()) && !(InitialG.OccupancyMap.find(to_check_2) != InitialG.OccupancyMap.end() ) ){
+        if ( !(NewG.OccupancyMap.find(to_check_1) != NewG.OccupancyMap.end()) && !(NewG.OccupancyMap.find(to_check_2) != NewG.OccupancyMap.end() ) ){
 
             // update OccupancyMap
             Particle p1 ( NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+1).coords] );
@@ -1568,8 +1583,8 @@ Grid CrankShaft(Grid InitialG, int index){
             NewG.OccupancyMap[to_check_1] = p1; 
             NewG.OccupancyMap[to_check_2] = p2; 
 
-            int p_erased_1 = NewG.OccupancyMap.erase( InitialG.PolymersInGrid.at(index).chain.at(idx+1).coords );
-            int p_erased_2 = NewG.OccupancyMap.erase( InitialG.PolymersInGrid.at(index).chain.at(idx+2).coords );
+            int p_erased_1 = NewG.OccupancyMap.erase( NewG.PolymersInGrid.at(index).chain.at(idx+1).coords );
+            int p_erased_2 = NewG.OccupancyMap.erase( NewG.PolymersInGrid.at(index).chain.at(idx+2).coords );
             p_erased_1++; 
             p_erased_2++;
 
@@ -1582,12 +1597,15 @@ Grid CrankShaft(Grid InitialG, int index){
 
         }
         else {
+			tries++; 
             // std::cout << "This position is occupied by monomer... No cranking." << std::endl;
         }
 
 
     }
-
+	if (tries == c_idx.size()){
+		std::cout << "No position was available for a crankshaft! position will be accepted by default!" << std::endl;
+	}
     return NewG;
 
 }
@@ -1621,37 +1639,37 @@ Grid CrankShaft(Grid InitialG, int index){
 //
 // THE CODE: 
 
-Grid ForwardReptation(Grid InitialG, int index){
+Grid ForwardReptation(Grid* InitialG, int index){
 
-    Grid NewG (InitialG); 
+    Grid NewG (*InitialG); 
     // get size of polymer chain 
-    int size = InitialG.PolymersInGrid.at(index).chain.size(); 
-    std::vector <std::vector <int>> ne_list = obtain_ne_list( InitialG.PolymersInGrid.at(index).chain.at(size-1).coords, InitialG.x, InitialG.y, InitialG.z ); 
+    int size = NewG.PolymersInGrid.at(index).chain.size(); 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list( NewG.PolymersInGrid.at(index).chain.at(size-1).coords, NewG.x, NewG.y, NewG.z ); 
 
     // get rid of second to last monomer position from ne list 
-    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), InitialG.PolymersInGrid.at(index).chain.at(size-2).coords), ne_list.end() ); 
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), NewG.PolymersInGrid.at(index).chain.at(size-2).coords), ne_list.end() ); 
 
-
+	size_t tries = 0; 
     for (std::vector <int> v: ne_list){
-        if (InitialG.OccupancyMap[v].ptype != "monomer"){
-            Particle p = InitialG.OccupancyMap[v];
+        if (NewG.OccupancyMap[v].ptype != "monomer"){
+            Particle p = NewG.OccupancyMap[v];
             p.ptype = "monomer"; 
             
-            int p_erase = NewG.OccupancyMap.erase(InitialG.PolymersInGrid.at(index).chain.at(0).coords) ; // there is no particle at index 0 
+            int p_erase = NewG.OccupancyMap.erase(NewG.PolymersInGrid.at(index).chain.at(0).coords) ; // there is no particle at index 0 
             p_erase++;
 
             for (int i{0}; i < size; i++){
 
                 if (i < size - 1){
                     // the particles are staying the same, they are simply changing locations. 
-                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = InitialG.PolymersInGrid.at(index).chain.at(i).orientation;
-                    NewG.PolymersInGrid.at(index).chain.at(i).coords = InitialG.PolymersInGrid.at(index).chain.at(i+1).coords;  
+                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = (*InitialG).PolymersInGrid.at(index).chain.at(i).orientation;
+                    NewG.PolymersInGrid.at(index).chain.at(i).coords = (*InitialG).PolymersInGrid.at(index).chain.at(i+1).coords;  
                     NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(i).coords] = NewG.PolymersInGrid.at(index).chain.at(i);
 
 
                 }
                 else if (i == size-1){
-                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = InitialG.PolymersInGrid.at(index).chain.at(i).orientation;
+                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = (*InitialG).PolymersInGrid.at(index).chain.at(i).orientation;
                     NewG.PolymersInGrid.at(index).chain.at(i).coords = v;
                     NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(i).coords] = NewG.PolymersInGrid.at(index).chain.at(i);
                 }
@@ -1664,10 +1682,13 @@ Grid ForwardReptation(Grid InitialG, int index){
 
         }
         else {
+			tries++; 
             std::cout << "No place to slither... " << std::endl;
         }
     }
-
+	if (tries == ne_list.size() ){
+		std::cout << "There is no place to slither! Will be accepted by default!" << std::endl;
+	}
     return NewG; 
 
 } 
@@ -1701,35 +1722,35 @@ Grid ForwardReptation(Grid InitialG, int index){
 //
 // THE CODE: 
 
-Grid BackwardReptation(Grid InitialG, int index){
+Grid BackwardReptation(Grid* InitialG, int index){
     
-    Grid NewG(InitialG); 
+    Grid NewG(*InitialG); 
 
     // get initial size of the polymer chain 
-    int size = InitialG.PolymersInGrid.at(index).chain.size(); 
-    std::vector <std::vector <int>> ne_list = obtain_ne_list( InitialG.PolymersInGrid.at(index).chain.at(0).coords, InitialG.x, InitialG.y, InitialG.z); 
+    int size = NewG.PolymersInGrid.at(index).chain.size(); 
+    std::vector <std::vector <int>> ne_list = obtain_ne_list( NewG.PolymersInGrid.at(index).chain.at(0).coords, NewG.x, NewG.y, NewG.z); 
 
     // get rid of second monomer from the ne list 
-    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), InitialG.PolymersInGrid.at(index).chain.at(1).coords), ne_list.end() ); 
-
+    ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), NewG.PolymersInGrid.at(index).chain.at(1).coords), ne_list.end() ); 
+	size_t tries = 0; 
     for (std::vector <int> v: ne_list){
 
-        if (InitialG.OccupancyMap[v].ptype != "monomer"){
-            Particle p = InitialG.OccupancyMap[v]; 
+        if (NewG.OccupancyMap[v].ptype != "monomer"){
+            Particle p = NewG.OccupancyMap[v]; 
             p.ptype = "monomer"; 
             
-            int p_erase = NewG.OccupancyMap.erase(InitialG.PolymersInGrid.at(index).chain.at( size-1 ).coords); // 
+            int p_erase = NewG.OccupancyMap.erase((*InitialG).PolymersInGrid.at(index).chain.at( size-1 ).coords); // 
             p_erase++;
 
             for (int i{0}; i < size; i++){
 
                 if (i != 0){
-                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = InitialG.PolymersInGrid.at(index).chain.at(i).orientation;
-                    NewG.PolymersInGrid.at(index).chain.at(i).coords = InitialG.PolymersInGrid.at(index).chain.at(i-1).coords;  
+                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = (*InitialG).PolymersInGrid.at(index).chain.at(i).orientation;
+                    NewG.PolymersInGrid.at(index).chain.at(i).coords = (*InitialG).PolymersInGrid.at(index).chain.at(i-1).coords;  
                     NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(i).coords] = NewG.PolymersInGrid.at(index).chain.at(i);
                 }
                 else if (i == 0){
-                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = InitialG.PolymersInGrid.at(index).chain.at(i).orientation;
+                    NewG.PolymersInGrid.at(index).chain.at(i).orientation = (*InitialG).PolymersInGrid.at(index).chain.at(i).orientation;
                     NewG.PolymersInGrid.at(index).chain.at(i).coords = v;
                     NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(i).coords] = NewG.PolymersInGrid.at(index).chain.at(i);
                 }
@@ -1741,10 +1762,14 @@ Grid BackwardReptation(Grid InitialG, int index){
         }
 
         else {
-            std::cout << "No place to slither..." << std::endl;
+            // std::cout << "No place to slither..." << std::endl;
         }
 
     }
+
+	if (tries == ne_list.size() ){
+		std::cout << "No place to slither! Position will be accepted by default!" << std::endl;
+	}
 
     return NewG; 
 }
@@ -1780,7 +1805,7 @@ Grid BackwardReptation(Grid InitialG, int index){
 //
 // THE CODE: 
 
-Grid Reptation(Grid InitialG, int index){
+Grid Reptation(Grid* InitialG, int index){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
@@ -1824,57 +1849,48 @@ Grid Reptation(Grid InitialG, int index){
 //
 // THE CODE: 
 
-Grid MoveChooser(Grid InitialG,  bool v){
+Grid MoveChooser(Grid* InitialG,  bool v){
 
-    int index = rng_uniform(0, static_cast<int>(InitialG.PolymersInGrid.size())-1); 
+    int index = rng_uniform(0, static_cast<int>((*InitialG).PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
-    Grid G_ (InitialG); 
+    Grid G_ ; 
     int r = rng_uniform(1, 4);
-    if (r==1){
-        if (v){
-           std::cout << "Performing end rotations." << std::endl; 
-        }
-        // 
-        G_ = EndRotation(InitialG, index);
-        G_.CalculateEnergy(); 
+    switch (r) {
+        case (1):
+            if (v){
+               std::cout << "Performing end rotations." << std::endl; 
+            }
+            // 
+            G_ = EndRotation(InitialG, index);
+            G_.CalculateEnergy(); 
+            break;     
         
-    }
-    /*else if (r == 5){
-        if (v){
-           std::cout << "Performing ising flip." << std::endl; 
-        }
-        // std::cout << "Performing ising flip." << std::endl;
-        G_ = IsingFlip(InitialG);
-        if (v){
-        std::cout << "performed isingflip successfully" << std::endl;
-        }
-        G_.CalculateEnergy();
+        case (2):
+            if (v){
+               std::cout << "Performing crank shaft." << std::endl; 
+            }
+            // std::cout << "Performing crank shaft." << std::endl;
+            G_ = CrankShaft(InitialG, index);
+            G_.CalculateEnergy();
+            break; 
 
-    }*/
-    else if (r == 3){
-        if (v){
-           std::cout << "Performing crank shaft." << std::endl; 
-        }
-        // std::cout << "Performing crank shaft." << std::endl;
-        G_ = CrankShaft(InitialG, index);
-        G_.CalculateEnergy();
-    }
-    else if (r == 4) {
-        if (v){
-           std::cout << "Performing reptation." << std::endl; 
-        }
-        // std::cout << "Performing reptation." << std::endl;
-        G_ = Reptation(InitialG, index); 
-        G_.CalculateEnergy();
-    }
-    else if (r==2) {
+        case (3):
+            if (v){
+               std::cout << "Performing reptation." << std::endl; 
+            }
+            // std::cout << "Performing reptation." << std::endl;
+            G_ = Reptation(InitialG, index); 
+            G_.CalculateEnergy();
+            break; 
 
-        if (v){
-           std::cout << "Performing kink jump." << std::endl; 
-        }
-        // std::cout << "Performing kink jump." << std::endl;
-        G_ = KinkJump(InitialG, index);
-        G_.CalculateEnergy();        
+        case (4):
+            if (v){
+               std::cout << "Performing kink jump." << std::endl; 
+            }
+            // std::cout << "Performing kink jump." << std::endl;
+            G_ = KinkJump(InitialG, index);
+            G_.CalculateEnergy ( );        
+            break; 
     }
 
     return G_;

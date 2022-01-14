@@ -5,30 +5,30 @@ Polymers extracted successfuly!
 Solvent positions defined successfully!
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-Energy of box is: -15
+Energy of box is: -19
 On the surface...
 
 
 Coordinates of monomer unit of Polymer 0 in G are: 
-3 | 0 | 0 | 
-4 | 0 | 0 | 
-5 | 0 | 0 | 
-5 | 1 | 0 | 
-6 | 1 | 0 | 
-6 | 0 | 0 | 
-7 | 0 | 0 | 
-8 | 0 | 0 | 
+0 | 0 | 0 | 
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+1 | 0 | 0 | 
 
 
 Coordinates of monomer unit of Polymer 0 in G3 are: 
-3 | 0 | 0 | 
-4 | 0 | 0 | 
-5 | 0 | 0 | 
-5 | 0 | 9 | 
-6 | 0 | 9 | 
-6 | 0 | 0 | 
-7 | 0 | 0 | 
-8 | 0 | 0 | 
+0 | 0 | 1 | 
+0 | 0 | 0 | 
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
 
 
 
@@ -73,10 +73,28 @@ Find discrepancy in PolymersInGrid.
 
 
 ---------------FOUND THE DISPLACED PARTICLE---------------
+The orientation of the particle originally is 1
+The orientation of the after is 1
+The position of the particle originally is 0 | 0 | 0 | 
+The position of the particle after is 0 | 0 | 1 | 
+The type of the particle originally is monomer
+The type of the particle after is monomer
+
+
+---------------FOUND THE DISPLACED PARTICLE---------------
 The orientation of the particle originally is 3
 The orientation of the after is 3
-The position of the particle originally is 5 | 1 | 0 | 
-The position of the particle after is 5 | 0 | 9 | 
+The position of the particle originally is 0 | 9 | 0 | 
+The position of the particle after is 0 | 0 | 0 | 
+The type of the particle originally is monomer
+The type of the particle after is monomer
+
+
+---------------FOUND THE DISPLACED PARTICLE---------------
+The orientation of the particle originally is 1
+The orientation of the after is 1
+The position of the particle originally is 1 | 9 | 0 | 
+The position of the particle after is 0 | 9 | 0 | 
 The type of the particle originally is monomer
 The type of the particle after is monomer
 
@@ -84,8 +102,44 @@ The type of the particle after is monomer
 ---------------FOUND THE DISPLACED PARTICLE---------------
 The orientation of the particle originally is 5
 The orientation of the after is 5
-The position of the particle originally is 6 | 1 | 0 | 
-The position of the particle after is 6 | 0 | 9 | 
+The position of the particle originally is 1 | 9 | 1 | 
+The position of the particle after is 1 | 9 | 0 | 
+The type of the particle originally is monomer
+The type of the particle after is monomer
+
+
+---------------FOUND THE DISPLACED PARTICLE---------------
+The orientation of the particle originally is 1
+The orientation of the after is 1
+The position of the particle originally is 1 | 9 | 2 | 
+The position of the particle after is 1 | 9 | 1 | 
+The type of the particle originally is monomer
+The type of the particle after is monomer
+
+
+---------------FOUND THE DISPLACED PARTICLE---------------
+The orientation of the particle originally is 4
+The orientation of the after is 4
+The position of the particle originally is 1 | 0 | 2 | 
+The position of the particle after is 1 | 9 | 2 | 
+The type of the particle originally is monomer
+The type of the particle after is monomer
+
+
+---------------FOUND THE DISPLACED PARTICLE---------------
+The orientation of the particle originally is 1
+The orientation of the after is 1
+The position of the particle originally is 1 | 0 | 1 | 
+The position of the particle after is 1 | 0 | 2 | 
+The type of the particle originally is monomer
+The type of the particle after is monomer
+
+
+---------------FOUND THE DISPLACED PARTICLE---------------
+The orientation of the particle originally is 5
+The orientation of the after is 5
+The position of the particle originally is 1 | 0 | 0 | 
+The position of the particle after is 1 | 0 | 1 | 
 The type of the particle originally is monomer
 The type of the particle after is monomer
 
@@ -94,36 +148,36 @@ Printing connectivity map information
 
 In the original case, G...
 For Polymer 0:
-The original particle is: 3 | 0 | 0 | 
+The original particle is: 0 | 0 | 0 | 
 The connections are: 
-4 | 0 | 0 | 
-The original particle is: 4 | 0 | 0 | 
+0 | 9 | 0 | 
+The original particle is: 0 | 9 | 0 | 
 The connections are: 
-3 | 0 | 0 | 
-5 | 0 | 0 | 
-The original particle is: 5 | 0 | 0 | 
+0 | 0 | 0 | 
+1 | 9 | 0 | 
+The original particle is: 1 | 9 | 0 | 
 The connections are: 
-4 | 0 | 0 | 
-5 | 1 | 0 | 
-The original particle is: 5 | 1 | 0 | 
+0 | 9 | 0 | 
+1 | 9 | 1 | 
+The original particle is: 1 | 9 | 1 | 
 The connections are: 
-5 | 0 | 0 | 
-6 | 1 | 0 | 
-The original particle is: 6 | 1 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 2 | 
+The original particle is: 1 | 9 | 2 | 
 The connections are: 
-5 | 1 | 0 | 
-6 | 0 | 0 | 
-The original particle is: 6 | 0 | 0 | 
+1 | 9 | 1 | 
+1 | 0 | 2 | 
+The original particle is: 1 | 0 | 2 | 
 The connections are: 
-6 | 1 | 0 | 
-7 | 0 | 0 | 
-The original particle is: 7 | 0 | 0 | 
+1 | 9 | 2 | 
+1 | 0 | 1 | 
+The original particle is: 1 | 0 | 1 | 
 The connections are: 
-6 | 0 | 0 | 
-8 | 0 | 0 | 
-The original particle is: 8 | 0 | 0 | 
+1 | 0 | 2 | 
+1 | 0 | 0 | 
+The original particle is: 1 | 0 | 0 | 
 The connections are: 
-7 | 0 | 0 | 
+1 | 0 | 1 | 
 
 
 For Polymer 1:
@@ -165,36 +219,36 @@ In the MOVED case, G3...
 
 
 For Polymer 0:
-The original particle is: 3 | 0 | 0 | 
+The original particle is: 0 | 0 | 1 | 
 The connections are: 
-4 | 0 | 0 | 
-The original particle is: 4 | 0 | 0 | 
+0 | 0 | 0 | 
+The original particle is: 0 | 0 | 0 | 
 The connections are: 
-3 | 0 | 0 | 
-5 | 0 | 0 | 
-The original particle is: 5 | 0 | 0 | 
+0 | 0 | 1 | 
+0 | 9 | 0 | 
+The original particle is: 0 | 9 | 0 | 
 The connections are: 
-4 | 0 | 0 | 
-5 | 0 | 9 | 
-The original particle is: 5 | 0 | 9 | 
+0 | 0 | 0 | 
+1 | 9 | 0 | 
+The original particle is: 1 | 9 | 0 | 
 The connections are: 
-5 | 0 | 0 | 
-6 | 0 | 9 | 
-The original particle is: 6 | 0 | 9 | 
+0 | 9 | 0 | 
+1 | 9 | 1 | 
+The original particle is: 1 | 9 | 1 | 
 The connections are: 
-5 | 0 | 9 | 
-6 | 0 | 0 | 
-The original particle is: 6 | 0 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 2 | 
+The original particle is: 1 | 9 | 2 | 
 The connections are: 
-6 | 0 | 9 | 
-7 | 0 | 0 | 
-The original particle is: 7 | 0 | 0 | 
+1 | 9 | 1 | 
+1 | 0 | 2 | 
+The original particle is: 1 | 0 | 2 | 
 The connections are: 
-6 | 0 | 0 | 
-8 | 0 | 0 | 
-The original particle is: 8 | 0 | 0 | 
+1 | 9 | 2 | 
+1 | 0 | 1 | 
+The original particle is: 1 | 0 | 1 | 
 The connections are: 
-7 | 0 | 0 | 
+1 | 0 | 2 | 
 
 
 
@@ -232,109 +286,3 @@ The connections are:
 1 | 1 | 8 | 
 
 
-
-
-time for the main event: OccupancyMap.
-
-the key is 0 | 1 | 0 | 
-The coordinates of the particle originally were: 0 | 1 | 0 | 
-The coordinates of the particle after is: 0 | 1 | 0 | 
-The orientation of the particle was 4
-The orientation of the particle is 4
-The particle type was monomer
-The particle type was monomer
-the key is 0 | 1 | 8 | 
-The coordinates of the particle originally were: 0 | 1 | 8 | 
-The coordinates of the particle after is: 0 | 1 | 8 | 
-The orientation of the particle was 0
-The orientation of the particle is 0
-The particle type was monomer
-The particle type was monomer
-the key is 1 | 1 | 0 | 
-The coordinates of the particle originally were: 1 | 1 | 0 | 
-The coordinates of the particle after is: 1 | 1 | 0 | 
-The orientation of the particle was 5
-The orientation of the particle is 5
-The particle type was monomer
-The particle type was monomer
-the key is 1 | 1 | 8 | 
-The coordinates of the particle originally were: 1 | 1 | 8 | 
-The coordinates of the particle after is: 1 | 1 | 8 | 
-The orientation of the particle was 0
-The orientation of the particle is 0
-The particle type was monomer
-The particle type was monomer
-the key is 2 | 1 | 8 | 
-The coordinates of the particle originally were: 2 | 1 | 8 | 
-The coordinates of the particle after is: 2 | 1 | 8 | 
-The orientation of the particle was 0
-The orientation of the particle is 0
-The particle type was monomer
-The particle type was monomer
-the key is 3 | 0 | 0 | 
-The coordinates of the particle originally were: 3 | 0 | 0 | 
-The coordinates of the particle after is: 3 | 0 | 0 | 
-The orientation of the particle was 1
-The orientation of the particle is 1
-The particle type was monomer
-The particle type was monomer
-the key is 4 | 0 | 0 | 
-The coordinates of the particle originally were: 4 | 0 | 0 | 
-The coordinates of the particle after is: 4 | 0 | 0 | 
-The orientation of the particle was 2
-The orientation of the particle is 2
-The particle type was monomer
-The particle type was monomer
-the key is 5 | 0 | 0 | 
-The coordinates of the particle originally were: 5 | 0 | 0 | 
-The coordinates of the particle after is: 5 | 0 | 0 | 
-The orientation of the particle was 1
-The orientation of the particle is 1
-The particle type was monomer
-The particle type was monomer
-the key is 5 | 1 | 0 | 
-Problem key is 5 | 1 | 0 | 
-the key is 6 | 0 | 0 | 
-The coordinates of the particle originally were: 6 | 0 | 0 | 
-The coordinates of the particle after is: 6 | 0 | 0 | 
-The orientation of the particle was 4
-The orientation of the particle is 4
-The particle type was monomer
-The particle type was monomer
-the key is 6 | 1 | 0 | 
-Problem key is 6 | 1 | 0 | 
-the key is 7 | 0 | 0 | 
-The coordinates of the particle originally were: 7 | 0 | 0 | 
-The coordinates of the particle after is: 7 | 0 | 0 | 
-The orientation of the particle was 1
-The orientation of the particle is 1
-The particle type was monomer
-The particle type was monomer
-the key is 8 | 0 | 0 | 
-The coordinates of the particle originally were: 8 | 0 | 0 | 
-The coordinates of the particle after is: 8 | 0 | 0 | 
-The orientation of the particle was 0
-The orientation of the particle is 0
-The particle type was monomer
-The particle type was monomer
-the key is 9 | 1 | 0 | 
-The coordinates of the particle originally were: 9 | 1 | 0 | 
-The coordinates of the particle after is: 9 | 1 | 0 | 
-The orientation of the particle was 1
-The orientation of the particle is 1
-The particle type was monomer
-The particle type was monomer
-the key is 9 | 1 | 8 | 
-The coordinates of the particle originally were: 9 | 1 | 8 | 
-The coordinates of the particle after is: 9 | 1 | 8 | 
-The orientation of the particle was 0
-The orientation of the particle is 0
-The particle type was monomer
-The particle type was monomer
-the key is 9 | 1 | 9 | 
-The coordinates of the particle originally were: 9 | 1 | 9 | 
-The coordinates of the particle after is: 9 | 1 | 9 | 
-The orientation of the particle was 5
-The orientation of the particle is 5
-The particle type was monomer
-The particle type was monomer

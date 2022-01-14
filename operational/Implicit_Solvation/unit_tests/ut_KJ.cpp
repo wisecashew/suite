@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
     
-    Grid G3 = KinkJump(G, 0) ; 
+    Grid G3 = KinkJump(&G, 0) ; 
 
 
     std::cout << "On the surface..." << std::endl; 
@@ -215,6 +215,12 @@ int main(int argc, char** argv) {
         std::vector <int> key = iter->first; 
         std::cout << "the key is ";
         print(key);
+        std::vector <int> v = {1, 9, 0}; 
+        if (key.at(0) == v.at(0) && key.at(1) == v.at(1) && key.at(2) == v.at(2)){
+            std::cout << "Problem particle is "; 
+            print(v); 
+            continue; 
+        }
 
         if ( (G.OccupancyMap.at(key) == G3.OccupancyMap.at(key) ) ){
             

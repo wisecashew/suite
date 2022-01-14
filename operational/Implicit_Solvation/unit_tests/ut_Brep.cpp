@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
     
-    Grid G3 = BackwardReptation(G, 0) ; 
+    Grid G3 = BackwardReptation(&G, 0) ; 
 
 
     std::cout << "On the surface..." << std::endl; 
@@ -216,7 +216,7 @@ int main(int argc, char** argv) {
     }    
 
     
-
+    /*
     std::cout<<"\n\ntime for the main event: OccupancyMap." << std::endl << std::endl;
 
     for (std::map <std::vector <int>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
@@ -239,7 +239,7 @@ int main(int argc, char** argv) {
         }
             
     }
-    
+    */
    
 
     return 0;

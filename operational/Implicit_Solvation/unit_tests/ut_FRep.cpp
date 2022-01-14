@@ -99,7 +99,7 @@ int main(int argc, char** argv) {
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
     
-    Grid G3 = ForwardReptation(G, 0) ; 
+    Grid G3 = ForwardReptation(&G, 0) ; 
 
 
     std::cout << "On the surface..." << std::endl; 

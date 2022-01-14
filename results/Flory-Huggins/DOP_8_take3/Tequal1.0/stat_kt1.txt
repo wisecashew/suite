@@ -1,4 +1,0 @@
-min is 0.8660254037844385 and index is 2
-mean is 0.9549876348057366
-max is 1.7290286723744062 and index is 689.
-

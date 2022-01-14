@@ -1,8 +1,0 @@
-x = 10
-y = 10
-z = 10 
-kT = 1   
-Emm_a = -1
-Emm_n = -1 
-Ems = -1
-END OF FILE

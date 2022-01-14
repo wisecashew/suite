@@ -1,0 +1,3 @@
+min is 0.8660254037844386 and index is 0
+mean is 0.8836473013790377
+max is 1.3693063937629153 and index is 912.

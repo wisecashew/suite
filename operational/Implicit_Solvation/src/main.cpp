@@ -147,29 +147,28 @@ int main(int argc, char** argv) {
 
     Grid G_ ;
 
-
-    
+    bool IMP_BOOL = true; 
     int acceptance_count = 0; 
     for (int i{1}; i< (Nmov+1); i++){
 
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Move number " << i << ". " ;
+            printf("Move number %d.\n", i);
         }
         // choose a move 
-        G_ = MoveChooser(&G, v);  
+        G_ = MoveChooser(&G, v, &IMP_BOOL);  
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Executing..." << std::endl;
+            printf("Executing...\n");
         }
 
 
-        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) ) {
+        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
             // accepted
             // replace old config with new config
             if ( v ){ 
-                std::cout << "Accepted." << std::endl;
-                std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
+                printf("Accepted.\n");
+                printf("Energy of the system is %f.\n", G_.Energy);
             }
 			acceptance_count++; 
             G = std::move(G_);
@@ -178,8 +177,8 @@ int main(int argc, char** argv) {
 
         else {
             if ( v && (i%dfreq==0) ){
-                std::cout << "Not accepted." << std::endl;
-                std::cout << "Energy of the suggested system is " << G_.Energy << ", while energy of the initial system is " << G.Energy << "." << std::endl;
+                printf("Not accepted.\n");
+                printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G.Energy, G_.Energy);
             }
             // continue;
         }
@@ -190,9 +189,8 @@ int main(int argc, char** argv) {
         }
         // G.PolymersInGrid.at(0).printChainCoords();
 
-
+        IMP_BOOL = true; 
     }
-    
     
     
     auto stop = std::chrono::high_resolution_clock::now(); 

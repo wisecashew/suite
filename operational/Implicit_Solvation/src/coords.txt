@@ -1,5 +1,5 @@
-Dumping coordinates at step 0.
 Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 0.
 0 | 0 | 0 | 
 0 | 9 | 0 | 
 1 | 9 | 0 | 
@@ -9,8 +9,8 @@ Dumping coordinates of Polymer # 0.
 1 | 0 | 1 | 
 1 | 0 | 0 | 
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-Dumping coordinates at step 1.
 Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 1.
 0 | 9 | 9 | 
 0 | 9 | 0 | 
 1 | 9 | 0 | 
@@ -19,4 +19,103 @@ Dumping coordinates of Polymer # 0.
 1 | 0 | 2 | 
 1 | 0 | 1 | 
 1 | 0 | 0 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 2.
+0 | 0 | 9 | 
+0 | 9 | 9 | 
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 3.
+1 | 9 | 9 | 
+0 | 9 | 9 | 
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 4.
+1 | 9 | 9 | 
+1 | 8 | 9 | 
+1 | 8 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 5.
+1 | 9 | 9 | 
+1 | 8 | 9 | 
+1 | 8 | 0 | 
+1 | 8 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 6.
+1 | 9 | 9 | 
+1 | 8 | 9 | 
+1 | 8 | 0 | 
+1 | 8 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 7.
+1 | 9 | 9 | 
+1 | 8 | 9 | 
+1 | 8 | 0 | 
+1 | 8 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 8.
+1 | 9 | 9 | 
+1 | 8 | 9 | 
+1 | 8 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 9.
+1 | 8 | 9 | 
+1 | 8 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+0 | 0 | 1 | 
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates of Polymer # 0.
+Dumping coordinates at step 10.
+1 | 8 | 1 | 
+1 | 8 | 0 | 
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+0 | 0 | 1 | 
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

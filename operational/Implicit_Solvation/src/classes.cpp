@@ -48,10 +48,10 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
     
     // dump_file <<"Dumping coordinates at step " << step << ".\n";
     int count = 0; 
-    for (Polymer& pmer: this->PolymersInGrid){
+    for (const Polymer& pmer: this->PolymersInGrid){
         
         dump_file <<"Dumping coordinates of Polymer # " << count << ".\n";
-        for (Particle& p: pmer.chain){
+        for (const Particle& p: pmer.chain){
             for (int i: p.coords){
                 os << i << " | "; 
             }

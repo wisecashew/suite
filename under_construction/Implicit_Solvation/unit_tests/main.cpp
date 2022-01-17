@@ -39,9 +39,8 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 1.1.1 of the Monte Carlo Engine. Set up on Jan 14, 2022, 12:30 AM.\n" <<
-                "This version of the engine has no std::swap in the copy constructor for the Grid object.\n" <<
-                "This version implements pointers for Grid based functions.\n" << 
+		        "This version number 1.1.0 of the Monte Carlo Engine. Set up on Jan 8, 2022, 10 PM.\n" <<
+                "This version of the engine has no std::swap in the copy constructor for the Grid object.\n" << 
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
@@ -111,8 +110,8 @@ int main(int argc, char** argv) {
 
     std::ofstream dump_file (dfile);
     std::ofstream energy_dump_file (efile);
-    // energy_dump_file.close(); 
-    // dump_file.close(); 
+    energy_dump_file.close(); 
+    dump_file.close(); 
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
@@ -147,28 +146,29 @@ int main(int argc, char** argv) {
 
     Grid G_ ;
 
-    bool IMP_BOOL  {true}; 
-    int acceptance_count {0} ; 
+
+    
+    int acceptance_count = 0; 
     for (int i{1}; i< (Nmov+1); i++){
 
 
         if ( v && (i%dfreq==0) ){
-            printf("Move number %d.\n", i);
+            std::cout << "Move number " << i << ". " ;
         }
         // choose a move 
-        G_ = MoveChooser(&G, v, &IMP_BOOL);  
+        G_ = MoveChooser(&G, v);  
 
         if ( v && (i%dfreq==0) ){
-            printf("Executing...\n");
+            std::cout << "Executing..." << std::endl;
         }
 
 
-        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
+        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) ) {
             // accepted
             // replace old config with new config
             if ( v ){ 
-                printf("Accepted.\n");
-                printf("Energy of the system is %f.\n", G_.Energy);
+                std::cout << "Accepted." << std::endl;
+                std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
             }
 			acceptance_count++; 
             G = std::move(G_);
@@ -177,8 +177,8 @@ int main(int argc, char** argv) {
 
         else {
             if ( v && (i%dfreq==0) ){
-                printf("Not accepted.\n");
-                printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G.Energy, G_.Energy);
+                std::cout << "Not accepted." << std::endl;
+                std::cout << "Energy of the suggested system is " << G_.Energy << ", while energy of the initial system is " << G.Energy << "." << std::endl;
             }
             // continue;
         }
@@ -189,8 +189,9 @@ int main(int argc, char** argv) {
         }
         // G.PolymersInGrid.at(0).printChainCoords();
 
-        IMP_BOOL = true; 
+
     }
+    
     
     
     auto stop = std::chrono::high_resolution_clock::now(); 

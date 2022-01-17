@@ -42,28 +42,22 @@
 
 
 void Grid::dumpPositionsOfPolymers (int step, std::string filename){
-    // std::ostringstream os; 
     std::ofstream dump_file(filename, std::ios::app); 
     dump_file <<"Dumping coordinates at step " << step << ".\n";
-    
-    // dump_file <<"Dumping coordinates at step " << step << ".\n";
     int count = 0; 
-    for (const Polymer& pmer: this->PolymersInGrid){
+    for (Polymer pmer: this->PolymersInGrid){
         
         dump_file <<"Dumping coordinates of Polymer # " << count << ".\n";
-        for (const Particle& p: pmer.chain){
-            for (int i: p.coords){
-                dump_file << i << " | "; 
+        for (Particle p: pmer.chain){
+            for (std::vector <int>::const_iterator i = p.coords.begin(); i!=p.coords.end(); ++i){
+                dump_file << *i << " | "; 
             }
             dump_file << "\n"; 
         }
-        ++count ; 
+        count ++; 
     }
-    dump_file << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n";
-    // const auto& str = os.str(); 
-    // dump_file.write(str.c_str(), static_cast<std::streamsize> (str.size() )); 
-
-    // dump_file.close();
+    dump_file <<"~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n";
+    dump_file.close();
 
     
 
@@ -97,16 +91,15 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
 
 void Grid::dumpEnergyOfGrid (int step, std::string filename, bool first_call){
     std::ofstream dump_file(filename, std::ios::app); 
-    // std::ostringstream os; 
     if (first_call){
         dump_file <<"This file contains energy of the Grid at certain points in the simulation.\n";
-        dump_file <<"Energy | Step_Number\n" ;
+        dump_file <<"Energy | Step_Number" << std::endl;
     }
     
-    dump_file <<this->Energy << " | " << step << "\n";
+    dump_file <<this->Energy << " | " << step << std::endl;
 
     
-    // dump_file.close();
+    dump_file.close();
 
     
 
@@ -216,8 +209,8 @@ Grid CreateGridObject(std::string positions, std::string topology){
 
 void Grid::instantiateOccupancyMap(){
     
-    for (Polymer& pmer: this->PolymersInGrid){
-        for (Particle& p: pmer.chain){
+    for (Polymer pmer: this->PolymersInGrid){
+        for (Particle p: pmer.chain){
             // Particle pdash = p; 
             // std::vector <int> ploc = p.coords; 
             this->OccupancyMap[p.coords] = p;
@@ -333,7 +326,7 @@ bool Grid::checkConnectivity(std::vector <Polymer> PolymerVector) {
     for (Polymer pmer: PolymerVector){
         size_t length = pmer.chain.size(); 
         std::vector <int> connection; 
-        for (int i{1}; i<static_cast<int>(length); ++i){
+        for (int i{1}; i<static_cast<int>(length); i++){
             
             connection = subtract_vectors(&(pmer.chain.at(i).coords), &(pmer.chain.at(i-1).coords));
             impose_pbc(&connection, this->x, this->y, this->z);
@@ -399,10 +392,10 @@ int Grid::ExtractNumberOfPolymers(std::string filename){
             // std::getline(myfile, myString); // pipe file's content into stream 
 
             if (std::regex_search(myString, start)){
-                ++numberOfStarts; 
+                numberOfStarts++; 
             }
             else if (std::regex_search(myString, end)){
-                ++numberOfEnds; 
+                numberOfEnds++; 
             }
             else if ( myString.empty()){
                 std::cerr << "ERROR: Empty line found. Bad positions file. " << std::endl;
@@ -509,12 +502,12 @@ void Grid::ExtractPolymersFromFile(std::string filename){
          
         std::stringstream ss(s); 
         if (std::regex_search(s, start) ){
-            ++startCount;
+            startCount++;
             continue; 
         }
 
         else if (std::regex_search(s, end) ) {
-            ++endCount;
+            endCount++;
             
             Polymer pmer = makePolymer(locations);
             PolymerVector.push_back(pmer);
@@ -593,8 +586,8 @@ void Grid::CalculateEnergy(){
     double Energy {0.0}; 
     
     // polymer-polymer interaction energies 
-    for (Polymer& pmer: this->PolymersInGrid){
-        for (Particle& p: pmer.chain){
+    for (Polymer pmer: this->PolymersInGrid){
+        for (Particle p: pmer.chain){
             
             std::vector <Particle> part_vec = pmer.ConnectivityMap[p];
             
@@ -608,7 +601,7 @@ void Grid::CalculateEnergy(){
 
             // std::cout << "printing out neighboring monomer units included in energy calculation..." << std::endl; 
             // std::cout << "current monomer unit is "; print(p.coords);
-            for (std::vector <int>& loc: ne_list){
+            for (std::vector <int> loc: ne_list){
                 // std::cout << "neighbor list is: "; print (loc); 
                 if (this->OccupancyMap.find(loc) != this->OccupancyMap.end() ){ // loc is in the map 
                     // std::cout << "inside if loop is: "; print(loc); 
@@ -1021,7 +1014,7 @@ void Polymer::ChainToConnectivityMap(){
 
     const int chainLength = this->chain.size(); 
 
-    for (int i{0}; i<chainLength; ++i){
+    for (int i{0}; i<chainLength; i++){
         if (i==0){
             
             this->ConnectivityMap[this->chain.at(i)] = { (this->chain.at(i+1)),  };
@@ -1069,7 +1062,7 @@ std::vector <int> Polymer::findKinks(){
     std::vector <int> kink_indices; 
 
     // obtain all location where kinks exist in the polymer 
-    for (int i{0}; i<chainLength-2; ++i){
+    for (int i{0}; i<chainLength-2; i++){
         std::vector <int> v1 = subtract_vectors(&(this->chain.at(i+1).coords), &(this->chain.at(i).coords) ); 
         std::vector <int> v2 = subtract_vectors(&(this->chain.at(i+2).coords), &(this->chain.at(i+1).coords) );
 
@@ -1116,7 +1109,7 @@ std::vector <int> Polymer::findCranks(){
     std::vector <int> crank_indices; 
 
     // obtain all location where the crank exists in the polymer
-    for (int i{0}; i< chainLength-3; ++i){
+    for (int i{0}; i< chainLength-3; i++){
         std::vector <int> v1 = subtract_vectors(&(this->chain.at(i+1).coords), &(this->chain.at(i).coords) ); 
         std::vector <int> v2 = subtract_vectors(&(this->chain.at(i+2).coords), &(this->chain.at(i+3).coords) );
 
@@ -1272,7 +1265,7 @@ Grid IsingFlip(Grid InitialG){
 //
 // THE CODE: 
 
-Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
+Grid ZeroIndexRotation(Grid* InitialG, int index){
 
     Grid NewG (*InitialG);
 
@@ -1290,7 +1283,7 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
     // find a location that is not occupied by monomer 
     // use the occupancy map 
 	size_t tries = 0; 
-    for (std::vector <int>& to_rot: ne_list){
+    for (std::vector <int> to_rot: ne_list){
 
         if (!( NewG.OccupancyMap.find(to_rot) != (NewG).OccupancyMap.end() ) ){
 
@@ -1301,7 +1294,7 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
             NewG.OccupancyMap[to_rot] = p1;  
             
             int p_erase = NewG.OccupancyMap.erase(loc_0); 
-            // p_erase++;
+            p_erase++;
             // update positions in polymers in grid 
             NewG.PolymersInGrid.at(index).chain.at(0).coords = to_rot; 
             NewG.PolymersInGrid.at(index).ChainToConnectivityMap(); 
@@ -1310,14 +1303,13 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 
         }
 		else {
-			++tries; 
+			tries++; 
 		}
 
     }
 	
 	if (tries == ne_list.size() ){
-		// std::cout << "no place to rotate! configuration will be accepted by default!" << std::endl;
-        *IMP_BOOL = false; 
+		std::cout << "no place to rotate! configuration will be accepted by default!" << std::endl;
 	}
     return NewG;
 }
@@ -1348,7 +1340,7 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 // THE CODE: 
 
 
-Grid FinalIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
+Grid FinalIndexRotation(Grid* InitialG, int index){
 
     Grid NewG (*InitialG);
 
@@ -1371,7 +1363,7 @@ Grid FinalIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
     // find a location that is unoccupied by monomer 
     // use the occupancy map  
 	size_t tries = 0; 
-    for (std::vector <int>& to_rot: ne_list){
+    for (std::vector <int> to_rot: ne_list){
 
         if ( !(NewG.OccupancyMap.find(to_rot) != NewG.OccupancyMap.end()) ) {
 
@@ -1382,7 +1374,7 @@ Grid FinalIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
             NewG.OccupancyMap[to_rot] = p1; 
 
             int p_erase = NewG.OccupancyMap.erase(loc_0); 
-            // p_erase++; 
+            p_erase++; 
 
             // update positions in polymers in grid 
             NewG.PolymersInGrid.at(index).chain.at(dop-1).coords = to_rot; 
@@ -1393,14 +1385,12 @@ Grid FinalIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
         }
 
 		else {
-		++tries; 
+		tries++; 
 		}
     }
 
 	if (tries == ne_list.size() ){
-        *IMP_BOOL = false; 
-		// printf("no place to rotate! position will be accepted by default!\n");
-
+		std::cout << "no place to rotate! position will be accepted by default!" << std::endl;
 	}
     return NewG;
 }
@@ -1431,7 +1421,7 @@ Grid FinalIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 // THE CODE: 
 
 
-Grid EndRotation(Grid* InitialG, int index, bool* IMP_BOOL){
+Grid EndRotation(Grid* InitialG, int index){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
@@ -1440,11 +1430,11 @@ Grid EndRotation(Grid* InitialG, int index, bool* IMP_BOOL){
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         // std::cout << "Zero index rotation!" << std::endl;
-        return ZeroIndexRotation(InitialG, index, IMP_BOOL); 
+        return ZeroIndexRotation(InitialG, index); 
     }
     else {
         // std::cout << "Final index rotation!" << std::endl;
-        return FinalIndexRotation(InitialG, index, IMP_BOOL); 
+        return FinalIndexRotation(InitialG, index); 
 
     }
     
@@ -1473,7 +1463,7 @@ Grid EndRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 // THE CODE: 
 
 
-Grid KinkJump(Grid* InitialG, int index, IMP_BOOL){
+Grid KinkJump(Grid* InitialG, int index){
 
     Grid NewG (*InitialG); 
 
@@ -1505,7 +1495,7 @@ Grid KinkJump(Grid* InitialG, int index, IMP_BOOL){
             NewG.OccupancyMap[to_check] = p1; 
 
             int p_erase = NewG.OccupancyMap.erase( NewG.PolymersInGrid.at(index).chain.at(idx+1).coords ); 
-            // p_erase++;
+            p_erase++;
 			// std::cout << "kink will jump to: "; 
 			// print(p1.coords); 
             // update PolymersInGrid 
@@ -1516,15 +1506,14 @@ Grid KinkJump(Grid* InitialG, int index, IMP_BOOL){
 
         }
         else {
-			++tries;
+			tries++;
             // std::cout << "This spot is taken by a monomer... no kink jumping." << std::endl;
         }
 	
     }
 	
 	if (tries == k_idx.size()) {
-        *IMP_BOOL = false; 
-		//printf("No spot was available to kink jump! Position will be accepted by default!\n");
+		std::cout << "No spot was available to kink jump! Position will be accepted by default!" << std::endl;
 	}
     return NewG; 
 
@@ -1553,7 +1542,7 @@ Grid KinkJump(Grid* InitialG, int index, IMP_BOOL){
 // THE CODE: 
 
 
-Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
+Grid CrankShaft(Grid* InitialG, int index){
 
     Grid NewG(*InitialG); 
 
@@ -1596,8 +1585,8 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
             int p_erased_1 = NewG.OccupancyMap.erase( NewG.PolymersInGrid.at(index).chain.at(idx+1).coords );
             int p_erased_2 = NewG.OccupancyMap.erase( NewG.PolymersInGrid.at(index).chain.at(idx+2).coords );
-            // p_erased_1++; 
-            // p_erased_2++;
+            p_erased_1++; 
+            p_erased_2++;
 
             // update PolymersInGrid 
             NewG.PolymersInGrid.at(index).chain.at(idx+1).coords = p1.coords; 
@@ -1608,15 +1597,14 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
         }
         else {
-			++tries; 
+			tries++; 
             // std::cout << "This position is occupied by monomer... No cranking." << std::endl;
         }
 
 
     }
 	if (tries == c_idx.size()){
-        *IMP_BOOL = false; 
-		// printf("No position was available for a crankshaft! position will be accepted by default!\n");
+		std::cout << "No position was available for a crankshaft! position will be accepted by default!" << std::endl;
 	}
     return NewG;
 
@@ -1651,7 +1639,7 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 //
 // THE CODE: 
 
-Grid ForwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
+Grid ForwardReptation(Grid* InitialG, int index){
 
     Grid NewG (*InitialG); 
     // get size of polymer chain 
@@ -1668,9 +1656,9 @@ Grid ForwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
             p.ptype = "monomer"; 
             
             int p_erase = NewG.OccupancyMap.erase(NewG.PolymersInGrid.at(index).chain.at(0).coords) ; // there is no particle at index 0 
-            // p_erase++;
+            p_erase++;
 
-            for (int i{0}; i < size; ++i){
+            for (int i{0}; i < size; i++){
 
                 if (i < size - 1){
                     // the particles are staying the same, they are simply changing locations. 
@@ -1694,13 +1682,12 @@ Grid ForwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
 
         }
         else {
-			++tries; 
-            // std::cout << "No place to slither... " << std::endl;
+			tries++; 
+            std::cout << "No place to slither... " << std::endl;
         }
     }
 	if (tries == ne_list.size() ){
-        *IMP_BOOL = false; 
-		// std::cout << "There is no place to slither! Will be accepted by default!" << std::endl;
+		std::cout << "There is no place to slither! Will be accepted by default!" << std::endl;
 	}
     return NewG; 
 
@@ -1735,12 +1722,12 @@ Grid ForwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
 //
 // THE CODE: 
 
-Grid BackwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
+Grid BackwardReptation(Grid* InitialG, int index){
     
     Grid NewG(*InitialG); 
 
     // get initial size of the polymer chain 
-    size_t size = NewG.PolymersInGrid.at(index).chain.size(); 
+    int size = NewG.PolymersInGrid.at(index).chain.size(); 
     std::vector <std::vector <int>> ne_list = obtain_ne_list( NewG.PolymersInGrid.at(index).chain.at(0).coords, NewG.x, NewG.y, NewG.z); 
 
     // get rid of second monomer from the ne list 
@@ -1753,9 +1740,9 @@ Grid BackwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
             p.ptype = "monomer"; 
             
             int p_erase = NewG.OccupancyMap.erase((*InitialG).PolymersInGrid.at(index).chain.at( size-1 ).coords); // 
-            // p_erase++;
+            p_erase++;
 
-            for (size_t i{0}; i < size; ++i){
+            for (int i{0}; i < size; i++){
 
                 if (i != 0){
                     NewG.PolymersInGrid.at(index).chain.at(i).orientation = (*InitialG).PolymersInGrid.at(index).chain.at(i).orientation;
@@ -1781,8 +1768,7 @@ Grid BackwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
     }
 
 	if (tries == ne_list.size() ){
-        *IMP_BOOL = false; 
-		// std::cout << "No place to slither! Position will be accepted by default!" << std::endl;
+		std::cout << "No place to slither! Position will be accepted by default!" << std::endl;
 	}
 
     return NewG; 
@@ -1819,7 +1805,7 @@ Grid BackwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
 //
 // THE CODE: 
 
-Grid Reptation(Grid* InitialG, int index, bool* IMP_BOOL){
+Grid Reptation(Grid* InitialG, int index){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
@@ -1828,11 +1814,11 @@ Grid Reptation(Grid* InitialG, int index, bool* IMP_BOOL){
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         // std::cout << "Zero index rotation!" << std::endl;
-        return BackwardReptation(InitialG, index, IMP_BOOL); 
+        return BackwardReptation(InitialG, index); 
     }
     else {
         // std::cout << "Final index rotation!" << std::endl;
-        return ForwardReptation(InitialG, index, IMP_BOOL); 
+        return ForwardReptation(InitialG, index); 
 
     }
     
@@ -1863,7 +1849,7 @@ Grid Reptation(Grid* InitialG, int index, bool* IMP_BOOL){
 //
 // THE CODE: 
 
-Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
+Grid MoveChooser(Grid* InitialG,  bool v){
 
     int index = rng_uniform(0, static_cast<int>((*InitialG).PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
@@ -1872,37 +1858,37 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
     switch (r) {
         case (1):
             if (v){
-               printf("Performing end rotations.\n"); 
+               std::cout << "Performing end rotations." << std::endl; 
             }
             // 
-            G_ = EndRotation(InitialG, index, IMP_BOOL);
+            G_ = EndRotation(InitialG, index);
             G_.CalculateEnergy(); 
             break;     
         
         case (2):
             if (v){
-               printf("Performing crank shaft.\n"); 
+               std::cout << "Performing crank shaft." << std::endl; 
             }
             // std::cout << "Performing crank shaft." << std::endl;
-            G_ = CrankShaft(InitialG, index, IMP_BOOL);
+            G_ = CrankShaft(InitialG, index);
             G_.CalculateEnergy();
             break; 
 
         case (3):
             if (v){
-               printf("Performing reptation.\n"); 
+               std::cout << "Performing reptation." << std::endl; 
             }
             // std::cout << "Performing reptation." << std::endl;
-            G_ = Reptation(InitialG, index, IMP_BOOL); 
+            G_ = Reptation(InitialG, index); 
             G_.CalculateEnergy();
             break; 
 
         case (4):
             if (v){
-               printf("Performing kink jump.\n"); 
+               std::cout << "Performing kink jump." << std::endl; 
             }
             // std::cout << "Performing kink jump." << std::endl;
-            G_ = KinkJump(InitialG, index, IMP_BOOL);
+            G_ = KinkJump(InitialG, index);
             G_.CalculateEnergy ( );        
             break; 
     }

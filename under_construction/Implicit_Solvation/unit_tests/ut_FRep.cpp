@@ -7,6 +7,7 @@
 #include <chrono>
 #include <getopt.h> 
 #include <stdlib.h> 
+#include <array>
 #include "classes.h"
 #include "misc.h"
 
@@ -99,7 +100,9 @@ int main(int argc, char** argv) {
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
     
-    Grid G3 = ForwardReptation(&G, 0) ; 
+    bool b = true; 
+
+    Grid G3 = ForwardReptation(&G, 0, &b) ; 
 
 
     std::cout << "On the surface..." << std::endl; 

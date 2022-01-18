@@ -7,6 +7,7 @@
 #include <chrono>
 #include <getopt.h> 
 #include <stdlib.h> 
+#include <array>
 #include "classes.h"
 #include "misc.h"
 
@@ -99,7 +100,10 @@ int main(int argc, char** argv) {
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
     // Grid G3;     
-    Grid G3 = CrankShaft(&G, 0) ; 
+
+    bool b = true; 
+
+    Grid G3 = CrankShaft(&G, 0, &b) ; 
 
 
     std::cout << "On the surface..." << std::endl; 
@@ -214,9 +218,9 @@ int main(int argc, char** argv) {
 
     std::cout<<"\n\ntime for the main event: OccupancyMap." << std::endl << std::endl;
 
-    for (std::map <std::vector <int>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
+    for (std::map <std::array <int,3>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
 
-        std::vector <int> key = iter->first; 
+        std::array <int,3> key = iter->first; 
         std::cout << "the key is "; 
         print(key); 
 

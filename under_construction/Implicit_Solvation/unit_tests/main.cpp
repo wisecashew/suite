@@ -2,7 +2,9 @@
 #include <fstream>
 #include <vector> 
 #include <string> 
+#include <array>
 #include <map>
+#include <array>
 #include <random>
 #include <chrono>
 #include <getopt.h> 
@@ -39,8 +41,9 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 1.1.0 of the Monte Carlo Engine. Set up on Jan 8, 2022, 10 PM.\n" <<
-                "This version of the engine has no std::swap in the copy constructor for the Grid object.\n" << 
+		        "This version number 2.0.0 of the Monte Carlo Engine. Set up on Jan 14, 2022, 12:30 AM.\n" <<
+                "This version of the engine has no std::swap in the copy constructor for the Grid object.\n" <<
+                "This version implements pointers for Grid based functions.\n" << 
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
@@ -110,8 +113,8 @@ int main(int argc, char** argv) {
 
     std::ofstream dump_file (dfile);
     std::ofstream energy_dump_file (efile);
-    energy_dump_file.close(); 
-    dump_file.close(); 
+    // energy_dump_file.close(); 
+    // dump_file.close(); 
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
@@ -123,7 +126,7 @@ int main(int argc, char** argv) {
     auto start = std::chrono::high_resolution_clock::now(); 
 
     Grid G = CreateGridObject(positions, topology);
-
+    
     std::cout << "Temperature of box is " << G.kT << "." << std::endl;
     G.dumpPositionsOfPolymers(0, dfile);
     bool call {true}; 
@@ -133,7 +136,8 @@ int main(int argc, char** argv) {
 
 
     std::cout << "Energy surface check: " << std::endl; 
-    std::cout << "monomer-monomer aligned interaction is " << G.Emm_a <<"\nmonomer-monomer misaligned interaction is " << G.Emm_n <<"\nmonomer-solvent " << G.Ems
+    std::cout << "monomer-monomer aligned interaction is " << G.Emm_a <<
+    "\nmonomer-monomer misaligned interaction is " << G.Emm_n <<"\nmonomer-solvent " << G.Ems
     << std::endl; 
     
     if (v){
@@ -141,34 +145,34 @@ int main(int argc, char** argv) {
         std::cout << "Next..." << std::endl;
     }
 
-
+    
     
 
     Grid G_ ;
 
-
-    
-    int acceptance_count = 0; 
+    bool IMP_BOOL  {true}; 
+    int acceptance_count {0} ; 
     for (int i{1}; i< (Nmov+1); i++){
 
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Move number " << i << ". " ;
+            printf("Move number %d.\n", i);
         }
         // choose a move 
-        G_ = MoveChooser(&G, v);  
+        G_ = MoveChooser(&G, v, &IMP_BOOL);  
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Executing..." << std::endl;
+            printf("Executing...\n");
         }
 
 
-        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) ) {
+        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
             // accepted
             // replace old config with new config
             if ( v ){ 
-                std::cout << "Accepted." << std::endl;
-                std::cout << "Energy of the system is " << G_.Energy << "." << std::endl;
+                printf("Accepted.\n");
+                printf("Energy of the system is %f.\n", G_.Energy);
+                printf("%d\n", IMP_BOOL);
             }
 			acceptance_count++; 
             G = std::move(G_);
@@ -177,8 +181,8 @@ int main(int argc, char** argv) {
 
         else {
             if ( v && (i%dfreq==0) ){
-                std::cout << "Not accepted." << std::endl;
-                std::cout << "Energy of the suggested system is " << G_.Energy << ", while energy of the initial system is " << G.Energy << "." << std::endl;
+                printf("Not accepted.\n");
+                printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G.Energy, G_.Energy);
             }
             // continue;
         }
@@ -189,9 +193,8 @@ int main(int argc, char** argv) {
         }
         // G.PolymersInGrid.at(0).printChainCoords();
 
-
+        IMP_BOOL = true; 
     }
-    
     
     
     auto stop = std::chrono::high_resolution_clock::now(); 

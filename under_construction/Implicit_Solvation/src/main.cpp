@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 1.1.1 of the Monte Carlo Engine. Set up on Jan 14, 2022, 12:30 AM.\n" <<
+		        "This version number 2.0.0 of the Monte Carlo Engine. Set up on Jan 14, 2022, 12:30 AM.\n" <<
                 "This version of the engine has no std::swap in the copy constructor for the Grid object.\n" <<
                 "This version implements pointers for Grid based functions.\n" << 
                 "These are all the options we have available right now: \n" <<

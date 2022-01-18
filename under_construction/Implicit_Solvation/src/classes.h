@@ -221,14 +221,14 @@ public:
 
 Grid CreateGridObject(std::string positions, std::string topology);
 Grid IsingFlip(Grid InitialG);
-Grid ZeroIndexRotation(Grid* InitialG, int index);
-Grid FinalIndexRotation(Grid* InitialG, int index);
-Grid EndRotation(Grid* InitialG, int index); 
-Grid KinkJump(Grid* InitialG, int index); 
-Grid CrankShaft(Grid* InitialG, int index); 
-Grid ForwardReptation(Grid* InitialG, int index); 
-Grid BackwardReptation(Grid* InitialG, int index);
-Grid Reptation(Grid* InitialG, int index);
+Grid ZeroIndexRotation(Grid* InitialG, int index, bool*);
+Grid FinalIndexRotation(Grid* InitialG, int index, bool*);
+Grid EndRotation(Grid* InitialG, int index, bool*); 
+Grid KinkJump(Grid* InitialG, int index, bool*); 
+Grid CrankShaft(Grid* InitialG, int index, bool*); 
+Grid ForwardReptation(Grid* InitialG, int index, bool*); 
+Grid BackwardReptation(Grid* InitialG, int index, bool*);
+Grid Reptation(Grid* InitialG, int index, bool*);
 Grid Translation(Grid* InitialG, int index, std::vector <int> direction);  
 Grid MoveChooser(Grid* InitialG, bool v, bool* IMP_BOOL); 
 int ExtractNumberOfPolymers(std::string filename);

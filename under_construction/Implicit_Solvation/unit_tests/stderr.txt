@@ -21,7 +21,7 @@ Coordinates of monomer unit of Polymer 0 in G are:
 
 
 Coordinates of monomer unit of Polymer 0 in G3 are: 
-0 | 0 | 1 | 
+9 | 0 | 0 | 
 0 | 0 | 0 | 
 0 | 9 | 0 | 
 1 | 9 | 0 | 
@@ -73,17 +73,17 @@ Find discrepancy in PolymersInGrid.
 
 
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 1
-The orientation of the after is 1
+The orientation of the particle originally is 2
+The orientation of the after is 2
 The position of the particle originally is 0 | 0 | 0 | 
-The position of the particle after is 0 | 0 | 1 | 
+The position of the particle after is 9 | 0 | 0 | 
 The type of the particle originally is monomer
 The type of the particle after is monomer
 
 
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 3
-The orientation of the after is 3
+The orientation of the particle originally is 4
+The orientation of the after is 4
 The position of the particle originally is 0 | 9 | 0 | 
 The position of the particle after is 0 | 0 | 0 | 
 The type of the particle originally is monomer
@@ -91,8 +91,8 @@ The type of the particle after is monomer
 
 
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 1
-The orientation of the after is 1
+The orientation of the particle originally is 4
+The orientation of the after is 4
 The position of the particle originally is 1 | 9 | 0 | 
 The position of the particle after is 0 | 9 | 0 | 
 The type of the particle originally is monomer
@@ -100,8 +100,8 @@ The type of the particle after is monomer
 
 
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 5
-The orientation of the after is 5
+The orientation of the particle originally is 2
+The orientation of the after is 2
 The position of the particle originally is 1 | 9 | 1 | 
 The position of the particle after is 1 | 9 | 0 | 
 The type of the particle originally is monomer
@@ -109,8 +109,8 @@ The type of the particle after is monomer
 
 
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 1
-The orientation of the after is 1
+The orientation of the particle originally is 2
+The orientation of the after is 2
 The position of the particle originally is 1 | 9 | 2 | 
 The position of the particle after is 1 | 9 | 1 | 
 The type of the particle originally is monomer
@@ -136,8 +136,8 @@ The type of the particle after is monomer
 
 
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 5
-The orientation of the after is 5
+The orientation of the particle originally is 2
+The orientation of the after is 2
 The position of the particle originally is 1 | 0 | 0 | 
 The position of the particle after is 1 | 0 | 1 | 
 The type of the particle originally is monomer
@@ -219,12 +219,12 @@ In the MOVED case, G3...
 
 
 For Polymer 0:
-The original particle is: 0 | 0 | 1 | 
+The original particle is: 9 | 0 | 0 | 
 The connections are: 
 0 | 0 | 0 | 
 The original particle is: 0 | 0 | 0 | 
 The connections are: 
-0 | 0 | 1 | 
+9 | 0 | 0 | 
 0 | 9 | 0 | 
 The original particle is: 0 | 9 | 0 | 
 The connections are: 

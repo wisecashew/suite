@@ -17,11 +17,11 @@ int main(int argc, char** argv) {
 
     // set up 
     int opt; 
-    int Nmov {-1}, dfreq {-1};
+    int Nacc {-1}, dfreq {-1}, max_iter{-1};
     std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"energydump.txt"};  
     bool v = false;
 
-    while ( (opt = getopt(argc, argv, ":f:N:o:u:p:t:e:vh")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:M:N:o:u:p:t:e:vh")) != -1 )
     {
         switch (opt) 
         {
@@ -34,9 +34,12 @@ int main(int argc, char** argv) {
 
             case 'N':
                 // std::cout << "Option Nmov was called with argument " << optarg << std::endl; 
-                Nmov = atoi(optarg); 
+                Nacc = atoi(optarg); 
                 break; 
 
+            case 'M':
+                max_iter = atoi(optarg); 
+                break; 
 
             case 'h':
                 std::cout << 
@@ -48,7 +51,8 @@ int main(int argc, char** argv) {
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
-                "Number of MC moves       [-N]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" << 
+                "Number of maximum moves  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
+                "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates.\n" <<
                 "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Dump energy of grid at each step in a file.\n"<<
                 "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology.\n" <<
@@ -97,8 +101,8 @@ int main(int argc, char** argv) {
     }
 
     
-    if (Nmov == -1 || dfreq == -1){
-        std::cerr << "ERROR: No value for option N (number of MC moves to perform) and/or for option f (frequency of dumping) was provided. Exiting..." << std::endl;
+    if (Nacc == -1 || dfreq == -1 || max_iter == -1 ){
+        std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);
     }
     else if (positions=="blank" || topology == "blank" || dfile=="blank"){
@@ -152,7 +156,7 @@ int main(int argc, char** argv) {
 
     bool IMP_BOOL  {true}; 
     int acceptance_count {0} ; 
-    for (int i{1}; i< (Nmov+1); i++){
+    for (int i{1}; i< (max_iter+1); i++){
 
 
         if ( v && (i%dfreq==0) ){
@@ -174,7 +178,7 @@ int main(int argc, char** argv) {
                 printf("Energy of the system is %f.\n", G_.Energy);
                 printf("%d\n", IMP_BOOL);
             }
-			acceptance_count++; 
+			++acceptance_count; 
             G = std::move(G_);
         }
 
@@ -187,11 +191,15 @@ int main(int argc, char** argv) {
             // continue;
         }
 
-        if (i % dfreq == 0){
+        if ( (acceptance_count) % dfreq == 0){
             G.dumpPositionsOfPolymers (i, dfile) ;
             G.dumpEnergyOfGrid(i, efile, call) ; 
         }
         // G.PolymersInGrid.at(0).printChainCoords();
+
+        if (acceptance_count == Nacc){
+            printf("We have accepted %d moves. Asked to stop after accepting %d moves.\n", acceptance_count, Nacc); 
+        }
 
         IMP_BOOL = true; 
     }
@@ -201,8 +209,8 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds" << std::endl;
-    std::cout << "Number of acceptances is " << acceptance_count << std::endl;
+    printf("\n\nTime taken for simulation: %lld milliseconds\n",duration.count() ); //  << duration.count() << " milliseconds" << std::endl;
+    printf("Number of acceptances is %d.\n", acceptance_count) ; //  << acceptance_count << std::endl;
     
     return 0;
 

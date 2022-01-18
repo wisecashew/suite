@@ -11,6 +11,7 @@
 #include <fstream> 
 #include <regex>
 #include <tuple> 
+#include <array>
 
 /* ==================================================
 These are some objects I have defined which I tend to use often. 
@@ -19,6 +20,9 @@ Helpful definitions which are employed often in the context of the z=6 lattice I
 
 const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
 const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  							// vector of unit directions 
+
+const std::array <int,3> ax{1,0,0}, nax{-1,0,0}, ay{0,1,0}, nay{0,-1,0}, az{0,0,1}, naz{0,0,-1};		// unit directions
+const std::array <std::array <int,3> ,6> adrns = {ax, nax, ay, nay, az, naz}; 
 
 //=====================================================
 // impose periodic boundary conditions on vector 
@@ -38,6 +42,23 @@ void impose_pbc(std::vector <int>* vect, int x_len, int y_len, int z_len){
 
 	}
 	
+	return; 
+}
+
+void impose_pbc(std::array <int,3>* arr, int x_len, int y_len, int z_len) {
+	for (int i{0}; i<3; ++i){
+		if (i==0){
+			(*arr)[i] = (((*arr)[i]%x_len)+x_len)%x_len; 
+		}
+		else if (i==1){
+			(*arr)[i] = (((*arr)[i]%y_len)+y_len)%y_len; 	
+		}
+		else {
+			(*arr)[i] = (((*arr)[i]%z_len)+z_len)%z_len; 
+		}
+
+	}
+
 	return; 
 }
 
@@ -94,29 +115,42 @@ double rng_uniform(double start, double end){
 
 
 //=====================================================
-std::vector <std::vector <int>> HingeSwingDirections(std::vector <int>* HingeToHinge, std::vector <int>* HingeToKink, int x, int y, int z){
+std::array <std::array <int,3>, 3> HingeSwingDirections(std::array <int,3>* HingeToHinge, std::array <int,3>* HingeToKink, int x, int y, int z){
     
-    (*HingeToHinge).at(0) = modified_modulo((*HingeToHinge).at(0), x); 
-    (*HingeToHinge).at(1) = modified_modulo((*HingeToHinge).at(1), y); 
-    (*HingeToHinge).at(2) = modified_modulo((*HingeToHinge).at(2), z); 
+    (*HingeToHinge)[0] = modified_modulo((*HingeToHinge)[0], x); 
+    (*HingeToHinge)[1] = modified_modulo((*HingeToHinge)[1], y); 
+    (*HingeToHinge)[2] = modified_modulo((*HingeToHinge)[2], z); 
 
-    (*HingeToKink).at(0) = modified_modulo((*HingeToKink).at(0), x); 
-    (*HingeToKink).at(1) = modified_modulo((*HingeToKink).at(1), y); 
-    (*HingeToKink).at(2) = modified_modulo((*HingeToKink).at(2), z); 
+    (*HingeToKink)[0] = modified_modulo((*HingeToKink)[0], x); 
+    (*HingeToKink)[1] = modified_modulo((*HingeToKink)[1], y); 
+    (*HingeToKink)[2] = modified_modulo((*HingeToKink)[2], z); 
 
 
-    std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1};     // unit directions 
-    std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};                           // vector of unit directions 
+    std::array <int,3 > ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1};     // unit directions 
+    std::array <std::array <int,3>,6> drns = {ex, nex, ey, ney, ez, nez};                           // vector of unit directions 
 
 
     // get rid of HingeToHinge and its negative from drns 
-    std::vector <int> nHingeToHinge = {-(*HingeToHinge).at(0), -(*HingeToHinge).at(1), -(*HingeToHinge).at(2)}; 
+    std::array <int,3> nHingeToHinge = { -(*HingeToHinge).at(0), -(*HingeToHinge).at(1), -(*HingeToHinge).at(2) }; 
 
-    drns.erase(std::remove(drns.begin(), drns.end(), *HingeToHinge), drns.end() ); 
-    drns.erase(std::remove(drns.begin(), drns.end(), nHingeToHinge), drns.end() );  
-    drns.erase(std::remove(drns.begin(), drns.end(), *HingeToKink), drns.end() ); 
+    std::array <std::array <int,3>, 3> directions; 
+    int i {0}; 
+    for (std::array<int,3>& d: drns){
+    	
+    	if (d == *HingeToHinge || d == nHingeToHinge || d == *HingeToKink){
+    		continue; 
+    	}
+    	else {
+    		directions[i] = d;
+    		++i; 
+    	}
+    } 
 
-    return drns; 
+    // drns.erase(std::remove(drns.begin(), drns.end(), *HingeToHinge), drns.end() ); 
+    // drns.erase(std::remove(drns.begin(), drns.end(), nHingeToHinge), drns.end() );  
+    // drns.erase(std::remove(drns.begin(), drns.end(), *HingeToKink), drns.end() ); 
+
+    return directions; 
 
 }
 
@@ -135,6 +169,20 @@ void print(std::vector <int> v){
 
 void print(std::vector <double> v){
 	for (double i: v){
+		std::cout << i << " | ";
+	}
+	std::cout << std::endl;
+}
+
+void print(std::array <int, 3> v){
+	for (int i: v){
+		std::cout << i << " | ";
+	}
+	std::cout << std::endl;
+}
+
+void print(std::array <double, 3> v){
+	for (int i: v){
 		std::cout << i << " | ";
 	}
 	std::cout << std::endl;
@@ -192,7 +240,16 @@ std::vector <int> add_vectors(std::vector <int>* v1, std::vector <int>* v2){
 	return v3; 
 }
 
+std::array <int,3> add_arrays(std::array <int,3>* a1, std::array <int,3>* a2){
+	std::array<int, 3> a3; 
 
+	for (int i{0}; i<3; ++i){
+		a3[i] = (*a1)[i] + (*a2)[i]; 
+	}
+
+	return a3;
+
+}
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
@@ -208,6 +265,17 @@ std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2)
 	}
 
 	return v3; 
+}
+
+std::array <int,3> subtract_arrays(std::array <int,3>* a1, std::array <int,3>* a2){
+	std::array<int, 3> a3; 
+
+	for (int i{0}; i<3; ++i){
+		a3[i] = (*a1)[i] - (*a2)[i]; 
+	}
+
+	return a3;
+
 }
 
 
@@ -338,37 +406,23 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 
 }
 
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-// ================================================================
-// generating a vector of particles given a list of locations
-// ================================================================
-
-/*std::vector <Particle> loc2part (std::vector <std::vector <int>> loc_list){
-
-	std::vector <Particle> pVec; 
-	for (std::vector <int> pos: loc_list){
-		Particle p (pos); 
-		pVec.push_back(p);
+std::array <std::array <int,3>, 6> obtain_ne_list(std::array <int,3> loc, int x_len, int y_len, int z_len){
+	std::array <std::array <int,3>, 6> nl;
+	int i {0}; 
+	for (std::array <int,3> d: adrns) {
+		std::array <int,3>  a = add_arrays(&loc, &d); 
+		impose_pbc(&a, x_len, y_len, z_len); 
+		nl[i] = a;
+		++i; 
 	}
 
-	return pVec; 
+	// std::sort(nl.begin(), nl.end() );
+	// nl.erase(std::unique (nl.begin(), nl.end() ), nl.end() );  
 
-}*/
+	return nl; 
 
-// ===================================================================
-// generating a vector of locations from a vector of particles
-// ===================================================================
-std::vector <std::vector <int> > part2loc (std::vector <Particle> pVec){
-
-	std::vector <std::vector <int> > loc_list; 
-	for (Particle p: pVec){
-		loc_list.push_back(p.coords);
-	}
-
-	return loc_list; 
 }
+
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -415,9 +469,10 @@ bool acceptance(int dE, double kT){
 // ===================================================================
 
 
-std::vector <double> NumberExtractor(std::string s){
+double NumberExtractor(std::string s){
 
-	std::vector <double> info; 
+	// std::vector <double> info; 
+	double info; 
 	std::stringstream ss (s); 
 	std::string temp; 
 
@@ -427,7 +482,7 @@ std::vector <double> NumberExtractor(std::string s){
 		ss >> temp; 
 
 		if (std::stringstream(temp) >> found){
-			info.push_back(found); 
+			info = found; 
 		}
 
 		temp = "" ; //not sure what this is for; 
@@ -442,9 +497,10 @@ std::vector <double> NumberExtractor(std::string s){
 
 
 
-std::vector <double> ExtractTopologyFromFile(std::string filename){
+std::array <double,7> ExtractTopologyFromFile(std::string filename){
     
-    std::vector <double> info_vec; 
+    std::array <double, 7> info_vec; 
+    double info; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
     std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm_a ("Emm_a"), Emm_n ("Emm_n"), Ems ("Ems"), eof ("END OF FILE"); 
@@ -456,44 +512,44 @@ std::vector <double> ExtractTopologyFromFile(std::string filename){
     for (std::string s: contents){
 
     	if (std::regex_search(s, x)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
+    		info = NumberExtractor(s); 
+    		info_vec[0]=info; 
     		continue; 
     	}
 
     	else if (std::regex_search(s, y)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
+    		double info = NumberExtractor(s); 
+    		info_vec[1] = info; 
     		continue; 
     	}
 
     	else if (std::regex_search(s, z)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
+    		double info = NumberExtractor(s); 
+    		info_vec[2] = info; 
     		continue; 
     	}
 
 		else if (std::regex_search(s, kT)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
+    		double info = NumberExtractor(s); 
+    		info_vec[3] = info ; 
     		continue; 
     	}
 
     	else if (std::regex_search (s, Emm_a)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
+    		double info = NumberExtractor(s); 
+    		info_vec[4] = info; 
     		continue; 
     	}
 
     	else if (std::regex_search (s, Emm_n)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
+    		double info = NumberExtractor(s); 
+    		info_vec[5] = info; 
     		continue; 
     	}
 
     	else if (std::regex_search (s, Ems)){
-    		std::vector <double> info = NumberExtractor(s); 
-    		info_vec.push_back(info.at(0)); 
+    		double info = NumberExtractor(s); 
+    		info_vec[6] = info; 
     		continue; 
     	}
 
@@ -522,28 +578,6 @@ std::vector <double> ExtractTopologyFromFile(std::string filename){
 
 
 
-
-std::vector <std::string> ExtractContentFromFile(std::string filename){
-    std::ifstream myfile (filename); 
-
-    if ( !myfile ){
-    	std::cerr << "File named " << filename << " could not be opened!" << std::endl; 
-    	exit(EXIT_FAILURE);
-    }
-
-    std::string mystring; 
-    std::vector <std::string> contents; 
-
-    if (myfile.is_open() ){
-        while (myfile.good()) {
-            std::getline(myfile, mystring); // pipe file's content into stream 
-            contents.push_back(mystring); 
-        }
-    }
-
-    return contents; 
-
-}
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -591,10 +625,10 @@ bool isSymmetric(std::vector <std::vector <double>> mat){
 // ===============================================================
 
 
-Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_m){
+Polymer makePolymer(std::vector <std::array <int,3> > locations, std::string type_m){
 	std::vector <int> pmer_spins; 
-    
-    for (int i=0; i<static_cast<int>(locations.size()); i++){
+    int size_ = locations.size(); 
+    for (int i=0; i<static_cast<int>(size_); i++){
         unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
         std::mt19937 generator(seed); 
         std::uniform_int_distribution<int> distribution (0,5); 
@@ -603,12 +637,12 @@ Polymer makePolymer(std::vector <std::vector <int>> locations, std::string type_
 
     std::vector <Particle> ptc_vec; 
 
-    for (int i=0;i<static_cast<int>(locations.size()); i++ ){
+    for (int i=0;i<static_cast<int>( size_ ); i++ ){
         Particle p (locations.at(i), type_m, pmer_spins.at(i)); 
         ptc_vec.push_back(p); 
     }
 
-    Polymer pmer (ptc_vec);
+    Polymer pmer (size_, ptc_vec);
 
     return pmer; 
 }
@@ -659,8 +693,8 @@ bool MetropolisAcceptance(double E1, double E2, double kT){
 	double prob = std::exp(-1/kT*dE); 
 	double r = rng_uniform(0.0, 1.0); 
 
-	std::cout << "Probability of acceptance is " << prob << "." << std::endl;
-	std::cout << "RNG is " << r << "." << std::endl;
+	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
+	// std::cout << "RNG is " << r << "." << std::endl;
 	if (r < prob){
 		return true; 
 	}

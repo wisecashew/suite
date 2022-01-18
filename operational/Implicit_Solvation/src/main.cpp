@@ -2,7 +2,9 @@
 #include <fstream>
 #include <vector> 
 #include <string> 
+#include <array>
 #include <map>
+#include <array>
 #include <random>
 #include <chrono>
 #include <getopt.h> 
@@ -39,7 +41,7 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 1.1.1 of the Monte Carlo Engine. Set up on Jan 14, 2022, 12:30 AM.\n" <<
+		        "This version number 0.2.0 of the Monte Carlo Engine. Set up on Jan 14, 2022, 12:30 AM.\n" <<
                 "This version of the engine has no std::swap in the copy constructor for the Grid object.\n" <<
                 "This version implements pointers for Grid based functions.\n" << 
                 "These are all the options we have available right now: \n" <<
@@ -124,7 +126,7 @@ int main(int argc, char** argv) {
     auto start = std::chrono::high_resolution_clock::now(); 
 
     Grid G = CreateGridObject(positions, topology);
-
+    
     std::cout << "Temperature of box is " << G.kT << "." << std::endl;
     G.dumpPositionsOfPolymers(0, dfile);
     bool call {true}; 
@@ -134,7 +136,8 @@ int main(int argc, char** argv) {
 
 
     std::cout << "Energy surface check: " << std::endl; 
-    std::cout << "monomer-monomer aligned interaction is " << G.Emm_a <<"\nmonomer-monomer misaligned interaction is " << G.Emm_n <<"\nmonomer-solvent " << G.Ems
+    std::cout << "monomer-monomer aligned interaction is " << G.Emm_a <<
+    "\nmonomer-monomer misaligned interaction is " << G.Emm_n <<"\nmonomer-solvent " << G.Ems
     << std::endl; 
     
     if (v){
@@ -142,7 +145,7 @@ int main(int argc, char** argv) {
         std::cout << "Next..." << std::endl;
     }
 
-
+    
     
 
     Grid G_ ;
@@ -169,6 +172,7 @@ int main(int argc, char** argv) {
             if ( v ){ 
                 printf("Accepted.\n");
                 printf("Energy of the system is %f.\n", G_.Energy);
+                printf("%d\n", IMP_BOOL);
             }
 			acceptance_count++; 
             G = std::move(G_);

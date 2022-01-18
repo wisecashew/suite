@@ -8,6 +8,7 @@
 #include <getopt.h> 
 #include <stdexcept>
 #include <stdlib.h> 
+#include <array>
 #include "classes.h"
 #include "misc.h"
 
@@ -99,8 +100,10 @@ int main(int argc, char** argv) {
     
     G.CalculateEnergy();
     std::cout << "Energy of box is: " << G.Energy << std::endl;
+
+    bool b = true; 
     
-    Grid G3 = ZeroIndexRotation(&G, 0) ; 
+    Grid G3 = ZeroIndexRotation(&G, 0, &b) ; 
 
 
     std::cout << "On the surface..." << std::endl; 
@@ -211,12 +214,12 @@ int main(int argc, char** argv) {
 
     std::cout<<"\n\ntime for the main event: OccupancyMap." << std::endl << std::endl;
 
-    for (std::map <std::vector <int>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
+    for (std::map <std::array <int,3>, Particle>::iterator iter=G.OccupancyMap.begin(); iter!=G.OccupancyMap.end(); ++iter){
 
-        std::vector <int> key = iter->first;  
+        std::array <int,3> key = iter->first;  
         std::cout << "key is "; 
         print(key);
-        std::vector <int> v = {0,0,0};
+        std::array <int,3> v = {0,0,0};
         if (key.at(0) == v.at(0) && key.at(1) == v.at(1) && key.at(2) == v.at(2)){
             std::cout << "problem key is ";
             print(v);

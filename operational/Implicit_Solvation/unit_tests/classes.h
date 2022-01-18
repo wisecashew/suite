@@ -1,6 +1,6 @@
 #ifndef _MC_CLASSES_H_
 #define _MC_CLASSES_H_ 
-
+#include <array>
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -14,7 +14,7 @@
 
 class Particle{
 public: 
-    std::vector <int> coords;                                        // the coordinates of the particles
+    std::array <int,3> coords;                                        // the coordinates of the particles
     std::string ptype; 
     int orientation;
 
@@ -30,7 +30,7 @@ public:
     // constructor 
     Particle(){};  // default constructor
 
-    Particle (std::vector <int> crds, std::string type_, int orientation_): coords (crds), ptype (type_), orientation (orientation_){
+    Particle (std::array <int, 3> crds, std::string type_, int orientation_): coords (crds), ptype (type_), orientation (orientation_){
 
     }
 
@@ -63,13 +63,15 @@ public:
 
 class Polymer{
 public: 
-    std::vector <Particle> chain;                                     // all the particles in the polymer chain
-    std::map <Particle, std::vector <Particle> > ConnectivityMap;      // the particles one particular polymer bead is connected to 
+    int deg_poly; 
+    std::vector <Particle> chain;                                               // all the particles in the polymer chain
+    std::map <Particle, std::vector <Particle> > ConnectivityMap;              // the particles one particular polymer bead is connected to 
 
 
     // constructor 
-    Polymer (std::vector <Particle> particleChain): chain (particleChain) {
+    Polymer (int deg_poly_, std::vector <Particle> particleChain): deg_poly (deg_poly_), chain (particleChain) {
         this->ChainToConnectivityMap(); 
+        this->chain.reserve(deg_poly_); 
     }
 
 
@@ -121,6 +123,7 @@ This is the master class. Everything cool happens to this guy over here.
 class Grid{
 
 public:
+    int Np;                                                  // number of polymers in the grid 
     std::vector <Polymer> PolymersInGrid;                    // all the polymers in the grid 
     int x;                                                   // length of x-edge of grid 
     int y;                                                   // length of y-edge of grid 
@@ -130,12 +133,13 @@ public:
     double Emm_a ;                                           // monomer-solvent when Aligned
     double Ems;                                              // monomer-solvent interaction
     double Energy;                                           // energy of grid 
-    std::map <std::vector <int>, Particle> OccupancyMap;     // a map that gives the particle given the location
+    std::map <std::array <int,3>, Particle> OccupancyMap;    // a map that gives the particle given the location
     
 
     Grid() {}; 
 
-    Grid(int xlen, int ylen, int zlen, double kT_, double Emm_a_, double Emm_n_, double Ems_): x (xlen), y (ylen), z (zlen), kT (kT_), Emm_n(Emm_n_), Emm_a (Emm_a_), Ems (Ems_) {        // Constructor of class
+    Grid(int Np_, int xlen, int ylen, int zlen, double kT_, double Emm_a_, double Emm_n_, double Ems_): Np(Np_), x (xlen), y (ylen), z (zlen), kT (kT_), Emm_n(Emm_n_), Emm_a (Emm_a_), Ems (Ems_) {        // Constructor of class
+        this->PolymersInGrid.reserve(Np_); 
         // this->instantiateOccupancyMap(); 
     };
 
@@ -162,12 +166,6 @@ public:
     // plant the polymer from input file 
     void plantPolymersInGrid(std::string filename);  
 
-    // extract number of polymers from the topology file 
-    int ExtractNumberOfPolymers(std::string filename);
-
-    // extract topology from the topology file 
-    std::vector <std::string> ExtractContentFromFile(std::string filename); 
-
     // extract polymer coordinates from a file 
     void ExtractPolymersFromFile(std::string filename);
     
@@ -189,7 +187,7 @@ public:
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
 
     // check validity of input coords
-    bool checkValidityOfCoords(std::vector <int> v);
+    bool checkValidityOfCoords(std::array <int,3> v);
     bool checkForOverlaps(std::vector <Polymer> PolymerVector); 
     bool checkConnectivity(std::vector <Polymer> PolymerVector); 
 
@@ -223,17 +221,17 @@ public:
 
 Grid CreateGridObject(std::string positions, std::string topology);
 Grid IsingFlip(Grid InitialG);
-Grid ZeroIndexRotation(Grid* InitialG, int index);
-Grid FinalIndexRotation(Grid* InitialG, int index);
-Grid EndRotation(Grid* InitialG, int index); 
-Grid KinkJump(Grid* InitialG, int index); 
-Grid CrankShaft(Grid* InitialG, int index); 
-Grid ForwardReptation(Grid* InitialG, int index); 
-Grid BackwardReptation(Grid* InitialG, int index);
-Grid Reptation(Grid* InitialG, int index);
+Grid ZeroIndexRotation(Grid* InitialG, int index, bool*);
+Grid FinalIndexRotation(Grid* InitialG, int index, bool*);
+Grid EndRotation(Grid* InitialG, int index, bool*); 
+Grid KinkJump(Grid* InitialG, int index, bool*); 
+Grid CrankShaft(Grid* InitialG, int index, bool*); 
+Grid ForwardReptation(Grid* InitialG, int index, bool*); 
+Grid BackwardReptation(Grid* InitialG, int index, bool*);
+Grid Reptation(Grid* InitialG, int index, bool*);
 Grid Translation(Grid* InitialG, int index, std::vector <int> direction);  
-Grid MoveChooser(Grid* InitialG, bool v); 
-
+Grid MoveChooser(Grid* InitialG, bool v, bool* IMP_BOOL); 
+int ExtractNumberOfPolymers(std::string filename);
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -243,7 +241,8 @@ Grid MoveChooser(Grid* InitialG, bool v);
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
-
+// extract topology from the topology file 
+std::vector <std::string> ExtractContentFromFile(std::string filename); 
 
 
 #endif 

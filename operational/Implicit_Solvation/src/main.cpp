@@ -44,9 +44,7 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 0.2.0 of the Monte Carlo Engine. Set up on Jan 14, 2022, 12:30 AM.\n" <<
-                "This version of the engine has no std::swap in the copy constructor for the Grid object.\n" <<
-                "This version implements pointers for Grid based functions.\n" << 
+		        "This version number 0.2.0 of the Monte Carlo Engine. Set up on Jan 18, 2022, 11:04 PM.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
@@ -156,7 +154,8 @@ int main(int argc, char** argv) {
 
     bool IMP_BOOL  {true}; 
     int acceptance_count {0} ; 
-    for (int i{1}; i< (max_iter+1); i++){
+	int temp_var {-1};							// this variable is to make sure acceptance_count is not recounted  
+    for (int i{1}; i< (max_iter+1); i++) {
 
 
         if ( v && (i%dfreq==0) ){
@@ -191,14 +190,19 @@ int main(int argc, char** argv) {
             // continue;
         }
 
-        if ( (acceptance_count) % dfreq == 0){
+        if ( ( acceptance_count % dfreq == 0) && ( temp_var != acceptance_count ) ){
+			printf("acceptance_count is %d and dfreq is %d.\n", acceptance_count, dfreq); 
             G.dumpPositionsOfPolymers (i, dfile) ;
             G.dumpEnergyOfGrid(i, efile, call) ; 
+			temp_var = acceptance_count ;
         }
+		// printf("acceptance_count is ACTUALL %d ON LINE 199.\n", acceptance_count); 
         // G.PolymersInGrid.at(0).printChainCoords();
 
         if (acceptance_count == Nacc){
-            printf("We have accepted %d moves. Asked to stop after accepting %d moves.\n", acceptance_count, Nacc); 
+            printf("We have accepted %d moves. Asked to stop after accepting %d moves.\n", acceptance_count, Nacc);
+			printf("We have suggested %d moves.", i);
+			break; 
         }
 
         IMP_BOOL = true; 
@@ -209,8 +213,8 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %lld milliseconds\n",duration.count() ); //  << duration.count() << " milliseconds" << std::endl;
-    printf("Number of acceptances is %d.\n", acceptance_count) ; //  << acceptance_count << std::endl;
+    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); //  << duration.count() << " milliseconds" << std::endl;
+    // printf("Number of acceptances is %d.\n", acceptance_count) ; //  << acceptance_count << std::endl;
     
     return 0;
 

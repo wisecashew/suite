@@ -19,9 +19,9 @@ int main(int argc, char** argv) {
     int opt; 
     int Nacc {-1}, dfreq {-1}, max_iter{-1};
     std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"energydump.txt"};  
-    bool v = false;
+    bool v = false, a = false;
 
-    while ( (opt = getopt(argc, argv, ":f:M:N:o:u:p:t:e:vh")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:M:N:o:u:p:t:e:vha")) != -1 )
     {
         switch (opt) 
         {
@@ -48,6 +48,7 @@ int main(int argc, char** argv) {
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
+                "Data only for accepts    [-a]           (NO ARG REQUIRED)              If you only want energy and coords for every accepted structure, use this option. \n"
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of maximum moves  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
                 "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
@@ -87,6 +88,10 @@ int main(int argc, char** argv) {
                 v = true;
                 break;
 
+            case 'a':
+                std::cout <<"Only accepted structures will be outputted." << std::endl;
+                a = true; 
+                break; 
 
             case ':':
                 
@@ -99,11 +104,37 @@ int main(int argc, char** argv) {
     }
 
     
-    if (Nacc == -1 || dfreq == -1 || max_iter == -1 ){
-        std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-        exit (EXIT_FAILURE);
+    // Check what kind of statistics do you want! 
+    // With option a, you only sample accepted positions. Do this only if you are not getting decorrelated chains! 
+
+
+    if (!a) {
+        if (Nacc != -1){
+            std::cerr << "ERROR: You do not need to provide a -N option if you are not looking for accepted configuration statistics. Use -a if you want to use -N. Safeguarding against uncontrolled behavior. Exiting..." << std::endl;
+            exit (EXIT_FAILURE); 
+        }
+
+        if (dfreq == -1 || max_iter == -1){
+            std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+            exit (EXIT_FAILURE);
+        }
     }
-    else if (positions=="blank" || topology == "blank" || dfile=="blank"){
+
+    else {
+        if (Nacc == -1 || dfreq == -1 || max_iter == -1 ){
+            std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+            exit (EXIT_FAILURE);
+        }
+    }
+
+
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#   
+
+
+    if (positions=="blank" || topology == "blank" || dfile=="blank"){
         std::cerr << "positions is " << positions <<", topology is " << topology <<", dfile is " << dfile << std::endl;
         std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);    
@@ -153,6 +184,10 @@ int main(int argc, char** argv) {
     Grid G_ ;
 
     bool IMP_BOOL  {true}; 
+
+    if (a) {
+    printf("Simulation will output only information about accepted configurations.\n"); 
+
     int acceptance_count {0} ; 
 	int temp_var {-1};							// this variable is to make sure acceptance_count is not recounted  
     for (int i{1}; i< (max_iter+1); i++) {
@@ -200,8 +235,8 @@ int main(int argc, char** argv) {
         // G.PolymersInGrid.at(0).printChainCoords();
 
         if (acceptance_count == Nacc){
-            printf("We have accepted %d moves. Asked to stop after accepting %d moves.\n", acceptance_count, Nacc);
-			printf("We have suggested %d moves.", i);
+            printf("Simulation has accepted %d moves. Required to stop after accepting %d moves.\n", acceptance_count, Nacc);
+			printf("Total number of suggested moves is %d.\n", i);
 			break; 
         }
 
@@ -215,7 +250,74 @@ int main(int argc, char** argv) {
 
     printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); //  << duration.count() << " milliseconds" << std::endl;
     // printf("Number of acceptances is %d.\n", acceptance_count) ; //  << acceptance_count << std::endl;
+    }
+
+
+
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+
+
+
+    else {
+        printf("Simulation will output information of every %d configuration.\n", dfreq); 
+        for (int i{1}; i< (max_iter+1); i++) {
+
+
+            if ( v && (i%dfreq==0) ){
+                printf("Move number %d.\n", i);
+            }
+            // choose a move 
+            G_ = MoveChooser(&G, v, &IMP_BOOL);  
+
+            if ( v && (i%dfreq==0) ){
+                printf("Executing...\n");
+            }
+
+
+            if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
+                // accepted
+                // replace old config with new config
+                if ( v ){ 
+                    printf("Accepted.\n");
+                    printf("Energy of the system is %f.\n", G_.Energy);
+                    printf("%d\n", IMP_BOOL);
+                }
+                // ++acceptance_count; 
+                G = std::move(G_);
+            }
+
+
+            else {
+                if ( v && (i%dfreq==0) ){
+                    printf("Not accepted.\n");
+                    printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G.Energy, G_.Energy);
+                }
+                // continue;
+            }
+
+            if ( ( i % dfreq == 0) ){
+                // printf("acceptance_count is %d and dfreq is %d.\n", acceptance_count, dfreq); 
+                G.dumpPositionsOfPolymers (i, dfile) ;
+                G.dumpEnergyOfGrid(i, efile, call) ; 
+                // temp_var = acceptance_count ;
+            }
+
+            IMP_BOOL = true; 
+        }
     
+    
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+
+    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); 
+   
+    }
+
+
     return 0;
 
 }

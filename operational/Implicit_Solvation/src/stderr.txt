@@ -10,17 +10,7 @@ Energy surface check:
 monomer-monomer aligned interaction is -1
 monomer-monomer misaligned interaction is -1
 monomer-solvent 0
-acceptance_count is 10 and dfreq is 10.
-acceptance_count is 20 and dfreq is 10.
-acceptance_count is 30 and dfreq is 10.
-acceptance_count is 40 and dfreq is 10.
-acceptance_count is 50 and dfreq is 10.
-acceptance_count is 60 and dfreq is 10.
-acceptance_count is 70 and dfreq is 10.
-acceptance_count is 80 and dfreq is 10.
-acceptance_count is 90 and dfreq is 10.
-acceptance_count is 100 and dfreq is 10.
-We have accepted 100 moves. Asked to stop after accepting 100 moves.
-We have suggested 112 moves.
+Simulation will output information of every 10 configuration.
 
-Time taken for simulation: 14 milliseconds
+
+Time taken for simulation: 165 milliseconds

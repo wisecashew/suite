@@ -52,6 +52,7 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
     for (const Polymer& pmer: this->PolymersInGrid){
         
         dump_file <<"Dumping coordinates of Polymer # " << count << ".\n";
+        dump_file<<"START" << "\n";
         for (const Particle& p: pmer.chain){
             for (int i: p.coords){
                 dump_file << i << " | "; 
@@ -60,6 +61,7 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
         }
         ++count ; 
     }
+    dump_file <<"END"<<"\n";
     dump_file << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n";
     // const auto& str = os.str(); 
     // dump_file.write(str.c_str(), static_cast<std::streamsize> (str.size() )); 
@@ -131,6 +133,7 @@ void Grid::dumpEnergyOfGrid (int step, std::string filename, bool first_call){
 // PARAMETERS: (std::string positions, std::string topology), and some attributes present in the Grid Object 
 // 'positions' is the name of the file with coordinates of the polymer, so something like "coords.txt"
 // 'topology' is the name of the file with the geometric and energetic information of the system, so something like "topology.txt"
+//
 // WHAT THE FUNCTION DOES: It looks at the topology file, which contains the geometric dimensions of the box 
 // the polymer solution is in and the energy surface ie the interaction energies between the different particle 
 // types present in the box. 
@@ -152,39 +155,10 @@ Grid CreateGridObject(std::string positions, std::string topology){
     std::cout << "You have given us " << N << " polymers to work with."<<std::endl;
     G.ExtractPolymersFromFile(positions);
 
-    // create solvent object... 
-
-    // std::vector <std::vector <int>> lattice = create_lattice_pts (G.x, G.y, G.z); 
-
-    // begin defining solvent positions 
-    // std::string type_s = "solvent"; 
-    // get rid of all the locations that have been occupied by the polymer 
-
-   // for (Polymer pmer: G.PolymersInGrid){
-   //    for (Particle p: pmer.chain){
-   //        lattice.erase(std::remove(lattice.begin(), lattice.end(), p.coords), lattice.end()); 
-   //    }
-   // }
-    
-    // now that those locations have been cleared from lattice, these will now become locations of the solvent 
-    
-    // std::vector <Particle> solvents; 
-    // for (std::vector <int> loc: lattice){
-    //    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
-    //    std::mt19937 generator(seed); 
-    //    std::uniform_int_distribution<int> distribution (0,1); 
-    //    Particle p (loc, type_s, distribution(generator));         
-    //    solvents.push_back(p); 
-    // } 
-
-    // G.SolventInGrid = solvents; 
-
-    
-
     std::cout << "Polymers extracted successfuly!" << std::endl;
     std::cout << "Solvent positions defined successfully!" << std::endl;
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~"<< std::endl<<std::endl;
-    // std::cout <<"Energy of the system is " << G.Energy << std::endl;
+    
 
     G.instantiateOccupancyMap();
     G.CalculateEnergy();
@@ -198,6 +172,49 @@ Grid CreateGridObject(std::string positions, std::string topology){
 //             End of CreateGridObject. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+//
+// NAME OF FUNCTION: CreateGridObjectRestart
+//
+// PARAMETERS: (std::string positions, std::string topology, std::string trajectory), and some attributes present in the Grid Object 
+// 'positions' is the name of the file with coordinates of the polymer, so something like "coords.txt"
+// 'topology' is the name of the file with the geometric and energetic information of the system, so something like "topology.txt"
+//
+// WHAT THE FUNCTION DOES: It looks at the topology file, which contains the geometric dimensions of the box 
+// the polymer solution is in and the energy surface ie the interaction energies between the different particle 
+// types present in the box and creates a Grid to play with. But this time, I look at the bottom of my trajectory coordinates.  
+//
+// DEPENDENCIES: ExtractTopologyFromFile, ExtractNumberOfPolymers, ExtractPolymersFromFile, create_lattice_pts, InstantiateOccupancyMap, CalculateEnergy. 
+//
+// THE CODE: 
+
+
+Grid CreateGridObjectRestart(std::string positions, std::string topology, std::string trajectory){ 
+
+    std::array <double, 7> info_vec {ExtractTopologyFromFile(topology)};             // this stays as it is from the original function
+    int N = ExtractNumberOfPolymers(positions);                                      // number of polymers also remains the same 
+
+    // Grid G(x, y, z, kT, Emm, Ems, Ess)
+    Grid G (N, info_vec.at(0), info_vec.at(1), info_vec.at(2), info_vec.at(3), info_vec.at(4), info_vec.at(5), info_vec.at(6) ) ;    // this also remains the same 
+
+    
+    std::cout << "You have given us " << N << " polymers to work with."<<std::endl;
+    G.ExtractPolymersFromTraj(trajectory, positions);                                           // this changes 
+
+    std::cout << "Polymers extracted successfuly!" << std::endl;
+    std::cout << "Solvent positions defined successfully!" << std::endl;
+    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~"<< std::endl<<std::endl;
+    
+
+    G.instantiateOccupancyMap();
+    G.CalculateEnergy();
+
+    return G; 
+}
+
 
 
 //============================================================
@@ -476,7 +493,7 @@ std::vector <std::string> ExtractContentFromFile(std::string filename){
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: ExtractContentFromFile
+// NAME OF FUNCTION: ExtractPolymersFromFile
 //
 // PARAMETERS: std::string filename 
 // 
@@ -571,9 +588,159 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of ExtractContentFromFile. 
+//             End of ExtractPolymersFromFile. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractPolymersFromFile
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts all the data from the file 
+// in the form of a vector of strings.  
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+
+void Grid::ExtractPolymersFromTraj(std::string trajectory, std::string filename){
+
+    int NumberOfPolymers = ExtractNumberOfPolymers(filename); 
+
+    std::vector <Polymer> PolymerVector; 
+    PolymerVector.reserve(NumberOfPolymers);
+
+    std::vector <std::array <int,3>> locations; 
+
+    std::vector <std::string> contents = ExtractContentFromFile(trajectory); // this extracts every line of the file
+
+    // std::vector <int> step_num_store; 
+    std::vector <int> index_store; // need this guy to hold the index of the final set of coordinates. 
+
+    //////////////////////////////////////////////////////////////////////
+    // extract the final coordinates from the traj file
+    std::regex stepnum ("Dumping coordinates at step"); 
+    // int step_num = 0; 
+    int j {0}; 
+    for (std::string& s: contents){
+
+        std::stringstream ss(s);
+        std::string temp; 
+        int found; 
+        std::stringstream int_ss; 
+
+        if (std::regex_search(s, stepnum)){
+            while(!ss.eof()){
+                ss >> temp;
+                if (std::stringstream(temp) >> found){
+                    // step_num_store.push_back(found);
+                    index_store.push_back(j);
+                } 
+            }
+        } 
+        ++j; 
+    }
+
+    contents.erase(contents.begin(), contents.begin() + (index_store[index_store.size()-1] ) ); 
+
+    //////////////////////////////////////////////////////////////////
+
+    
+    bool start_bool {false}, end_bool {false}; 
+    std::regex start ("START"), end ("END"); 
+    
+    int startCount{0}, endCount{0}; 
+    
+    for (std::string& s: contents){
+         
+        std::stringstream ss(s); 
+        if (std::regex_search(s, start) ){
+            ++startCount;
+            start_bool = true; 
+            end_bool = false; 
+            continue; 
+        }
+
+        else if (std::regex_search(s, end) ) {
+            ++endCount;
+            start_bool = false; 
+            end_bool = false; 
+
+            Polymer pmer = makePolymer(locations);
+            PolymerVector.push_back(pmer);
+            
+            locations.clear();
+            continue; 
+            
+        }
+
+        else if (start_bool == end_bool){
+            continue;
+        }
+
+        else{
+            std::array <int,3> loc;
+            std::string strr; // temp string 
+            int k;            // temp int container 
+            
+            int j{0};
+            while (!ss.eof() ){
+                ss >> strr; 
+                if (std::stringstream(strr) >> k){
+                    loc[j] = k;
+                    ++j;
+                }
+            }  
+
+            if (!this->checkValidityOfCoords(loc)){
+            std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
+            exit(EXIT_FAILURE); 
+            }
+        
+            locations.push_back(loc); 
+            
+        
+        }
+    }
+    
+    
+
+    if(!(this->checkForOverlaps(PolymerVector))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Overlap detected." << std::endl;
+        exit(EXIT_FAILURE);  
+    }
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    // throw in a check for connectivity of polymer chains 
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    if (!(this->checkConnectivity(PolymerVector))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Monomer units are not adjacent to one another on the lattice." << std::endl;
+        exit(EXIT_FAILURE); 
+    }
+    
+    this->PolymersInGrid = PolymerVector;
+
+    return; 
+}
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractPolymersFromTraj. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+
 
 
 //============================================================

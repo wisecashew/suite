@@ -18,10 +18,10 @@ int main(int argc, char** argv) {
     // set up 
     int opt; 
     int Nacc {-1}, dfreq {-1}, max_iter{-1};
-    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"energydump.txt"};  
-    bool v = false, a = false;
+    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"energydump.txt"}, restart_traj{"blank"};  
+    bool v = false, a = false, r = false;
 
-    while ( (opt = getopt(argc, argv, ":f:M:N:o:u:p:t:e:vha")) != -1 )
+    while ( (opt = getopt(argc, argv, ":f:M:N:T:o:u:p:t:e:vhar")) != -1 )
     {
         switch (opt) 
         {
@@ -44,17 +44,19 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 0.2.0 of the Monte Carlo Engine. Set up on Jan 18, 2022, 11:04 PM.\n" <<
+		        "This version number 0.2.1 of the Monte Carlo Engine. Set up on Jan 18, 2022, 11:04 PM.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
                 "Data only for accepts    [-a]           (NO ARG REQUIRED)              If you only want energy and coords for every accepted structure, use this option. \n"
+                "Restart simulation       [-r]           (NO ARG REQUIRED)              Pick up a simulation back from some kind of a starting point.\n"
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of maximum moves  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
                 "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates.\n" <<
                 "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Dump energy of grid at each step in a file.\n"<<
                 "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology.\n" <<
+                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation. Can only be used with -r flag.\n"<<
                 "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer.\n";  
                 exit(EXIT_SUCCESS);
                 break;
@@ -71,6 +73,10 @@ int main(int argc, char** argv) {
 
             case 'o':
                 dfile = optarg;
+                break;
+
+            case 'T':
+                restart_traj = optarg;
                 break;
 
             case 'u':
@@ -93,6 +99,9 @@ int main(int argc, char** argv) {
                 a = true; 
                 break; 
 
+            case 'r':
+                std::cout <<"Will attempt to restart simulation by taking coordinates from a previous trajectory file." << std::endl;
+                r = true; 
             case ':':
                 
                 std::cout << "ERROR: Missing arg for " << static_cast <char> (optopt) << std::endl;
@@ -120,6 +129,13 @@ int main(int argc, char** argv) {
         }
     }
 
+    if (!r) {
+        if (restart_traj != "blank"){
+            std::cerr << "ERROR: You cannot ask for a trajectory coordinate file without the -r flag. Exiting..." << std::endl;
+            exit (EXIT_FAILURE); 
+        }
+    }
+
     else {
         if (Nacc == -1 || dfreq == -1 || max_iter == -1 ){
             std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
@@ -143,11 +159,16 @@ int main(int argc, char** argv) {
     if (v){
         std::cout << "\nVERBOSE OUTPUT HAS BEEN TOGGLED.\n" << std::endl;
     }
+     
+    if (r){
+        std::ofstream dump_file(dfile, std::ios::app); 
+        std::ofstream energy_dump_file (efile, std::ios::app); 
+    }
 
-    std::ofstream dump_file (dfile);
-    std::ofstream energy_dump_file (efile);
-    // energy_dump_file.close(); 
-    // dump_file.close(); 
+    if (!r){
+        std::ofstream dump_file (dfile);
+        std::ofstream energy_dump_file (efile);
+    }
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#

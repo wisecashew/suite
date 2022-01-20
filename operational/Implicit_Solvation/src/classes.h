@@ -175,6 +175,7 @@ public:
     // dump coordinates of polymers in Grid and energy of grid into a text file 
     void dumpPositionsOfPolymers (int step, std::string filename="dumpfile.txt"); 
     void dumpEnergyOfGrid (int step, std::string filename, bool first_call);
+    void ExtractPolymersFromTraj(std::string trajectory, std::string filename);
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // a function to calculate energy of interaction between two particles. 
@@ -220,6 +221,7 @@ public:
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 Grid CreateGridObject(std::string positions, std::string topology);
+Grid CreateGridObjectRestart(std::string positions, std::string topology, std::string trajectory);
 Grid IsingFlip(Grid InitialG);
 Grid ZeroIndexRotation(Grid* InitialG, int index, bool*);
 Grid FinalIndexRotation(Grid* InitialG, int index, bool*);

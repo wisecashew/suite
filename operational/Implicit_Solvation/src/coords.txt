@@ -14,141 +14,2210 @@ END
 Dumping coordinates at step 10.
 Dumping coordinates of Polymer # 0.
 START
+3 | 8 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
 1 | 9 | 0 | 
 1 | 9 | 1 | 
-2 | 9 | 1 | 
-2 | 0 | 1 | 
-1 | 0 | 1 | 
-1 | 1 | 1 | 
-0 | 1 | 1 | 
-9 | 1 | 1 | 
+0 | 9 | 1 | 
+0 | 0 | 1 | 
+9 | 0 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 20.
 Dumping coordinates of Polymer # 0.
 START
-1 | 9 | 0 | 
-1 | 9 | 1 | 
-1 | 0 | 1 | 
+5 | 9 | 0 | 
+4 | 9 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
 2 | 0 | 1 | 
-2 | 1 | 1 | 
-1 | 1 | 1 | 
-1 | 2 | 1 | 
-2 | 2 | 1 | 
+2 | 9 | 1 | 
+3 | 9 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 30.
 Dumping coordinates of Polymer # 0.
 START
-0 | 9 | 0 | 
-0 | 9 | 1 | 
-1 | 9 | 1 | 
-1 | 0 | 1 | 
-0 | 0 | 1 | 
-0 | 1 | 1 | 
-1 | 1 | 1 | 
-2 | 1 | 1 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 8 | 0 | 
+2 | 8 | 1 | 
+2 | 9 | 1 | 
+3 | 9 | 1 | 
+4 | 9 | 1 | 
+5 | 9 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 40.
 Dumping coordinates of Polymer # 0.
 START
-8 | 0 | 1 | 
-9 | 0 | 1 | 
-0 | 0 | 1 | 
-0 | 0 | 0 | 
-1 | 0 | 0 | 
-1 | 0 | 1 | 
-2 | 0 | 1 | 
-2 | 1 | 1 | 
+4 | 9 | 0 | 
+4 | 8 | 0 | 
+3 | 8 | 0 | 
+2 | 8 | 0 | 
+2 | 8 | 1 | 
+2 | 9 | 1 | 
+3 | 9 | 1 | 
+4 | 9 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 50.
 Dumping coordinates of Polymer # 0.
 START
-8 | 1 | 1 | 
-8 | 0 | 1 | 
-9 | 0 | 1 | 
-0 | 0 | 1 | 
-0 | 1 | 1 | 
-1 | 1 | 1 | 
-1 | 0 | 1 | 
-2 | 0 | 1 | 
+6 | 9 | 0 | 
+5 | 9 | 0 | 
+5 | 8 | 0 | 
+4 | 8 | 0 | 
+3 | 8 | 0 | 
+2 | 8 | 0 | 
+2 | 8 | 1 | 
+2 | 9 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 60.
 Dumping coordinates of Polymer # 0.
 START
-9 | 1 | 1 | 
-8 | 1 | 1 | 
-8 | 0 | 1 | 
-9 | 0 | 1 | 
-0 | 0 | 1 | 
-0 | 1 | 1 | 
-1 | 1 | 1 | 
-2 | 1 | 1 | 
+5 | 0 | 0 | 
+5 | 9 | 0 | 
+4 | 9 | 0 | 
+4 | 8 | 0 | 
+3 | 8 | 0 | 
+3 | 7 | 0 | 
+3 | 7 | 1 | 
+3 | 8 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 70.
 Dumping coordinates of Polymer # 0.
 START
-7 | 1 | 1 | 
-7 | 0 | 1 | 
-8 | 0 | 1 | 
-8 | 0 | 2 | 
-9 | 0 | 2 | 
-9 | 1 | 2 | 
-0 | 1 | 2 | 
-1 | 1 | 2 | 
+3 | 0 | 0 | 
+4 | 0 | 0 | 
+4 | 9 | 0 | 
+4 | 8 | 0 | 
+3 | 8 | 0 | 
+2 | 8 | 0 | 
+2 | 8 | 1 | 
+1 | 8 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 80.
 Dumping coordinates of Polymer # 0.
 START
-8 | 0 | 2 | 
-9 | 0 | 2 | 
-9 | 1 | 2 | 
-0 | 1 | 2 | 
-1 | 1 | 2 | 
-2 | 1 | 2 | 
-3 | 1 | 2 | 
-4 | 1 | 2 | 
+2 | 9 | 0 | 
+2 | 8 | 0 | 
+3 | 8 | 0 | 
+3 | 7 | 0 | 
+3 | 7 | 1 | 
+3 | 8 | 1 | 
+4 | 8 | 1 | 
+5 | 8 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 90.
 Dumping coordinates of Polymer # 0.
 START
-8 | 1 | 2 | 
-8 | 0 | 2 | 
-9 | 0 | 2 | 
-0 | 0 | 2 | 
-0 | 1 | 2 | 
-1 | 1 | 2 | 
-2 | 1 | 2 | 
-2 | 2 | 2 | 
+1 | 8 | 0 | 
+2 | 8 | 0 | 
+2 | 7 | 0 | 
+3 | 7 | 0 | 
+3 | 7 | 1 | 
+3 | 8 | 1 | 
+4 | 8 | 1 | 
+4 | 9 | 1 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 Dumping coordinates at step 100.
 Dumping coordinates of Polymer # 0.
 START
-0 | 0 | 2 | 
-1 | 0 | 2 | 
-1 | 1 | 2 | 
-2 | 1 | 2 | 
-2 | 2 | 2 | 
-3 | 2 | 2 | 
-4 | 2 | 2 | 
-5 | 2 | 2 | 
+3 | 8 | 0 | 
+4 | 8 | 0 | 
+4 | 7 | 0 | 
+3 | 7 | 0 | 
+3 | 7 | 1 | 
+3 | 8 | 1 | 
+4 | 8 | 1 | 
+4 | 9 | 1 | 
 END
-Dumping coordinates of Polymer # 1.
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 110.
+Dumping coordinates of Polymer # 0.
 START
-8 | 1 | 2 | 
-8 | 0 | 2 | 
-9 | 0 | 2 | 
-0 | 0 | 2 | 
-0 | 1 | 2 | 
+3 | 8 | 0 | 
+3 | 7 | 0 | 
+3 | 6 | 0 | 
+3 | 6 | 1 | 
+3 | 7 | 1 | 
+3 | 8 | 1 | 
+4 | 8 | 1 | 
+4 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 120.
+Dumping coordinates of Polymer # 0.
+START
+0 | 7 | 0 | 
+1 | 7 | 0 | 
+2 | 7 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+3 | 6 | 1 | 
+3 | 7 | 1 | 
+3 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 130.
+Dumping coordinates of Polymer # 0.
+START
+2 | 8 | 0 | 
+1 | 8 | 0 | 
+1 | 7 | 0 | 
+2 | 7 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+3 | 6 | 1 | 
+3 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 140.
+Dumping coordinates of Polymer # 0.
+START
+2 | 9 | 0 | 
+2 | 8 | 0 | 
+1 | 8 | 0 | 
+1 | 7 | 0 | 
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+4 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 150.
+Dumping coordinates of Polymer # 0.
+START
+3 | 8 | 0 | 
+2 | 8 | 0 | 
+1 | 8 | 0 | 
+1 | 7 | 0 | 
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+3 | 7 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 160.
+Dumping coordinates of Polymer # 0.
+START
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 8 | 0 | 
+1 | 7 | 0 | 
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+4 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 170.
+Dumping coordinates of Polymer # 0.
+START
+9 | 0 | 0 | 
+9 | 9 | 0 | 
+9 | 8 | 0 | 
+0 | 8 | 0 | 
+1 | 8 | 0 | 
+1 | 7 | 0 | 
+1 | 7 | 1 | 
+2 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 180.
+Dumping coordinates of Polymer # 0.
+START
+1 | 9 | 9 | 
+0 | 9 | 9 | 
+0 | 9 | 0 | 
+0 | 8 | 0 | 
+1 | 8 | 0 | 
+1 | 7 | 0 | 
+1 | 7 | 1 | 
+2 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 190.
+Dumping coordinates of Polymer # 0.
+START
+1 | 9 | 0 | 
+1 | 8 | 0 | 
+1 | 7 | 0 | 
+1 | 7 | 1 | 
+2 | 7 | 1 | 
+3 | 7 | 1 | 
+4 | 7 | 1 | 
+5 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 200.
+Dumping coordinates of Polymer # 0.
+START
+2 | 8 | 1 | 
+1 | 8 | 1 | 
+1 | 7 | 1 | 
+2 | 7 | 1 | 
+3 | 7 | 1 | 
+4 | 7 | 1 | 
+5 | 7 | 1 | 
+6 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 210.
+Dumping coordinates of Polymer # 0.
+START
+2 | 8 | 0 | 
+2 | 7 | 0 | 
+2 | 7 | 1 | 
+3 | 7 | 1 | 
+4 | 7 | 1 | 
+5 | 7 | 1 | 
+6 | 7 | 1 | 
+7 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 220.
+Dumping coordinates of Polymer # 0.
+START
+2 | 7 | 0 | 
+2 | 7 | 1 | 
+3 | 7 | 1 | 
+4 | 7 | 1 | 
+5 | 7 | 1 | 
+6 | 7 | 1 | 
+7 | 7 | 1 | 
+8 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 230.
+Dumping coordinates of Polymer # 0.
+START
+4 | 8 | 1 | 
+5 | 8 | 1 | 
+5 | 7 | 1 | 
+6 | 7 | 1 | 
+7 | 7 | 1 | 
+8 | 7 | 1 | 
+9 | 7 | 1 | 
+0 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 240.
+Dumping coordinates of Polymer # 0.
+START
+6 | 8 | 1 | 
+6 | 8 | 0 | 
+6 | 7 | 0 | 
+7 | 7 | 0 | 
+7 | 7 | 1 | 
+8 | 7 | 1 | 
+9 | 7 | 1 | 
+9 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 250.
+Dumping coordinates of Polymer # 0.
+START
+7 | 7 | 1 | 
+8 | 7 | 1 | 
+8 | 8 | 1 | 
+9 | 8 | 1 | 
+0 | 8 | 1 | 
+1 | 8 | 1 | 
+2 | 8 | 1 | 
+3 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 260.
+Dumping coordinates of Polymer # 0.
+START
+7 | 8 | 1 | 
+8 | 8 | 1 | 
+9 | 8 | 1 | 
+0 | 8 | 1 | 
+1 | 8 | 1 | 
+2 | 8 | 1 | 
+3 | 8 | 1 | 
+3 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 270.
+Dumping coordinates of Polymer # 0.
+START
+8 | 8 | 1 | 
+9 | 8 | 1 | 
+0 | 8 | 1 | 
+1 | 8 | 1 | 
+2 | 8 | 1 | 
+3 | 8 | 1 | 
+4 | 8 | 1 | 
+5 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 280.
+Dumping coordinates of Polymer # 0.
+START
+0 | 9 | 1 | 
+9 | 9 | 1 | 
+9 | 8 | 1 | 
+0 | 8 | 1 | 
+1 | 8 | 1 | 
+2 | 8 | 1 | 
+3 | 8 | 1 | 
+4 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 290.
+Dumping coordinates of Polymer # 0.
+START
+2 | 9 | 1 | 
+1 | 9 | 1 | 
+0 | 9 | 1 | 
+0 | 8 | 1 | 
+1 | 8 | 1 | 
+2 | 8 | 1 | 
+3 | 8 | 1 | 
+3 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 300.
+Dumping coordinates of Polymer # 0.
+START
+2 | 0 | 1 | 
+2 | 9 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 0 | 
+1 | 8 | 0 | 
+1 | 8 | 1 | 
+2 | 8 | 1 | 
+3 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 310.
+Dumping coordinates of Polymer # 0.
+START
+4 | 0 | 1 | 
+3 | 0 | 1 | 
+2 | 0 | 1 | 
+2 | 9 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+1 | 8 | 2 | 
+1 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 320.
+Dumping coordinates of Polymer # 0.
+START
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+2 | 9 | 0 | 
+2 | 9 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+2 | 9 | 2 | 
+3 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 330.
+Dumping coordinates of Polymer # 0.
+START
+2 | 0 | 1 | 
+2 | 9 | 1 | 
+2 | 8 | 1 | 
+2 | 8 | 2 | 
+2 | 9 | 2 | 
+3 | 9 | 2 | 
+4 | 9 | 2 | 
+5 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 340.
+Dumping coordinates of Polymer # 0.
+START
+2 | 1 | 1 | 
+2 | 0 | 1 | 
+1 | 0 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+2 | 9 | 2 | 
+3 | 9 | 2 | 
+4 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 350.
+Dumping coordinates of Polymer # 0.
+START
+4 | 0 | 1 | 
+3 | 0 | 1 | 
+2 | 0 | 1 | 
+1 | 0 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+2 | 9 | 2 | 
+2 | 0 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 360.
+Dumping coordinates of Polymer # 0.
+START
+2 | 9 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+2 | 9 | 2 | 
+3 | 9 | 2 | 
+4 | 9 | 2 | 
+5 | 9 | 2 | 
+6 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 370.
+Dumping coordinates of Polymer # 0.
+START
+1 | 9 | 1 | 
+2 | 9 | 1 | 
+2 | 0 | 1 | 
+2 | 0 | 2 | 
+2 | 9 | 2 | 
+3 | 9 | 2 | 
+4 | 9 | 2 | 
+5 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 380.
+Dumping coordinates of Polymer # 0.
+START
+3 | 0 | 1 | 
+3 | 0 | 2 | 
+2 | 0 | 2 | 
+2 | 9 | 2 | 
+3 | 9 | 2 | 
+4 | 9 | 2 | 
+5 | 9 | 2 | 
+6 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 390.
+Dumping coordinates of Polymer # 0.
+START
+4 | 0 | 2 | 
+3 | 0 | 2 | 
+2 | 0 | 2 | 
+2 | 9 | 2 | 
+3 | 9 | 2 | 
+4 | 9 | 2 | 
+5 | 9 | 2 | 
+5 | 0 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 400.
+Dumping coordinates of Polymer # 0.
+START
+4 | 0 | 2 | 
+3 | 0 | 2 | 
+3 | 0 | 1 | 
+3 | 9 | 1 | 
+3 | 9 | 2 | 
+4 | 9 | 2 | 
+5 | 9 | 2 | 
+6 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 410.
+Dumping coordinates of Polymer # 0.
+START
+8 | 0 | 1 | 
+7 | 0 | 1 | 
+6 | 0 | 1 | 
+5 | 0 | 1 | 
+4 | 0 | 1 | 
+4 | 9 | 1 | 
+4 | 8 | 1 | 
+4 | 8 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 420.
+Dumping coordinates of Polymer # 0.
+START
+7 | 0 | 1 | 
+6 | 0 | 1 | 
+6 | 9 | 1 | 
+5 | 9 | 1 | 
+4 | 9 | 1 | 
+4 | 8 | 1 | 
+5 | 8 | 1 | 
+6 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 430.
+Dumping coordinates of Polymer # 0.
+START
+8 | 0 | 1 | 
+8 | 9 | 1 | 
+7 | 9 | 1 | 
+6 | 9 | 1 | 
+5 | 9 | 1 | 
+4 | 9 | 1 | 
+4 | 8 | 1 | 
+5 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 440.
+Dumping coordinates of Polymer # 0.
+START
+8 | 0 | 1 | 
+8 | 9 | 1 | 
+7 | 9 | 1 | 
+6 | 9 | 1 | 
+5 | 9 | 1 | 
+5 | 9 | 0 | 
+5 | 8 | 0 | 
+6 | 8 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 450.
+Dumping coordinates of Polymer # 0.
+START
+8 | 9 | 1 | 
+7 | 9 | 1 | 
+6 | 9 | 1 | 
+6 | 9 | 0 | 
+6 | 9 | 9 | 
+6 | 8 | 9 | 
+6 | 8 | 0 | 
+7 | 8 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 460.
+Dumping coordinates of Polymer # 0.
+START
+0 | 9 | 1 | 
+9 | 9 | 1 | 
+8 | 9 | 1 | 
+8 | 9 | 0 | 
+7 | 9 | 0 | 
+6 | 9 | 0 | 
+6 | 9 | 9 | 
+6 | 8 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 470.
+Dumping coordinates of Polymer # 0.
+START
+9 | 9 | 0 | 
+8 | 9 | 0 | 
+8 | 9 | 9 | 
+7 | 9 | 9 | 
+7 | 9 | 0 | 
+7 | 8 | 0 | 
+7 | 8 | 9 | 
+8 | 8 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 480.
+Dumping coordinates of Polymer # 0.
+START
+9 | 0 | 0 | 
+8 | 0 | 0 | 
+8 | 9 | 0 | 
+8 | 9 | 1 | 
+7 | 9 | 1 | 
+7 | 9 | 0 | 
+7 | 8 | 0 | 
+8 | 8 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 490.
+Dumping coordinates of Polymer # 0.
+START
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+0 | 9 | 0 | 
+9 | 9 | 0 | 
+8 | 9 | 0 | 
+8 | 0 | 0 | 
+7 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 500.
+Dumping coordinates of Polymer # 0.
+START
+1 | 9 | 0 | 
+0 | 9 | 0 | 
+9 | 9 | 0 | 
+8 | 9 | 0 | 
+8 | 0 | 0 | 
+9 | 0 | 0 | 
+0 | 0 | 0 | 
+1 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 510.
+Dumping coordinates of Polymer # 0.
+START
+1 | 0 | 0 | 
+1 | 9 | 0 | 
+0 | 9 | 0 | 
+9 | 9 | 0 | 
+8 | 9 | 0 | 
+8 | 0 | 0 | 
+9 | 0 | 0 | 
+0 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 520.
+Dumping coordinates of Polymer # 0.
+START
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+1 | 9 | 0 | 
+0 | 9 | 0 | 
+9 | 9 | 0 | 
+8 | 9 | 0 | 
+8 | 0 | 0 | 
+7 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 530.
+Dumping coordinates of Polymer # 0.
+START
+2 | 9 | 0 | 
+1 | 9 | 0 | 
+0 | 9 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+8 | 0 | 0 | 
+7 | 0 | 0 | 
+6 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 540.
+Dumping coordinates of Polymer # 0.
+START
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+8 | 0 | 0 | 
+7 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 550.
+Dumping coordinates of Polymer # 0.
+START
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+8 | 0 | 0 | 
+7 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 560.
+Dumping coordinates of Polymer # 0.
+START
+2 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+8 | 0 | 0 | 
+7 | 0 | 0 | 
+7 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 570.
+Dumping coordinates of Polymer # 0.
+START
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+8 | 0 | 0 | 
+7 | 0 | 0 | 
+6 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 580.
+Dumping coordinates of Polymer # 0.
+START
+5 | 0 | 0 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+8 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 590.
+Dumping coordinates of Polymer # 0.
+START
+6 | 1 | 0 | 
+5 | 1 | 0 | 
+5 | 0 | 0 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+1 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 600.
+Dumping coordinates of Polymer # 0.
+START
+6 | 1 | 0 | 
+5 | 1 | 0 | 
+5 | 0 | 0 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+1 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 610.
+Dumping coordinates of Polymer # 0.
+START
+4 | 1 | 0 | 
+5 | 1 | 0 | 
+5 | 0 | 0 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 620.
+Dumping coordinates of Polymer # 0.
+START
+5 | 1 | 9 | 
+4 | 1 | 9 | 
+4 | 1 | 0 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+1 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 630.
+Dumping coordinates of Polymer # 0.
+START
+3 | 0 | 9 | 
+4 | 0 | 9 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+3 | 1 | 0 | 
+4 | 1 | 0 | 
+5 | 1 | 0 | 
+6 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 640.
+Dumping coordinates of Polymer # 0.
+START
+5 | 1 | 9 | 
+4 | 1 | 9 | 
+3 | 1 | 9 | 
+3 | 0 | 9 | 
+2 | 0 | 9 | 
+2 | 0 | 0 | 
+3 | 0 | 0 | 
+3 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 650.
+Dumping coordinates of Polymer # 0.
+START
+3 | 1 | 9 | 
+4 | 1 | 9 | 
+4 | 0 | 9 | 
+3 | 0 | 9 | 
+2 | 0 | 9 | 
+2 | 0 | 0 | 
+3 | 0 | 0 | 
+4 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 660.
+Dumping coordinates of Polymer # 0.
+START
+2 | 1 | 9 | 
+3 | 1 | 9 | 
+4 | 1 | 9 | 
+4 | 0 | 9 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 670.
+Dumping coordinates of Polymer # 0.
+START
+3 | 0 | 9 | 
+4 | 0 | 9 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 680.
+Dumping coordinates of Polymer # 0.
+START
+3 | 0 | 9 | 
+3 | 0 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+0 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 690.
+Dumping coordinates of Polymer # 0.
+START
+5 | 1 | 0 | 
+5 | 0 | 0 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+3 | 0 | 9 | 
+2 | 0 | 9 | 
+2 | 0 | 0 | 
+2 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 700.
+Dumping coordinates of Polymer # 0.
+START
+5 | 1 | 0 | 
+4 | 1 | 0 | 
+4 | 0 | 0 | 
+3 | 0 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+2 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 710.
+Dumping coordinates of Polymer # 0.
+START
+6 | 1 | 0 | 
+6 | 0 | 0 | 
+5 | 0 | 0 | 
+5 | 9 | 0 | 
+4 | 9 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 720.
+Dumping coordinates of Polymer # 0.
+START
+6 | 0 | 0 | 
+5 | 0 | 0 | 
+4 | 0 | 0 | 
+4 | 9 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+3 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 730.
+Dumping coordinates of Polymer # 0.
+START
+5 | 0 | 0 | 
+5 | 9 | 0 | 
+4 | 9 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+3 | 0 | 0 | 
+4 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 740.
+Dumping coordinates of Polymer # 0.
+START
+3 | 8 | 0 | 
+3 | 9 | 0 | 
+2 | 9 | 0 | 
+2 | 0 | 0 | 
+3 | 0 | 0 | 
+4 | 0 | 0 | 
+4 | 1 | 0 | 
+3 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 750.
+Dumping coordinates of Polymer # 0.
+START
+1 | 0 | 0 | 
+2 | 0 | 0 | 
+3 | 0 | 0 | 
+3 | 0 | 1 | 
+3 | 1 | 1 | 
+3 | 1 | 0 | 
+2 | 1 | 0 | 
+1 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 760.
+Dumping coordinates of Polymer # 0.
+START
+0 | 0 | 0 | 
+1 | 0 | 0 | 
+2 | 0 | 0 | 
+2 | 0 | 1 | 
+3 | 0 | 1 | 
+3 | 1 | 1 | 
+3 | 1 | 0 | 
+2 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 770.
+Dumping coordinates of Polymer # 0.
+START
+0 | 1 | 1 | 
+1 | 1 | 1 | 
+1 | 0 | 1 | 
+2 | 0 | 1 | 
+3 | 0 | 1 | 
+3 | 0 | 0 | 
+3 | 1 | 0 | 
+2 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 780.
+Dumping coordinates of Polymer # 0.
+START
+3 | 2 | 1 | 
+3 | 1 | 1 | 
+2 | 1 | 1 | 
+1 | 1 | 1 | 
 1 | 1 | 2 | 
-2 | 1 | 2 | 
-2 | 2 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+2 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 790.
+Dumping coordinates of Polymer # 0.
+START
+3 | 1 | 1 | 
+2 | 1 | 1 | 
+1 | 1 | 1 | 
+1 | 1 | 2 | 
+1 | 0 | 2 | 
+1 | 0 | 1 | 
+2 | 0 | 1 | 
+3 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 800.
+Dumping coordinates of Polymer # 0.
+START
+4 | 1 | 1 | 
+3 | 1 | 1 | 
+2 | 1 | 1 | 
+2 | 1 | 0 | 
+1 | 1 | 0 | 
+1 | 0 | 0 | 
+1 | 0 | 1 | 
+2 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 810.
+Dumping coordinates of Polymer # 0.
+START
+2 | 1 | 1 | 
+3 | 1 | 1 | 
+3 | 1 | 0 | 
+2 | 1 | 0 | 
+1 | 1 | 0 | 
+1 | 0 | 0 | 
+1 | 0 | 1 | 
+2 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 820.
+Dumping coordinates of Polymer # 0.
+START
+3 | 2 | 1 | 
+3 | 1 | 1 | 
+2 | 1 | 1 | 
+2 | 2 | 1 | 
+2 | 2 | 0 | 
+2 | 1 | 0 | 
+1 | 1 | 0 | 
+1 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 830.
+Dumping coordinates of Polymer # 0.
+START
+2 | 1 | 1 | 
+2 | 2 | 1 | 
+3 | 2 | 1 | 
+3 | 2 | 0 | 
+2 | 2 | 0 | 
+2 | 3 | 0 | 
+1 | 3 | 0 | 
+1 | 2 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 840.
+Dumping coordinates of Polymer # 0.
+START
+4 | 1 | 1 | 
+3 | 1 | 1 | 
+3 | 2 | 1 | 
+3 | 2 | 0 | 
+2 | 2 | 0 | 
+2 | 2 | 9 | 
+1 | 2 | 9 | 
+1 | 2 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 850.
+Dumping coordinates of Polymer # 0.
+START
+4 | 2 | 1 | 
+4 | 2 | 0 | 
+3 | 2 | 0 | 
+2 | 2 | 0 | 
+2 | 3 | 0 | 
+1 | 3 | 0 | 
+1 | 4 | 0 | 
+2 | 4 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 860.
+Dumping coordinates of Polymer # 0.
+START
+6 | 2 | 0 | 
+5 | 2 | 0 | 
+4 | 2 | 0 | 
+3 | 2 | 0 | 
+2 | 2 | 0 | 
+2 | 3 | 0 | 
+1 | 3 | 0 | 
+1 | 4 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 870.
+Dumping coordinates of Polymer # 0.
+START
+8 | 2 | 0 | 
+7 | 2 | 0 | 
+6 | 2 | 0 | 
+6 | 3 | 0 | 
+5 | 3 | 0 | 
+4 | 3 | 0 | 
+3 | 3 | 0 | 
+2 | 3 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 880.
+Dumping coordinates of Polymer # 0.
+START
+8 | 3 | 0 | 
+7 | 3 | 0 | 
+7 | 2 | 0 | 
+6 | 2 | 0 | 
+5 | 2 | 0 | 
+5 | 3 | 0 | 
+4 | 3 | 0 | 
+3 | 3 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 890.
+Dumping coordinates of Polymer # 0.
+START
+7 | 3 | 0 | 
+7 | 2 | 0 | 
+6 | 2 | 0 | 
+6 | 3 | 0 | 
+5 | 3 | 0 | 
+5 | 3 | 9 | 
+5 | 4 | 9 | 
+5 | 4 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 900.
+Dumping coordinates of Polymer # 0.
+START
+5 | 3 | 0 | 
+5 | 2 | 0 | 
+6 | 2 | 0 | 
+6 | 3 | 0 | 
+6 | 3 | 1 | 
+5 | 3 | 1 | 
+5 | 4 | 1 | 
+6 | 4 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 910.
+Dumping coordinates of Polymer # 0.
+START
+4 | 3 | 0 | 
+4 | 4 | 0 | 
+5 | 4 | 0 | 
+6 | 4 | 0 | 
+6 | 3 | 0 | 
+6 | 3 | 1 | 
+6 | 3 | 2 | 
+7 | 3 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 920.
+Dumping coordinates of Polymer # 0.
+START
+5 | 5 | 0 | 
+5 | 4 | 0 | 
+6 | 4 | 0 | 
+6 | 3 | 0 | 
+6 | 3 | 1 | 
+6 | 3 | 2 | 
+5 | 3 | 2 | 
+4 | 3 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 930.
+Dumping coordinates of Polymer # 0.
+START
+1 | 3 | 0 | 
+2 | 3 | 0 | 
+3 | 3 | 0 | 
+4 | 3 | 0 | 
+5 | 3 | 0 | 
+5 | 3 | 1 | 
+6 | 3 | 1 | 
+6 | 3 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 940.
+Dumping coordinates of Polymer # 0.
+START
+1 | 3 | 0 | 
+2 | 3 | 0 | 
+3 | 3 | 0 | 
+3 | 3 | 1 | 
+4 | 3 | 1 | 
+5 | 3 | 1 | 
+6 | 3 | 1 | 
+6 | 4 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 950.
+Dumping coordinates of Polymer # 0.
+START
+2 | 3 | 0 | 
+2 | 3 | 1 | 
+3 | 3 | 1 | 
+4 | 3 | 1 | 
+4 | 4 | 1 | 
+5 | 4 | 1 | 
+6 | 4 | 1 | 
+7 | 4 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 960.
+Dumping coordinates of Polymer # 0.
+START
+1 | 4 | 0 | 
+1 | 3 | 0 | 
+2 | 3 | 0 | 
+2 | 3 | 1 | 
+3 | 3 | 1 | 
+3 | 3 | 0 | 
+3 | 4 | 0 | 
+3 | 4 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 970.
+Dumping coordinates of Polymer # 0.
+START
+2 | 3 | 0 | 
+1 | 3 | 0 | 
+1 | 3 | 1 | 
+2 | 3 | 1 | 
+3 | 3 | 1 | 
+3 | 4 | 1 | 
+3 | 4 | 0 | 
+2 | 4 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 980.
+Dumping coordinates of Polymer # 0.
+START
+3 | 4 | 1 | 
+3 | 4 | 0 | 
+4 | 4 | 0 | 
+4 | 5 | 0 | 
+5 | 5 | 0 | 
+6 | 5 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 990.
+Dumping coordinates of Polymer # 0.
+START
+5 | 5 | 0 | 
+6 | 5 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+9 | 5 | 0 | 
+9 | 6 | 0 | 
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1000.
+Dumping coordinates of Polymer # 0.
+START
+6 | 5 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+9 | 5 | 0 | 
+9 | 6 | 0 | 
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+1 | 7 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1010.
+Dumping coordinates of Polymer # 0.
+START
+7 | 6 | 1 | 
+8 | 6 | 1 | 
+8 | 6 | 0 | 
+9 | 6 | 0 | 
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1020.
+Dumping coordinates of Polymer # 0.
+START
+7 | 6 | 1 | 
+8 | 6 | 1 | 
+8 | 6 | 0 | 
+9 | 6 | 0 | 
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1030.
+Dumping coordinates of Polymer # 0.
+START
+8 | 7 | 1 | 
+9 | 7 | 1 | 
+9 | 6 | 1 | 
+8 | 6 | 1 | 
+8 | 6 | 0 | 
+9 | 6 | 0 | 
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1040.
+Dumping coordinates of Polymer # 0.
+START
+8 | 9 | 1 | 
+8 | 8 | 1 | 
+9 | 8 | 1 | 
+9 | 7 | 1 | 
+9 | 7 | 0 | 
+0 | 7 | 0 | 
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1050.
+Dumping coordinates of Polymer # 0.
+START
+3 | 8 | 1 | 
+2 | 8 | 1 | 
+2 | 7 | 1 | 
+2 | 7 | 0 | 
+1 | 7 | 0 | 
+0 | 7 | 0 | 
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1060.
+Dumping coordinates of Polymer # 0.
+START
+6 | 8 | 1 | 
+5 | 8 | 1 | 
+4 | 8 | 1 | 
+3 | 8 | 1 | 
+3 | 7 | 1 | 
+2 | 7 | 1 | 
+2 | 7 | 0 | 
+1 | 7 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1070.
+Dumping coordinates of Polymer # 0.
+START
+5 | 8 | 1 | 
+6 | 8 | 1 | 
+6 | 7 | 1 | 
+5 | 7 | 1 | 
+4 | 7 | 1 | 
+3 | 7 | 1 | 
+2 | 7 | 1 | 
+2 | 7 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1080.
+Dumping coordinates of Polymer # 0.
+START
+7 | 8 | 1 | 
+7 | 7 | 1 | 
+6 | 7 | 1 | 
+5 | 7 | 1 | 
+4 | 7 | 1 | 
+3 | 7 | 1 | 
+3 | 8 | 1 | 
+3 | 8 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1090.
+Dumping coordinates of Polymer # 0.
+START
+3 | 8 | 1 | 
+2 | 8 | 1 | 
+1 | 8 | 1 | 
+0 | 8 | 1 | 
+9 | 8 | 1 | 
+8 | 8 | 1 | 
+7 | 8 | 1 | 
+7 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1100.
+Dumping coordinates of Polymer # 0.
+START
+1 | 8 | 1 | 
+0 | 8 | 1 | 
+9 | 8 | 1 | 
+9 | 8 | 0 | 
+8 | 8 | 0 | 
+8 | 7 | 0 | 
+8 | 7 | 1 | 
+9 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1110.
+Dumping coordinates of Polymer # 0.
+START
+2 | 8 | 1 | 
+1 | 8 | 1 | 
+1 | 8 | 0 | 
+0 | 8 | 0 | 
+9 | 8 | 0 | 
+8 | 8 | 0 | 
+8 | 7 | 0 | 
+8 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1120.
+Dumping coordinates of Polymer # 0.
+START
+1 | 8 | 0 | 
+0 | 8 | 0 | 
+9 | 8 | 0 | 
+9 | 7 | 0 | 
+8 | 7 | 0 | 
+8 | 7 | 1 | 
+7 | 7 | 1 | 
+6 | 7 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1130.
+Dumping coordinates of Polymer # 0.
+START
+1 | 7 | 1 | 
+0 | 7 | 1 | 
+9 | 7 | 1 | 
+8 | 7 | 1 | 
+7 | 7 | 1 | 
+7 | 8 | 1 | 
+6 | 8 | 1 | 
+6 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1140.
+Dumping coordinates of Polymer # 0.
+START
+1 | 7 | 1 | 
+0 | 7 | 1 | 
+9 | 7 | 1 | 
+9 | 8 | 1 | 
+8 | 8 | 1 | 
+7 | 8 | 1 | 
+6 | 8 | 1 | 
+6 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1150.
+Dumping coordinates of Polymer # 0.
+START
+1 | 7 | 1 | 
+0 | 7 | 1 | 
+0 | 8 | 1 | 
+9 | 8 | 1 | 
+8 | 8 | 1 | 
+7 | 8 | 1 | 
+6 | 8 | 1 | 
+6 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1160.
+Dumping coordinates of Polymer # 0.
+START
+9 | 7 | 1 | 
+9 | 7 | 2 | 
+9 | 8 | 2 | 
+9 | 8 | 1 | 
+9 | 9 | 1 | 
+8 | 9 | 1 | 
+7 | 9 | 1 | 
+6 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1170.
+Dumping coordinates of Polymer # 0.
+START
+1 | 7 | 2 | 
+0 | 7 | 2 | 
+0 | 8 | 2 | 
+9 | 8 | 2 | 
+9 | 8 | 1 | 
+9 | 9 | 1 | 
+8 | 9 | 1 | 
+8 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1180.
+Dumping coordinates of Polymer # 0.
+START
+1 | 9 | 2 | 
+1 | 8 | 2 | 
+0 | 8 | 2 | 
+9 | 8 | 2 | 
+9 | 8 | 1 | 
+9 | 9 | 1 | 
+8 | 9 | 1 | 
+8 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1190.
+Dumping coordinates of Polymer # 0.
+START
+1 | 0 | 2 | 
+1 | 9 | 2 | 
+2 | 9 | 2 | 
+2 | 8 | 2 | 
+1 | 8 | 2 | 
+0 | 8 | 2 | 
+9 | 8 | 2 | 
+9 | 8 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1200.
+Dumping coordinates of Polymer # 0.
+START
+3 | 0 | 2 | 
+2 | 0 | 2 | 
+2 | 9 | 2 | 
+2 | 8 | 2 | 
+1 | 8 | 2 | 
+0 | 8 | 2 | 
+9 | 8 | 2 | 
+9 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1210.
+Dumping coordinates of Polymer # 0.
+START
+4 | 1 | 2 | 
+4 | 0 | 2 | 
+3 | 0 | 2 | 
+2 | 0 | 2 | 
+2 | 9 | 2 | 
+2 | 8 | 2 | 
+1 | 8 | 2 | 
+1 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1220.
+Dumping coordinates of Polymer # 0.
+START
+5 | 0 | 2 | 
+4 | 0 | 2 | 
+3 | 0 | 2 | 
+3 | 9 | 2 | 
+2 | 9 | 2 | 
+2 | 8 | 2 | 
+3 | 8 | 2 | 
+3 | 7 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1230.
+Dumping coordinates of Polymer # 0.
+START
+4 | 9 | 2 | 
+3 | 9 | 2 | 
+2 | 9 | 2 | 
+2 | 8 | 2 | 
+3 | 8 | 2 | 
+3 | 7 | 2 | 
+2 | 7 | 2 | 
+1 | 7 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1240.
+Dumping coordinates of Polymer # 0.
+START
+6 | 9 | 2 | 
+5 | 9 | 2 | 
+5 | 8 | 2 | 
+4 | 8 | 2 | 
+3 | 8 | 2 | 
+3 | 7 | 2 | 
+2 | 7 | 2 | 
+1 | 7 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1250.
+Dumping coordinates of Polymer # 0.
+START
+5 | 9 | 2 | 
+5 | 9 | 3 | 
+5 | 8 | 3 | 
+5 | 8 | 2 | 
+4 | 8 | 2 | 
+3 | 8 | 2 | 
+3 | 7 | 2 | 
+4 | 7 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1260.
+Dumping coordinates of Polymer # 0.
+START
+5 | 9 | 3 | 
+5 | 9 | 2 | 
+5 | 8 | 2 | 
+4 | 8 | 2 | 
+4 | 8 | 1 | 
+4 | 7 | 1 | 
+4 | 7 | 2 | 
+5 | 7 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1270.
+Dumping coordinates of Polymer # 0.
+START
+5 | 8 | 2 | 
+4 | 8 | 2 | 
+4 | 8 | 3 | 
+4 | 7 | 3 | 
+4 | 7 | 2 | 
+5 | 7 | 2 | 
+6 | 7 | 2 | 
+6 | 8 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1280.
+Dumping coordinates of Polymer # 0.
+START
+5 | 9 | 2 | 
+4 | 9 | 2 | 
+4 | 8 | 2 | 
+4 | 8 | 3 | 
+4 | 7 | 3 | 
+4 | 7 | 2 | 
+5 | 7 | 2 | 
+6 | 7 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1290.
+Dumping coordinates of Polymer # 0.
+START
+7 | 9 | 2 | 
+7 | 8 | 2 | 
+6 | 8 | 2 | 
+5 | 8 | 2 | 
+4 | 8 | 2 | 
+3 | 8 | 2 | 
+3 | 7 | 2 | 
+4 | 7 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1300.
+Dumping coordinates of Polymer # 0.
+START
+9 | 9 | 2 | 
+8 | 9 | 2 | 
+7 | 9 | 2 | 
+7 | 8 | 2 | 
+6 | 8 | 2 | 
+5 | 8 | 2 | 
+4 | 8 | 2 | 
+4 | 8 | 3 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1310.
+Dumping coordinates of Polymer # 0.
+START
+6 | 9 | 2 | 
+7 | 9 | 2 | 
+7 | 9 | 3 | 
+7 | 8 | 3 | 
+7 | 8 | 2 | 
+6 | 8 | 2 | 
+5 | 8 | 2 | 
+4 | 8 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1320.
+Dumping coordinates of Polymer # 0.
+START
+8 | 9 | 2 | 
+7 | 9 | 2 | 
+7 | 8 | 2 | 
+7 | 7 | 2 | 
+6 | 7 | 2 | 
+6 | 8 | 2 | 
+5 | 8 | 2 | 
+5 | 9 | 2 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1330.
+Dumping coordinates of Polymer # 0.
+START
+7 | 8 | 2 | 
+6 | 8 | 2 | 
+6 | 7 | 2 | 
+6 | 7 | 1 | 
+6 | 8 | 1 | 
+6 | 9 | 1 | 
+7 | 9 | 1 | 
+8 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1340.
+Dumping coordinates of Polymer # 0.
+START
+7 | 8 | 2 | 
+7 | 7 | 2 | 
+7 | 7 | 1 | 
+6 | 7 | 1 | 
+6 | 8 | 1 | 
+6 | 9 | 1 | 
+7 | 9 | 1 | 
+8 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1350.
+Dumping coordinates of Polymer # 0.
+START
+7 | 7 | 2 | 
+6 | 7 | 2 | 
+6 | 7 | 1 | 
+6 | 8 | 1 | 
+6 | 9 | 1 | 
+7 | 9 | 1 | 
+8 | 9 | 1 | 
+9 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1360.
+Dumping coordinates of Polymer # 0.
+START
+9 | 8 | 1 | 
+8 | 8 | 1 | 
+7 | 8 | 1 | 
+7 | 9 | 1 | 
+8 | 9 | 1 | 
+9 | 9 | 1 | 
+0 | 9 | 1 | 
+0 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1370.
+Dumping coordinates of Polymer # 0.
+START
+1 | 8 | 1 | 
+0 | 8 | 1 | 
+9 | 8 | 1 | 
+9 | 8 | 0 | 
+8 | 8 | 0 | 
+8 | 9 | 0 | 
+8 | 9 | 1 | 
+8 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1380.
+Dumping coordinates of Polymer # 0.
+START
+0 | 8 | 1 | 
+9 | 8 | 1 | 
+9 | 8 | 0 | 
+8 | 8 | 0 | 
+8 | 9 | 0 | 
+8 | 9 | 1 | 
+9 | 9 | 1 | 
+9 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1390.
+Dumping coordinates of Polymer # 0.
+START
+8 | 8 | 1 | 
+9 | 8 | 1 | 
+9 | 8 | 0 | 
+9 | 9 | 0 | 
+9 | 0 | 0 | 
+9 | 0 | 1 | 
+9 | 9 | 1 | 
+0 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1400.
+Dumping coordinates of Polymer # 0.
+START
+0 | 9 | 0 | 
+0 | 8 | 0 | 
+9 | 8 | 0 | 
+9 | 9 | 0 | 
+9 | 0 | 0 | 
+9 | 0 | 1 | 
+9 | 9 | 1 | 
+0 | 9 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1410.
+Dumping coordinates of Polymer # 0.
+START
+0 | 8 | 0 | 
+9 | 8 | 0 | 
+9 | 9 | 0 | 
+9 | 0 | 0 | 
+9 | 0 | 1 | 
+9 | 1 | 1 | 
+8 | 1 | 1 | 
+8 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1420.
+Dumping coordinates of Polymer # 0.
+START
+1 | 8 | 0 | 
+0 | 8 | 0 | 
+0 | 9 | 0 | 
+9 | 9 | 0 | 
+9 | 0 | 0 | 
+9 | 0 | 1 | 
+9 | 1 | 1 | 
+8 | 1 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1430.
+Dumping coordinates of Polymer # 0.
+START
+2 | 8 | 0 | 
+1 | 8 | 0 | 
+1 | 9 | 0 | 
+0 | 9 | 0 | 
+9 | 9 | 0 | 
+9 | 0 | 0 | 
+9 | 0 | 1 | 
+0 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1440.
+Dumping coordinates of Polymer # 0.
+START
+2 | 9 | 0 | 
+1 | 9 | 0 | 
+0 | 9 | 0 | 
+9 | 9 | 0 | 
+9 | 0 | 0 | 
+9 | 0 | 1 | 
+0 | 0 | 1 | 
+1 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1450.
+Dumping coordinates of Polymer # 0.
+START
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+9 | 0 | 1 | 
+0 | 0 | 1 | 
+1 | 0 | 1 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1460.
+Dumping coordinates of Polymer # 0.
+START
+7 | 9 | 0 | 
+8 | 9 | 0 | 
+9 | 9 | 0 | 
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1470.
+Dumping coordinates of Polymer # 0.
+START
+0 | 9 | 0 | 
+1 | 9 | 0 | 
+1 | 0 | 0 | 
+0 | 0 | 0 | 
+9 | 0 | 0 | 
+9 | 1 | 0 | 
+0 | 1 | 0 | 
+1 | 1 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1480.
+Dumping coordinates of Polymer # 0.
+START
+8 | 1 | 0 | 
+9 | 1 | 0 | 
+0 | 1 | 0 | 
+1 | 1 | 0 | 
+2 | 1 | 0 | 
+3 | 1 | 0 | 
+4 | 1 | 0 | 
+4 | 2 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1490.
+Dumping coordinates of Polymer # 0.
+START
+9 | 2 | 0 | 
+9 | 1 | 0 | 
+0 | 1 | 0 | 
+0 | 2 | 0 | 
+1 | 2 | 0 | 
+2 | 2 | 0 | 
+3 | 2 | 0 | 
+4 | 2 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1500.
+Dumping coordinates of Polymer # 0.
+START
+9 | 3 | 0 | 
+9 | 2 | 0 | 
+0 | 2 | 0 | 
+1 | 2 | 0 | 
+2 | 2 | 0 | 
+3 | 2 | 0 | 
+4 | 2 | 0 | 
+4 | 3 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1510.
+Dumping coordinates of Polymer # 0.
+START
+9 | 2 | 0 | 
+0 | 2 | 0 | 
+1 | 2 | 0 | 
+2 | 2 | 0 | 
+3 | 2 | 0 | 
+4 | 2 | 0 | 
+5 | 2 | 0 | 
+5 | 3 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1520.
+Dumping coordinates of Polymer # 0.
+START
+2 | 3 | 0 | 
+3 | 3 | 0 | 
+4 | 3 | 0 | 
+5 | 3 | 0 | 
+6 | 3 | 0 | 
+7 | 3 | 0 | 
+8 | 3 | 0 | 
+9 | 3 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1530.
+Dumping coordinates of Polymer # 0.
+START
+3 | 4 | 0 | 
+4 | 4 | 0 | 
+4 | 3 | 0 | 
+5 | 3 | 0 | 
+6 | 3 | 0 | 
+6 | 4 | 0 | 
+7 | 4 | 0 | 
+7 | 5 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1540.
+Dumping coordinates of Polymer # 0.
+START
+5 | 4 | 9 | 
+5 | 3 | 9 | 
+5 | 3 | 0 | 
+6 | 3 | 0 | 
+6 | 4 | 0 | 
+7 | 4 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1550.
+Dumping coordinates of Polymer # 0.
+START
+6 | 4 | 1 | 
+6 | 4 | 0 | 
+7 | 4 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+9 | 5 | 0 | 
+0 | 5 | 0 | 
+0 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1560.
+Dumping coordinates of Polymer # 0.
+START
+5 | 4 | 0 | 
+6 | 4 | 0 | 
+6 | 5 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+9 | 5 | 0 | 
+0 | 5 | 0 | 
+1 | 5 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1570.
+Dumping coordinates of Polymer # 0.
+START
+5 | 6 | 0 | 
+5 | 5 | 0 | 
+5 | 5 | 1 | 
+6 | 5 | 1 | 
+6 | 5 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+9 | 5 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1580.
+Dumping coordinates of Polymer # 0.
+START
+4 | 5 | 1 | 
+3 | 5 | 1 | 
+3 | 5 | 0 | 
+4 | 5 | 0 | 
+5 | 5 | 0 | 
+6 | 5 | 0 | 
+7 | 5 | 0 | 
+8 | 5 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1590.
+Dumping coordinates of Polymer # 0.
+START
+1 | 5 | 1 | 
+1 | 5 | 0 | 
+2 | 5 | 0 | 
+3 | 5 | 0 | 
+4 | 5 | 0 | 
+5 | 5 | 0 | 
+6 | 5 | 0 | 
+6 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1600.
+Dumping coordinates of Polymer # 0.
+START
+8 | 5 | 0 | 
+9 | 5 | 0 | 
+0 | 5 | 0 | 
+1 | 5 | 0 | 
+2 | 5 | 0 | 
+3 | 5 | 0 | 
+4 | 5 | 0 | 
+5 | 5 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1610.
+Dumping coordinates of Polymer # 0.
+START
+9 | 5 | 0 | 
+0 | 5 | 0 | 
+1 | 5 | 0 | 
+2 | 5 | 0 | 
+3 | 5 | 0 | 
+3 | 6 | 0 | 
+4 | 6 | 0 | 
+5 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1620.
+Dumping coordinates of Polymer # 0.
+START
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+4 | 6 | 0 | 
+5 | 6 | 0 | 
+6 | 6 | 0 | 
+7 | 6 | 0 | 
+8 | 6 | 0 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1630.
+Dumping coordinates of Polymer # 0.
+START
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+3 | 6 | 0 | 
+4 | 6 | 0 | 
+4 | 6 | 9 | 
+5 | 6 | 9 | 
+5 | 7 | 9 | 
+6 | 7 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1640.
+Dumping coordinates of Polymer # 0.
+START
+0 | 6 | 0 | 
+1 | 6 | 0 | 
+2 | 6 | 0 | 
+2 | 6 | 9 | 
+3 | 6 | 9 | 
+4 | 6 | 9 | 
+4 | 6 | 8 | 
+4 | 7 | 8 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1650.
+Dumping coordinates of Polymer # 0.
+START
+9 | 6 | 0 | 
+0 | 6 | 0 | 
+0 | 6 | 9 | 
+1 | 6 | 9 | 
+2 | 6 | 9 | 
+3 | 6 | 9 | 
+4 | 6 | 9 | 
+4 | 7 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1660.
+Dumping coordinates of Polymer # 0.
+START
+9 | 6 | 9 | 
+0 | 6 | 9 | 
+1 | 6 | 9 | 
+1 | 7 | 9 | 
+2 | 7 | 9 | 
+3 | 7 | 9 | 
+4 | 7 | 9 | 
+4 | 8 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1670.
+Dumping coordinates of Polymer # 0.
+START
+1 | 6 | 9 | 
+1 | 6 | 0 | 
+1 | 7 | 0 | 
+1 | 7 | 9 | 
+2 | 7 | 9 | 
+3 | 7 | 9 | 
+4 | 7 | 9 | 
+4 | 8 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1680.
+Dumping coordinates of Polymer # 0.
+START
+3 | 7 | 0 | 
+2 | 7 | 0 | 
+2 | 6 | 0 | 
+2 | 6 | 9 | 
+2 | 7 | 9 | 
+2 | 8 | 9 | 
+3 | 8 | 9 | 
+4 | 8 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1690.
+Dumping coordinates of Polymer # 0.
+START
+3 | 7 | 0 | 
+3 | 6 | 0 | 
+2 | 6 | 0 | 
+2 | 6 | 9 | 
+2 | 7 | 9 | 
+3 | 7 | 9 | 
+3 | 8 | 9 | 
+4 | 8 | 9 | 
+END
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+Dumping coordinates at step 1700.
+Dumping coordinates of Polymer # 0.
+START
+3 | 6 | 9 | 
+3 | 6 | 0 | 
+3 | 7 | 0 | 
+3 | 7 | 9 | 
+3 | 8 | 9 | 
+4 | 8 | 9 | 
+4 | 9 | 9 | 
+5 | 9 | 9 | 
 END
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

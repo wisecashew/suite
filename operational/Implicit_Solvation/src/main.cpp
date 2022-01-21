@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     // set up 
     int opt; 
     int Nacc {-1}, dfreq {-1}, max_iter{-1};
-    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"energydump.txt"}, restart_traj{"blank"};  
+    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, restart_traj{"blank"};  
     bool v = false, a = false, r = false;
 
     while ( (opt = getopt(argc, argv, ":f:M:N:T:o:u:p:t:e:vhar")) != -1 )
@@ -102,9 +102,10 @@ int main(int argc, char** argv) {
             case 'r':
                 std::cout <<"Will attempt to restart simulation by taking coordinates from a previous trajectory file." << std::endl;
                 r = true; 
+                break; 
+
             case ':':
-                
-                std::cout << "ERROR: Missing arg for " << static_cast <char> (optopt) << std::endl;
+                std::cout << "ERROR: Missing arg for " << static_cast <char> (optopt) << "." << std::endl;
                 exit(EXIT_FAILURE);
                 
                 
@@ -112,81 +113,37 @@ int main(int argc, char** argv) {
         }
     }
 
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    // parse inputs 
     
-    // Check what kind of statistics do you want! 
-    // With option a, you only sample accepted positions. Do this only if you are not getting decorrelated chains! 
-
-
-    if (!a) {
-        if (Nacc != -1){
-            std::cerr << "ERROR: You do not need to provide a -N option if you are not looking for accepted configuration statistics. Use -a if you want to use -N. Safeguarding against uncontrolled behavior. Exiting..." << std::endl;
-            exit (EXIT_FAILURE); 
-        }
-
-        if (dfreq == -1 || max_iter == -1){
-            std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-            exit (EXIT_FAILURE);
-        }
-    }
-
-    if (!r) {
-        if (restart_traj != "blank"){
-            std::cerr << "ERROR: You cannot ask for a trajectory coordinate file without the -r flag. Exiting..." << std::endl;
-            exit (EXIT_FAILURE); 
-        }
-    }
-
-    else {
-        if (Nacc == -1 || dfreq == -1 || max_iter == -1 ){
-            std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-            exit (EXIT_FAILURE);
-        }
-    }
-
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#   
-
-
-    if (positions=="blank" || topology == "blank" || dfile=="blank"){
-        std::cerr << "positions is " << positions <<", topology is " << topology <<", dfile is " << dfile << std::endl;
-        std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file) was provided. Exiting..." << std::endl;
-        exit (EXIT_FAILURE);    
-    }
-
-    if (v){
-        std::cout << "\nVERBOSE OUTPUT HAS BEEN TOGGLED.\n" << std::endl;
-    }
-     
-    if (r){
-        std::ofstream dump_file(dfile, std::ios::app); 
-        std::ofstream energy_dump_file (efile, std::ios::app); 
-    }
-
-    if (!r){
-        std::ofstream dump_file (dfile);
-        std::ofstream energy_dump_file (efile);
-    }
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    InputParser (a, r, Nacc, dfreq, max_iter, positions, topology, dfile, efile, restart_traj); 
 
     // driver 
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    Grid G = CreateGridObject(positions, topology);
-    
-    std::cout << "Temperature of box is " << G.kT << "." << std::endl;
-    G.dumpPositionsOfPolymers(0, dfile);
-    bool call {true}; 
-    G.dumpEnergyOfGrid(0, efile, true); 
-    call = false; 
-    G.CalculateEnergy();
+    Grid G;                             // setting up the grid object
+    bool call {true};                   // setting up the call for first input or not 
+    int step_number;                    // defining step_number for output reasons 
+
+
+    // define grid objects 
+
+    if (r){
+        G = CreateGridObjectRestart(positions, topology, restart_traj);
+        step_number = G.ExtractIndexOfFinalMove (restart_traj, positions) ; 
+        G.CalculateEnergy();   
+        call = false; 
+    }
+    else {
+        G = CreateGridObject(positions, topology);
+        std::cout << "Temperature of box is " << G.kT << "." << std::endl;
+        step_number = 0; 
+        G.dumpPositionsOfPolymers(step_number, dfile); 
+        G.dumpEnergyOfGrid(step_number, efile, true); 
+        call = false; 
+        G.CalculateEnergy();
+    }
 
 
     std::cout << "Energy surface check: " << std::endl; 
@@ -199,7 +156,7 @@ int main(int argc, char** argv) {
         std::cout << "Next..." << std::endl;
     }
 
-    
+    // grid objects have been validated. 
     
 
     Grid G_ ;
@@ -211,7 +168,7 @@ int main(int argc, char** argv) {
 
     int acceptance_count {0} ; 
 	int temp_var {-1};							// this variable is to make sure acceptance_count is not recounted  
-    for (int i{1}; i< (max_iter+1); i++) {
+    for (int i = step_number; i< (step_number+max_iter+1); i++) {
 
 
         if ( v && (i%dfreq==0) ){
@@ -269,22 +226,18 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); //  << duration.count() << " milliseconds" << std::endl;
-    // printf("Number of acceptances is %d.\n", acceptance_count) ; //  << acceptance_count << std::endl;
+    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() );
+
     }
 
 
-
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-
 
 
     else {
         printf("Simulation will output information of every %d configuration.\n", dfreq); 
-        for (int i{1}; i< (max_iter+1); i++) {
+        for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
 
             if ( v && (i%dfreq==0) ){
@@ -306,7 +259,7 @@ int main(int argc, char** argv) {
                     printf("Energy of the system is %f.\n", G_.Energy);
                     printf("%d\n", IMP_BOOL);
                 }
-                // ++acceptance_count; 
+
                 G = std::move(G_);
             }
 

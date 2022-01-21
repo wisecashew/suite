@@ -102,5 +102,9 @@ void StringToFile(std::string filename, std::string to_send);
 // extract number of polymers from the topology file 
 int ExtractNumberOfPolymers(std::string filename);
 
+// check input of main driver code 
+void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter, 
+    std::string positions, std::string topology, std::string dfile, 
+    std::string efile, std::string restart_traj); 
 
 #endif 

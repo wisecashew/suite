@@ -593,13 +593,59 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractIndexOfFinalMove
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the trajectory file, and extracts the index of the final move. 
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+int Grid::ExtractIndexOfFinalMove(std::string trajectory, std::string filename){
+
+    std::vector <std::string> contents = ExtractContentFromFile(trajectory); 
+
+    int step_number{0}; 
+    std::regex stepnum ("Dumping coordinates at step"); 
+
+    for (std::string& s: contents){
+
+        std::stringstream ss(s); 
+        std::string temp; 
+        int found; 
+
+        if (std::regex_search (s, stepnum) ){
+            while (!ss.eof() ){
+                ss >> temp; 
+                if (std::stringstream(temp) >> found){
+                    step_number = found; 
+                }
+            }
+        }
+    }
+
+    return step_number; 
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractPolymersFromTraj. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: ExtractPolymersFromFile
+// NAME OF FUNCTION: ExtractPolymersFromTraj
 //
-// PARAMETERS: std::string filename 
+// PARAMETERS: std::string trajectory, std::string filename 
 // 
 // WHAT THE FUNCTION DOES: it looks at the positions file, and extracts all the data from the file 
 // in the form of a vector of strings.  
@@ -633,7 +679,7 @@ void Grid::ExtractPolymersFromTraj(std::string trajectory, std::string filename)
         std::stringstream ss(s);
         std::string temp; 
         int found; 
-        std::stringstream int_ss; 
+        // std::stringstream int_ss; 
 
         if (std::regex_search(s, stepnum)){
             while(!ss.eof()){

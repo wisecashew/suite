@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates.\n" <<
                 "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Dump energy of grid at each step in a file.\n"<<
                 "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology.\n" <<
-                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation. Can only be used with -r flag.\n"<<
+                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n"<<
                 "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer.\n";  
                 exit(EXIT_SUCCESS);
                 break;
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
 
     if (r){
         G = CreateGridObjectRestart(positions, topology, restart_traj);
-        step_number = G.ExtractIndexOfFinalMove (restart_traj, positions) ; 
+        step_number = G.ExtractIndexOfFinalMove (restart_traj) ; 
         G.CalculateEnergy();   
         call = false; 
     }

@@ -606,7 +606,7 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 //
 // THE CODE: 
 
-int Grid::ExtractIndexOfFinalMove(std::string trajectory, std::string filename){
+int Grid::ExtractIndexOfFinalMove(std::string trajectory){
 
     std::vector <std::string> contents = ExtractContentFromFile(trajectory); 
 

@@ -269,14 +269,14 @@ int main(int argc, char** argv) {
                     printf("Not accepted.\n");
                     printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G.Energy, G_.Energy);
                 }
-                // continue;
+                
             }
 
             if ( ( i % dfreq == 0) ){
-                // printf("acceptance_count is %d and dfreq is %d.\n", acceptance_count, dfreq); 
+                
                 G.dumpPositionsOfPolymers (i, dfile) ;
                 G.dumpEnergyOfGrid(i, efile, call) ; 
-                // temp_var = acceptance_count ;
+                
             }
 
             IMP_BOOL = true; 

@@ -2395,7 +2395,7 @@ Grid Reptation(Grid* InitialG, int index, bool* IMP_BOOL){
 // 2. Kink Jump
 // 3. Crank Shaft
 // 4. Reptation
-// 5. Ising Flip
+// 5. Aggressive End rotation
 //
 // DEPENDENCIES: rng_uniform, CalculateEnergy, EndRotation, KinkJump, CrankShaft, Reptation, IsingFlip  
 //

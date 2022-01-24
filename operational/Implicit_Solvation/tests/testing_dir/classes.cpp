@@ -1638,16 +1638,25 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
 
         if (direction_check) {
 
+            for (int ii{0}, ip{0}; ii < index_pivot; ++ii, ++ip){
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot-(1+ii)].coords );            // get rid of what WAS there, and repopulate
+                NewG.OccupancyMap.erase( position_store[ip] );  
+            }
+
             for (int i{0}; i<index_pivot; ++i){
                 // printf("Position to analyze is: "); 
 
-                Particle p1 (NewG.OccupancyMap[ NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords ] ); 
-                p1.coords = position_store[i]; 
-                // print(p1.coords);
-                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords );            // get rid of what WAS there, and repopulate
-                NewG.OccupancyMap[p1.coords] = p1; 
+                Particle p1 ( NewG.PolymersInGrid[index].chain[index_pivot-(1+i)] ); 
 
+                p1.coords = position_store[i]; 
+                printf("This is inside ZeroAgg. At pivot-(1+%d) index is: ", i); 
+                print(p1.coords); 
+                // print(p1.coords);
+                
+                NewG.OccupancyMap[p1.coords] = p1; 
+                
                 NewG.PolymersInGrid[index].chain[index_pivot-(i+1)].coords = position_store[i]; 
+
 
             }
             NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
@@ -1666,6 +1675,13 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
         // printf("All a bust.\n");
         *IMP_BOOL = false; 
     }
+    int nkey {0}; 
+    for (auto it = NewG.OccupancyMap.begin(); it != NewG.OccupancyMap.end(); it++) {
+        printf("key is: "); 
+        print(it->first);
+        nkey++;
+    }
+    printf("number of keys is %d.\n", nkey);
 
     return NewG; 
 
@@ -1780,14 +1796,19 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
 
         if (direction_check){
 
+            for (int ii{0}, ip{0}; ii < (size_of_poly-index_pivot-1); ++ii, ++ip){
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(1+ii)].coords );            // get rid of what WAS there, and repopulate
+                NewG.OccupancyMap.erase( position_store[ip] );  
+            }
+
             for (int i{0}; i<(size_of_poly-index_pivot-1); ++i){
                 // printf("Position to analyze is: "); 
 
-                Particle p1 (NewG.OccupancyMap[NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords] );
+                Particle p1 ( NewG.PolymersInGrid[index].chain[index_pivot+(1+i)] ); // (NewG.OccupancyMap[NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords] );
                 p1.coords = position_store[i];
                 // print(p1.coords); 
 
-                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords ); 
+                // NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords ); 
                 NewG.OccupancyMap[p1.coords] = p1; 
                 
                 NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords = position_store[i]; 
@@ -1809,6 +1830,13 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
         *IMP_BOOL = false;
     }
 
+    int nkey = 0; 
+    for (auto it = NewG.OccupancyMap.begin(); it != NewG.OccupancyMap.end(); it++) {
+        printf("key is: "); 
+        print(it->first);
+        nkey++;
+    }
+    printf("number of keys is %d.\n", nkey);
     return NewG;
 
 }
@@ -1974,11 +2002,11 @@ Grid EndRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
     int num = distribution(generator); 
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
-        // std::cout << "Zero index rotation!" << std::endl;
+        std::cout << "Zero index aggrotation!" << std::endl;
         return ZeroIndexRotationAgg(InitialG, index, IMP_BOOL); 
     }
     else {
-        // std::cout << "Final index rotation!" << std::endl;
+        std::cout << "Final index aggrotation!" << std::endl;
         return FinalIndexRotationAgg(InitialG, index, IMP_BOOL); 
 
     }
@@ -2406,7 +2434,8 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
     int index = rng_uniform(0, static_cast<int>((*InitialG).PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ ; 
-    int r = rng_uniform(1, 5);
+    int r = rng_uniform(1, 4);
+    int nkey {0}; 
     switch (r) {
         case (1):
             if (v){
@@ -2415,6 +2444,13 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // 
             G_ = EndRotation(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy(); 
+            nkey = 0; 
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            printf("number of keys is %d.\n", nkey);
             break;     
         
         case (2):
@@ -2424,6 +2460,14 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // std::cout << "Performing crank shaft." << std::endl;
             G_ = CrankShaft(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy();
+            nkey=0; 
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            printf("number of keys is %d.\n", nkey);
+            
             break; 
 
         case (3):
@@ -2433,6 +2477,14 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // std::cout << "Performing reptation." << std::endl;
             G_ = Reptation(InitialG, index, IMP_BOOL); 
             G_.CalculateEnergy();
+            nkey = 0;
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            printf("number of keys is %d.\n", nkey);
+            
             break; 
 
         case (4):
@@ -2442,6 +2494,14 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // std::cout << "Performing kink jump." << std::endl;
             G_ = KinkJump(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy ( );        
+            nkey = 0; 
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            printf("number of keys is %d.\n", nkey);
+            
             break; 
 
         case (5):
@@ -2450,8 +2510,10 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             }
             G_ = EndRotationAgg(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy(); 
+
             break;
     }
+    G_.PolymersInGrid[index].printChainCoords();
 
     return G_;
 }

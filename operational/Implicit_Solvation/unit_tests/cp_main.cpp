@@ -129,21 +129,14 @@ int main(int argc, char** argv) {
 
     // define grid objects 
 
-    if (r){
-        G = CreateGridObjectRestart(positions, topology, restart_traj);
-        step_number = G.ExtractIndexOfFinalMove (restart_traj, positions) ; 
-        G.CalculateEnergy();   
-        call = false; 
-    }
-    else {
-        G = CreateGridObject(positions, topology);
-        std::cout << "Temperature of box is " << G.kT << "." << std::endl;
-        step_number = 0; 
-        G.dumpPositionsOfPolymers(step_number, dfile); 
-        G.dumpEnergyOfGrid(step_number, efile, true); 
-        call = false; 
-        G.CalculateEnergy();
-    }
+
+    G = CreateGridObject(positions, topology);
+    std::cout << "Temperature of box is " << G.kT << "." << std::endl;
+    step_number = 0; 
+    G.dumpPositionsOfPolymers(step_number, dfile); 
+    G.dumpEnergyOfGrid(step_number, efile, true); 
+    call = false; 
+    G.CalculateEnergy();
 
 
     std::cout << "Energy surface check: " << std::endl; 
@@ -158,7 +151,17 @@ int main(int argc, char** argv) {
 
     // grid objects have been validated. 
     
+    bool IMP_BOOL {true}; 
+    Grid G_ = ZeroIndexRotationAgg(&G, 0, &IMP_BOOL); 
 
+    G_.dumpPositionsOfPolymers(1, dfile); 
+    G_.dumpEnergyOfGrid(1, efile, false);
+
+    G_ = ZeroIndexRotationAgg(&G_, 0, &IMP_BOOL); 
+
+    G_.dumpPositionsOfPolymers(1, dfile); 
+    G_.dumpEnergyOfGrid(1, efile, false);
+    /*
     Grid G_ ;
 
     bool IMP_BOOL  {true}; 
@@ -290,7 +293,13 @@ int main(int argc, char** argv) {
     printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); 
    
     }
+    */
 
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+
+    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() );
 
     return 0;
 

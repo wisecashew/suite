@@ -76,6 +76,9 @@ std::vector <Polymer> ExtractPolymersFromFile(std::string filename);
 
 std::array <std::array <int,3>,3> HingeSwingDirections(std::array <int,3>* HingeToHinge, std::array <int,3>* HingeToKink, int x, int y, int z); 
 
+void modified_direction(std::array<int,3>* a, int x, int y, int z);
+int modified_modulo(int divident, int divisor);
+
 
 int rng_uniform(int start, int end);
 double rng_uniform(double start, double end);

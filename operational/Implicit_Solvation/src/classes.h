@@ -234,6 +234,8 @@ Grid BackwardReptation(Grid* InitialG, int index, bool*);
 Grid Reptation(Grid* InitialG, int index, bool*);
 Grid Translation(Grid* InitialG, int index, std::vector <int> direction);  
 Grid MoveChooser(Grid* InitialG, bool v, bool* IMP_BOOL); 
+Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL);
+Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL);
 int ExtractNumberOfPolymers(std::string filename);
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

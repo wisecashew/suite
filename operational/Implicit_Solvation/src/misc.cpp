@@ -81,6 +81,26 @@ int modified_modulo(int divident, int divisor){
 
 }
 
+void modified_direction(std::array<int,3>* a, int x, int y, int z){
+	
+	for (int i{0}; i<3; ++i){
+		switch (i){
+			case (0):
+				(*a)[i] = modified_modulo((*a)[i], x); 
+				break; 
+			case (1): 
+				(*a)[i] = modified_modulo((*a)[i], y);
+				break;
+			case (2):
+				(*a)[i] = modified_modulo((*a)[i], z); 
+				break;
+			}
+	}
+
+	return;
+	
+}
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 

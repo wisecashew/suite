@@ -6,6 +6,18 @@ Solvent positions defined successfully!
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 Energy of box is: -19
+seed is 3217687022
+index of pivot is: 3
+1 | 9 | 1 | 
+Direction to avoid is: 0 | 0 | 1 | 
+Starting point is: 1 | 9 | 1 | 
+Proposed dir: 0 | -1 | 0 | 
+pos to check: 1 | 8 | 1 | 
+pos to check: 1 | 7 | 1 | 
+pos to check: 1 | 6 | 1 | 
+Position to analyze is: 1 | 8 | 1 | 
+Position to analyze is: 1 | 7 | 1 | 
+Position to analyze is: 1 | 6 | 1 | 
 On the surface...
 
 
@@ -21,14 +33,14 @@ Coordinates of monomer unit of Polymer 0 in G are:
 
 
 Coordinates of monomer unit of Polymer 0 in G3 are: 
-9 | 0 | 0 | 
-0 | 0 | 0 | 
-0 | 9 | 0 | 
-1 | 9 | 0 | 
+1 | 6 | 1 | 
+1 | 7 | 1 | 
+1 | 8 | 1 | 
 1 | 9 | 1 | 
 1 | 9 | 2 | 
 1 | 0 | 2 | 
 1 | 0 | 1 | 
+1 | 0 | 0 | 
 
 
 
@@ -70,81 +82,28 @@ Check: Check number of elements in Polymers 1 in both G and G3.
 Number of elements in Polymer 1 in G is 8 and in G3 is 8.
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~
 Find discrepancy in PolymersInGrid.
-
-
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 2
-The orientation of the after is 2
+The orientation of the particle originally is 3
+The orientation of the after is 3
 The position of the particle originally is 0 | 0 | 0 | 
-The position of the particle after is 9 | 0 | 0 | 
+The position of the particle after is 1 | 6 | 1 | 
 The type of the particle originally is monomer
 The type of the particle after is monomer
-
-
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 4
-The orientation of the after is 4
+The orientation of the particle originally is 0
+The orientation of the after is 0
 The position of the particle originally is 0 | 9 | 0 | 
-The position of the particle after is 0 | 0 | 0 | 
+The position of the particle after is 1 | 7 | 1 | 
 The type of the particle originally is monomer
 The type of the particle after is monomer
-
-
 ---------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 4
-The orientation of the after is 4
+The orientation of the particle originally is 5
+The orientation of the after is 5
 The position of the particle originally is 1 | 9 | 0 | 
-The position of the particle after is 0 | 9 | 0 | 
+The position of the particle after is 1 | 8 | 1 | 
 The type of the particle originally is monomer
 The type of the particle after is monomer
 
-
----------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 2
-The orientation of the after is 2
-The position of the particle originally is 1 | 9 | 1 | 
-The position of the particle after is 1 | 9 | 0 | 
-The type of the particle originally is monomer
-The type of the particle after is monomer
-
-
----------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 2
-The orientation of the after is 2
-The position of the particle originally is 1 | 9 | 2 | 
-The position of the particle after is 1 | 9 | 1 | 
-The type of the particle originally is monomer
-The type of the particle after is monomer
-
-
----------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 4
-The orientation of the after is 4
-The position of the particle originally is 1 | 0 | 2 | 
-The position of the particle after is 1 | 9 | 2 | 
-The type of the particle originally is monomer
-The type of the particle after is monomer
-
-
----------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 1
-The orientation of the after is 1
-The position of the particle originally is 1 | 0 | 1 | 
-The position of the particle after is 1 | 0 | 2 | 
-The type of the particle originally is monomer
-The type of the particle after is monomer
-
-
----------------FOUND THE DISPLACED PARTICLE---------------
-The orientation of the particle originally is 2
-The orientation of the after is 2
-The position of the particle originally is 1 | 0 | 0 | 
-The position of the particle after is 1 | 0 | 1 | 
-The type of the particle originally is monomer
-The type of the particle after is monomer
-
-
-Printing connectivity map information 
 
 In the original case, G...
 For Polymer 0:
@@ -162,6 +121,73 @@ The connections are:
 The original particle is: 1 | 9 | 1 | 
 The connections are: 
 1 | 9 | 0 | 
+1 | 9 | 2 | 
+The original particle is: 1 | 9 | 2 | 
+The connections are: 
+1 | 9 | 1 | 
+1 | 0 | 2 | 
+The original particle is: 1 | 0 | 2 | 
+The connections are: 
+1 | 9 | 2 | 
+1 | 0 | 1 | 
+The original particle is: 1 | 0 | 1 | 
+The connections are: 
+1 | 0 | 2 | 
+1 | 0 | 0 | 
+The original particle is: 1 | 0 | 0 | 
+The connections are: 
+1 | 0 | 1 | 
+For Polymer 1:
+The original particle is: 1 | 1 | 0 | 
+The connections are: 
+0 | 1 | 0 | 
+The original particle is: 0 | 1 | 0 | 
+The connections are: 
+1 | 1 | 0 | 
+9 | 1 | 0 | 
+The original particle is: 9 | 1 | 0 | 
+The connections are: 
+0 | 1 | 0 | 
+9 | 1 | 9 | 
+The original particle is: 9 | 1 | 9 | 
+The connections are: 
+9 | 1 | 0 | 
+9 | 1 | 8 | 
+The original particle is: 9 | 1 | 8 | 
+The connections are: 
+9 | 1 | 9 | 
+0 | 1 | 8 | 
+The original particle is: 0 | 1 | 8 | 
+The connections are: 
+9 | 1 | 8 | 
+1 | 1 | 8 | 
+The original particle is: 1 | 1 | 8 | 
+The connections are: 
+0 | 1 | 8 | 
+2 | 1 | 8 | 
+The original particle is: 2 | 1 | 8 | 
+The connections are: 
+1 | 1 | 8 | 
+
+
+In the MOVED case, G3...
+
+
+For Polymer 0:
+The original particle is: 1 | 6 | 1 | 
+The connections are: 
+1 | 7 | 1 | 
+The original particle is: 1 | 7 | 1 | 
+The connections are: 
+1 | 6 | 1 | 
+1 | 8 | 1 | 
+The original particle is: 1 | 8 | 1 | 
+The connections are: 
+1 | 7 | 1 | 
+1 | 9 | 1 | 
+The original particle is: 1 | 9 | 1 | 
+The connections are: 
+1 | 8 | 1 | 
 1 | 9 | 2 | 
 The original particle is: 1 | 9 | 2 | 
 The connections are: 
@@ -213,76 +239,70 @@ The connections are:
 1 | 1 | 8 | 
 
 
+time for the main event: OccupancyMap.
 
-
-In the MOVED case, G3...
-
-
-For Polymer 0:
-The original particle is: 9 | 0 | 0 | 
-The connections are: 
-0 | 0 | 0 | 
-The original particle is: 0 | 0 | 0 | 
-The connections are: 
-9 | 0 | 0 | 
-0 | 9 | 0 | 
-The original particle is: 0 | 9 | 0 | 
-The connections are: 
-0 | 0 | 0 | 
-1 | 9 | 0 | 
-The original particle is: 1 | 9 | 0 | 
-The connections are: 
-0 | 9 | 0 | 
-1 | 9 | 1 | 
-The original particle is: 1 | 9 | 1 | 
-The connections are: 
-1 | 9 | 0 | 
-1 | 9 | 2 | 
-The original particle is: 1 | 9 | 2 | 
-The connections are: 
-1 | 9 | 1 | 
-1 | 0 | 2 | 
-The original particle is: 1 | 0 | 2 | 
-The connections are: 
-1 | 9 | 2 | 
+0 | 1 | 0 | 
+0 | 1 | 8 | 
+1 | 0 | 0 | 
 1 | 0 | 1 | 
-The original particle is: 1 | 0 | 1 | 
-The connections are: 
 1 | 0 | 2 | 
-
-
-
-
-For Polymer 1:
-The original particle is: 1 | 1 | 0 | 
-The connections are: 
-0 | 1 | 0 | 
-The original particle is: 0 | 1 | 0 | 
-The connections are: 
 1 | 1 | 0 | 
-9 | 1 | 0 | 
-The original particle is: 9 | 1 | 0 | 
-The connections are: 
-0 | 1 | 0 | 
-9 | 1 | 9 | 
-The original particle is: 9 | 1 | 9 | 
-The connections are: 
-9 | 1 | 0 | 
-9 | 1 | 8 | 
-The original particle is: 9 | 1 | 8 | 
-The connections are: 
-9 | 1 | 9 | 
-0 | 1 | 8 | 
-The original particle is: 0 | 1 | 8 | 
-The connections are: 
-9 | 1 | 8 | 
 1 | 1 | 8 | 
-The original particle is: 1 | 1 | 8 | 
-The connections are: 
-0 | 1 | 8 | 
+1 | 6 | 1 | 
+1 | 7 | 1 | 
+1 | 8 | 1 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
 2 | 1 | 8 | 
-The original particle is: 2 | 1 | 8 | 
-The connections are: 
+9 | 1 | 0 | 
+9 | 1 | 8 | 
+9 | 1 | 9 | 
+number of key is G3 is 16
+0 | 0 | 0 | 
+0 | 1 | 0 | 
+0 | 1 | 8 | 
+0 | 9 | 0 | 
+1 | 0 | 0 | 
+1 | 0 | 1 | 
+1 | 0 | 2 | 
+1 | 1 | 0 | 
 1 | 1 | 8 | 
-
-
+1 | 9 | 0 | 
+1 | 9 | 1 | 
+1 | 9 | 2 | 
+2 | 1 | 8 | 
+9 | 1 | 0 | 
+9 | 1 | 8 | 
+9 | 1 | 9 | 
+Key:   0 | 0 | 0 | , Key3:   0 | 1 | 0 | 
+Value: 0 | 0 | 0 | , Value3: 0 | 1 | 0 | 
+Key:   0 | 1 | 0 | , Key3:   0 | 1 | 8 | 
+Value: 0 | 1 | 0 | , Value3: 0 | 1 | 8 | 
+Key:   0 | 1 | 8 | , Key3:   1 | 0 | 0 | 
+Value: 0 | 1 | 8 | , Value3: 1 | 0 | 0 | 
+Key:   0 | 9 | 0 | , Key3:   1 | 0 | 1 | 
+Value: 0 | 9 | 0 | , Value3: 1 | 0 | 1 | 
+Key:   1 | 0 | 0 | , Key3:   1 | 0 | 2 | 
+Value: 1 | 0 | 0 | , Value3: 1 | 0 | 2 | 
+Key:   1 | 0 | 1 | , Key3:   1 | 1 | 0 | 
+Value: 1 | 0 | 1 | , Value3: 1 | 1 | 0 | 
+Key:   1 | 0 | 2 | , Key3:   1 | 1 | 8 | 
+Value: 1 | 0 | 2 | , Value3: 1 | 1 | 8 | 
+Key:   1 | 1 | 0 | , Key3:   1 | 6 | 1 | 
+Value: 1 | 1 | 0 | , Value3: 1 | 6 | 1 | 
+Key:   1 | 1 | 8 | , Key3:   1 | 7 | 1 | 
+Value: 1 | 1 | 8 | , Value3: 1 | 7 | 1 | 
+Key:   1 | 9 | 0 | , Key3:   1 | 8 | 1 | 
+Value: 1 | 9 | 0 | , Value3: 1 | 8 | 1 | 
+Key:   1 | 9 | 1 | , Key3:   1 | 9 | 1 | 
+Value: 1 | 9 | 1 | , Value3: 1 | 9 | 1 | 
+Key:   1 | 9 | 2 | , Key3:   1 | 9 | 2 | 
+Value: 1 | 9 | 2 | , Value3: 1 | 9 | 2 | 
+Key:   2 | 1 | 8 | , Key3:   2 | 1 | 8 | 
+Value: 2 | 1 | 8 | , Value3: 2 | 1 | 8 | 
+Key:   9 | 1 | 0 | , Key3:   9 | 1 | 0 | 
+Value: 9 | 1 | 0 | , Value3: 9 | 1 | 0 | 
+Key:   9 | 1 | 8 | , Key3:   9 | 1 | 8 | 
+Value: 9 | 1 | 8 | , Value3: 9 | 1 | 8 | 
+Key:   9 | 1 | 9 | , Key3:   9 | 1 | 9 | 
+Value: 9 | 1 | 9 | , Value3: 9 | 1 | 9 | 

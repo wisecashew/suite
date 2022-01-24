@@ -1496,16 +1496,10 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
     // get the neighborlist of particle at index 1 
     std::array <int,3> loc_0 = NewG.PolymersInGrid[index].chain[0].coords; 
     std::array <int,3> loc_1 = NewG.PolymersInGrid[index].chain[1].coords;
-    // std::array <int,3> loc_2 = NewG.PolymersInGrid.at(index).chain[2].coords; 
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, (*InitialG).x, (*InitialG).y, (*InitialG).z) ; 
-    // std::cout << "neighbort list is " << std::endl; 
-    // print(ne_list); 
-    // get the locations of particles it is connected to, and then erase them from the neighbor list 
-    // ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into 
-    // ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into
-    // std::shuffle(std::begin(ne_list), std::end(ne_list), std::default_random_engine());
-    // find a location that is not occupied by monomer 
-    // use the occupancy map 
+    
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, (NewG).x, (NewG).y, (NewG).z) ; 
+
+
 	size_t tries = 0; 
     for (std::array <int,3>& to_rot: ne_list){
 
@@ -1540,12 +1534,291 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 }
 
 
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ZeroIndexRotationAgg 
+//
+// PARAMETERS: index of a polymer to perform FinalIndexRotation, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer tail, pivoted at some index 
+// of the polymer. As it stands, this function only rotates all units at index 0, 1, ..., pivot-1. 
+//
+// PLANNED EXTENSION: Multiple molecules at the tail need to be rotated.    
+//
+// DEPENDENCIES: ChainToConnectivityMap, modified_direction, impose_pbc
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully.    
+//
+// THE CODE: 
+
+
+Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
+
+    std::array <int,3> ax{1,0,0}, nax{-1,0,0}, ay{0,1,0}, nay{0,-1,0}, az{0,0,1}, naz{0,0,-1};        // unit directions
+    std::array<std::array <int,3>, 6> directions = {ax, nax, ay, nay, az, naz}; 
+
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    
+    std::shuffle (directions.begin(), directions.end(), std::default_random_engine(seed)); 
+
+    Grid NewG (*InitialG); 
+
+    int size_of_poly = NewG.PolymersInGrid[index].chain.size(); 
+    
+    int index_pivot = rng_uniform(1, static_cast<int>(size_of_poly/2)); 
+
+    
+    // get the location of particle at pivot index
+    std::array <int,3> loc_pivot = NewG.PolymersInGrid[index].chain[index_pivot].coords; 
+    
+    
+    std::array <int,3> avoid_direction = subtract_arrays(&(NewG.PolymersInGrid[index].chain[index_pivot+1].coords), &loc_pivot); 
+    impose_pbc(&avoid_direction, NewG.x, NewG.y, NewG.z);
+    modified_direction(&avoid_direction, NewG.x, NewG.y, NewG.z);
+
+    std::array <int,3> to_check = loc_pivot;
+    
+    // disregard above direction 
+    bool direction_check {true}; 
+    int tries {0};
+    // bool occupancy_bool {false};  
+    for (std::array <int,3>& a: directions){
+
+        if (a == avoid_direction){
+            continue; 
+        }
+
+        // reinitialize to_check, 
+        to_check = loc_pivot;
+        direction_check = true;
+
+        std::vector <std::array <int,3>> position_store;  
+
+        for (int i{0}; i<index_pivot; ++i){
+
+            to_check = add_arrays(&to_check, &a); 
+            impose_pbc(&to_check, NewG.x, NewG.y, NewG.z);
+
+            // 
+
+            if (! (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end() )){
+                // if unoccupied
+                direction_check = true; 
+            }
+            else {
+                if (std::find(NewG.PolymersInGrid[index].chain.begin(), NewG.PolymersInGrid[index].chain.end(), NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.end() ){
+
+                    // if found in the same polymer - check if it is found in pivot+1, pivot+2, ..., final_index
+                    if (std::find(NewG.PolymersInGrid[index].chain.begin()+index_pivot, NewG.PolymersInGrid[index].chain.end(), NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.end() ){
+                        direction_check = false;
+                    }
+                }
+                else {
+                    // if a part of some other polymer - screw the move  
+                    direction_check = false; 
+
+                }
+            }
+
+            
+            // std::cout << "pos to check: " ;
+            // print(to_check);
+            if (direction_check){
+                position_store.push_back( to_check ); 
+                // std::cout << "this location was NOT found, this should say zero: " << (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end()) << std::endl;
+            }
+            else {
+                // printf("Oh fuck, occupied. restart...\n");
+                break;
+            }
+
+        }
+
+
+        if (direction_check) {
+
+            for (int i{0}; i<index_pivot; ++i){
+                // printf("Position to analyze is: "); 
+
+                Particle p1 (NewG.OccupancyMap[ NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords ] ); 
+                p1.coords = position_store[i]; 
+                // print(p1.coords);
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords );            // get rid of what WAS there, and repopulate
+                NewG.OccupancyMap[p1.coords] = p1; 
+
+                NewG.PolymersInGrid[index].chain[index_pivot-(i+1)].coords = position_store[i]; 
+
+            }
+            NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
+            break; 
+
+        }
+
+        else {
+            ++tries;
+            continue; 
+        }
+
+    }
+
+    if (tries == 5){
+        // printf("All a bust.\n");
+        *IMP_BOOL = false; 
+    }
+
+    return NewG; 
+
+}
+
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of ZeroIndexRotation. 
+//             End of ZeroIndexRotationAgg. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: FinalIndexRotationAgg 
+//
+// PARAMETERS: index of a polymer to perform FinalIndexRotation, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer head, pivoted at some index 
+// of the polymer. As it stands, this function only rotates all units at index pivot+1, pivot+2, ..., final_index. 
+//
+// PLANNED EXTENSION: Multiple molecules at the head need to be rotated.    
+//
+// DEPENDENCIES: ChainToConnectivityMap, modified_direction, impose_pbc
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully.    
+//
+// THE CODE: 
+
+
+Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
+
+    std::array <int,3> ax{1,0,0}, nax{-1,0,0}, ay{0,1,0}, nay{0,-1,0}, az{0,0,1}, naz{0,0,-1};        // unit directions
+    std::array<std::array <int,3>, 6> directions = {ax, nax, ay, nay, az, naz}; 
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle (directions.begin(), directions.end(), std::default_random_engine(seed)); 
+
+    Grid NewG (*InitialG); 
+
+    int size_of_poly = NewG.PolymersInGrid[index].chain.size(); 
+    
+    int index_pivot = rng_uniform(static_cast<int>(size_of_poly/2), size_of_poly-2); 
+
+
+    // get the location of particle at pivot index 
+    std::array <int,3> loc_pivot = NewG.PolymersInGrid[index].chain[index_pivot].coords; 
+
+    std::array <int,3> avoid_direction = subtract_arrays(&(NewG.PolymersInGrid[index].chain[index_pivot-1].coords), &loc_pivot); 
+    impose_pbc(&avoid_direction, NewG.x, NewG.y, NewG.z);
+    modified_direction(&avoid_direction, NewG.x, NewG.y, NewG.z);
+
+    std::array <int,3> to_check = loc_pivot;
+    
+    // disregard above direction 
+    bool direction_check {true}; 
+    int tries {0}; 
+
+    for (std::array <int,3>& a: directions){
+        if (a == avoid_direction){
+            continue; 
+        }
+
+        // reinitialize to_check and direction_check; 
+        to_check = loc_pivot; 
+        direction_check = true; 
+
+        std::vector <std::array <int,3>> position_store; 
+
+        for (int i{0}; i<(size_of_poly-index_pivot-1);++i){
+
+            to_check = add_arrays(&to_check, &a); 
+            impose_pbc(&to_check, NewG.x, NewG.y, NewG.z); 
+
+            if ( ! (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end() )){
+                // if unoccupied 
+                direction_check = true; 
+            }
+
+            else {
+                if (std::find(NewG.PolymersInGrid[index].chain.begin(), NewG.PolymersInGrid[index].chain.end(), NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.end() ){
+                    // if found in the main chain 
+                    // check if it is on the right side
+                    if (std::find(NewG.PolymersInGrid[index].chain.begin(), NewG.PolymersInGrid[index].chain.begin()+index_pivot, NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.begin()+index_pivot){
+                        // the particle in question is on the wrong side - cannot perform the move 
+                        direction_check = false; 
+                    }
+
+                }
+                else {
+                    // if a part of some other polymer - screw the move 
+                    direction_check = false; 
+                }
+            }
+
+            // direction_check = direction_check && (! ( NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end() ) ); 
+            
+            
+
+            if (direction_check){
+                position_store.push_back( to_check ); 
+                // std::cout << "this location was NOT found, this should say zero: " << (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end()) << std::endl;
+            }
+
+            else {
+                // printf("Oh fuck, occupied. restart...\n");
+                break; 
+            }
+
+        }
+
+        if (direction_check){
+
+            for (int i{0}; i<(size_of_poly-index_pivot-1); ++i){
+                // printf("Position to analyze is: "); 
+
+                Particle p1 (NewG.OccupancyMap[NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords] );
+                p1.coords = position_store[i];
+                // print(p1.coords); 
+
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords ); 
+                NewG.OccupancyMap[p1.coords] = p1; 
+                
+                NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords = position_store[i]; 
+
+            }
+            NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
+            break;
+        }
+
+        else {
+            ++tries;
+            continue;
+        }
+
+    }
+
+    if (tries==5){
+        // printf("All a bust.\n");
+        *IMP_BOOL = false;
+    }
+
+    return NewG;
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of FinalIndexRotationAgg. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 //============================================================
 //============================================================
@@ -1670,9 +1943,56 @@ Grid EndRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of EndRotationAgg. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: EndRotationAgg
+//
+// PARAMETERS: index of polymer to perform EndRotation on, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer at the terminal index (the tail or head)
+// of the polymer. As it stands, this function only rotates one molecule at the tail or head. The choice of head 
+// or tail rotation comes from a random distribution. 
+//
+// PLANNED EXTENSION: Multiple molecules at the termini need to be rotated.    
+//
+// DEPENDENCIES: ZeroIndexRotation, FinalIndexRotation
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
+
+
+Grid EndRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
+
+    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = distribution(generator); 
+    // std::cout << "rng is " << num << std::endl;
+    if (num==0){
+        // std::cout << "Zero index rotation!" << std::endl;
+        return ZeroIndexRotationAgg(InitialG, index, IMP_BOOL); 
+    }
+    else {
+        // std::cout << "Final index rotation!" << std::endl;
+        return FinalIndexRotationAgg(InitialG, index, IMP_BOOL); 
+
+    }
+    
+
+}
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //             End of EndRotation. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
 
 //============================================================
 //============================================================
@@ -2075,7 +2395,7 @@ Grid Reptation(Grid* InitialG, int index, bool* IMP_BOOL){
 // 2. Kink Jump
 // 3. Crank Shaft
 // 4. Reptation
-// 5. Ising Flip
+// 5. Aggressive End rotation
 //
 // DEPENDENCIES: rng_uniform, CalculateEnergy, EndRotation, KinkJump, CrankShaft, Reptation, IsingFlip  
 //
@@ -2086,7 +2406,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
     int index = rng_uniform(0, static_cast<int>((*InitialG).PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ ; 
-    int r = rng_uniform(1, 4);
+    int r = rng_uniform(1, 5);
     switch (r) {
         case (1):
             if (v){
@@ -2123,6 +2443,14 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             G_ = KinkJump(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy ( );        
             break; 
+
+        case (5):
+            if (v){
+                printf("Performing an aggressive end rotation.\n");
+            }
+            G_ = EndRotationAgg(InitialG, index, IMP_BOOL);
+            G_.CalculateEnergy(); 
+            break;
     }
 
     return G_;

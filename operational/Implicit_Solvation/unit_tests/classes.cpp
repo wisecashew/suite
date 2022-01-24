@@ -52,6 +52,7 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
     for (const Polymer& pmer: this->PolymersInGrid){
         
         dump_file <<"Dumping coordinates of Polymer # " << count << ".\n";
+        dump_file<<"START" << "\n";
         for (const Particle& p: pmer.chain){
             for (int i: p.coords){
                 dump_file << i << " | "; 
@@ -60,6 +61,7 @@ void Grid::dumpPositionsOfPolymers (int step, std::string filename){
         }
         ++count ; 
     }
+    dump_file <<"END"<<"\n";
     dump_file << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n";
     // const auto& str = os.str(); 
     // dump_file.write(str.c_str(), static_cast<std::streamsize> (str.size() )); 
@@ -131,6 +133,7 @@ void Grid::dumpEnergyOfGrid (int step, std::string filename, bool first_call){
 // PARAMETERS: (std::string positions, std::string topology), and some attributes present in the Grid Object 
 // 'positions' is the name of the file with coordinates of the polymer, so something like "coords.txt"
 // 'topology' is the name of the file with the geometric and energetic information of the system, so something like "topology.txt"
+//
 // WHAT THE FUNCTION DOES: It looks at the topology file, which contains the geometric dimensions of the box 
 // the polymer solution is in and the energy surface ie the interaction energies between the different particle 
 // types present in the box. 
@@ -152,39 +155,10 @@ Grid CreateGridObject(std::string positions, std::string topology){
     std::cout << "You have given us " << N << " polymers to work with."<<std::endl;
     G.ExtractPolymersFromFile(positions);
 
-    // create solvent object... 
-
-    // std::vector <std::vector <int>> lattice = create_lattice_pts (G.x, G.y, G.z); 
-
-    // begin defining solvent positions 
-    // std::string type_s = "solvent"; 
-    // get rid of all the locations that have been occupied by the polymer 
-
-   // for (Polymer pmer: G.PolymersInGrid){
-   //    for (Particle p: pmer.chain){
-   //        lattice.erase(std::remove(lattice.begin(), lattice.end(), p.coords), lattice.end()); 
-   //    }
-   // }
-    
-    // now that those locations have been cleared from lattice, these will now become locations of the solvent 
-    
-    // std::vector <Particle> solvents; 
-    // for (std::vector <int> loc: lattice){
-    //    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
-    //    std::mt19937 generator(seed); 
-    //    std::uniform_int_distribution<int> distribution (0,1); 
-    //    Particle p (loc, type_s, distribution(generator));         
-    //    solvents.push_back(p); 
-    // } 
-
-    // G.SolventInGrid = solvents; 
-
-    
-
     std::cout << "Polymers extracted successfuly!" << std::endl;
     std::cout << "Solvent positions defined successfully!" << std::endl;
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~"<< std::endl<<std::endl;
-    // std::cout <<"Energy of the system is " << G.Energy << std::endl;
+    
 
     G.instantiateOccupancyMap();
     G.CalculateEnergy();
@@ -198,6 +172,49 @@ Grid CreateGridObject(std::string positions, std::string topology){
 //             End of CreateGridObject. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+//
+// NAME OF FUNCTION: CreateGridObjectRestart
+//
+// PARAMETERS: (std::string positions, std::string topology, std::string trajectory), and some attributes present in the Grid Object 
+// 'positions' is the name of the file with coordinates of the polymer, so something like "coords.txt"
+// 'topology' is the name of the file with the geometric and energetic information of the system, so something like "topology.txt"
+//
+// WHAT THE FUNCTION DOES: It looks at the topology file, which contains the geometric dimensions of the box 
+// the polymer solution is in and the energy surface ie the interaction energies between the different particle 
+// types present in the box and creates a Grid to play with. But this time, I look at the bottom of my trajectory coordinates.  
+//
+// DEPENDENCIES: ExtractTopologyFromFile, ExtractNumberOfPolymers, ExtractPolymersFromFile, create_lattice_pts, InstantiateOccupancyMap, CalculateEnergy. 
+//
+// THE CODE: 
+
+
+Grid CreateGridObjectRestart(std::string positions, std::string topology, std::string trajectory){ 
+
+    std::array <double, 7> info_vec {ExtractTopologyFromFile(topology)};             // this stays as it is from the original function
+    int N = ExtractNumberOfPolymers(positions);                                      // number of polymers also remains the same 
+
+    // Grid G(x, y, z, kT, Emm, Ems, Ess)
+    Grid G (N, info_vec.at(0), info_vec.at(1), info_vec.at(2), info_vec.at(3), info_vec.at(4), info_vec.at(5), info_vec.at(6) ) ;    // this also remains the same 
+
+    
+    std::cout << "You have given us " << N << " polymers to work with."<<std::endl;
+    G.ExtractPolymersFromTraj(trajectory, positions);                                           // this changes 
+
+    std::cout << "Polymers extracted successfuly!" << std::endl;
+    std::cout << "Solvent positions defined successfully!" << std::endl;
+    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~"<< std::endl<<std::endl;
+    
+
+    G.instantiateOccupancyMap();
+    G.CalculateEnergy();
+
+    return G; 
+}
+
 
 
 //============================================================
@@ -476,7 +493,7 @@ std::vector <std::string> ExtractContentFromFile(std::string filename){
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: ExtractContentFromFile
+// NAME OF FUNCTION: ExtractPolymersFromFile
 //
 // PARAMETERS: std::string filename 
 // 
@@ -571,9 +588,205 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of ExtractContentFromFile. 
+//             End of ExtractPolymersFromFile. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractIndexOfFinalMove
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the trajectory file, and extracts the index of the final move. 
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+int Grid::ExtractIndexOfFinalMove(std::string trajectory, std::string filename){
+
+    std::vector <std::string> contents = ExtractContentFromFile(trajectory); 
+
+    int step_number{0}; 
+    std::regex stepnum ("Dumping coordinates at step"); 
+
+    for (std::string& s: contents){
+
+        std::stringstream ss(s); 
+        std::string temp; 
+        int found; 
+
+        if (std::regex_search (s, stepnum) ){
+            while (!ss.eof() ){
+                ss >> temp; 
+                if (std::stringstream(temp) >> found){
+                    step_number = found; 
+                }
+            }
+        }
+    }
+
+    return step_number; 
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractPolymersFromTraj. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractPolymersFromTraj
+//
+// PARAMETERS: std::string trajectory, std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts all the data from the file 
+// in the form of a vector of strings.  
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+
+void Grid::ExtractPolymersFromTraj(std::string trajectory, std::string filename){
+
+    int NumberOfPolymers = ExtractNumberOfPolymers(filename); 
+
+    std::vector <Polymer> PolymerVector; 
+    PolymerVector.reserve(NumberOfPolymers);
+
+    std::vector <std::array <int,3>> locations; 
+
+    std::vector <std::string> contents = ExtractContentFromFile(trajectory); // this extracts every line of the file
+
+    // std::vector <int> step_num_store; 
+    std::vector <int> index_store; // need this guy to hold the index of the final set of coordinates. 
+
+    //////////////////////////////////////////////////////////////////////
+    // extract the final coordinates from the traj file
+    std::regex stepnum ("Dumping coordinates at step"); 
+    // int step_num = 0; 
+    int j {0}; 
+    for (std::string& s: contents){
+
+        std::stringstream ss(s);
+        std::string temp; 
+        int found; 
+        // std::stringstream int_ss; 
+
+        if (std::regex_search(s, stepnum)){
+            while(!ss.eof()){
+                ss >> temp;
+                if (std::stringstream(temp) >> found){
+                    // step_num_store.push_back(found);
+                    index_store.push_back(j);
+                } 
+            }
+        } 
+        ++j; 
+    }
+
+    contents.erase(contents.begin(), contents.begin() + (index_store[index_store.size()-1] ) ); 
+
+    //////////////////////////////////////////////////////////////////
+
+    
+    bool start_bool {false}, end_bool {false}; 
+    std::regex start ("START"), end ("END"); 
+    
+    int startCount{0}, endCount{0}; 
+    
+    for (std::string& s: contents){
+         
+        std::stringstream ss(s); 
+        if (std::regex_search(s, start) ){
+            ++startCount;
+            start_bool = true; 
+            end_bool = false; 
+            continue; 
+        }
+
+        else if (std::regex_search(s, end) ) {
+            ++endCount;
+            start_bool = false; 
+            end_bool = false; 
+
+            Polymer pmer = makePolymer(locations);
+            PolymerVector.push_back(pmer);
+            
+            locations.clear();
+            continue; 
+            
+        }
+
+        else if (start_bool == end_bool){
+            continue;
+        }
+
+        else{
+            std::array <int,3> loc;
+            std::string strr; // temp string 
+            int k;            // temp int container 
+            
+            int j{0};
+            while (!ss.eof() ){
+                ss >> strr; 
+                if (std::stringstream(strr) >> k){
+                    loc[j] = k;
+                    ++j;
+                }
+            }  
+
+            if (!this->checkValidityOfCoords(loc)){
+            std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
+            exit(EXIT_FAILURE); 
+            }
+        
+            locations.push_back(loc); 
+            
+        
+        }
+    }
+    
+    
+
+    if(!(this->checkForOverlaps(PolymerVector))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Overlap detected." << std::endl;
+        exit(EXIT_FAILURE);  
+    }
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    // throw in a check for connectivity of polymer chains 
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    if (!(this->checkConnectivity(PolymerVector))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Monomer units are not adjacent to one another on the lattice." << std::endl;
+        exit(EXIT_FAILURE); 
+    }
+    
+    this->PolymersInGrid = PolymerVector;
+
+    return; 
+}
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractPolymersFromTraj. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+
 
 
 //============================================================
@@ -962,7 +1175,7 @@ std::vector <Particle> Grid::ClusterMaker(std::vector <Particle> Particles, std:
 
 
 void Polymer::printChainCoords(){
-    for (Particle& p: this->chain){
+    for (Particle p: this->chain){
         p.printCoords(); 
     }
     return; 
@@ -1283,16 +1496,10 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
     // get the neighborlist of particle at index 1 
     std::array <int,3> loc_0 = NewG.PolymersInGrid[index].chain[0].coords; 
     std::array <int,3> loc_1 = NewG.PolymersInGrid[index].chain[1].coords;
-    // std::array <int,3> loc_2 = NewG.PolymersInGrid.at(index).chain[2].coords; 
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, (*InitialG).x, (*InitialG).y, (*InitialG).z) ; 
-    // std::cout << "neighbort list is " << std::endl; 
-    // print(ne_list); 
-    // get the locations of particles it is connected to, and then erase them from the neighbor list 
-    // ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_0 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into 
-    // ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), loc_2 ), ne_list.end() );     // gets rid of the locations that clearly can't be swung into
-    // std::shuffle(std::begin(ne_list), std::end(ne_list), std::default_random_engine());
-    // find a location that is not occupied by monomer 
-    // use the occupancy map 
+    
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, (NewG).x, (NewG).y, (NewG).z) ; 
+
+
 	size_t tries = 0; 
     for (std::array <int,3>& to_rot: ne_list){
 
@@ -1327,11 +1534,308 @@ Grid ZeroIndexRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 }
 
 
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ZeroIndexRotationAgg 
+//
+// PARAMETERS: index of a polymer to perform FinalIndexRotation, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer tail, pivoted at some index 
+// of the polymer. As it stands, this function only rotates all units at index 0, 1, ..., pivot-1. 
+//
+// PLANNED EXTENSION: Multiple molecules at the tail need to be rotated.    
+//
+// DEPENDENCIES: ChainToConnectivityMap, modified_direction, impose_pbc
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully.    
+//
+// THE CODE: 
+
+
+Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
+
+    std::array <int,3> ax{1,0,0}, nax{-1,0,0}, ay{0,1,0}, nay{0,-1,0}, az{0,0,1}, naz{0,0,-1};        // unit directions
+    std::array<std::array <int,3>, 6> directions = {ax, nax, ay, nay, az, naz}; 
+
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::cout << "seed is " << seed << std::endl;
+    std::shuffle (directions.begin(), directions.end(), std::default_random_engine(seed)); 
+
+    Grid NewG (*InitialG); 
+
+    int size_of_poly = NewG.PolymersInGrid[index].chain.size(); 
+    
+    int index_pivot = rng_uniform(1, static_cast<int>(size_of_poly/2)); 
+
+    
+    // get the location of particle at pivot index
+    std::array <int,3> loc_pivot = NewG.PolymersInGrid[index].chain[index_pivot].coords; 
+    
+    printf("index of pivot is: %d\n", index_pivot);
+    print(loc_pivot);
+    
+    std::array <int,3> avoid_direction = subtract_arrays(&(NewG.PolymersInGrid[index].chain[index_pivot+1].coords), &loc_pivot); 
+    impose_pbc(&avoid_direction, NewG.x, NewG.y, NewG.z);
+    modified_direction(&avoid_direction, NewG.x, NewG.y, NewG.z);
+
+    printf("Direction to avoid is: "); 
+    print (avoid_direction); 
+    std::array <int,3> to_check = loc_pivot;
+    
+    // disregard above direction 
+    bool direction_check {true}; 
+    int tries {0};
+    // bool occupancy_bool {false};  
+    for (std::array <int,3>& a: directions){
+
+        if (a == avoid_direction){
+            continue; 
+        }
+
+        // reinitialize to_check, 
+        to_check = loc_pivot;
+        direction_check = true;
+
+        printf("Starting point is: "); 
+        print(to_check);
+        printf("Proposed dir: "); 
+        print(a);
+
+        std::vector <std::array <int,3>> position_store;  
+
+        for (int i{0}; i<index_pivot; ++i){
+
+            to_check = add_arrays(&to_check, &a); 
+            impose_pbc(&to_check, NewG.x, NewG.y, NewG.z);
+
+            // 
+
+            if (! (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end() )){
+                // if unoccupied
+                direction_check = true; 
+            }
+            else {
+                if (std::find(NewG.PolymersInGrid[index].chain.begin(), NewG.PolymersInGrid[index].chain.end(), NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.end() ){
+
+                    // if found in the same polymer - check if it is found in pivot+1, pivot+2, ..., final_index
+                    if (std::find(NewG.PolymersInGrid[index].chain.begin()+index_pivot, NewG.PolymersInGrid[index].chain.end(), NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.end() ){
+                        direction_check = false;
+                    }
+                }
+                else {
+                    // if a part of some other polymer - screw the move  
+                    direction_check = false; 
+
+                }
+            }
+
+            
+            std::cout << "pos to check: " ;
+            print(to_check);
+            if (direction_check){
+                position_store.push_back( to_check ); 
+                // std::cout << "this location was NOT found, this should say zero: " << (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end()) << std::endl;
+            }
+            else {
+                printf("Oh fuck, occupied. restart...\n");
+                break;
+            }
+
+        }
+
+
+        if (direction_check) {
+
+            for (int i{0}; i<index_pivot; ++i){
+                printf("Position to analyze is: "); 
+
+                Particle p1 (NewG.OccupancyMap[ NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords ] ); 
+                p1.coords = position_store[i]; 
+                print(p1.coords);
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords );            // get rid of what WAS there, and repopulate
+                NewG.OccupancyMap[p1.coords] = p1; 
+
+                
+                // NewG.OccupancyMap[p1.coords] ;
+                NewG.PolymersInGrid[index].chain[index_pivot-(i+1)].coords = position_store[i]; 
+
+            }
+            NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
+            break; 
+
+        }
+
+        else {
+
+            ++tries;
+            continue; 
+        }
+
+
+
+    }
+
+    if (tries == 5){
+        printf("All a bust.\n");
+        *IMP_BOOL = false; 
+    }
+
+    return NewG; 
+
+}
+
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //             End of ZeroIndexRotation. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: FinalIndexRotationAgg 
+//
+// PARAMETERS: index of a polymer to perform FinalIndexRotation, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer head, pivoted at some index 
+// of the polymer. As it stands, this function only rotates all units at index pivot+1, pivot+2, ..., final_index. 
+//
+// PLANNED EXTENSION: Multiple molecules at the head need to be rotated.    
+//
+// DEPENDENCIES: ChainToConnectivityMap, modified_direction, impose_pbc
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully.    
+//
+// THE CODE: 
+
+
+Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
+
+    std::array <int,3> ax{1,0,0}, nax{-1,0,0}, ay{0,1,0}, nay{0,-1,0}, az{0,0,1}, naz{0,0,-1};        // unit directions
+    std::array<std::array <int,3>, 6> directions = {ax, nax, ay, nay, az, naz}; 
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle (directions.begin(), directions.end(), std::default_random_engine(seed)); 
+
+    Grid NewG (*InitialG); 
+
+    int size_of_poly = NewG.PolymersInGrid[index].chain.size(); 
+    
+    int index_pivot = rng_uniform(static_cast<int>(size_of_poly/2), size_of_poly-2); 
+
+
+    // get the location of particle at pivot index 
+    std::array <int,3> loc_pivot = NewG.PolymersInGrid[index].chain[index_pivot].coords; 
+
+    printf("index of pivot is: %d\n", index_pivot); 
+    print(loc_pivot); 
+
+    std::array <int,3> avoid_direction = subtract_arrays(&(NewG.PolymersInGrid[index].chain[index_pivot-1].coords), &loc_pivot); 
+    impose_pbc(&avoid_direction, NewG.x, NewG.y, NewG.z);
+    modified_direction(&avoid_direction, NewG.x, NewG.y, NewG.z);
+
+    printf("Direction to avoid is: "); 
+    print (avoid_direction); 
+    std::array <int,3> to_check = loc_pivot;
+    
+    // disregard above direction 
+    bool direction_check {true}; 
+    int tries {0}; 
+
+    for (std::array <int,3>& a: directions){
+        if (a == avoid_direction){
+            continue; 
+        }
+
+        // reinitialize to_check and direction_check; 
+        to_check = loc_pivot; 
+        direction_check = true; 
+
+        printf("Starting point is: "); 
+        print(to_check);
+        printf("Proposed dir: "); 
+        print(a);
+
+        std::vector <std::array <int,3>> position_store; 
+
+        for (int i{0}; i<(size_of_poly-index_pivot-1);++i){
+
+            to_check = add_arrays(&to_check, &a); 
+            impose_pbc(&to_check, NewG.x, NewG.y, NewG.z); 
+
+            if ( ! (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end() )){
+                // if unoccupied 
+                direction_check = true; 
+            }
+
+            else {
+                if (std::find(NewG.PolymersInGrid[index].chain.begin(), NewG.PolymersInGrid[index].chain.end(), NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.end() ){
+                    // if found in the main chain 
+                    // check if it is on the right side
+                    if (std::find(NewG.PolymersInGrid[index].chain.begin(), NewG.PolymersInGrid[index].chain.begin()+index_pivot, NewG.OccupancyMap[to_check]) != NewG.PolymersInGrid[index].chain.begin()+index_pivot){
+                        // the particle in question is on the wrong side - cannot perform the move 
+                        direction_check = false; 
+                    }
+
+                }
+                else {
+                    // if a part of some other polymer - screw the move 
+                    direction_check = false; 
+                }
+            }
+
+            // direction_check = direction_check && (! ( NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end() ) ); 
+            std::cout << "pos to check: "; 
+            print(to_check); 
+
+            if (direction_check){
+                position_store.push_back( to_check ); 
+                // std::cout << "this location was NOT found, this should say zero: " << (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end()) << std::endl;
+            }
+
+            else {
+                printf("Oh fuck, occupied. restart...\n");
+                break; 
+            }
+
+        }
+
+        if (direction_check){
+
+            for (int i{0}; i<(size_of_poly-index_pivot-1); ++i){
+                printf("Position to analyze is: "); 
+
+                Particle p1 (NewG.OccupancyMap[NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords] );
+                p1.coords = position_store[i];
+                print(p1.coords); 
+
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords ); 
+                NewG.OccupancyMap[p1.coords] = p1; 
+                
+                NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords = position_store[i]; 
+
+            }
+            NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
+            break;
+        }
+
+        else {
+            ++tries;
+            continue;
+        }
+
+    }
+
+    if (tries==5){
+        printf("All a bust.\n");
+        *IMP_BOOL = false;
+    }
+
+    return NewG;
+
+}
 
 
 //============================================================
@@ -1613,16 +2117,14 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
         }
         else {
 			++tries; 
-            print(to_check_1); 
-            print(to_check_2); 
-            std::cout << "This position is occupied by monomer... No cranking." << std::endl;
+            // std::cout << "This position is occupied by monomer... No cranking." << std::endl;
         }
 
 
     }
 	if (tries == c_idx.size()){
         *IMP_BOOL = false; 
-		printf("No position was available for a crankshaft! position will be accepted by default!\n");
+		// printf("No position was available for a crankshaft! position will be accepted by default!\n");
 	}
     return NewG;
 

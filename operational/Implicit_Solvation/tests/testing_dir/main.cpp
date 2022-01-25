@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
                 G.dumpEnergyOfGrid(i, efile, call) ; 
                 
             }
-            std::cout <<"are you hitting  this line?"<<std::endl;
+            // std::cout <<"are you hitting  this line?"<<std::endl;
             IMP_BOOL = true; 
         }
     

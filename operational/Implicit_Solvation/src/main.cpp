@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() );
+    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() );
 
     }
 
@@ -236,9 +236,11 @@ int main(int argc, char** argv) {
 
 
     else {
+
         printf("Simulation will output information of every %d configuration.\n", dfreq); 
         for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
+            std::cout << "Are you coming back up top?" << std::endl;
 
             if ( v && (i%dfreq==0) ){
                 printf("Move number %d.\n", i);
@@ -249,7 +251,7 @@ int main(int argc, char** argv) {
             if ( v && (i%dfreq==0) ){
                 printf("Executing...\n");
             }
-
+            std::cout<<"Have you chosen a move?" << std::endl;
 
             if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
                 // accepted
@@ -257,7 +259,7 @@ int main(int argc, char** argv) {
                 if ( v ){ 
                     printf("Accepted.\n");
                     printf("Energy of the system is %f.\n", G_.Energy);
-                    printf("%d\n", IMP_BOOL);
+                    printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
                 }
 
                 G = std::move(G_);
@@ -278,7 +280,7 @@ int main(int argc, char** argv) {
                 G.dumpEnergyOfGrid(i, efile, call) ; 
                 
             }
-
+            // std::cout <<"are you hitting  this line?"<<std::endl;
             IMP_BOOL = true; 
         }
     
@@ -287,7 +289,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); 
+    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
    
     }
 

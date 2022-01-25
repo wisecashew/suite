@@ -1350,7 +1350,8 @@ std::vector <int> Polymer::findCranks(){
     if (crank_indices.size() == 0) {
         // std::cout << "there are no cranks in the current structure..." << std::endl;
     } 
-
+    // printf("Crank indices are: "); 
+    // print(crank_indices);
     return crank_indices;
 }
 
@@ -1649,8 +1650,8 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
                 Particle p1 ( NewG.PolymersInGrid[index].chain[index_pivot-(1+i)] ); 
 
                 p1.coords = position_store[i]; 
-                printf("This is inside ZeroAgg. At pivot-(1+%d) index is: ", i); 
-                print(p1.coords); 
+                // printf("This is inside ZeroAgg. At pivot-(1+%d) index is: ", i); 
+                // print(p1.coords); 
                 // print(p1.coords);
                 
                 NewG.OccupancyMap[p1.coords] = p1; 
@@ -1675,13 +1676,13 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
         // printf("All a bust.\n");
         *IMP_BOOL = false; 
     }
-    int nkey {0}; 
+    /*int nkey {0}; 
     for (auto it = NewG.OccupancyMap.begin(); it != NewG.OccupancyMap.end(); it++) {
         printf("key is: "); 
         print(it->first);
         nkey++;
     }
-    printf("number of keys is %d.\n", nkey);
+    printf("number of keys is %d.\n", nkey);*/
 
     return NewG; 
 
@@ -1830,13 +1831,13 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
         *IMP_BOOL = false;
     }
 
-    int nkey = 0; 
-    for (auto it = NewG.OccupancyMap.begin(); it != NewG.OccupancyMap.end(); it++) {
+    //int nkey = 0; 
+    /*for (auto it = NewG.OccupancyMap.begin(); it != NewG.OccupancyMap.end(); it++) {
         printf("key is: "); 
         print(it->first);
         nkey++;
     }
-    printf("number of keys is %d.\n", nkey);
+    printf("number of keys is %d.\n", nkey);*/
     return NewG;
 
 }
@@ -2002,11 +2003,11 @@ Grid EndRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
     int num = distribution(generator); 
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
-        std::cout << "Zero index aggrotation!" << std::endl;
+        // std::cout << "Zero index aggrotation!" << std::endl;
         return ZeroIndexRotationAgg(InitialG, index, IMP_BOOL); 
     }
     else {
-        std::cout << "Final index aggrotation!" << std::endl;
+        // std::cout << "Final index aggrotation!" << std::endl;
         return FinalIndexRotationAgg(InitialG, index, IMP_BOOL); 
 
     }
@@ -2045,6 +2046,7 @@ Grid KinkJump(Grid* InitialG, int index, bool* IMP_BOOL){
     std::vector <int> k_idx = NewG.PolymersInGrid.at(index).findKinks(); 
 
     if (k_idx.size() == 0 ){
+        *IMP_BOOL = false;
         // std::cout << "No kinks found in polymer..." << std::endl;
         return NewG;
     }
@@ -2125,22 +2127,24 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
     std::vector <int> c_idx = NewG.PolymersInGrid.at(index).findCranks(); 
 
     if ( c_idx.size()==0 ){
+        *IMP_BOOL = false; 
         // std::cout << "No cranks in this polymer..." << std::endl; 
         return NewG; 
     }
     bool b2; 
     bool b1; 
-    std::cout << "c_idx size is " << c_idx.size() << std::endl;
-    // std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
+    // std::cout << "c_idx size is " << c_idx.size() << std::endl;
+    std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
 	size_t tries = 0; 
     for (int idx: c_idx){
 
-        std::cout << "Crank locations: "; 
-        print(NewG.PolymersInGrid[index].chain[idx].coords); 
-        print(NewG.PolymersInGrid[index].chain[idx+1].coords); 
-        print(NewG.PolymersInGrid[index].chain[idx+2].coords); 
-        print(NewG.PolymersInGrid[index].chain[idx+3].coords); 
-
+        
+        // std::cout << "Crank locations: "; 
+        // print(NewG.PolymersInGrid[index].chain[idx].coords); 
+        // print(NewG.PolymersInGrid[index].chain[idx+1].coords); 
+        // print(NewG.PolymersInGrid[index].chain[idx+2].coords); 
+        // print(NewG.PolymersInGrid[index].chain[idx+3].coords); 
+        
         std::array <int,3> HingeToKink = subtract_arrays(&(NewG.PolymersInGrid[index].chain[idx+2].coords), &(NewG.PolymersInGrid[index].chain[idx+3].coords) ); 
         std::array <int,3> HingeToHinge = subtract_arrays(&(NewG.PolymersInGrid[index].chain[idx+3].coords ), &(NewG.PolymersInGrid[index].chain[idx].coords ) );
 
@@ -2154,22 +2158,22 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
         impose_pbc(&to_check_1, NewG.x, NewG.y, NewG.z); 
         impose_pbc(&to_check_2, NewG.x, NewG.y, NewG.z);  
 
-        std::cout << "Crank index is " << idx << std::endl;
+        // std::cout << "Crank index is " << idx << std::endl;
 
-        std::cout << "Are you generating crank positions?" << std::endl;
-        std::cout << "Position 1:" << std::endl; 
-        print(to_check_1); 
-        std::cout << "Position 2:" << std::endl; 
-        print(to_check_2); 
+        // std::cout << "Are you generating crank positions?" << std::endl;
+        // std::cout << "Position 1:" << std::endl; 
+        // print(to_check_1); 
+        // std::cout << "Position 2:" << std::endl; 
+        // print(to_check_2); 
         b2 = NewG.OccupancyMap.find(to_check_2) != NewG.OccupancyMap.end(); 
         b1 = NewG.OccupancyMap.find(to_check_1) != NewG.OccupancyMap.end(); 
-        std::cout << "Is position 1 occupied? " << b1 << std::endl; 
-        std::cout << "Is position 2 occupied? " << b2 << std::endl; 
+        // std::cout << "Is position 1 occupied? " << b1 << std::endl; 
+        // std::cout << "Is position 2 occupied? " << b2 << std::endl; 
         bool entry = (!(b1) && !(b2)); 
-        std::cout << (!(b1) && !(b2)) << std::endl;
-        std::cout << "entry is " << entry << std::endl;
+        // std::cout << (!(b1) && !(b2)) << std::endl;
+        // std::cout << "entry is " << entry << std::endl;
         if ( entry ){
-            std::cout << "is this if loop being entered?" << std::endl; 
+            // std::cout << "is this if loop being entered?" << std::endl; 
             // update OccupancyMap
             Particle p1 ( NewG.PolymersInGrid.at(index).chain.at(idx+1) );
 
@@ -2185,9 +2189,7 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
             NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[idx+1].coords );
             NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[idx+2].coords );
-            // p_erased_1++; 
-            // p_erased_2++;
-
+            
             // update PolymersInGrid 
             NewG.PolymersInGrid[index].chain[idx+1].coords = p1.coords; 
             NewG.PolymersInGrid[index].chain[idx+2].coords = p2.coords; 
@@ -2197,21 +2199,21 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
         }
         else {
-            std::cout << "Is this happening?" << std::endl;
+            // std::cout << "Is this happening?" << std::endl;
 			++tries; 
-            std::cout << "tries is " << tries << std::endl;
+            // std::cout << "tries is " << tries << std::endl;
             // std::cout << "This position is occupied by monomer... No cranking." << std::endl;
         }
 
 
     }
-    std::cout << "Loop exit?" << std::endl;
+    // std::cout << "Loop exit?" << std::endl;
 	if (tries == c_idx.size()){
         *IMP_BOOL = false; 
 		// printf("No position was available for a crankshaft! position will be accepted by default!\n");
 	}
 
-    std::cout << "Have you reached the end of the Crank?" << std::endl;
+    // std::cout << "Have you reached the end of the Crank?" << std::endl;
     return NewG;
 
 }
@@ -2474,6 +2476,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // 
             G_ = EndRotation(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy(); 
+            /*
             nkey = 0; 
             for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
                 printf("key is: "); 
@@ -2481,6 +2484,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
                 nkey++;
             }
             printf("number of keys is %d.\n", nkey);
+            */
             break;     
         
         case (2):
@@ -2491,12 +2495,14 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             G_ = CrankShaft(InitialG, index, IMP_BOOL);
             std::cout << "Are you cranking it?" << std::endl;
             G_.CalculateEnergy();
+            /*
             nkey=0; 
             for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
                 printf("key is: "); 
                 print(it->first);
                 nkey++;
             }
+            */
             printf("number of keys is %d.\n", nkey);
             
             break; 
@@ -2508,6 +2514,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // std::cout << "Performing reptation." << std::endl;
             G_ = Reptation(InitialG, index, IMP_BOOL); 
             G_.CalculateEnergy();
+            /*
             nkey = 0;
             for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
                 printf("key is: "); 
@@ -2515,7 +2522,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
                 nkey++;
             }
             printf("number of keys is %d.\n", nkey);
-            
+            */
             break; 
 
         case (4):
@@ -2524,7 +2531,8 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             }
             // std::cout << "Performing kink jump." << std::endl;
             G_ = KinkJump(InitialG, index, IMP_BOOL);
-            G_.CalculateEnergy ( );        
+            G_.CalculateEnergy ( );       
+            /* 
             nkey = 0; 
             for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
                 printf("key is: "); 
@@ -2532,7 +2540,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
                 nkey++;
             }
             printf("number of keys is %d.\n", nkey);
-            
+            */ 
             break; 
 
         case (5):

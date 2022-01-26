@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
         print(it->first);
         c++;
     }
-    std::cout << "number of key is G3 is " << c << std::endl;
+    std::cout << "number of keys in G3 is " << c << std::endl << std::endl;
 
     c = 0;
     for (auto it = G.OccupancyMap.begin(); it != G.OccupancyMap.end(); it++){
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
         c++;
     }
     
-    std::cout << "number of key is G is " << c << std::endl;
+    std::cout << "number of key in G is " << c << std::endl << std::endl;
 
     for (auto it = G.OccupancyMap.begin(), it3 = G3.OccupancyMap.begin(); it != G.OccupancyMap.end(); it++, it3++){
 

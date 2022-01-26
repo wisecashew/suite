@@ -70,16 +70,21 @@ void impose_pbc(std::array <int,3>* arr, int x_len, int y_len, int z_len) {
 
 int modified_modulo(int divident, int divisor){
 	double midway = static_cast<double>(divisor/2); 
-	int result; 
-	if (divident%divisor > midway){
-		result = (divident%divisor)-divisor; 
-		return result; 
+	
+	
+	if ( ((divident%divisor)+divisor)%divisor > midway){
+		
+		return ((divident%divisor)+divisor)%divisor-divisor; 
+		
 	}
 	else {
-		return (divident%divisor);
+		// std::cout << "result is " << result << std::endl;
+		return (((divident%divisor)+divisor)%divisor);
 	}
 
 }
+
+// modifies array to be a legit direction
 
 void modified_direction(std::array<int,3>* a, int x, int y, int z){
 	

@@ -240,7 +240,7 @@ int main(int argc, char** argv) {
         printf("Simulation will output information of every %d configuration.\n", dfreq); 
         for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
-            std::cout << "Are you coming back up top?" << std::endl;
+            
 
             if ( v && (i%dfreq==0) ){
                 printf("Move number %d.\n", i);
@@ -251,7 +251,7 @@ int main(int argc, char** argv) {
             if ( v && (i%dfreq==0) ){
                 printf("Executing...\n");
             }
-            std::cout<<"Have you chosen a move?" << std::endl;
+            
 
             if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
                 // accepted

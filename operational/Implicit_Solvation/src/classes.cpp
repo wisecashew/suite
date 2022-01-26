@@ -2072,9 +2072,7 @@ Grid KinkJump(Grid* InitialG, int index, bool* IMP_BOOL){
             NewG.OccupancyMap[to_check] = p1; 
 
             NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[idx+1].coords ); 
-            // p_erase++;
-			// std::cout << "kink will jump to: "; 
-			// print(p1.coords); 
+            
             // update PolymersInGrid 
             NewG.PolymersInGrid[index].chain[idx+1] = p1; 
             NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
@@ -2122,6 +2120,10 @@ Grid KinkJump(Grid* InitialG, int index, bool* IMP_BOOL){
 
 Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
+
+    // std::array <int,3 > ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1};     // unit directions 
+    // std::array <std::array <int,3>,6> ultimate_drns = {ex, nex, ey, ney, ez, nez}; 
+
     Grid NewG(*InitialG); 
 
     std::vector <int> c_idx = NewG.PolymersInGrid.at(index).findCranks(); 
@@ -2131,19 +2133,16 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
         // std::cout << "No cranks in this polymer..." << std::endl; 
         return NewG; 
     }
+    
     bool b2; 
     bool b1; 
-    // std::cout << "c_idx size is " << c_idx.size() << std::endl;
+    
+
     std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
 	size_t tries = 0; 
     for (int idx: c_idx){
 
         
-        // std::cout << "Crank locations: "; 
-        // print(NewG.PolymersInGrid[index].chain[idx].coords); 
-        // print(NewG.PolymersInGrid[index].chain[idx+1].coords); 
-        // print(NewG.PolymersInGrid[index].chain[idx+2].coords); 
-        // print(NewG.PolymersInGrid[index].chain[idx+3].coords); 
         
         std::array <int,3> HingeToKink = subtract_arrays(&(NewG.PolymersInGrid[index].chain[idx+2].coords), &(NewG.PolymersInGrid[index].chain[idx+3].coords) ); 
         std::array <int,3> HingeToHinge = subtract_arrays(&(NewG.PolymersInGrid[index].chain[idx+3].coords ), &(NewG.PolymersInGrid[index].chain[idx].coords ) );
@@ -2156,25 +2155,15 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
         std::array <int,3> to_check_1 = add_arrays ( &(NewG.PolymersInGrid[index].chain[idx].coords), &d1 ); 
         std::array <int,3> to_check_2 = add_arrays ( &(NewG.PolymersInGrid[index].chain[idx+3].coords), &d1 ); 
         impose_pbc(&to_check_1, NewG.x, NewG.y, NewG.z); 
-        impose_pbc(&to_check_2, NewG.x, NewG.y, NewG.z);  
+        impose_pbc(&to_check_2, NewG.x, NewG.y, NewG.z);   
 
-        // std::cout << "Crank index is " << idx << std::endl;
-
-        // std::cout << "Are you generating crank positions?" << std::endl;
-        // std::cout << "Position 1:" << std::endl; 
-        // print(to_check_1); 
-        // std::cout << "Position 2:" << std::endl; 
-        // print(to_check_2); 
         b2 = NewG.OccupancyMap.find(to_check_2) != NewG.OccupancyMap.end(); 
         b1 = NewG.OccupancyMap.find(to_check_1) != NewG.OccupancyMap.end(); 
-        // std::cout << "Is position 1 occupied? " << b1 << std::endl; 
-        // std::cout << "Is position 2 occupied? " << b2 << std::endl; 
+
         bool entry = (!(b1) && !(b2)); 
-        // std::cout << (!(b1) && !(b2)) << std::endl;
-        // std::cout << "entry is " << entry << std::endl;
+
         if ( entry ){
-            // std::cout << "is this if loop being entered?" << std::endl; 
-            // update OccupancyMap
+
             Particle p1 ( NewG.PolymersInGrid.at(index).chain.at(idx+1) );
 
             p1.coords = to_check_1;
@@ -2199,10 +2188,9 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
         }
         else {
-            // std::cout << "Is this happening?" << std::endl;
+
 			++tries; 
-            // std::cout << "tries is " << tries << std::endl;
-            // std::cout << "This position is occupied by monomer... No cranking." << std::endl;
+
         }
 
 
@@ -2466,8 +2454,8 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ ; 
     int r = rng_uniform(1, 5);
-    int nkey {0}; 
-    std::cout << "RNG is " << r << std::endl;
+    // int nkey {0}; 
+    // std::cout << "RNG is " << r << std::endl;
     switch (r) {
         case (1):
             if (v){
@@ -2493,7 +2481,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             }
             // std::cout << "Performing crank shaft." << std::endl;
             G_ = CrankShaft(InitialG, index, IMP_BOOL);
-            std::cout << "Are you cranking it?" << std::endl;
+            
             G_.CalculateEnergy();
             /*
             nkey=0; 
@@ -2502,9 +2490,9 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
                 print(it->first);
                 nkey++;
             }
-            */
-            printf("number of keys is %d.\n", nkey);
             
+            printf("number of keys is %d.\n", nkey);
+            */
             break; 
 
         case (3):
@@ -2523,6 +2511,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             }
             printf("number of keys is %d.\n", nkey);
             */
+
             break; 
 
         case (4):
@@ -2552,7 +2541,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
 
             break;
     }
-    G_.PolymersInGrid[index].printChainCoords();
+    // G_.PolymersInGrid[index].printChainCoords();
 
     return G_;
 }

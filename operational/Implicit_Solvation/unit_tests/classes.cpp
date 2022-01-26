@@ -606,7 +606,7 @@ void Grid::ExtractPolymersFromFile(std::string filename){
 //
 // THE CODE: 
 
-int Grid::ExtractIndexOfFinalMove(std::string trajectory, std::string filename){
+int Grid::ExtractIndexOfFinalMove(std::string trajectory){
 
     std::vector <std::string> contents = ExtractContentFromFile(trajectory); 
 
@@ -1350,7 +1350,8 @@ std::vector <int> Polymer::findCranks(){
     if (crank_indices.size() == 0) {
         // std::cout << "there are no cranks in the current structure..." << std::endl;
     } 
-
+    // printf("Crank indices are: "); 
+    // print(crank_indices);
     return crank_indices;
 }
 
@@ -1559,7 +1560,7 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
 
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::cout << "seed is " << seed << std::endl;
+    
     std::shuffle (directions.begin(), directions.end(), std::default_random_engine(seed)); 
 
     Grid NewG (*InitialG); 
@@ -1572,15 +1573,11 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
     // get the location of particle at pivot index
     std::array <int,3> loc_pivot = NewG.PolymersInGrid[index].chain[index_pivot].coords; 
     
-    printf("index of pivot is: %d\n", index_pivot);
-    print(loc_pivot);
     
     std::array <int,3> avoid_direction = subtract_arrays(&(NewG.PolymersInGrid[index].chain[index_pivot+1].coords), &loc_pivot); 
     impose_pbc(&avoid_direction, NewG.x, NewG.y, NewG.z);
     modified_direction(&avoid_direction, NewG.x, NewG.y, NewG.z);
 
-    printf("Direction to avoid is: "); 
-    print (avoid_direction); 
     std::array <int,3> to_check = loc_pivot;
     
     // disregard above direction 
@@ -1596,11 +1593,6 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
         // reinitialize to_check, 
         to_check = loc_pivot;
         direction_check = true;
-
-        printf("Starting point is: "); 
-        print(to_check);
-        printf("Proposed dir: "); 
-        print(a);
 
         std::vector <std::array <int,3>> position_store;  
 
@@ -1631,14 +1623,14 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
             }
 
             
-            std::cout << "pos to check: " ;
-            print(to_check);
+            // std::cout << "pos to check: " ;
+            // print(to_check);
             if (direction_check){
                 position_store.push_back( to_check ); 
                 // std::cout << "this location was NOT found, this should say zero: " << (NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end()) << std::endl;
             }
             else {
-                printf("Oh fuck, occupied. restart...\n");
+                // printf("Oh fuck, occupied. restart...\n");
                 break;
             }
 
@@ -1647,18 +1639,25 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
 
         if (direction_check) {
 
+            for (int ii{0}, ip{0}; ii < index_pivot; ++ii, ++ip){
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot-(1+ii)].coords );            // get rid of what WAS there, and repopulate
+                NewG.OccupancyMap.erase( position_store[ip] );  
+            }
+
             for (int i{0}; i<index_pivot; ++i){
-                printf("Position to analyze is: "); 
+                // printf("Position to analyze is: "); 
 
-                Particle p1 (NewG.OccupancyMap[ NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords ] ); 
+                Particle p1 ( NewG.PolymersInGrid[index].chain[index_pivot-(1+i)] ); 
+
                 p1.coords = position_store[i]; 
-                print(p1.coords);
-                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot-(1+i)].coords );            // get rid of what WAS there, and repopulate
-                NewG.OccupancyMap[p1.coords] = p1; 
-
+                // printf("This is inside ZeroAgg. At pivot-(1+%d) index is: ", i); 
+                // print(p1.coords); 
+                // print(p1.coords);
                 
-                // NewG.OccupancyMap[p1.coords] ;
+                NewG.OccupancyMap[p1.coords] = p1; 
+                
                 NewG.PolymersInGrid[index].chain[index_pivot-(i+1)].coords = position_store[i]; 
+
 
             }
             NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
@@ -1667,19 +1666,23 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
         }
 
         else {
-
             ++tries;
             continue; 
         }
 
-
-
     }
 
     if (tries == 5){
-        printf("All a bust.\n");
+        // printf("All a bust.\n");
         *IMP_BOOL = false; 
     }
+    /*int nkey {0}; 
+    for (auto it = NewG.OccupancyMap.begin(); it != NewG.OccupancyMap.end(); it++) {
+        printf("key is: "); 
+        print(it->first);
+        nkey++;
+    }
+    printf("number of keys is %d.\n", nkey);*/
 
     return NewG; 
 
@@ -1688,7 +1691,7 @@ Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of ZeroIndexRotation. 
+//             End of ZeroIndexRotationAgg. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -1729,15 +1732,10 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
     // get the location of particle at pivot index 
     std::array <int,3> loc_pivot = NewG.PolymersInGrid[index].chain[index_pivot].coords; 
 
-    printf("index of pivot is: %d\n", index_pivot); 
-    print(loc_pivot); 
-
     std::array <int,3> avoid_direction = subtract_arrays(&(NewG.PolymersInGrid[index].chain[index_pivot-1].coords), &loc_pivot); 
     impose_pbc(&avoid_direction, NewG.x, NewG.y, NewG.z);
     modified_direction(&avoid_direction, NewG.x, NewG.y, NewG.z);
 
-    printf("Direction to avoid is: "); 
-    print (avoid_direction); 
     std::array <int,3> to_check = loc_pivot;
     
     // disregard above direction 
@@ -1752,11 +1750,6 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
         // reinitialize to_check and direction_check; 
         to_check = loc_pivot; 
         direction_check = true; 
-
-        printf("Starting point is: "); 
-        print(to_check);
-        printf("Proposed dir: "); 
-        print(a);
 
         std::vector <std::array <int,3>> position_store; 
 
@@ -1787,8 +1780,8 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
             }
 
             // direction_check = direction_check && (! ( NewG.OccupancyMap.find(to_check) != NewG.OccupancyMap.end() ) ); 
-            std::cout << "pos to check: "; 
-            print(to_check); 
+            
+            
 
             if (direction_check){
                 position_store.push_back( to_check ); 
@@ -1796,7 +1789,7 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
             }
 
             else {
-                printf("Oh fuck, occupied. restart...\n");
+                // printf("Oh fuck, occupied. restart...\n");
                 break; 
             }
 
@@ -1804,14 +1797,19 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
 
         if (direction_check){
 
+            for (int ii{0}, ip{0}; ii < (size_of_poly-index_pivot-1); ++ii, ++ip){
+                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(1+ii)].coords );            // get rid of what WAS there, and repopulate
+                NewG.OccupancyMap.erase( position_store[ip] );  
+            }
+
             for (int i{0}; i<(size_of_poly-index_pivot-1); ++i){
-                printf("Position to analyze is: "); 
+                // printf("Position to analyze is: "); 
 
-                Particle p1 (NewG.OccupancyMap[NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords] );
+                Particle p1 ( NewG.PolymersInGrid[index].chain[index_pivot+(1+i)] ); // (NewG.OccupancyMap[NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords] );
                 p1.coords = position_store[i];
-                print(p1.coords); 
+                // print(p1.coords); 
 
-                NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords ); 
+                // NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords ); 
                 NewG.OccupancyMap[p1.coords] = p1; 
                 
                 NewG.PolymersInGrid[index].chain[index_pivot+(i+1)].coords = position_store[i]; 
@@ -1829,14 +1827,27 @@ Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
     }
 
     if (tries==5){
-        printf("All a bust.\n");
+        // printf("All a bust.\n");
         *IMP_BOOL = false;
     }
 
+    //int nkey = 0; 
+    /*for (auto it = NewG.OccupancyMap.begin(); it != NewG.OccupancyMap.end(); it++) {
+        printf("key is: "); 
+        print(it->first);
+        nkey++;
+    }
+    printf("number of keys is %d.\n", nkey);*/
     return NewG;
 
 }
 
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of FinalIndexRotationAgg. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 //============================================================
 //============================================================
@@ -1961,9 +1972,56 @@ Grid EndRotation(Grid* InitialG, int index, bool* IMP_BOOL){
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of EndRotationAgg. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: EndRotationAgg
+//
+// PARAMETERS: index of polymer to perform EndRotation on, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer at the terminal index (the tail or head)
+// of the polymer. As it stands, this function only rotates one molecule at the tail or head. The choice of head 
+// or tail rotation comes from a random distribution. 
+//
+// PLANNED EXTENSION: Multiple molecules at the termini need to be rotated.    
+//
+// DEPENDENCIES: ZeroIndexRotation, FinalIndexRotation
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
+
+
+Grid EndRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL){
+
+    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = distribution(generator); 
+    // std::cout << "rng is " << num << std::endl;
+    if (num==0){
+        // std::cout << "Zero index aggrotation!" << std::endl;
+        return ZeroIndexRotationAgg(InitialG, index, IMP_BOOL); 
+    }
+    else {
+        // std::cout << "Final index aggrotation!" << std::endl;
+        return FinalIndexRotationAgg(InitialG, index, IMP_BOOL); 
+
+    }
+    
+
+}
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //             End of EndRotation. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
 
 //============================================================
 //============================================================
@@ -1988,6 +2046,7 @@ Grid KinkJump(Grid* InitialG, int index, bool* IMP_BOOL){
     std::vector <int> k_idx = NewG.PolymersInGrid.at(index).findKinks(); 
 
     if (k_idx.size() == 0 ){
+        *IMP_BOOL = false;
         // std::cout << "No kinks found in polymer..." << std::endl;
         return NewG;
     }
@@ -2013,9 +2072,7 @@ Grid KinkJump(Grid* InitialG, int index, bool* IMP_BOOL){
             NewG.OccupancyMap[to_check] = p1; 
 
             NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[idx+1].coords ); 
-            // p_erase++;
-			// std::cout << "kink will jump to: "; 
-			// print(p1.coords); 
+            
             // update PolymersInGrid 
             NewG.PolymersInGrid[index].chain[idx+1] = p1; 
             NewG.PolymersInGrid[index].ChainToConnectivityMap(); 
@@ -2063,19 +2120,30 @@ Grid KinkJump(Grid* InitialG, int index, bool* IMP_BOOL){
 
 Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
+
+    // std::array <int,3 > ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1};     // unit directions 
+    // std::array <std::array <int,3>,6> ultimate_drns = {ex, nex, ey, ney, ez, nez}; 
+
     Grid NewG(*InitialG); 
 
     std::vector <int> c_idx = NewG.PolymersInGrid.at(index).findCranks(); 
 
     if ( c_idx.size()==0 ){
+        *IMP_BOOL = false; 
         // std::cout << "No cranks in this polymer..." << std::endl; 
         return NewG; 
     }
+    
+    bool b2; 
+    bool b1; 
+    
 
-    // std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
+    std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
 	size_t tries = 0; 
     for (int idx: c_idx){
 
+        
+        
         std::array <int,3> HingeToKink = subtract_arrays(&(NewG.PolymersInGrid[index].chain[idx+2].coords), &(NewG.PolymersInGrid[index].chain[idx+3].coords) ); 
         std::array <int,3> HingeToHinge = subtract_arrays(&(NewG.PolymersInGrid[index].chain[idx+3].coords ), &(NewG.PolymersInGrid[index].chain[idx].coords ) );
 
@@ -2087,26 +2155,30 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
         std::array <int,3> to_check_1 = add_arrays ( &(NewG.PolymersInGrid[index].chain[idx].coords), &d1 ); 
         std::array <int,3> to_check_2 = add_arrays ( &(NewG.PolymersInGrid[index].chain[idx+3].coords), &d1 ); 
         impose_pbc(&to_check_1, NewG.x, NewG.y, NewG.z); 
-        impose_pbc(&to_check_2, NewG.x, NewG.y, NewG.z);  
+        impose_pbc(&to_check_2, NewG.x, NewG.y, NewG.z);   
 
-        if ( !(NewG.OccupancyMap.find(to_check_1) != NewG.OccupancyMap.end()) && !(NewG.OccupancyMap.find(to_check_2) != NewG.OccupancyMap.end() ) ){
+        b2 = NewG.OccupancyMap.find(to_check_2) != NewG.OccupancyMap.end(); 
+        b1 = NewG.OccupancyMap.find(to_check_1) != NewG.OccupancyMap.end(); 
 
-            // update OccupancyMap
-            Particle p1 ( NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+1).coords] );
+        bool entry = (!(b1) && !(b2)); 
+
+        if ( entry ){
+
+            Particle p1 ( NewG.PolymersInGrid.at(index).chain.at(idx+1) );
+
             p1.coords = to_check_1;
 
-            Particle p2 ( NewG.OccupancyMap[NewG.PolymersInGrid.at(index).chain.at(idx+2).coords]); 
+            Particle p2 ( NewG.PolymersInGrid.at(index).chain.at(idx+2) ); 
             p2.coords = to_check_2; 
             
+
 
             NewG.OccupancyMap[to_check_1] = p1; 
             NewG.OccupancyMap[to_check_2] = p2; 
 
             NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[idx+1].coords );
             NewG.OccupancyMap.erase( NewG.PolymersInGrid[index].chain[idx+2].coords );
-            // p_erased_1++; 
-            // p_erased_2++;
-
+            
             // update PolymersInGrid 
             NewG.PolymersInGrid[index].chain[idx+1].coords = p1.coords; 
             NewG.PolymersInGrid[index].chain[idx+2].coords = p2.coords; 
@@ -2116,16 +2188,20 @@ Grid CrankShaft(Grid* InitialG, int index, bool* IMP_BOOL){
 
         }
         else {
+
 			++tries; 
-            // std::cout << "This position is occupied by monomer... No cranking." << std::endl;
+
         }
 
 
     }
+    // std::cout << "Loop exit?" << std::endl;
 	if (tries == c_idx.size()){
         *IMP_BOOL = false; 
 		// printf("No position was available for a crankshaft! position will be accepted by default!\n");
 	}
+
+    // std::cout << "Have you reached the end of the Crank?" << std::endl;
     return NewG;
 
 }
@@ -2366,7 +2442,7 @@ Grid Reptation(Grid* InitialG, int index, bool* IMP_BOOL){
 // 2. Kink Jump
 // 3. Crank Shaft
 // 4. Reptation
-// 5. Ising Flip
+// 5. Aggressive End rotation
 //
 // DEPENDENCIES: rng_uniform, CalculateEnergy, EndRotation, KinkJump, CrankShaft, Reptation, IsingFlip  
 //
@@ -2377,7 +2453,9 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
     int index = rng_uniform(0, static_cast<int>((*InitialG).PolymersInGrid.size())-1); 
     // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
     Grid G_ ; 
-    int r = rng_uniform(1, 4);
+    int r = rng_uniform(1, 5);
+    // int nkey {0}; 
+    // std::cout << "RNG is " << r << std::endl;
     switch (r) {
         case (1):
             if (v){
@@ -2386,6 +2464,15 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // 
             G_ = EndRotation(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy(); 
+            /*
+            nkey = 0; 
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            printf("number of keys is %d.\n", nkey);
+            */
             break;     
         
         case (2):
@@ -2394,7 +2481,18 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             }
             // std::cout << "Performing crank shaft." << std::endl;
             G_ = CrankShaft(InitialG, index, IMP_BOOL);
+            
             G_.CalculateEnergy();
+            /*
+            nkey=0; 
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            
+            printf("number of keys is %d.\n", nkey);
+            */
             break; 
 
         case (3):
@@ -2404,6 +2502,16 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // std::cout << "Performing reptation." << std::endl;
             G_ = Reptation(InitialG, index, IMP_BOOL); 
             G_.CalculateEnergy();
+            /*
+            nkey = 0;
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            printf("number of keys is %d.\n", nkey);
+            */
+
             break; 
 
         case (4):
@@ -2412,9 +2520,28 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             }
             // std::cout << "Performing kink jump." << std::endl;
             G_ = KinkJump(InitialG, index, IMP_BOOL);
-            G_.CalculateEnergy ( );        
+            G_.CalculateEnergy ( );       
+            /* 
+            nkey = 0; 
+            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
+                printf("key is: "); 
+                print(it->first);
+                nkey++;
+            }
+            printf("number of keys is %d.\n", nkey);
+            */ 
             break; 
+
+        case (5):
+            if (v){
+                printf("Performing an aggressive end rotation.\n");
+            }
+            G_ = EndRotationAgg(InitialG, index, IMP_BOOL);
+            G_.CalculateEnergy(); 
+
+            break;
     }
+    // G_.PolymersInGrid[index].printChainCoords();
 
     return G_;
 }

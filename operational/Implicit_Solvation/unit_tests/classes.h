@@ -176,7 +176,7 @@ public:
     void dumpPositionsOfPolymers (int step, std::string filename="dumpfile.txt"); 
     void dumpEnergyOfGrid (int step, std::string filename, bool first_call);
     void ExtractPolymersFromTraj(std::string trajectory, std::string filename);
-    int ExtractIndexOfFinalMove(std::string trajectory, std::string filename);
+    int ExtractIndexOfFinalMove(std::string trajectory);
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // a function to calculate energy of interaction between two particles. 

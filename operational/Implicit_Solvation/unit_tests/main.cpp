@@ -56,7 +56,7 @@ int main(int argc, char** argv) {
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates.\n" <<
                 "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Dump energy of grid at each step in a file.\n"<<
                 "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology.\n" <<
-                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation. Can only be used with -r flag.\n"<<
+                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n"<<
                 "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer.\n";  
                 exit(EXIT_SUCCESS);
                 break;
@@ -131,7 +131,7 @@ int main(int argc, char** argv) {
 
     if (r){
         G = CreateGridObjectRestart(positions, topology, restart_traj);
-        step_number = G.ExtractIndexOfFinalMove (restart_traj, positions) ; 
+        step_number = G.ExtractIndexOfFinalMove (restart_traj) ; 
         G.CalculateEnergy();   
         call = false; 
     }
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() );
+    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() );
 
     }
 
@@ -236,9 +236,11 @@ int main(int argc, char** argv) {
 
 
     else {
+
         printf("Simulation will output information of every %d configuration.\n", dfreq); 
         for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
+            
 
             if ( v && (i%dfreq==0) ){
                 printf("Move number %d.\n", i);
@@ -249,7 +251,7 @@ int main(int argc, char** argv) {
             if ( v && (i%dfreq==0) ){
                 printf("Executing...\n");
             }
-
+            
 
             if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
                 // accepted
@@ -257,7 +259,7 @@ int main(int argc, char** argv) {
                 if ( v ){ 
                     printf("Accepted.\n");
                     printf("Energy of the system is %f.\n", G_.Energy);
-                    printf("%d\n", IMP_BOOL);
+                    printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
                 }
 
                 G = std::move(G_);
@@ -267,7 +269,7 @@ int main(int argc, char** argv) {
             else {
                 if ( v && (i%dfreq==0) ){
                     printf("Not accepted.\n");
-                    printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G.Energy, G_.Energy);
+                    printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G_.Energy, G.Energy);
                 }
                 
             }
@@ -278,7 +280,7 @@ int main(int argc, char** argv) {
                 G.dumpEnergyOfGrid(i, efile, call) ; 
                 
             }
-
+            // std::cout <<"are you hitting  this line?"<<std::endl;
             IMP_BOOL = true; 
         }
     
@@ -287,7 +289,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); 
+    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
    
     }
 

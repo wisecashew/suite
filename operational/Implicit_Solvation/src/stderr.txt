@@ -1,1 +1,16 @@
-ERROR: You do not need to provide a -N option if you are not looking for accepted configuration statistics. Use -a if you want to use -N. Safeguarding against uncontrolled behavior. Exiting...
+You have given us 1 polymers to work with.
+Input file has no overlaps!
+Input polymers are well-connected!
+Polymers extracted successfuly!
+Solvent positions defined successfully!
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+Temperature of box is 3.
+Energy surface check: 
+monomer-monomer aligned interaction is -1
+monomer-monomer misaligned interaction is -1
+monomer-solvent 0
+Simulation will output information of every 1 configuration.
+
+
+Time taken for simulation: 14894 milliseconds

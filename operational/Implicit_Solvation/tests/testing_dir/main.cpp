@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 0.2.1 of the Monte Carlo Engine. Set up on Jan 18, 2022, 11:04 PM.\n" <<
+		        "This version number 0.2.1 of the Monte Carlo Engine. Set up on Jan 26, 2022, 04:35 PM.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() );
+    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() );
 
     }
 
@@ -282,6 +282,7 @@ int main(int argc, char** argv) {
             }
             // std::cout <<"are you hitting  this line?"<<std::endl;
             IMP_BOOL = true; 
+			G.PolymersInGrid[0].printChainCoords() ;
         }
     
     
@@ -289,7 +290,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
+    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); 
    
     }
 

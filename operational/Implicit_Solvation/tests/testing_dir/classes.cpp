@@ -2481,9 +2481,7 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             }
             // std::cout << "Performing crank shaft." << std::endl;
             G_ = CrankShaft(InitialG, index, IMP_BOOL);
-            if (*IMP_BOOL){
-                printf("Crank accepted.\n");
-            }
+            
             G_.CalculateEnergy();
             /*
             nkey=0; 

@@ -47,7 +47,7 @@ int main(int argc, char** argv) {
 		        "This version number 0.2.1 of the Monte Carlo Engine. Set up on Jan 26, 2022, 04:35 PM.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
-                "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
+                "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
                 "Data only for accepts    [-a]           (NO ARG REQUIRED)              If you only want energy and coords for every accepted structure, use this option. \n"
                 "Restart simulation       [-r]           (NO ARG REQUIRED)              Pick up a simulation back from some kind of a starting point.\n"
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
@@ -174,23 +174,40 @@ int main(int argc, char** argv) {
         
 
         if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T) && IMP_BOOL ) {
-            // accepted
+
             // replace old config with new config
-            if ( v ){ 
+            if ( v ){
+                printf("Checking validity of coords...");
+                printf("checkForOverlaps says: %d.\n", checkForOverlaps(PolymerVector_)); 
+                if (!checkForOverlaps(PolymerVector_)){
+                    printf("Something is fucked up overlaps-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+                printf("checkConnectivity says: %d\n", checkConnectivity(PolymerVector_, x, y, z)); 
+                if (! checkConnectivity(PolymerVector_, x, y, z) ){
+                    printf("Something is fucked up connectivity-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
                 printf("Accepted.\n");
-                printf("Energy of the system is %f.\n", sysEnergy_);
+                printf("Energy of the system is %.2f.\n", sysEnergy_);
                 printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
             }
 
+            // std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+            
             PolymerVector = std::move(PolymerVector_);
             sysEnergy = sysEnergy_; 
         }
+
+        //if (!IMP_BOOL){
+        //    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;            
+        //}
 
 
         else {
             if ( v && (i%dfreq==0) ){
                 printf("Not accepted.\n");
-                printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", sysEnergy_, sysEnergy);
+                printf("Energy of the suggested system is %.2f, while energy of the initial system is %.2f.\n", sysEnergy_, sysEnergy);
             }
             
         }

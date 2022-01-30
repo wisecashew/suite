@@ -1277,7 +1277,7 @@ void Polymer::ChainToConnectivityMap(){
 
 std::vector <int> Polymer::findKinks(){
     const int chainLength = this->deg_poly; 
-    std::cout << "chain length is " << chainLength << std::endl;
+    // std::cout << "chain length is " << chainLength << std::endl;
     std::vector <int> kink_indices; 
 
     // obtain all location where kinks exist in the polymer 

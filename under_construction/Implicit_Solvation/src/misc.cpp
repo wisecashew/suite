@@ -1281,12 +1281,14 @@ std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int ind
 
     	}
   		if (!b){
-  			std::cout << "number of tries is " << tries << std::endl;  
+  			// std::cout << "number of tries is " << tries << std::endl;
+  			// std::cout << "max number of tries can be " << ne_list.size() << std::endl;
+  			// std::cout << "This should be the only tries statement for this particular move." << std::endl;  
 			NewPol[index].chain[0].coords = to_rot; 
 			break;
   		}
   		else {
-  			std::cout << "Occupied, pick another place to rotate." << std::endl; 
+  			// std::cout << "Occupied, pick another place to rotate." << std::endl; 
 			++tries; 
   		}
 
@@ -1306,7 +1308,7 @@ std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int ind
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: TailRotation
+// NAME OF FUNCTION: HeadRotation
 //
 // PARAMETERS: index of a polymer to perform ZeroIndexRotation, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
 // 
@@ -1358,12 +1360,14 @@ std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, int ind
 
     	}
   		if (!b){
-  			std::cout << "number of tries is " << tries << std::endl;  
+  			// std::cout << "number of tries is " << tries << std::endl;  
+  			// std::cout << "max number of tries can be " << ne_list.size() << std::endl;
+  			// std::cout << "This should be the only tries statement for this particular move." << std::endl;  
 			NewPol[index].chain[dop-1].coords = to_rot; 
 			break;
   		}
   		else {
-  			std::cout << "Occupied, pick another place to rotate." << std::endl; 
+  			// std::cout << "Occupied, pick another place to rotate." << std::endl; 
 			++tries; 
   		}
 
@@ -1489,12 +1493,14 @@ std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, int index, 
     	}
     	// if the site is unoccupied for sure 
   		if (!b){			
-  			std::cout << "number of tries is " << tries << std::endl;  
+  			// std::cout << "number of tries is " << tries << std::endl;  
+  			// std::cout << "max number of tries for kjump can be " << k_idx.size() << std::endl;
+  			// std::cout << "This should be the only tries statement for this particular move." << std::endl;  
 			NewPol[index].chain[idx+1].coords = to_check; 
 			break;
   		}
   		else {
-  			std::cout << "Occupied, pick another place to rotate." << std::endl; 
+  			// std::cout << "Occupied, pick another place to kink jump." << std::endl; 
 			++tries; 
   		}
 
@@ -1594,13 +1600,16 @@ std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, int index
       	}
       	// if the site is unoccupied for sure 
       	if (!b){
+      		// std::cout << "number of tries is " << tries << std::endl;
+  			// std::cout << "max number of tries for cshaft can be " << c_idx.size() << std::endl;
+  			// std::cout << "This should be the only tries statement for this particular move." << std::endl; 
       		NewPol[index].chain[idx+1].coords = to_check_1;
       		NewPol[index].chain[idx+2].coords = to_check_2;
       		break;
       	}
 
       	else {
-      		std::cout << "Occupied, pick another place to crank." << std::endl; 
+      		// std::cout << "Occupied, pick another place to crank." << std::endl; 
 			++tries; 
       	}
 
@@ -1696,12 +1705,15 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
     				NewPol[index].chain[i].coords = to_check; 
     			}
     		}
+    		// std::cout << "number of tries is " << tries << std::endl;
+  			// std::cout << "max number of tries for forward reptation can be " << ne_list.size() << std::endl;
+  			// std::cout << "This should be the only tries statement for this particular move." << std::endl; 
     		break;
 
     	}
 
     	else {
-    		std::cout << "Occupied, pick another place to reptate." << std::endl;
+    		// std::cout << "Occupied, pick another place to reptate." << std::endl;
     		++tries; 
     	}
 
@@ -1794,11 +1806,14 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
     				NewPol[index].chain[deg_poly-1-i].coords = to_check; 
     			}
     		}
+    		// std::cout << "number of tries is " << tries << std::endl;
+  			// std::cout << "max number of tries for back reptation can be " << ne_list.size() << std::endl;
+  			// std::cout << "This should be the only tries statement for this particular move." << std::endl; 
     		break;
     	}
 
     	else {
-    		std::cout << "Occupied, pick another place to reptate." << std::endl;
+    		// std::cout << "Occupied, pick another place to reptate." << std::endl;
     		++tries; 
     	}
 
@@ -1895,7 +1910,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, i
     std::vector <Polymer> NewPol;
 
     Grid G_ ; 
-    int r = rng_uniform(1, 5);
+    int r = rng_uniform(1, 4);
     switch (r) {
         case (1):
             if (v){

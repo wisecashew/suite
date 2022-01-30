@@ -76,6 +76,9 @@ std::vector <Polymer> ExtractPolymersFromFile(std::string filename);
 
 std::array <std::array <int,3>,3> HingeSwingDirections(std::array <int,3>* HingeToHinge, std::array <int,3>* HingeToKink, int x, int y, int z); 
 
+void modified_direction(std::array<int,3>* a, int x, int y, int z);
+int modified_modulo(int divident, int divisor);
+
 
 int rng_uniform(int start, int end);
 double rng_uniform(double start, double end);
@@ -102,5 +105,27 @@ void StringToFile(std::string filename, std::string to_send);
 // extract number of polymers from the topology file 
 int ExtractNumberOfPolymers(std::string filename);
 
+// check input of main driver code 
+void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter, 
+    std::string positions, std::string topology, std::string dfile, 
+    std::string efile, std::string restart_traj); 
+
+
+bool checkValidityOfCoords(std::array <int,3> v, int x, int y, int z); 
+bool checkForOverlaps(std::vector <Polymer> PolymerVector);
+bool checkConnectivity(std::vector <Polymer> PolymerVector, int x, int y, int z); 
+std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y, int z);
+double CalculateEnergy(std::vector <Polymer>* PolymerVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems);
+void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
+void dumpEnergy (double sysEnergy, int step, std::string filename, bool first_call); 
+std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, int y, int z, bool v, bool* IMP_BOOL);
 
 #endif 

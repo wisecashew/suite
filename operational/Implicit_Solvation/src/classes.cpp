@@ -819,12 +819,6 @@ void Grid::CalculateEnergy(){
 
             // consider bonded interactions  
             
-            // for (Particle ple: part_vec){
-            //     ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), ple.coords), ne_list.end());
-            // }
-
-            // std::cout << "printing out neighboring monomer units included in energy calculation..." << std::endl; 
-            // std::cout << "current monomer unit is "; print(p.coords);
             for (std::array <int, 3>& loc: ne_list){
                 // std::cout << "neighbor list is: "; print (loc); 
                 if (this->OccupancyMap.find(loc) != this->OccupancyMap.end() ){ // loc is in the map 
@@ -2328,7 +2322,7 @@ Grid BackwardReptation(Grid* InitialG, int index, bool* IMP_BOOL){
     std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( NewG.PolymersInGrid[index].chain[0].coords, NewG.x, NewG.y, NewG.z); 
 
     // get rid of second monomer from the ne list 
-    // ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), NewG.PolymersInGrid.at(index).chain.at(1).coords), ne_list.end() ); 
+    
 	size_t tries = 0; 
     for (std::array <int,3> v: ne_list){
 
@@ -2451,11 +2445,9 @@ Grid Reptation(Grid* InitialG, int index, bool* IMP_BOOL){
 Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
 
     int index = rng_uniform(0, static_cast<int>((*InitialG).PolymersInGrid.size())-1); 
-    // std::cout << "Index of polymer in grid to move is " << index << "." << std::endl; 
+    
     Grid G_ ; 
     int r = rng_uniform(1, 5);
-    // int nkey {0}; 
-    // std::cout << "RNG is " << r << std::endl;
     switch (r) {
         case (1):
             if (v){
@@ -2464,72 +2456,30 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
             // 
             G_ = EndRotation(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy(); 
-            /*
-            nkey = 0; 
-            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
-                printf("key is: "); 
-                print(it->first);
-                nkey++;
-            }
-            printf("number of keys is %d.\n", nkey);
-            */
             break;     
         
         case (2):
             if (v){
                printf("Performing crank shaft.\n"); 
             }
-            // std::cout << "Performing crank shaft." << std::endl;
             G_ = CrankShaft(InitialG, index, IMP_BOOL);
-            
             G_.CalculateEnergy();
-            /*
-            nkey=0; 
-            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
-                printf("key is: "); 
-                print(it->first);
-                nkey++;
-            }
-            
-            printf("number of keys is %d.\n", nkey);
-            */
             break; 
 
         case (3):
             if (v){
                printf("Performing reptation.\n"); 
             }
-            // std::cout << "Performing reptation." << std::endl;
             G_ = Reptation(InitialG, index, IMP_BOOL); 
             G_.CalculateEnergy();
-            /*
-            nkey = 0;
-            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
-                printf("key is: "); 
-                print(it->first);
-                nkey++;
-            }
-            printf("number of keys is %d.\n", nkey);
-            */
-
             break; 
 
         case (4):
             if (v){
                printf("Performing kink jump.\n"); 
             }
-            // std::cout << "Performing kink jump." << std::endl;
             G_ = KinkJump(InitialG, index, IMP_BOOL);
             G_.CalculateEnergy ( );       
-            /* 
-            nkey = 0; 
-            for (auto it = G_.OccupancyMap.begin(); it != G_.OccupancyMap.end(); it++) {
-                printf("key is: "); 
-                print(it->first);
-                nkey++;
-            }
-            printf("number of keys is %d.\n", nkey);
-            */ 
             break; 
 
         case (5):
@@ -2541,7 +2491,6 @@ Grid MoveChooser(Grid* InitialG,  bool v, bool* IMP_BOOL){
 
             break;
     }
-    // G_.PolymersInGrid[index].printChainCoords();
 
     return G_;
 }

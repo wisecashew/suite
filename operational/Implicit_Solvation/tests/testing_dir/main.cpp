@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() );
+    printf("\n\nTime taken for simulation: %ld milliseconds\n", static_cast<long>( duration.count() ) );
 
     }
 
@@ -281,8 +281,30 @@ int main(int argc, char** argv) {
                 
             }
             // std::cout <<"are you hitting  this line?"<<std::endl;
-            IMP_BOOL = true; 
-			G.PolymersInGrid[0].printChainCoords() ;
+            IMP_BOOL = true;
+	    std::cout << "Printing out occupancy map..." << std::endl;
+	    int nkey = 0;  
+	    for (auto it = G.OccupancyMap.begin(); it != G.OccupancyMap.end(); it++){
+	    	std::cout << "Key is: ";
+		print(it->first);
+		int n{0}; 
+	        for (auto p: G.PolymersInGrid[0].chain){
+			
+			if (p.coords == it->first){
+				std::cout << "Found key." << std::endl;
+				break; 
+			}
+			++n;
+		}
+		std::cout << "n is " << n << std::endl;
+		if (static_cast<size_t>(n)==G.PolymersInGrid[0].chain.size()){
+			std::cout << "Something is fucked." << std::endl; 
+			exit (EXIT_FAILURE); 	
+	    	}
+		++nkey; 
+		
+	    } 
+	    std::cout << "number of keys is " << nkey << std::endl; 
         }
     
     
@@ -290,7 +312,7 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    printf("\n\nTime taken for simulation: %ld milliseconds\n", duration.count() ); 
+    printf("\n\nTime taken for simulation: %ld milliseconds\n", static_cast<long>(duration.count() ) ); 
    
     }
 

@@ -65,7 +65,7 @@ class Polymer{
 public: 
     int deg_poly; 
     std::vector <Particle> chain;                                               // all the particles in the polymer chain
-    std::map <Particle, std::vector <Particle> > ConnectivityMap;              // the particles one particular polymer bead is connected to 
+    std::map <Particle, std::vector <Particle> > ConnectivityMap;               // the particles one particular polymer bead is connected to 
 
 
     // constructor 
@@ -175,6 +175,8 @@ public:
     // dump coordinates of polymers in Grid and energy of grid into a text file 
     void dumpPositionsOfPolymers (int step, std::string filename="dumpfile.txt"); 
     void dumpEnergyOfGrid (int step, std::string filename, bool first_call);
+    void ExtractPolymersFromTraj(std::string trajectory, std::string filename);
+    int ExtractIndexOfFinalMove(std::string trajectory);
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // a function to calculate energy of interaction between two particles. 
@@ -220,6 +222,7 @@ public:
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 Grid CreateGridObject(std::string positions, std::string topology);
+Grid CreateGridObjectRestart(std::string positions, std::string topology, std::string trajectory);
 Grid IsingFlip(Grid InitialG);
 Grid ZeroIndexRotation(Grid* InitialG, int index, bool*);
 Grid FinalIndexRotation(Grid* InitialG, int index, bool*);
@@ -231,6 +234,8 @@ Grid BackwardReptation(Grid* InitialG, int index, bool*);
 Grid Reptation(Grid* InitialG, int index, bool*);
 Grid Translation(Grid* InitialG, int index, std::vector <int> direction);  
 Grid MoveChooser(Grid* InitialG, bool v, bool* IMP_BOOL); 
+Grid ZeroIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL);
+Grid FinalIndexRotationAgg(Grid* InitialG, int index, bool* IMP_BOOL);
 int ExtractNumberOfPolymers(std::string filename);
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

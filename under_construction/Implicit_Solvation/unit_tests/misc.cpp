@@ -70,15 +70,40 @@ void impose_pbc(std::array <int,3>* arr, int x_len, int y_len, int z_len) {
 
 int modified_modulo(int divident, int divisor){
 	double midway = static_cast<double>(divisor/2); 
-	int result; 
-	if (divident%divisor > midway){
-		result = (divident%divisor)-divisor; 
-		return result; 
+	
+	
+	if ( ((divident%divisor)+divisor)%divisor > midway){
+		
+		return ((divident%divisor)+divisor)%divisor-divisor; 
+		
 	}
 	else {
-		return (divident%divisor);
+		// std::cout << "result is " << result << std::endl;
+		return (((divident%divisor)+divisor)%divisor);
 	}
 
+}
+
+// modifies array to be a legit direction
+
+void modified_direction(std::array<int,3>* a, int x, int y, int z){
+	
+	for (int i{0}; i<3; ++i){
+		switch (i){
+			case (0):
+				(*a)[i] = modified_modulo((*a)[i], x); 
+				break; 
+			case (1): 
+				(*a)[i] = modified_modulo((*a)[i], y);
+				break;
+			case (2):
+				(*a)[i] = modified_modulo((*a)[i], z); 
+				break;
+			}
+	}
+
+	return;
+	
 }
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -726,5 +751,78 @@ void StringToFile(std::string filename, std::string to_send){
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
+
+// ===============================================================
+// ===============================================================
+
+void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter, 
+	std::string positions, std::string topology, std::string dfile, 
+	std::string efile, std::string restart_traj){
+
+	// if acceptance criterion is NOT CALLED 
+
+	if (!a) {
+		if (Nacc != -1) {
+			std::cerr << "ERROR: You do not need to provide a -N option if you are not looking for accepted configuration statistics. Use -a if you want to use -N. Safeguarding against uncontrolled behavior. Exiting..." << std::endl;
+            exit (EXIT_FAILURE);
+		}
+
+		if (dfreq == -1 || max_iter == -1){
+            std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+            exit (EXIT_FAILURE);
+        }
+
+	}
+
+	// if restart is NOT CALLED
+	if (!r){
+		if (restart_traj != "blank"){
+            std::cerr << "ERROR: You cannot ask for a trajectory coordinate file with -T without the -r flag. Safeguard against uncontrolled behavior. Exiting..." << std::endl;
+            exit (EXIT_FAILURE); 
+        }
+        if (dfreq == -1 || max_iter == -1 ){
+            std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+            exit (EXIT_FAILURE);
+        }
+
+    }
+    
+    else {
+        if (dfreq == -1 || max_iter == -1 ){
+            std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+            exit (EXIT_FAILURE);
+        }
+        else if (restart_traj == "blank"){
+            std::cerr << "ERROR: Need a trajectory file -T if -r option is being called. Exiting..." << std::endl;
+            exit(EXIT_FAILURE); 
+        }
+
+	}
+
+	// simulation requires an initial "positions" file, a topology file, a coordinate dump, and an energydump file 
+
+    if (positions=="blank" || topology == "blank" || dfile=="blank" || efile == "blank" ){
+        std::cerr << "positions is " << positions <<", topology is " << topology <<", coordinate dump file is " << dfile << ", energy dump file is " << efile << std::endl;
+        std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file)" <<
+        " and/or for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+        exit (EXIT_FAILURE);    
+    }
+
+    // set up outputs 
+
+    if (r){
+        std::ofstream dump_file(dfile, std::ios::app); 
+        std::ofstream energy_dump_file (efile, std::ios::app); 
+    }
+
+    else if (!r){
+        std::ofstream dump_file (dfile);
+        std::ofstream energy_dump_file (efile);
+    }
+
+
+	return; 
+
+}
 
 

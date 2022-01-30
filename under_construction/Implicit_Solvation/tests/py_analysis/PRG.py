@@ -82,7 +82,9 @@ if __name__ == "__main__":
     
     st_b_str = "Dumping coordinates at step" 
     pmer_num_str = "Dumping coordinates of Polymer"
-    end_str = "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n" 
+    start_str = "START"
+    end_str_1 = "END" 
+    end_str_2 = "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n" 
     
     # master_dict will be dictionary which will contain polymer coordinates at each step 
     # chunky data structure
@@ -109,22 +111,26 @@ if __name__ == "__main__":
             pmer_flag = -1
             end_step_flag = 0
             continue
-            
+        
+        elif (re.search(start_str, line)):
+            continue
+
         elif (re.search(pmer_num_str, line)):
             pmer_flag += 1
             master_dict[step_num][pmer_flag] = np.empty ( (0,3) )
             
             continue
             
-        elif (re.search(end_str, line)):
+        elif (re.search(end_str_1, line)):
             end_step_flag = 1
             step_flag = 0 
             pmer_flag = -1
-            
+            continue
+
+        elif (re.search(end_str_2, line)):
             continue
         
         else:
-            
             monomer_coords = extract_loc_from_string(line)
             master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords) )
             continue

@@ -1171,8 +1171,9 @@ void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, s
             dump_file << "\n"; 
         }
         ++count ; 
+        dump_file <<"END"<<"\n";
     }
-    dump_file <<"END"<<"\n";
+    
     dump_file << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n";
     // const auto& str = os.str(); 
     // dump_file.write(str.c_str(), static_cast<std::streamsize> (str.size() )); 
@@ -1950,3 +1951,195 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, i
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractPolymersFromTraj
+//
+// PARAMETERS: std::string trajectory, std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts all the data from the file 
+// in the form of a vector of strings.  
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+
+std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::string position, int x, int y, int z){
+
+    int NumberOfPolymers = ExtractNumberOfPolymers(position); 
+
+    std::vector <Polymer> PolymerVector; 
+    PolymerVector.reserve(NumberOfPolymers);
+
+    std::vector <std::array <int,3>> locations; 
+
+    std::vector <std::string> contents = ExtractContentFromFile(trajectory); // this extracts every line of the file
+
+    // std::vector <int> step_num_store; 
+    std::vector <int> index_store; // need this guy to hold the index of the final set of coordinates. 
+
+    //////////////////////////////////////////////////////////////////////
+    // extract the final coordinates from the traj file
+    std::regex stepnum ("Dumping coordinates at step"); 
+    // int step_num = 0; 
+    int j {0}; 
+    for (std::string& s: contents){
+
+        std::stringstream ss(s);
+        std::string temp; 
+        int found; 
+        // std::stringstream int_ss; 
+
+        if (std::regex_search(s, stepnum)){
+            while(!ss.eof()){
+                ss >> temp;
+                if (std::stringstream(temp) >> found){
+                    // step_num_store.push_back(found);
+                    index_store.push_back(j);
+                } 
+            }
+        } 
+        ++j; 
+    }
+
+    contents.erase(contents.begin(), contents.begin() + (index_store[index_store.size()-1] ) ); 
+
+    //////////////////////////////////////////////////////////////////
+
+    
+    bool start_bool {false}, end_bool {false}; 
+    std::regex start ("START"), end ("END"), reg_poly ("Dumping coordinates of Polymer"); 
+    
+    int startCount{0}, endCount{0}; 
+    
+    for (std::string& s: contents){
+         
+        std::stringstream ss(s); 
+        if (std::regex_search(s, start) ){
+            ++startCount;
+            start_bool = true; 
+            end_bool = false; 
+            continue; 
+        }
+
+        else if (std::regex_search(s, end) ) {
+            ++endCount;
+            start_bool = false; 
+            end_bool = false; 
+
+            Polymer pmer = makePolymer(locations);
+            PolymerVector.push_back(pmer);
+            
+            locations.clear();
+            continue; 
+            
+        }
+
+        else if (start_bool == end_bool){
+            continue;
+        }
+
+        else{
+            std::array <int,3> loc;
+            std::string strr; // temp string 
+            int k;            // temp int container 
+            
+            int j{0};
+            while (!ss.eof() ){
+                ss >> strr; 
+                if (std::stringstream(strr) >> k){
+                    loc[j] = k;
+                    ++j;
+                }
+            }  
+
+            if (!checkValidityOfCoords(loc, x, y, z)){
+            std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
+            exit(EXIT_FAILURE); 
+            }
+        
+            locations.push_back(loc); 
+            
+        
+        }
+    }
+    
+    
+
+    if(!(checkForOverlaps(PolymerVector))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Overlap detected." << std::endl;
+        exit(EXIT_FAILURE);  
+    }
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    // throw in a check for connectivity of polymer chains 
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+    if (!(checkConnectivity(PolymerVector, x, y, z))){
+        std::cerr << "ERROR: There is a problem with the input file for positions. Monomer units are not adjacent to one another on the lattice." << std::endl;
+        exit(EXIT_FAILURE); 
+    }
+    
+    
+
+    return PolymerVector; 
+}
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractPolymersFromTraj. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractIndexOfFinalMove
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the trajectory file, and extracts the index of the final move. 
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+int ExtractIndexOfFinalMove(std::string trajectory){
+
+    std::vector <std::string> contents = ExtractContentFromFile(trajectory); 
+
+    int step_number{0}; 
+    std::regex stepnum ("Dumping coordinates at step"); 
+
+    for (std::string& s: contents){
+
+        std::stringstream ss(s); 
+        std::string temp; 
+        int found; 
+
+        if (std::regex_search (s, stepnum) ){
+            while (!ss.eof() ){
+                ss >> temp; 
+                if (std::stringstream(temp) >> found){
+                    step_number = found; 
+                }
+            }
+        }
+    }
+
+    return step_number; 
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractIndexOfFinalMove 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

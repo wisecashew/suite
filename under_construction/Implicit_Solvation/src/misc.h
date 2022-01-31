@@ -115,6 +115,7 @@ bool checkValidityOfCoords(std::array <int,3> v, int x, int y, int z);
 bool checkForOverlaps(std::vector <Polymer> PolymerVector);
 bool checkConnectivity(std::vector <Polymer> PolymerVector, int x, int y, int z); 
 std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y, int z);
+std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::string position, int x, int y, int z);
 double CalculateEnergy(std::vector <Polymer>* PolymerVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems);
 void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
 void dumpEnergy (double sysEnergy, int step, std::string filename, bool first_call); 
@@ -127,5 +128,8 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
 std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, int y, int z, bool v, bool* IMP_BOOL);
+int ExtractIndexOfFinalMove(std::string trajectory);
+
+
 
 #endif 

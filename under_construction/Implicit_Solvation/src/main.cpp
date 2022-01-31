@@ -144,16 +144,30 @@ int main(int argc, char** argv) {
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~\n" << std::endl;
 
-    std::vector <Polymer> PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
+    int step_number = 0;
+    double sysEnergy {0}; 
+    std::vector <Polymer> PolymerVector; 
+    PolymerVector.reserve(N); 
+    if (r){
+        std::cout << "Restart mode activated.\n";
+        PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
+        step_number = ExtractIndexOfFinalMove(restart_traj);
+    }
+    else {
 
-    double sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems); 
+        PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
+        dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
+        sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems); 
+        dumpEnergy (sysEnergy, step_number, efile, true);
+    }
+    
     double sysEnergy_ {0}; 
     std::cout << "Energy of system is " << sysEnergy << std::endl;
 
-    int step_number = 0; 
+     
 	int acc_counter = 0; 
-    dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
-    dumpEnergy (sysEnergy, step_number, efile, true);
+    
+    
 
     bool IMP_BOOL = true; 
 

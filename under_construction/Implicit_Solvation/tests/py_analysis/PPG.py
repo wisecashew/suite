@@ -1,3 +1,5 @@
+#!/usr/licensed/anaconda3/2020.7/bin/python
+
 # PPG stands for Polymer Positions Generator. 
 # given the number of polymers and dimensions of the box, PPG should be able to create valid 
 # simulation boxes 

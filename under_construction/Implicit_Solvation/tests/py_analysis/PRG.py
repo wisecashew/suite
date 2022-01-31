@@ -1,3 +1,5 @@
+#!/usr/licensed/anaconda3/2020.7/bin/python
+
 import numpy as np 
 import re 
 import matplotlib.pyplot as plt 
@@ -12,6 +14,8 @@ parser = argparse.ArgumentParser(description="Read a trajectory file and obtain 
 parser.add_argument('-i', metavar=': input coordinate file from which Rg is calculated (coords.txt)', dest='i', action='store', help='enter address of coordinate file')
 parser.add_argument('-e', metavar=': edge length of the box in which the simulation was conducted', type=int, dest='e', action='store', help='enter the edge length of the cubic simulation box')
 parser.add_argument('-T', metavar=': thermodynamic temperature', type=float, dest='T', action='store', help='enter the thermodynamic temperature T of the simulation with k = 1 ')
+parser.add_argument('
+
 args = parser.parse_args() 
 
 def extract_loc_from_string(a_string):
@@ -156,5 +160,6 @@ if __name__ == "__main__":
     g = open('stat_kt' + str(args.T) + '.txt', 'w')
     g.write("min is {} and index is {}\n".format(np.min(rg), np.argmin(rg))) 
     g.write("mean is {}\n".format( np.mean(rg) ) ) 
-    g.write("max is {} and index is {}.".format( np.max(rg), np.argmax(rg) ) ) 
+    g.write("max is {} and index is {}.\n".format( np.max(rg), np.argmax(rg) ) )
+    g.write("stderror is {}".format( np.std(rg)/np.sqrt(len(rg) ) ) )
     g.close() 

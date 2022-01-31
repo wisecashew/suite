@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description="Read a trajectory file and end-to-
 parser.add_argument('-i', metavar=': input coordinate file from which Rg is calculated (coords.txt)', dest='i', action='store', help='enter address of coordinate file')
 parser.add_argument('-e', metavar=': edge length of the box in which the simulation was conducted', type=int, dest='e', action='store', help='enter the edge length of the cubic simulation box')
 parser.add_argument('-s', metavar=': only collect moves every s steps', type=int, dest='s', action='store', help='analyze coordinates collected every s steps') 
+parser.add_argument('-b', metavar=': start collecting stats after step b', type=int, dest='b', action='store', help='analyze coordinates only after step b') 
 args = parser.parse_args() 
 
 def extract_loc_from_string(a_string):
@@ -78,7 +79,7 @@ def get_e2e(coord_arr, xlen, ylen, zlen):
 if __name__ == "__main__":
     
 
-    
+    b = args.b     
     s = args.s
     f = open( args.i , "r")
     # f = open("coords.txt", 'r')
@@ -145,6 +146,8 @@ if __name__ == "__main__":
         # print(key) 
         e2e.append( get_e2e(master_dict[key][0], xlen, ylen, zlen ) ) 
     
+    e2e = e2e[b:] 
+
     auto_corr = [] 
     delays = np.arange(0, len(e2e)/2, s)
     

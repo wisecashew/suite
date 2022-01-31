@@ -2143,3 +2143,53 @@ int ExtractIndexOfFinalMove(std::string trajectory){
 //             End of ExtractIndexOfFinalMove 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractEnergyOfFinalMove
+//
+// PARAMETERS: std::string energy_file 
+// 
+// WHAT THE FUNCTION DOES: it looks at the trajectory file, and extracts the index of the final move. 
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+double ExtractEnergyOfFinalMove(std::string energy_file){
+
+    std::vector <std::string> contents = ExtractContentFromFile(energy_file); 
+
+    std::array <double,2> energy; 
+    // int step_number{0}; 
+    std::regex stepnum ("Dumping coordinates at step"); 
+
+    for (std::string& s: contents){
+
+        std::stringstream ss(s); 
+        std::string temp; 
+        double found; 
+
+        int i{0};
+        while (!ss.eof() ){
+            ss >> temp; 
+            if (std::stringstream(temp) >> found){
+                energy[i] = found;
+                ++i; 
+            }
+        }
+    }
+
+    return energy[0]; 
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractIndexOfFinalMove 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

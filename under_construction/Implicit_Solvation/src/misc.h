@@ -129,6 +129,7 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
 std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, int y, int z, bool v, bool* IMP_BOOL);
 int ExtractIndexOfFinalMove(std::string trajectory);
+double ExtractEnergyOfFinalMove(std::string energy_file); 
 
 
 

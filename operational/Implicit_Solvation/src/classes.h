@@ -65,7 +65,7 @@ class Polymer{
 public: 
     int deg_poly; 
     std::vector <Particle> chain;                                               // all the particles in the polymer chain
-    std::map <Particle, std::vector <Particle> > ConnectivityMap;              // the particles one particular polymer bead is connected to 
+    std::map <Particle, std::vector <Particle> > ConnectivityMap;               // the particles one particular polymer bead is connected to 
 
 
     // constructor 

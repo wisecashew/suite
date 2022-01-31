@@ -152,6 +152,7 @@ int main(int argc, char** argv) {
         std::cout << "Restart mode activated.\n";
         PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
         step_number = ExtractIndexOfFinalMove(restart_traj);
+        sysEnergy = ExtractEnergyOfFinalMove(efile); 
     }
     else {
 

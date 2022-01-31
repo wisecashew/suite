@@ -1,16 +1,16 @@
-You have given us 1 polymers to work with.
+Will attempt to restart simulation by taking coordinates from a previous trajectory file.
+Number of polymers is 2.
+x = 10, y = 10, z = 10, T = 1.
+Emm_a = -1, Emm_n = -1, Ems = 0.
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+Restart mode activated.
 Input file has no overlaps!
 Input polymers are well-connected!
-Polymers extracted successfuly!
-Solvent positions defined successfully!
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-Temperature of box is 3.
-Energy surface check: 
-monomer-monomer aligned interaction is -1
-monomer-monomer misaligned interaction is -1
-monomer-solvent 0
+Energy of system is -22
 Simulation will output information of every 1 configuration.
 
+Number of moves accepted is 423.
 
-Time taken for simulation: 14894 milliseconds
+Time taken for simulation: 662 milliseconds

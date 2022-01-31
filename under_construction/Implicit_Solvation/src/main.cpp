@@ -151,7 +151,7 @@ int main(int argc, char** argv) {
     std::cout << "Energy of system is " << sysEnergy << std::endl;
 
     int step_number = 0; 
-
+	int acc_counter = 0; 
     dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
     dumpEnergy (sysEnergy, step_number, efile, true);
 
@@ -197,6 +197,7 @@ int main(int argc, char** argv) {
             
             PolymerVector = std::move(PolymerVector_);
             sysEnergy = sysEnergy_; 
+			++acc_counter;
         }
 
         //if (!IMP_BOOL){
@@ -226,7 +227,8 @@ int main(int argc, char** argv) {
     auto stop = std::chrono::high_resolution_clock::now(); 
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-
+	
+	printf("\nNumber of moves accepted is %d.", acc_counter);
     printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
 
     return 0;

@@ -1,3 +1,4 @@
+#!/usr/licensed/anaconda3/2020.7/bin/python
 '''
 plot the energy dump file created by Monte Carlo Engine
 ''' 

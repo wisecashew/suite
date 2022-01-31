@@ -1,13 +1,14 @@
 Number of polymers is 2.
 x = 10, y = 10, z = 10, T = 1.
-Emm_a = -1, Emm_n = -1, Ems = -2.
+Emm_a = -1, Emm_n = -1, Ems = 0.
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 Input file has no overlaps!
 Input polymers are well-connected!
-Energy of system is -77
+Energy of system is -19
 Simulation will output information of every 1 configuration.
 
+Number of moves accepted is 5270.
 
-Time taken for simulation: 122 milliseconds
+Time taken for simulation: 1921 milliseconds

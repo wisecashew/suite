@@ -1,0 +1,886 @@
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls   s/call   s/call  name    
+ 52.01      3.88     3.88   807127     0.00     0.00  std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*)
+ 23.06      5.60     1.72   100004     0.00     0.00  std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&)
+  7.64      6.17     0.57 49169851     0.00     0.00  std::vector<Particle, std::allocator<Particle> >::vector(std::vector<Particle, std::allocator<Particle> > const&)
+  5.90      6.61     0.44  1217351     0.00     0.00  Grid::CalculateEnergy()
+  3.62      6.88     0.27   230364     0.00     0.00  rng_uniform(int, int)
+  1.21      6.97     0.09    85950     0.00     0.00  Polymer::ChainToConnectivityMap()
+  0.94      7.04     0.07   100150     0.00     0.00  Grid::operator=(Grid&&)
+  0.80      7.10     0.06   290317     0.00     0.00  std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()()
+  0.54      7.14     0.04  1340020     0.00     0.00  obtain_ne_list(std::array<int, 3ul>, int, int, int)
+  0.54      7.18     0.04   484607     0.00     0.00  std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&)
+  0.54      7.22     0.04   403562     0.00     0.00  std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_erase(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >*)
+  0.40      7.25     0.03   171900     0.00     0.00  std::map<Particle, std::vector<Particle, std::allocator<Particle> >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::operator[](Particle const&)
+  0.40      7.28     0.03   100002     0.00     0.00  std::vector<Polymer, std::allocator<Polymer> >::vector(std::vector<Polymer, std::allocator<Polymer> > const&)
+  0.27      7.30     0.02  3230943     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion()
+  0.27      7.32     0.02   211889     0.00     0.00  std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::equal_range(std::array<int, 3ul> const&)
+  0.27      7.34     0.02   100000     0.00     0.00  std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >* std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_copy<std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node>(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> > const*, std::_Rb_tree_node_base*, std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node&)
+  0.27      7.36     0.02    20015     0.00     0.00  EndRotation(Grid*, int, bool*)
+  0.13      7.37     0.01   290317     0.00     0.00  int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&)
+  0.13      7.38     0.01   163170     0.00     0.00  std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&)
+  0.13      7.39     0.01   144786     0.00     0.00  impose_pbc(std::array<int, 3ul>*, int, int, int)
+  0.13      7.40     0.01   142060     0.00     0.00  Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >)
+  0.13      7.41     0.01   142059     0.00     0.00  std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<std::array<int, 3ul> const, Particle> >, std::array<int, 3ul> const&)
+  0.13      7.42     0.01   124828     0.00     0.00  add_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*)
+  0.13      7.43     0.01    19979     0.00     0.00  Reptation(Grid*, int, bool*)
+  0.13      7.44     0.01    19946     0.00     0.00  EndRotationAgg(Grid*, int, bool*)
+  0.13      7.45     0.01     9961     0.00     0.00  FinalIndexRotationAgg(Grid*, int, bool*)
+  0.13      7.46     0.01       12     0.00     0.62  MoveChooser(Grid*, bool, bool*)
+  0.00      7.46     0.00   913925     0.00     0.00  subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*)
+  0.00      7.46     0.00   211889     0.00     0.00  std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&)
+  0.00      7.46     0.00   100003     0.00     0.00  std::vector<Polymer, std::allocator<Polymer> >::~vector()
+  0.00      7.46     0.00   100000     0.00     0.00  Grid::Grid(Grid const&)
+  0.00      7.46     0.00    62205     0.00     0.00  unsigned long std::uniform_int_distribution<unsigned long>::operator()<std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&, std::uniform_int_distribution<unsigned long>::param_type const&)
+  0.00      7.46     0.00    49026     0.00     0.00  Particle* std::__uninitialized_copy<false>::__uninit_copy<Particle const*, Particle*>(Particle const*, Particle const*, Particle*)
+  0.00      7.46     0.00    20033     0.00     0.00  CrankShaft(Grid*, int, bool*)
+  0.00      7.46     0.00    20033     0.00     0.00  Polymer::findCranks()
+  0.00      7.46     0.00    20027     0.00     0.00  KinkJump(Grid*, int, bool*)
+  0.00      7.46     0.00    20027     0.00     0.00  Polymer::findKinks()
+  0.00      7.46     0.00    19946     0.00     0.00  modified_direction(std::array<int, 3ul>*, int, int, int)
+  0.00      7.46     0.00    19946     0.00     0.00  void std::shuffle<std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::array<int, 3ul>*, std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&&)
+  0.00      7.46     0.00    15122     0.00     0.00  std::__tuple_compare<std::tuple<std::array<int, 3ul>&, std::string&, int&>, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&>, 0ul, 3ul>::__eq(std::tuple<std::array<int, 3ul>&, std::string&, int&> const&, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&> const&)
+  0.00      7.46     0.00    10418     0.00     0.00  HingeSwingDirections(std::array<int, 3ul>*, std::array<int, 3ul>*, int, int, int)
+  0.00      7.46     0.00    10158     0.00     0.00  BackwardReptation(Grid*, int, bool*)
+  0.00      7.46     0.00    10120     0.00     0.00  ZeroIndexRotation(Grid*, int, bool*)
+  0.00      7.46     0.00     9985     0.00     0.00  ZeroIndexRotationAgg(Grid*, int, bool*)
+  0.00      7.46     0.00     9895     0.00     0.00  FinalIndexRotation(Grid*, int, bool*)
+  0.00      7.46     0.00     9821     0.00     0.00  ForwardReptation(Grid*, int, bool*)
+  0.00      7.46     0.00     1091     0.00     0.00  Grid::instantiateOccupancyMap()
+  0.00      7.46     0.00     1090     0.00     0.00  std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, Particle const&)
+  0.00      7.46     0.00      760     0.00     0.00  std::_Function_handler<bool (char), std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_invoke(std::_Any_data const&, char&&)
+  0.00      7.46     0.00      445     0.00     0.00  std::__detail::_State<char>::~_State()
+  0.00      7.46     0.00      215     0.00     0.00  std::_Function_base::_Base_manager<std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_manager(std::_Any_data&, std::_Any_data const&, std::_Manager_operation)
+  0.00      7.46     0.00      190     0.00     0.00  std::__detail::_State<char>::_State(std::__detail::_State<char>&&)
+  0.00      7.46     0.00      120     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_M_pop()
+  0.00      7.46     0.00       81     0.00     0.00  std::__detail::_Scanner<char>::_M_advance()
+  0.00      7.46     0.00       67     0.00     0.00  void std::deque<std::__detail::_StateSeq<std::regex_traits<char> >, std::allocator<std::__detail::_StateSeq<std::regex_traits<char> > > >::emplace_back<std::__detail::_StateSeq<std::regex_traits<char> > >(std::__detail::_StateSeq<std::regex_traits<char> >&&)
+  0.00      7.46     0.00       67     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_M_try_char()
+  0.00      7.46     0.00       67     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_M_atom()
+  0.00      7.46     0.00       59     0.00     0.13  Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >)
+  0.00      7.46     0.00       56     0.00     0.00  std::__detail::_NFA<std::regex_traits<char> >::_M_insert_state(std::__detail::_State<char>)
+  0.00      7.46     0.00       53     0.00     0.00  std::__detail::_NFA<std::regex_traits<char> >::_M_insert_matcher(std::function<bool (char)>)
+  0.00      7.46     0.00       53     0.00     0.00  std::__detail::_Scanner<char>::_M_scan_normal()
+  0.00      7.46     0.00       53     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_M_quantifier()
+  0.00      7.46     0.00       36     0.00     0.00  obtain_ne_list(std::vector<int, std::allocator<int> >, int, int, int)
+  0.00      7.46     0.00       15     0.00     0.00  Particle::printCoords()
+  0.00      7.46     0.00       14     0.00     0.00  std::basic_regex<char, std::regex_traits<char> >::~basic_regex()
+  0.00      7.46     0.00       14     0.00     0.00  std::__detail::_Scanner<char>::_Scanner(char const*, char const*, std::regex_constants::syntax_option_type, std::locale)
+  0.00      7.46     0.00       14     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative()
+  0.00      7.46     0.00       14     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_M_disjunction()
+  0.00      7.46     0.00       14     0.00     0.00  std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type)
+  0.00      7.46     0.00        7     0.00     0.00  NumberExtractor(std::string)
+  0.00      7.46     0.00        2     0.00     0.00  ExtractContentFromFile(std::string)
+  0.00      7.46     0.00        2     0.00     3.66  ExtractNumberOfPolymers(std::string)
+  0.00      7.46     0.00        2     0.00     0.00  std::basic_regex<char, std::regex_traits<char> >::basic_regex(char const*, std::regex_constants::syntax_option_type) [clone .constprop.646]
+  0.00      7.46     0.00        2     0.00     0.00  Polymer* std::__uninitialized_copy<false>::__uninit_copy<Polymer const*, Polymer*>(Polymer const*, Polymer const*, Polymer*)
+  0.00      7.46     0.00        2     0.00     0.00  std::vector<Polymer, std::allocator<Polymer> >::reserve(unsigned long)
+  0.00      7.46     0.00        2     0.00     0.00  std::vector<Particle, std::allocator<Particle> >::~vector()
+  0.00      7.46     0.00        2     0.00     0.00  std::vector<std::string, std::allocator<std::string> >::~vector()
+  0.00      7.46     0.00        2     0.00     0.00  std::enable_if<std::__detail::__is_contiguous_normal_iter<char const*>::value, std::shared_ptr<std::__detail::_NFA<std::regex_traits<char> > const> >::type std::__detail::__compile_nfa<char const*, std::regex_traits<char> >(char const*, char const*, std::regex_traits<char>::locale_type const&, std::regex_constants::syntax_option_type)
+  0.00      7.46     0.00        1     0.00     0.00  _GLOBAL__sub_I__Z10impose_pbcPSt6vectorIiSaIiEEiii
+  0.00      7.46     0.00        1     0.00     0.00  _GLOBAL__sub_I__ZN4Grid23dumpPositionsOfPolymersEiSs
+  0.00      7.46     0.00        1     0.00     0.00  _GLOBAL__sub_I_main
+  0.00      7.46     0.00        1     0.00     0.00  makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string)
+  0.00      7.46     0.00        1     0.00     0.00  ExtractTopologyFromFile(std::string)
+  0.00      7.46     0.00        1     0.00     3.79  Grid::ExtractPolymersFromFile(std::string)
+  0.00      7.46     0.00        1     0.00     0.00  Polymer::Polymer(Polymer const&)
+  0.00      7.46     0.00        1     0.00     0.00  std::vector<Polymer, std::allocator<Polymer> >::operator=(std::vector<Polymer, std::allocator<Polymer> > const&)
+  0.00      7.46     0.00        1     0.00     0.00  std::vector<Particle, std::allocator<Particle> >::reserve(unsigned long)
+  0.00      7.46     0.00        1     0.00     0.00  std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_unique_pos(Particle const&)
+  0.00      7.46     0.00        1     0.00     0.00  std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_unique_pos(std::array<int, 3ul> const&)
+
+ %         the percentage of the total running time of the
+time       program used by this function.
+
+cumulative a running sum of the number of seconds accounted
+ seconds   for by this function and those listed above it.
+
+ self      the number of seconds accounted for by this
+seconds    function alone.  This is the major sort for this
+           listing.
+
+calls      the number of times this function was invoked, if
+           this function is profiled, else blank.
+
+ self      the average number of milliseconds spent in this
+ms/call    function per call, if this function is profiled,
+	   else blank.
+
+ total     the average number of milliseconds spent in this
+ms/call    function and its descendents per call, if this
+	   function is profiled, else blank.
+
+name       the name of the function.  This is the minor sort
+           for this listing. The index shows the location of
+	   the function in the gprof listing. If the index is
+	   in parenthesis it shows where it would appear in
+	   the gprof listing if it were to be printed.
+
+Copyright (C) 2012-2017 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+		     Call graph (explanation follows)
+
+
+granularity: each sample hit covers 2 byte(s) for 0.13% of 7.46 seconds
+
+index % time    self  children    called     name
+                                                 <spontaneous>
+[1]    100.0    0.00    7.46                 CreateGridObject(std::string, std::string) [1]
+                0.00    3.79       1/1           Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    3.66       1/2           ExtractNumberOfPolymers(std::string) [4]
+                0.00    0.00       1/1           ExtractTopologyFromFile(std::string) [41]
+                0.00    0.00       1/1217351     Grid::CalculateEnergy() [18]
+                0.00    0.00       3/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00       1/1091        Grid::instantiateOccupancyMap() [52]
+                0.00    0.00       1/2           std::vector<Polymer, std::allocator<Polymer> >::reserve(unsigned long) [107]
+-----------------------------------------------
+                0.00    0.13       1/59          Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    7.33      58/59          ExtractNumberOfPolymers(std::string) [4]
+[2]     99.9    0.00    7.45      59         Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >) [2]
+                0.01    7.44      12/12          MoveChooser(Grid*, bool, bool*) [3]
+                0.00    0.00      12/144786      impose_pbc(std::array<int, 3ul>*, int, int, int) [38]
+                0.00    0.00      12/913925      subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+-----------------------------------------------
+                0.01    7.44      12/12          Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >) [2]
+[3]     99.9    0.01    7.44      12         MoveChooser(Grid*, bool, bool*) [3]
+                0.07    3.90  100000/100150      Grid::operator=(Grid&&) [5]
+                0.01    0.69   19946/19946       EndRotationAgg(Grid*, int, bool*) [11]
+                0.01    0.65   19979/19979       Reptation(Grid*, int, bool*) [12]
+                0.02    0.62   20015/20015       EndRotation(Grid*, int, bool*) [13]
+                0.00    0.61   20027/20027       KinkJump(Grid*, int, bool*) [14]
+                0.00    0.53   20033/20033       CrankShaft(Grid*, int, bool*) [17]
+                0.23    0.05  200000/230364      rng_uniform(int, int) [22]
+                0.04    0.00  100000/1217351     Grid::CalculateEnergy() [18]
+                0.01    0.00  100000/403562      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_erase(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >*) [29]
+                0.00    0.00  100000/100003      std::vector<Polymer, std::allocator<Polymer> >::~vector() [49]
+-----------------------------------------------
+                0.00    3.66       1/2           Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    3.66       1/2           CreateGridObject(std::string, std::string) [1]
+[4]     98.2    0.00    7.33       2         ExtractNumberOfPolymers(std::string) [4]
+                0.00    7.33      58/59          Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >) [2]
+                0.00    0.00       4/14          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00      10/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00       4/14          std::basic_regex<char, std::regex_traits<char> >::~basic_regex() [99]
+-----------------------------------------------
+                0.00    0.00       4/100150      std::enable_if<std::__detail::__is_contiguous_normal_iter<char const*>::value, std::shared_ptr<std::__detail::_NFA<std::regex_traits<char> > const> >::type std::__detail::__compile_nfa<char const*, std::regex_traits<char> >(char const*, char const*, std::regex_traits<char>::locale_type const&, std::regex_constants::syntax_option_type) [48]
+                0.00    0.00      23/100150      std::vector<std::string, std::allocator<std::string> >::~vector() [45]
+                0.00    0.00      26/100150      makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+                0.00    0.00      26/100150      std::vector<Particle, std::allocator<Particle> >::~vector() [44]
+                0.00    0.00      28/100150      NumberExtractor(std::string) [43]
+                0.00    0.00      28/100150      ExtractTopologyFromFile(std::string) [41]
+                0.07    3.90  100000/100150      MoveChooser(Grid*, bool, bool*) [3]
+[5]     53.4    0.07    3.91  100150         Grid::operator=(Grid&&) [5]
+                3.88    0.00  807097/807127      std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*) [6]
+                0.03    0.00  303562/403562      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_erase(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >*) [29]
+-----------------------------------------------
+                              385377             std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*) [6]
+                0.00    0.00       1/807127      Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00      29/807127      std::vector<Polymer, std::allocator<Polymer> >::~vector() [49]
+                3.88    0.00  807097/807127      Grid::operator=(Grid&&) [5]
+[6]     52.0    3.88    0.00  807127+385377  std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*) [6]
+                              385377             std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*) [6]
+-----------------------------------------------
+                0.00    3.79       1/1           CreateGridObject(std::string, std::string) [1]
+[7]     50.8    0.00    3.79       1         Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    3.66       1/2           ExtractNumberOfPolymers(std::string) [4]
+                0.00    0.13       1/59          Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >) [2]
+                0.00    0.00       1/1           makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+                0.00    0.00       1/2           std::vector<std::string, std::allocator<std::string> >::~vector() [45]
+                0.00    0.00       2/100002      std::vector<Polymer, std::allocator<Polymer> >::vector(std::vector<Polymer, std::allocator<Polymer> > const&) [9]
+                0.00    0.00       1/100004      std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&) [10]
+                0.00    0.00       1/1           std::vector<Polymer, std::allocator<Polymer> >::operator=(std::vector<Polymer, std::allocator<Polymer> > const&) [51]
+                0.00    0.00       1/807127      std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*) [6]
+                0.00    0.00      35/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00       1/142060      Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+                0.00    0.00       2/14          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00       1/2           ExtractContentFromFile(std::string) [56]
+                0.00    0.00       3/100003      std::vector<Polymer, std::allocator<Polymer> >::~vector() [49]
+                0.00    0.00      15/15          Particle::printCoords() [98]
+                0.00    0.00       2/14          std::basic_regex<char, std::regex_traits<char> >::~basic_regex() [99]
+                0.00    0.00       1/2           std::vector<Polymer, std::allocator<Polymer> >::reserve(unsigned long) [107]
+-----------------------------------------------
+                0.00    0.23    9821/100000      ForwardReptation(Grid*, int, bool*) [23]
+                0.00    0.23    9895/100000      FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.23    9961/100000      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.23    9985/100000      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.00    0.24   10120/100000      ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.24   10158/100000      BackwardReptation(Grid*, int, bool*) [21]
+                0.00    0.47   20027/100000      KinkJump(Grid*, int, bool*) [14]
+                0.00    0.47   20033/100000      CrankShaft(Grid*, int, bool*) [17]
+[8]     31.4    0.00    2.34  100000         Grid::Grid(Grid const&) [8]
+                0.03    2.29  100000/100002      std::vector<Polymer, std::allocator<Polymer> >::vector(std::vector<Polymer, std::allocator<Polymer> > const&) [9]
+                0.02    0.00  100000/100000      std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >* std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_copy<std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node>(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> > const*, std::_Rb_tree_node_base*, std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node&) [36]
+-----------------------------------------------
+                0.00    0.00       2/100002      Grid::ExtractPolymersFromFile(std::string) [7]
+                0.03    2.29  100000/100002      Grid::Grid(Grid const&) [8]
+[9]     31.1    0.03    2.29  100002         std::vector<Polymer, std::allocator<Polymer> >::vector(std::vector<Polymer, std::allocator<Polymer> > const&) [9]
+                1.72    0.57  100002/100004      std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&) [10]
+-----------------------------------------------
+                             49069847             std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&) [10]
+                0.00    0.00       1/100004      Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00       1/100004      Polymer::Polymer(Polymer const&) [50]
+                1.72    0.57  100002/100004      std::vector<Polymer, std::allocator<Polymer> >::vector(std::vector<Polymer, std::allocator<Polymer> > const&) [9]
+[10]    30.7    1.72    0.57  100004+49069847 std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&) [10]
+                0.57    0.00 49169851/49169851     std::vector<Particle, std::allocator<Particle> >::vector(std::vector<Particle, std::allocator<Particle> > const&) [16]
+                             49069847             std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&) [10]
+-----------------------------------------------
+                0.01    0.69   19946/19946       MoveChooser(Grid*, bool, bool*) [3]
+[11]     9.3    0.01    0.69   19946         EndRotationAgg(Grid*, int, bool*) [11]
+                0.01    0.34    9961/9961        FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.34    9985/9985        ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.00    0.00   19946/290317      int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [26]
+-----------------------------------------------
+                0.01    0.65   19979/19979       MoveChooser(Grid*, bool, bool*) [3]
+[12]     8.8    0.01    0.65   19979         Reptation(Grid*, int, bool*) [12]
+                0.00    0.33   10158/10158       BackwardReptation(Grid*, int, bool*) [21]
+                0.00    0.32    9821/9821        ForwardReptation(Grid*, int, bool*) [23]
+                0.00    0.00   19979/290317      int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [26]
+-----------------------------------------------
+                0.02    0.62   20015/20015       MoveChooser(Grid*, bool, bool*) [3]
+[13]     8.5    0.02    0.62   20015         EndRotation(Grid*, int, bool*) [13]
+                0.00    0.31   10120/10120       ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.30    9895/9895        FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.00   20015/290317      int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [26]
+-----------------------------------------------
+                0.00    0.61   20027/20027       MoveChooser(Grid*, bool, bool*) [3]
+[14]     8.2    0.00    0.61   20027         KinkJump(Grid*, int, bool*) [14]
+                0.00    0.47   20027/100000      Grid::Grid(Grid const&) [8]
+                0.02    0.11   19809/85950       Polymer::ChainToConnectivityMap() [15]
+                0.00    0.00   39618/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00   31877/124828      add_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [40]
+                0.00    0.00   31877/144786      impose_pbc(std::array<int, 3ul>*, int, int, int) [38]
+                0.00    0.00   31877/163170      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00   19809/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00   19809/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00   31877/913925      subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+                0.00    0.00   20027/20027       Polymer::findKinks() [71]
+-----------------------------------------------
+                0.00    0.00       1/85950       makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+                0.01    0.03    6200/85950       CrankShaft(Grid*, int, bool*) [17]
+                0.01    0.06    9821/85950       ForwardReptation(Grid*, int, bool*) [23]
+                0.01    0.06    9895/85950       FinalIndexRotation(Grid*, int, bool*) [25]
+                0.01    0.06    9961/85950       FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.01    0.06    9985/85950       ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.01    0.06   10120/85950       ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.01    0.06   10158/85950       BackwardReptation(Grid*, int, bool*) [21]
+                0.02    0.11   19809/85950       KinkJump(Grid*, int, bool*) [14]
+[15]     7.7    0.09    0.48   85950         Polymer::ChainToConnectivityMap() [15]
+                0.40    0.04 1117350/1217351     Grid::CalculateEnergy() [18]
+                0.03    0.00  171900/171900      std::map<Particle, std::vector<Particle, std::allocator<Particle> >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::operator[](Particle const&) [31]
+                0.01    0.00 2062800/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00     594/1091        Grid::instantiateOccupancyMap() [52]
+-----------------------------------------------
+                0.57    0.00 49169851/49169851     std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&) [10]
+[16]     7.6    0.57    0.00 49169851         std::vector<Particle, std::allocator<Particle> >::vector(std::vector<Particle, std::allocator<Particle> > const&) [16]
+-----------------------------------------------
+                0.00    0.53   20033/20033       MoveChooser(Grid*, bool, bool*) [3]
+[17]     7.1    0.00    0.53   20033         CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.47   20033/100000      Grid::Grid(Grid const&) [8]
+                0.01    0.03    6200/85950       Polymer::ChainToConnectivityMap() [15]
+                0.01    0.00   10418/230364      rng_uniform(int, int) [22]
+                0.00    0.00   20836/124828      add_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [40]
+                0.00    0.00   12400/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00   20836/144786      impose_pbc(std::array<int, 3ul>*, int, int, int) [38]
+                0.00    0.00   20836/163170      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00   12400/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00   12400/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00   20836/913925      subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+                0.00    0.00   20033/20033       Polymer::findCranks() [70]
+                0.00    0.00   10418/10418       HingeSwingDirections(std::array<int, 3ul>*, std::array<int, 3ul>*, int, int, int) [76]
+-----------------------------------------------
+                0.00    0.00       1/1217351     CreateGridObject(std::string, std::string) [1]
+                0.04    0.00  100000/1217351     MoveChooser(Grid*, bool, bool*) [3]
+                0.40    0.04 1117350/1217351     Polymer::ChainToConnectivityMap() [15]
+[18]     6.4    0.44    0.04 1217351         Grid::CalculateEnergy() [18]
+                0.04    0.00 1300026/1340020     obtain_ne_list(std::array<int, 3ul>, int, int, int) [30]
+                0.00    0.00   94111/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00   49016/49026       Particle* std::__uninitialized_copy<false>::__uninit_copy<Particle const*, Particle*>(Particle const*, Particle const*, Particle*) [69]
+-----------------------------------------------
+                0.01    0.34    9961/9961        EndRotationAgg(Grid*, int, bool*) [11]
+[19]     4.6    0.01    0.34    9961         FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.23    9961/100000      Grid::Grid(Grid const&) [8]
+                0.01    0.06    9961/85950       Polymer::ChainToConnectivityMap() [15]
+                0.01    0.00    9961/230364      rng_uniform(int, int) [22]
+                0.00    0.01   69380/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00   44278/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00   45721/144786      impose_pbc(std::array<int, 3ul>*, int, int, int) [38]
+                0.00    0.00   35760/124828      add_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [40]
+                0.00    0.00   35760/163170      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00   34690/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00    9961/19946       void std::shuffle<std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::array<int, 3ul>*, std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&&) [73]
+                0.00    0.00    9961/913925      subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+                0.00    0.00    9961/19946       modified_direction(std::array<int, 3ul>*, int, int, int) [72]
+-----------------------------------------------
+                0.00    0.34    9985/9985        EndRotationAgg(Grid*, int, bool*) [11]
+[20]     4.5    0.00    0.34    9985         ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.00    0.23    9985/100000      Grid::Grid(Grid const&) [8]
+                0.01    0.06    9985/85950       Polymer::ChainToConnectivityMap() [15]
+                0.01    0.00    9985/230364      rng_uniform(int, int) [22]
+                0.00    0.01   70306/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00   44141/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00   46340/144786      impose_pbc(std::array<int, 3ul>*, int, int, int) [38]
+                0.00    0.00   36355/124828      add_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [40]
+                0.00    0.00   36355/163170      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00   35153/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00    9985/19946       void std::shuffle<std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::array<int, 3ul>*, std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&&) [73]
+                0.00    0.00    9985/913925      subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+                0.00    0.00    9985/19946       modified_direction(std::array<int, 3ul>*, int, int, int) [72]
+-----------------------------------------------
+                0.00    0.33   10158/10158       Reptation(Grid*, int, bool*) [12]
+[21]     4.4    0.00    0.33   10158         BackwardReptation(Grid*, int, bool*) [21]
+                0.00    0.24   10158/100000      Grid::Grid(Grid const&) [8]
+                0.01    0.06   10158/85950       Polymer::ChainToConnectivityMap() [15]
+                0.01    0.01  154585/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00   10158/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00   10158/1340020     obtain_ne_list(std::array<int, 3ul>, int, int, int) [30]
+                0.00    0.00   10158/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.01    0.00    9961/230364      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.01    0.00    9985/230364      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.01    0.00   10418/230364      CrankShaft(Grid*, int, bool*) [17]
+                0.23    0.05  200000/230364      MoveChooser(Grid*, bool, bool*) [3]
+[22]     4.4    0.27    0.06  230364         rng_uniform(int, int) [22]
+                0.01    0.05  230364/290317      int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [26]
+-----------------------------------------------
+                0.00    0.32    9821/9821        Reptation(Grid*, int, bool*) [12]
+[23]     4.2    0.00    0.32    9821         ForwardReptation(Grid*, int, bool*) [23]
+                0.00    0.23    9821/100000      Grid::Grid(Grid const&) [8]
+                0.01    0.06    9821/85950       Polymer::ChainToConnectivityMap() [15]
+                0.01    0.01  149555/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00    9821/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00    9821/1340020     obtain_ne_list(std::array<int, 3ul>, int, int, int) [30]
+                0.00    0.00    9821/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.00    0.31   10120/10120       EndRotation(Grid*, int, bool*) [13]
+[24]     4.1    0.00    0.31   10120         ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.24   10120/100000      Grid::Grid(Grid const&) [8]
+                0.01    0.06   10120/85950       Polymer::ChainToConnectivityMap() [15]
+                0.00    0.00   20240/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00   18918/163170      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00   10120/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00   10120/1340020     obtain_ne_list(std::array<int, 3ul>, int, int, int) [30]
+                0.00    0.00   10120/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.00    0.30    9895/9895        EndRotation(Grid*, int, bool*) [13]
+[25]     4.1    0.00    0.30    9895         FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.23    9895/100000      Grid::Grid(Grid const&) [8]
+                0.01    0.06    9895/85950       Polymer::ChainToConnectivityMap() [15]
+                0.00    0.00   19790/484607      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.00    0.00   19424/163170      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00    9895/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00    9895/1340020     obtain_ne_list(std::array<int, 3ul>, int, int, int) [30]
+                0.00    0.00    9895/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.00    0.00      13/290317      makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+                0.00    0.00   19946/290317      EndRotationAgg(Grid*, int, bool*) [11]
+                0.00    0.00   19979/290317      Reptation(Grid*, int, bool*) [12]
+                0.00    0.00   20015/290317      EndRotation(Grid*, int, bool*) [13]
+                0.01    0.05  230364/290317      rng_uniform(int, int) [22]
+[26]     0.9    0.01    0.06  290317         int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [26]
+                0.06    0.00  290317/290317      std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()() [28]
+-----------------------------------------------
+                0.00    0.00   12400/484607      CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00   19790/484607      FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.00   20240/484607      ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.00   39618/484607      KinkJump(Grid*, int, bool*) [14]
+                0.00    0.00   44141/484607      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.00    0.00   44278/484607      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.01    0.01  149555/484607      ForwardReptation(Grid*, int, bool*) [23]
+                0.01    0.01  154585/484607      BackwardReptation(Grid*, int, bool*) [21]
+[27]     0.8    0.04    0.02  484607         std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.01    0.01  142046/142060      Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+                0.00    0.00  484607/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.06    0.00  290317/290317      int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [26]
+[28]     0.8    0.06    0.00  290317         std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()() [28]
+-----------------------------------------------
+                0.01    0.00  100000/403562      MoveChooser(Grid*, bool, bool*) [3]
+                0.03    0.00  303562/403562      Grid::operator=(Grid&&) [5]
+[29]     0.5    0.04    0.00  403562         std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_erase(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >*) [29]
+-----------------------------------------------
+                0.00    0.00    9821/1340020     ForwardReptation(Grid*, int, bool*) [23]
+                0.00    0.00    9895/1340020     FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.00   10120/1340020     ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.00   10158/1340020     BackwardReptation(Grid*, int, bool*) [21]
+                0.04    0.00 1300026/1340020     Grid::CalculateEnergy() [18]
+[30]     0.5    0.04    0.00 1340020         obtain_ne_list(std::array<int, 3ul>, int, int, int) [30]
+-----------------------------------------------
+                0.03    0.00  171900/171900      Polymer::ChainToConnectivityMap() [15]
+[31]     0.4    0.03    0.00  171900         std::map<Particle, std::vector<Particle, std::allocator<Particle> >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::operator[](Particle const&) [31]
+                0.00    0.00     496/1091        Grid::instantiateOccupancyMap() [52]
+-----------------------------------------------
+                0.00    0.00    9821/211889      ForwardReptation(Grid*, int, bool*) [23]
+                0.00    0.00    9895/211889      FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.00   10120/211889      ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.00   10158/211889      BackwardReptation(Grid*, int, bool*) [21]
+                0.00    0.00   12400/211889      CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00   19809/211889      KinkJump(Grid*, int, bool*) [14]
+                0.00    0.01   69380/211889      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.01   70306/211889      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+[32]     0.3    0.00    0.02  211889         std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.02    0.00  211889/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::equal_range(std::array<int, 3ul> const&) [33]
+                0.00    0.00  142046/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.02    0.00  211889/211889      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+[33]     0.3    0.02    0.00  211889         std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::equal_range(std::array<int, 3ul> const&) [33]
+                0.00    0.00  142046/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.00    0.00       1/142060      Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00      13/142060      Grid::instantiateOccupancyMap() [52]
+                0.01    0.01  142046/142060      std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+[34]     0.3    0.01    0.01  142060         Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+                0.01    0.00  142059/142059      std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<std::array<int, 3ul> const, Particle> >, std::array<int, 3ul> const&) [39]
+                0.00    0.00       1/1           std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_unique_pos(std::array<int, 3ul> const&) [113]
+-----------------------------------------------
+                0.00    0.00       2/3230943     ExtractContentFromFile(std::string) [56]
+                0.00    0.00       3/3230943     CreateGridObject(std::string, std::string) [1]
+                0.00    0.00      10/3230943     ExtractNumberOfPolymers(std::string) [4]
+                0.00    0.00      35/3230943     Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00      67/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+                0.00    0.00    9821/3230943     ForwardReptation(Grid*, int, bool*) [23]
+                0.00    0.00    9895/3230943     FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.00   10120/3230943     ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.00   10158/3230943     BackwardReptation(Grid*, int, bool*) [21]
+                0.00    0.00   12400/3230943     CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00   19809/3230943     KinkJump(Grid*, int, bool*) [14]
+                0.00    0.00   34690/3230943     FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00   35153/3230943     ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.00    0.00   94111/3230943     Grid::CalculateEnergy() [18]
+                0.00    0.00  142046/3230943     std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::equal_range(std::array<int, 3ul> const&) [33]
+                0.00    0.00  142046/3230943     std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&) [32]
+                0.00    0.00  163170/3230943     std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00  484607/3230943     std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [27]
+                0.01    0.00 2062800/3230943     Polymer::ChainToConnectivityMap() [15]
+[35]     0.3    0.02    0.00 3230943         std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                              601500             std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >* std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_copy<std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node>(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> > const*, std::_Rb_tree_node_base*, std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node&) [36]
+                0.02    0.00  100000/100000      Grid::Grid(Grid const&) [8]
+[36]     0.3    0.02    0.00  100000+601500  std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >* std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_copy<std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node>(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> > const*, std::_Rb_tree_node_base*, std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node&) [36]
+                              601500             std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >* std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_copy<std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node>(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> > const*, std::_Rb_tree_node_base*, std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node&) [36]
+-----------------------------------------------
+                0.00    0.00   18918/163170      ZeroIndexRotation(Grid*, int, bool*) [24]
+                0.00    0.00   19424/163170      FinalIndexRotation(Grid*, int, bool*) [25]
+                0.00    0.00   20836/163170      CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00   31877/163170      KinkJump(Grid*, int, bool*) [14]
+                0.00    0.00   35760/163170      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00   36355/163170      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+[37]     0.1    0.01    0.00  163170         std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&) [37]
+                0.00    0.00  163170/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.00    0.00      12/144786      Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >) [2]
+                0.00    0.00   20836/144786      CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00   31877/144786      KinkJump(Grid*, int, bool*) [14]
+                0.00    0.00   45721/144786      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00   46340/144786      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+[38]     0.1    0.01    0.00  144786         impose_pbc(std::array<int, 3ul>*, int, int, int) [38]
+-----------------------------------------------
+                0.01    0.00  142059/142059      Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+[39]     0.1    0.01    0.00  142059         std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<std::array<int, 3ul> const, Particle> >, std::array<int, 3ul> const&) [39]
+-----------------------------------------------
+                0.00    0.00   20836/124828      CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00   31877/124828      KinkJump(Grid*, int, bool*) [14]
+                0.00    0.00   35760/124828      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00   36355/124828      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+[40]     0.1    0.01    0.00  124828         add_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [40]
+-----------------------------------------------
+                0.00    0.00       1/1           CreateGridObject(std::string, std::string) [1]
+[41]     0.0    0.00    0.00       1         ExtractTopologyFromFile(std::string) [41]
+                0.00    0.00      28/100150      Grid::operator=(Grid&&) [5]
+                0.00    0.00       7/7           NumberExtractor(std::string) [43]
+                0.00    0.00       1/2           std::vector<std::string, std::allocator<std::string> >::~vector() [45]
+                0.00    0.00       2/2           std::basic_regex<char, std::regex_traits<char> >::basic_regex(char const*, std::regex_constants::syntax_option_type) [clone .constprop.646] [47]
+                0.00    0.00       6/14          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00       1/2           ExtractContentFromFile(std::string) [56]
+                0.00    0.00      36/36          obtain_ne_list(std::vector<int, std::allocator<int> >, int, int, int) [97]
+                0.00    0.00       8/14          std::basic_regex<char, std::regex_traits<char> >::~basic_regex() [99]
+-----------------------------------------------
+                0.00    0.00       1/1           Grid::ExtractPolymersFromFile(std::string) [7]
+[42]     0.0    0.00    0.00       1         makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+                0.00    0.00      26/100150      Grid::operator=(Grid&&) [5]
+                0.00    0.00       2/2           std::vector<Particle, std::allocator<Particle> >::~vector() [44]
+                0.00    0.00       1/85950       Polymer::ChainToConnectivityMap() [15]
+                0.00    0.00      13/290317      int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [26]
+                0.00    0.00       1/1           std::vector<Particle, std::allocator<Particle> >::reserve(unsigned long) [111]
+-----------------------------------------------
+                0.00    0.00       7/7           ExtractTopologyFromFile(std::string) [41]
+[43]     0.0    0.00    0.00       7         NumberExtractor(std::string) [43]
+                0.00    0.00      28/100150      Grid::operator=(Grid&&) [5]
+-----------------------------------------------
+                0.00    0.00       2/2           makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+[44]     0.0    0.00    0.00       2         std::vector<Particle, std::allocator<Particle> >::~vector() [44]
+                0.00    0.00      26/100150      Grid::operator=(Grid&&) [5]
+-----------------------------------------------
+                0.00    0.00       1/2           ExtractTopologyFromFile(std::string) [41]
+                0.00    0.00       1/2           Grid::ExtractPolymersFromFile(std::string) [7]
+[45]     0.0    0.00    0.00       2         std::vector<std::string, std::allocator<std::string> >::~vector() [45]
+                0.00    0.00      23/100150      Grid::operator=(Grid&&) [5]
+-----------------------------------------------
+                0.00    0.00       5/5           makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+                0.00    0.00      15/100150      Grid::operator=(Grid&&) [5]
+                0.00    0.00      10/49026       Particle* std::__uninitialized_copy<false>::__uninit_copy<Particle const*, Particle*>(Particle const*, Particle const*, Particle*) [69]
+-----------------------------------------------
+                0.00    0.00       2/2           ExtractTopologyFromFile(std::string) [41]
+[47]     0.0    0.00    0.00       2         std::basic_regex<char, std::regex_traits<char> >::basic_regex(char const*, std::regex_constants::syntax_option_type) [clone .constprop.646] [47]
+                0.00    0.00       2/2           std::enable_if<std::__detail::__is_contiguous_normal_iter<char const*>::value, std::shared_ptr<std::__detail::_NFA<std::regex_traits<char> > const> >::type std::__detail::__compile_nfa<char const*, std::regex_traits<char> >(char const*, char const*, std::regex_traits<char>::locale_type const&, std::regex_constants::syntax_option_type) [48]
+-----------------------------------------------
+                0.00    0.00       2/2           std::basic_regex<char, std::regex_traits<char> >::basic_regex(char const*, std::regex_constants::syntax_option_type) [clone .constprop.646] [47]
+[48]     0.0    0.00    0.00       2         std::enable_if<std::__detail::__is_contiguous_normal_iter<char const*>::value, std::shared_ptr<std::__detail::_NFA<std::regex_traits<char> > const> >::type std::__detail::__compile_nfa<char const*, std::regex_traits<char> >(char const*, char const*, std::regex_traits<char>::locale_type const&, std::regex_constants::syntax_option_type) [48]
+                0.00    0.00       4/100150      Grid::operator=(Grid&&) [5]
+                0.00    0.00       2/14          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+-----------------------------------------------
+                0.00    0.00       3/100003      Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00  100000/100003      MoveChooser(Grid*, bool, bool*) [3]
+[49]     0.0    0.00    0.00  100003         std::vector<Polymer, std::allocator<Polymer> >::~vector() [49]
+                0.00    0.00      29/807127      std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*) [6]
+-----------------------------------------------
+                0.00    0.00       1/1           std::vector<Polymer, std::allocator<Polymer> >::operator=(std::vector<Polymer, std::allocator<Polymer> > const&) [51]
+[50]     0.0    0.00    0.00       1         Polymer::Polymer(Polymer const&) [50]
+                0.00    0.00       1/100004      std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&) [10]
+-----------------------------------------------
+                0.00    0.00       1/1           Grid::ExtractPolymersFromFile(std::string) [7]
+[51]     0.0    0.00    0.00       1         std::vector<Polymer, std::allocator<Polymer> >::operator=(std::vector<Polymer, std::allocator<Polymer> > const&) [51]
+                0.00    0.00       1/1           Polymer::Polymer(Polymer const&) [50]
+-----------------------------------------------
+                0.00    0.00       1/1091        CreateGridObject(std::string, std::string) [1]
+                0.00    0.00     496/1091        std::map<Particle, std::vector<Particle, std::allocator<Particle> >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::operator[](Particle const&) [31]
+                0.00    0.00     594/1091        Polymer::ChainToConnectivityMap() [15]
+[52]     0.0    0.00    0.00    1091         Grid::instantiateOccupancyMap() [52]
+                0.00    0.00      13/142060      Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+                0.00    0.00    1090/1090        std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, Particle const&) [78]
+                0.00    0.00       1/1           std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_unique_pos(Particle const&) [112]
+-----------------------------------------------
+                                  53             std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+                0.00    0.00      14/14          std::__detail::_Compiler<std::regex_traits<char> >::_M_disjunction() [54]
+[53]     0.0    0.00    0.00      14+53      std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+                0.00    0.00      67/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+                0.00    0.00     106/120         std::__detail::_Compiler<std::regex_traits<char> >::_M_pop() [87]
+                0.00    0.00      67/67          std::__detail::_Compiler<std::regex_traits<char> >::_M_atom() [91]
+                0.00    0.00      53/53          std::__detail::_Compiler<std::regex_traits<char> >::_M_quantifier() [96]
+                0.00    0.00      14/56          std::__detail::_NFA<std::regex_traits<char> >::_M_insert_state(std::__detail::_State<char>) [93]
+                0.00    0.00      14/445         std::__detail::_State<char>::~_State() [82]
+                0.00    0.00      14/67          void std::deque<std::__detail::_StateSeq<std::regex_traits<char> >, std::allocator<std::__detail::_StateSeq<std::regex_traits<char> > > >::emplace_back<std::__detail::_StateSeq<std::regex_traits<char> > >(std::__detail::_StateSeq<std::regex_traits<char> >&&) [89]
+                                  53             std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+-----------------------------------------------
+                0.00    0.00      14/14          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+[54]     0.0    0.00    0.00      14         std::__detail::_Compiler<std::regex_traits<char> >::_M_disjunction() [54]
+                0.00    0.00      14/14          std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+-----------------------------------------------
+                0.00    0.00       2/14          std::enable_if<std::__detail::__is_contiguous_normal_iter<char const*>::value, std::shared_ptr<std::__detail::_NFA<std::regex_traits<char> > const> >::type std::__detail::__compile_nfa<char const*, std::regex_traits<char> >(char const*, char const*, std::regex_traits<char>::locale_type const&, std::regex_constants::syntax_option_type) [48]
+                0.00    0.00       2/14          Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00       4/14          ExtractNumberOfPolymers(std::string) [4]
+                0.00    0.00       6/14          ExtractTopologyFromFile(std::string) [41]
+[55]     0.0    0.00    0.00      14         std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00      14/14          std::__detail::_Compiler<std::regex_traits<char> >::_M_disjunction() [54]
+                0.00    0.00      70/445         std::__detail::_State<char>::~_State() [82]
+                0.00    0.00      42/56          std::__detail::_NFA<std::regex_traits<char> >::_M_insert_state(std::__detail::_State<char>) [93]
+                0.00    0.00      28/190         std::__detail::_State<char>::_State(std::__detail::_State<char>&&) [84]
+                0.00    0.00      14/14          std::__detail::_Scanner<char>::_Scanner(char const*, char const*, std::regex_constants::syntax_option_type, std::locale) [103]
+                0.00    0.00      14/120         std::__detail::_Compiler<std::regex_traits<char> >::_M_pop() [87]
+                0.00    0.00      14/81          std::__detail::_Scanner<char>::_M_advance() [88]
+-----------------------------------------------
+                0.00    0.00       1/2           ExtractTopologyFromFile(std::string) [41]
+                0.00    0.00       1/2           Grid::ExtractPolymersFromFile(std::string) [7]
+[56]     0.0    0.00    0.00       2         ExtractContentFromFile(std::string) [56]
+                0.00    0.00       2/3230943     std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion() [35]
+-----------------------------------------------
+                0.00    0.00      12/913925      Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >) [2]
+                0.00    0.00    9961/913925      FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00    9985/913925      ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.00    0.00   20836/913925      CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00   31877/913925      KinkJump(Grid*, int, bool*) [14]
+                0.00    0.00  400660/913925      Polymer::findCranks() [70]
+                0.00    0.00  440594/913925      Polymer::findKinks() [71]
+[65]     0.0    0.00    0.00  913925         subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+-----------------------------------------------
+                0.00    0.00   11992/92448       Polymer::findCranks() [70]
+                0.00    0.00   80456/92448       Polymer::findKinks() [71]
+-----------------------------------------------
+                0.00    0.00   59838/62205       void std::shuffle<std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::array<int, 3ul>*, std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&&) [73]
+[67]     0.0    0.00    0.00   62205         unsigned long std::uniform_int_distribution<unsigned long>::operator()<std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&, std::uniform_int_distribution<unsigned long>::param_type const&) [67]
+-----------------------------------------------
+                0.00    0.00       5/57640       Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+                0.00    0.00       5/57640       Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00   28616/57640       FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00   29014/57640       ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+-----------------------------------------------
+                0.00    0.00   49016/49026       Grid::CalculateEnergy() [18]
+[69]     0.0    0.00    0.00   49026         Particle* std::__uninitialized_copy<false>::__uninit_copy<Particle const*, Particle*>(Particle const*, Particle const*, Particle*) [69]
+-----------------------------------------------
+                0.00    0.00   20033/20033       CrankShaft(Grid*, int, bool*) [17]
+[70]     0.0    0.00    0.00   20033         Polymer::findCranks() [70]
+                0.00    0.00  400660/913925      subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+-----------------------------------------------
+                0.00    0.00   20027/20027       KinkJump(Grid*, int, bool*) [14]
+[71]     0.0    0.00    0.00   20027         Polymer::findKinks() [71]
+                0.00    0.00  440594/913925      subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [65]
+-----------------------------------------------
+                0.00    0.00    9961/19946       FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00    9985/19946       ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+[72]     0.0    0.00    0.00   19946         modified_direction(std::array<int, 3ul>*, int, int, int) [72]
+-----------------------------------------------
+                0.00    0.00    9961/19946       FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00    9985/19946       ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+[73]     0.0    0.00    0.00   19946         void std::shuffle<std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::array<int, 3ul>*, std::array<int, 3ul>*, std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&&) [73]
+                0.00    0.00   59838/62205       unsigned long std::uniform_int_distribution<unsigned long>::operator()<std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&, std::uniform_int_distribution<unsigned long>::param_type const&) [67]
+-----------------------------------------------
+                0.00    0.00    8988/18576       ZeroIndexRotationAgg(Grid*, int, bool*) [20]
+                0.00    0.00    9588/18576       FinalIndexRotationAgg(Grid*, int, bool*) [19]
+                0.00    0.00   15122/15122       std::__tuple_compare<std::tuple<std::array<int, 3ul>&, std::string&, int&>, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&>, 0ul, 3ul>::__eq(std::tuple<std::array<int, 3ul>&, std::string&, int&> const&, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&> const&) [75]
+-----------------------------------------------
+[75]     0.0    0.00    0.00   15122         std::__tuple_compare<std::tuple<std::array<int, 3ul>&, std::string&, int&>, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&>, 0ul, 3ul>::__eq(std::tuple<std::array<int, 3ul>&, std::string&, int&> const&, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&> const&) [75]
+-----------------------------------------------
+                0.00    0.00   10418/10418       CrankShaft(Grid*, int, bool*) [17]
+[76]     0.0    0.00    0.00   10418         HingeSwingDirections(std::array<int, 3ul>*, std::array<int, 3ul>*, int, int, int) [76]
+-----------------------------------------------
+                0.00    0.00    9310/9310        CrankShaft(Grid*, int, bool*) [17]
+                0.00    0.00    2367/62205       unsigned long std::uniform_int_distribution<unsigned long>::operator()<std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&, std::uniform_int_distribution<unsigned long>::param_type const&) [67]
+-----------------------------------------------
+                0.00    0.00    1090/1090        Grid::instantiateOccupancyMap() [52]
+[78]     0.0    0.00    0.00    1090         std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, Particle const&) [78]
+-----------------------------------------------
+-----------------------------------------------
+                0.00    0.00     760/760         std::_Function_handler<bool (char), std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_invoke(std::_Any_data const&, char&&) [81]
+-----------------------------------------------
+[81]     0.0    0.00    0.00     760         std::_Function_handler<bool (char), std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_invoke(std::_Any_data const&, char&&) [81]
+-----------------------------------------------
+                0.00    0.00      14/445         std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+                0.00    0.00      70/445         std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00     106/445         std::__detail::_NFA<std::regex_traits<char> >::_M_insert_matcher(std::function<bool (char)>) [94]
+[82]     0.0    0.00    0.00     445         std::__detail::_State<char>::~_State() [82]
+-----------------------------------------------
+[83]     0.0    0.00    0.00     215         std::_Function_base::_Base_manager<std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_manager(std::_Any_data&, std::_Any_data const&, std::_Manager_operation) [83]
+-----------------------------------------------
+                0.00    0.00      26/190         std::__detail::_NFA<std::regex_traits<char> >::_M_insert_state(std::__detail::_State<char>) [93]
+                0.00    0.00      28/190         std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00      74/190         std::__detail::_NFA<std::regex_traits<char> >::_M_insert_matcher(std::function<bool (char)>) [94]
+[84]     0.0    0.00    0.00     190         std::__detail::_State<char>::_State(std::__detail::_State<char>&&) [84]
+-----------------------------------------------
+-----------------------------------------------
+                0.00    0.00      29/123         Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00      36/123         obtain_ne_list(std::vector<int, std::allocator<int> >, int, int, int) [97]
+                0.00    0.00      58/123         Grid::checkConnectivity(std::vector<Polymer, std::allocator<Polymer> >) [2]
+-----------------------------------------------
+                0.00    0.00      14/120         std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00     106/120         std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+[87]     0.0    0.00    0.00     120         std::__detail::_Compiler<std::regex_traits<char> >::_M_pop() [87]
+-----------------------------------------------
+                0.00    0.00      14/81          std::__detail::_Scanner<char>::_Scanner(char const*, char const*, std::regex_constants::syntax_option_type, std::locale) [103]
+                0.00    0.00      14/81          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+                0.00    0.00      53/81          std::__detail::_Compiler<std::regex_traits<char> >::_M_try_char() [90]
+[88]     0.0    0.00    0.00      81         std::__detail::_Scanner<char>::_M_advance() [88]
+-----------------------------------------------
+                0.00    0.00      14/67          std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+                0.00    0.00      53/67          std::__detail::_Compiler<std::regex_traits<char> >::_M_atom() [91]
+[89]     0.0    0.00    0.00      67         void std::deque<std::__detail::_StateSeq<std::regex_traits<char> >, std::allocator<std::__detail::_StateSeq<std::regex_traits<char> > > >::emplace_back<std::__detail::_StateSeq<std::regex_traits<char> > >(std::__detail::_StateSeq<std::regex_traits<char> >&&) [89]
+-----------------------------------------------
+                0.00    0.00      67/67          std::__detail::_Compiler<std::regex_traits<char> >::_M_atom() [91]
+[90]     0.0    0.00    0.00      67         std::__detail::_Compiler<std::regex_traits<char> >::_M_try_char() [90]
+                0.00    0.00      53/81          std::__detail::_Scanner<char>::_M_advance() [88]
+                0.00    0.00      39/53          std::__detail::_Scanner<char>::_M_scan_normal() [95]
+-----------------------------------------------
+                0.00    0.00      67/67          std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+[91]     0.0    0.00    0.00      67         std::__detail::_Compiler<std::regex_traits<char> >::_M_atom() [91]
+                0.00    0.00      67/67          std::__detail::_Compiler<std::regex_traits<char> >::_M_try_char() [90]
+                0.00    0.00      53/53          std::__detail::_NFA<std::regex_traits<char> >::_M_insert_matcher(std::function<bool (char)>) [94]
+                0.00    0.00      53/67          void std::deque<std::__detail::_StateSeq<std::regex_traits<char> >, std::allocator<std::__detail::_StateSeq<std::regex_traits<char> > > >::emplace_back<std::__detail::_StateSeq<std::regex_traits<char> > >(std::__detail::_StateSeq<std::regex_traits<char> >&&) [89]
+-----------------------------------------------
+                0.00    0.00      30/62          std::__detail::_NFA<std::regex_traits<char> >::_M_insert_state(std::__detail::_State<char>) [93]
+                0.00    0.00      32/62          std::__detail::_NFA<std::regex_traits<char> >::_M_insert_matcher(std::function<bool (char)>) [94]
+                0.00    0.00     162/215         std::_Function_base::_Base_manager<std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_manager(std::_Any_data&, std::_Any_data const&, std::_Manager_operation) [83]
+                0.00    0.00     146/445         std::__detail::_State<char>::~_State() [82]
+                0.00    0.00      62/190         std::__detail::_State<char>::_State(std::__detail::_State<char>&&) [84]
+-----------------------------------------------
+                0.00    0.00      14/56          std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+                0.00    0.00      42/56          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+[93]     0.0    0.00    0.00      56         std::__detail::_NFA<std::regex_traits<char> >::_M_insert_state(std::__detail::_State<char>) [93]
+                0.00    0.00      26/190         std::__detail::_State<char>::_State(std::__detail::_State<char>&&) [84]
+-----------------------------------------------
+                0.00    0.00      53/53          std::__detail::_Compiler<std::regex_traits<char> >::_M_atom() [91]
+[94]     0.0    0.00    0.00      53         std::__detail::_NFA<std::regex_traits<char> >::_M_insert_matcher(std::function<bool (char)>) [94]
+                0.00    0.00     106/445         std::__detail::_State<char>::~_State() [82]
+                0.00    0.00      74/190         std::__detail::_State<char>::_State(std::__detail::_State<char>&&) [84]
+-----------------------------------------------
+                0.00    0.00      14/53          std::__detail::_Scanner<char>::_Scanner(char const*, char const*, std::regex_constants::syntax_option_type, std::locale) [103]
+                0.00    0.00      39/53          std::__detail::_Compiler<std::regex_traits<char> >::_M_try_char() [90]
+[95]     0.0    0.00    0.00      53         std::__detail::_Scanner<char>::_M_scan_normal() [95]
+-----------------------------------------------
+                0.00    0.00      53/53          std::__detail::_Compiler<std::regex_traits<char> >::_M_alternative() [53]
+[96]     0.0    0.00    0.00      53         std::__detail::_Compiler<std::regex_traits<char> >::_M_quantifier() [96]
+-----------------------------------------------
+                0.00    0.00      36/36          ExtractTopologyFromFile(std::string) [41]
+[97]     0.0    0.00    0.00      36         obtain_ne_list(std::vector<int, std::allocator<int> >, int, int, int) [97]
+-----------------------------------------------
+                0.00    0.00      15/15          Grid::ExtractPolymersFromFile(std::string) [7]
+[98]     0.0    0.00    0.00      15         Particle::printCoords() [98]
+-----------------------------------------------
+                0.00    0.00       2/14          Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00       4/14          ExtractNumberOfPolymers(std::string) [4]
+                0.00    0.00       8/14          ExtractTopologyFromFile(std::string) [41]
+[99]     0.0    0.00    0.00      14         std::basic_regex<char, std::regex_traits<char> >::~basic_regex() [99]
+-----------------------------------------------
+                0.00    0.00      14/14          std::basic_regex<char, std::regex_traits<char> >::~basic_regex() [99]
+-----------------------------------------------
+                0.00    0.00      14/14          std::basic_regex<char, std::regex_traits<char> >::~basic_regex() [99]
+                0.00    0.00     109/445         std::__detail::_State<char>::~_State() [82]
+                0.00    0.00      53/215         std::_Function_base::_Base_manager<std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_manager(std::_Any_data&, std::_Any_data const&, std::_Manager_operation) [83]
+-----------------------------------------------
+                0.00    0.00      14/14          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+-----------------------------------------------
+                0.00    0.00      14/14          std::__detail::_Compiler<std::regex_traits<char> >::_Compiler(char const*, char const*, std::locale const&, std::regex_constants::syntax_option_type) [55]
+[103]    0.0    0.00    0.00      14         std::__detail::_Scanner<char>::_Scanner(char const*, char const*, std::regex_constants::syntax_option_type, std::locale) [103]
+                0.00    0.00      14/53          std::__detail::_Scanner<char>::_M_scan_normal() [95]
+                0.00    0.00      14/81          std::__detail::_Scanner<char>::_M_advance() [88]
+-----------------------------------------------
+                0.00    0.00      13/13          Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+-----------------------------------------------
+                0.00    0.00       9/9           ExtractContentFromFile(std::string) [56]
+-----------------------------------------------
+                0.00    0.00       2/2           std::vector<Polymer, std::allocator<Polymer> >::reserve(unsigned long) [107]
+[106]    0.0    0.00    0.00       2         Polymer* std::__uninitialized_copy<false>::__uninit_copy<Polymer const*, Polymer*>(Polymer const*, Polymer const*, Polymer*) [106]
+-----------------------------------------------
+                0.00    0.00       1/2           Grid::ExtractPolymersFromFile(std::string) [7]
+                0.00    0.00       1/2           CreateGridObject(std::string, std::string) [1]
+[107]    0.0    0.00    0.00       2         std::vector<Polymer, std::allocator<Polymer> >::reserve(unsigned long) [107]
+                0.00    0.00       2/2           Polymer* std::__uninitialized_copy<false>::__uninit_copy<Polymer const*, Polymer*>(Polymer const*, Polymer const*, Polymer*) [106]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [564]
+[108]    0.0    0.00    0.00       1         _GLOBAL__sub_I__Z10impose_pbcPSt6vectorIiSaIiEEiii [108]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [564]
+[109]    0.0    0.00    0.00       1         _GLOBAL__sub_I__ZN4Grid23dumpPositionsOfPolymersEiSs [109]
+-----------------------------------------------
+                0.00    0.00       1/1           __libc_csu_init [564]
+[110]    0.0    0.00    0.00       1         _GLOBAL__sub_I_main [110]
+-----------------------------------------------
+                0.00    0.00       1/1           makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [42]
+[111]    0.0    0.00    0.00       1         std::vector<Particle, std::allocator<Particle> >::reserve(unsigned long) [111]
+-----------------------------------------------
+                0.00    0.00       1/1           Grid::instantiateOccupancyMap() [52]
+[112]    0.0    0.00    0.00       1         std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_unique_pos(Particle const&) [112]
+-----------------------------------------------
+                0.00    0.00       1/1           Grid::checkForOverlaps(std::vector<Polymer, std::allocator<Polymer> >) [34]
+[113]    0.0    0.00    0.00       1         std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_unique_pos(std::array<int, 3ul> const&) [113]
+-----------------------------------------------
+
+ This table describes the call tree of the program, and was sorted by
+ the total amount of time spent in each function and its children.
+
+ Each entry in this table consists of several lines.  The line with the
+ index number at the left hand margin lists the current function.
+ The lines above it list the functions that called this function,
+ and the lines below it list the functions this one called.
+ This line lists:
+     index	A unique number given to each element of the table.
+		Index numbers are sorted numerically.
+		The index number is printed next to every function name so
+		it is easier to look up where the function is in the table.
+
+     % time	This is the percentage of the `total' time that was spent
+		in this function and its children.  Note that due to
+		different viewpoints, functions excluded by options, etc,
+		these numbers will NOT add up to 100%.
+
+     self	This is the total amount of time spent in this function.
+
+     children	This is the total amount of time propagated into this
+		function by its children.
+
+     called	This is the number of times the function was called.
+		If the function called itself recursively, the number
+		only includes non-recursive calls, and is followed by
+		a `+' and the number of recursive calls.
+
+     name	The name of the current function.  The index number is
+		printed after it.  If the function is a member of a
+		cycle, the cycle number is printed between the
+		function's name and the index number.
+
+
+ For the function's parents, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the function into this parent.
+
+     children	This is the amount of time that was propagated from
+		the function's children into this parent.
+
+     called	This is the number of times this parent called the
+		function `/' the total number of times the function
+		was called.  Recursive calls to the function are not
+		included in the number after the `/'.
+
+     name	This is the name of the parent.  The parent's index
+		number is printed after it.  If the parent is a
+		member of a cycle, the cycle number is printed between
+		the name and the index number.
+
+ If the parents of the function cannot be determined, the word
+ `<spontaneous>' is printed in the `name' field, and all the other
+ fields are blank.
+
+ For the function's children, the fields have the following meanings:
+
+     self	This is the amount of time that was propagated directly
+		from the child into the function.
+
+     children	This is the amount of time that was propagated from the
+		child's children to the function.
+
+     called	This is the number of times the function called
+		this child `/' the total number of times the child
+		was called.  Recursive calls by the child are not
+		listed in the number after the `/'.
+
+     name	This is the name of the child.  The child's index
+		number is printed after it.  If the child is a
+		member of a cycle, the cycle number is printed
+		between the name and the index number.
+
+ If there are any cycles (circles) in the call graph, there is an
+ entry for the cycle-as-a-whole.  This entry shows who called the
+ cycle (as parents) and the members of the cycle (as children.)
+ The `+' recursive calls entry shows the number of function calls that
+ were internal to the cycle, and the calls entry for each member shows,
+ for that member, how many times it was called from other members of
+ the cycle.
+
+Copyright (C) 2012-2017 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Index by function name
+
+ [109] _GLOBAL__sub_I__ZN4Grid23dumpPositionsOfPolymersEiSs [15] Polymer::ChainToConnectivityMap() [112] std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_unique_pos(Particle const&)
+ [110] _GLOBAL__sub_I_main    [71] Polymer::findKinks()   [78] std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, Particle const&)
+  [17] CrankShaft(Grid*, int, bool*) [50] Polymer::Polymer(Polymer const&) [10] std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >* std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_copy<std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node>(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > const*, std::_Rb_tree_node_base*, std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_Alloc_node&)
+  [40] add_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [98] Particle::printCoords() [6] std::_Rb_tree<Particle, std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > >, std::_Select1st<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::_M_erase(std::_Rb_tree_node<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > >*)
+  [38] impose_pbc(std::array<int, 3ul>*, int, int, int) [47] std::basic_regex<char, std::regex_traits<char> >::basic_regex(char const*, std::regex_constants::syntax_option_type) [clone .constprop.646] [33] std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::equal_range(std::array<int, 3ul> const&)
+  [13] EndRotation(Grid*, int, bool*) [99] std::basic_regex<char, std::regex_traits<char> >::~basic_regex() [113] std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_unique_pos(std::array<int, 3ul> const&)
+   [3] MoveChooser(Grid*, bool, bool*) [83] std::_Function_base::_Base_manager<std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_manager(std::_Any_data&, std::_Any_data const&, std::_Manager_operation) [39] std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_get_insert_hint_unique_pos(std::_Rb_tree_const_iterator<std::pair<std::array<int, 3ul> const, Particle> >, std::array<int, 3ul> const&)
+  [42] makePolymer(std::vector<std::array<int, 3ul>, std::allocator<std::array<int, 3ul> > >, std::string) [75] std::__tuple_compare<std::tuple<std::array<int, 3ul>&, std::string&, int&>, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&>, 0ul, 3ul>::__eq(std::tuple<std::array<int, 3ul>&, std::string&, int&> const&, std::tuple<std::array<int, 3ul> const&, std::string const&, int const&> const&) [37] std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::find(std::array<int, 3ul> const&)
+  [22] rng_uniform(int, int)  [81] std::_Function_handler<bool (char), std::__detail::_CharMatcher<std::regex_traits<char>, false, false> >::_M_invoke(std::_Any_data const&, char&&) [32] std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::erase(std::array<int, 3ul> const&)
+  [11] EndRotationAgg(Grid*, int, bool*) [106] Polymer* std::__uninitialized_copy<false>::__uninit_copy<Polymer const*, Polymer*>(Polymer const*, Polymer const*, Polymer*) [36] std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >* std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_copy<std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node>(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> > const*, std::_Rb_tree_node_base*, std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_Alloc_node&)
+  [30] obtain_ne_list(std::array<int, 3ul>, int, int, int) [69] Particle* std::__uninitialized_copy<false>::__uninit_copy<Particle const*, Particle*>(Particle const*, Particle const*, Particle*) [29] std::_Rb_tree<std::array<int, 3ul>, std::pair<std::array<int, 3ul> const, Particle>, std::_Select1st<std::pair<std::array<int, 3ul> const, Particle> >, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::_M_erase(std::_Rb_tree_node<std::pair<std::array<int, 3ul> const, Particle> >*)
+  [65] subtract_arrays(std::array<int, 3ul>*, std::array<int, 3ul>*) [28] std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>::operator()() [93] std::__detail::_NFA<std::regex_traits<char> >::_M_insert_state(std::__detail::_State<char>)
+  [23] ForwardReptation(Grid*, int, bool*) [26] int std::uniform_int_distribution<int>::operator()<std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul> >(std::mersenne_twister_engine<unsigned long, 32ul, 624ul, 397ul, 31ul, 2567483615ul, 11ul, 4294967295ul, 7ul, 2636928640ul, 15ul, 4022730752ul, 18ul, 1812433253ul>&, std::uniform_int_distribution<int>::param_type const&) [94] std::__detail::_NFA<std::regex_traits<char> >::_M_insert_matcher(std::function<bool (char)>)
+  [21] BackwardReptation(Grid*, int, bool*) [67] unsigned long std::uniform_int_distribution<unsigned long>::operator()<std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul> >(std::linear_congruential_engine<unsigned long, 16807ul, 0ul, 2147483647ul>&, std::uniform_int_distribution<unsigned long>::param_type const&) [84] std::__detail::_State<char>::_State(std::__detail::_State<char>&&)
+  [24] ZeroIndexRotation(Grid*, int, bool*) [31] std::map<Particle, std::vector<Particle, std::allocator<Particle> >, std::less<Particle>, std::allocator<std::pair<Particle const, std::vector<Particle, std::allocator<Particle> > > > >::operator[](Particle const&) [82] std::__detail::_State<char>::~_State()
+  [25] FinalIndexRotation(Grid*, int, bool*) [27] std::map<std::array<int, 3ul>, Particle, std::less<std::array<int, 3ul> >, std::allocator<std::pair<std::array<int, 3ul> const, Particle> > >::operator[](std::array<int, 3ul> const&) [88] std::__detail::_Scanner<char>::_M_advance()
+  [72] modified_direction(std::array<int, 3ul>*, int, int, int) [89] void std::deque<std::__detail::_StateSeq<std::regex_traits<char> >, std::allocator<std::__detail::_StateSeq<std::regex_traits<char> > > >::emplace_back<std::__detail::_StateSeq<std::regex_traits<char> > >(std::__detail::_StateSeq<std::regex_traits<char> >&&) [95] std::__detail::_Scanner<char>::_M_scan_normal()
+  [76] HingeSwingDirections(std::array<int, 3ul>*, std::array<int, 3ul>*, int, int, int) [107] std::vector<Polymer, std::allocator<Polymer> >::reserve(unsigned long) [103] std::__detail::_Scanner<char>::_Scanner(char const*, char const*, std::regex_constants::syntax_option_type, std::locale)
+  [20] ZeroIndexRotationAgg(Grid*, int, bool*) [9] std::vector<Polymer, std::allocator<Polymer> >::vector(std::vector<Polymer, std::allocator<Polymer> > const&) [90] std::__detail::_Compiler<std::regex_traits<char> >::_M_try_char()
+  [19] FinalIndexRotationAgg(Grid*, int, bool*) [49] std::vector<Polymer, std::allocator<Polymer> >::~vector() [35] std::__detail::_Compiler<std::regex_traits<char> >::_M_assertion()
+  [56] ExtractContentFromFile(std::string) [51] std::vector<Polymer, std::allocator<Polymer> >::operator=(std::vector<Polymer, std::allocator<Polymer> > const&) [96] std::__detail::_Compiler<std::regex_traits<char> >::_M_quantifier()
+  [41] ExtractTopologyFromFile(std::string) [111] std::vector<Particle, std::allocator<Particle> >::reserve(unsigned long) [54] std::__detail::_Compiler<std::regex_traits<char> >::_M_disjunction()
+  [14] KinkJump(Grid*, int, bool*) [16] std::vector<Particle, std::allocator<Particle> >::vector(std::vector<Particle, std::allocator<Particle> > const&) [87] std::__detail::_Compiler<std::regex_traits<char> >::_M_pop()
+  [12] Reptation(Grid*, int, bool*) [44] std::vector<Particle, std::allocator<Particle> >::~vector() [91] std::__detail::_Compiler<std::regex_traits<char> >::_M_atom()

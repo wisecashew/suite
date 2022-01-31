@@ -496,8 +496,7 @@ bool acceptance(int dE, double kT){
 
 double NumberExtractor(std::string s){
 
-	// std::vector <double> info; 
-	double info; 
+	double info {0}; 
 	std::stringstream ss (s); 
 	std::string temp; 
 

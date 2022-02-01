@@ -2193,3 +2193,26 @@ double ExtractEnergyOfFinalMove(std::string energy_file){
 //             End of ExtractIndexOfFinalMove 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: PivotAlgorithm 
+//
+// PARAMETERS: std::string energy_file 
+// 
+// WHAT THE FUNCTION DOES: it looks at the trajectory file, and extracts the index of the final move. 
+// 
+// DEPENDENCIES: ExtractContentFromFile, makePolymer, checkValidityOfCoords 
+//
+// THE CODE: 
+
+
+std::vector <Polymer> PivotAlgorithm(std::vector <Polymer>* PolymerVector){
+
+
+
+}
+

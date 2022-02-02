@@ -65,7 +65,7 @@ def get_Rg(coord_arr, xlen, ylen, zlen):
     # sc_coords = np.zeros((1,3))
     
     for i in range(N): 
-        rsum += np.linalg.norm( coord_arr[i,:]- r_com ) 
+        rsum += np.linalg.norm( coord_arr[i,:]- r_com )**2 
     
     rsum = rsum/N 
     
@@ -158,8 +158,8 @@ if __name__ == "__main__":
     plt.savefig('rg_kT'+ str(args.T) + '.png',dpi=1200)
     
     g = open('stat_kt' + str(args.T) + '.txt', 'w')
-    g.write("min is {} and index is {}\n".format(np.min(rg), np.argmin(rg))) 
+    g.write("min is {}.\n".format(np.min(rg) ) ) 
     g.write("mean is {}\n".format( np.mean(rg) ) ) 
-    g.write("max is {} and index is {}.\n".format( np.max(rg), np.argmax(rg) ) )
+    g.write("max is {}.\n".format( np.max(rg) ) )
     g.write("stderror is {}".format( np.std(rg)/np.sqrt(len(rg) ) ) )
     g.close() 

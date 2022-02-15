@@ -21,8 +21,8 @@ Helpful definitions which are employed often in the context of the z=6 lattice I
 const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
 const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  							// vector of unit directions 
 
-const std::array <int,3> ax{1,0,0}, nax{-1,0,0}, ay{0,1,0}, nay{0,-1,0}, az{0,0,1}, naz{0,0,-1};		// unit directions
-const std::array <std::array <int,3> ,6> adrns = {ax, nax, ay, nay, az, naz}; 
+std::array <int,3> ax{1,0,0}, nax{-1,0,0}, ay{0,1,0}, nay{0,-1,0}, az{0,0,1}, naz{0,0,-1};		// unit directions
+std::array <std::array <int,3> ,6> adrns = {ax, nax, ay, nay, az, naz}; 
 
 //=====================================================
 // impose periodic boundary conditions on vector 
@@ -1884,6 +1884,140 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
+void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* b ){
+
+	int deg_of_poly = (*PolymerVector)[index].deg_poly; 
+	int index_sample = rng_uniform(0, deg_of_poly-1); 
+
+	// decide which end of the polymer do i want to move around 
+
+	int back_or_front = rng_uniform(0, 1); 
+
+	if (back_or_front == 0){
+
+		// perform the configuration of the tail
+		TailSpin(PolymerVector, index, index_sample, x, y, z, b);  
+
+	}
+
+	else {
+
+		// perform the configuration of the head 
+		// HeadSpin(PolymerVector, index, index_sample, x, y, z); 
+
+	}
+
+	return; 
+
+}
+
+
+void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b){
+
+	if (index_of_monomer == 0){
+		std::cout << "You have reached the final spot via tail spin!" << std::endl;
+		*b = true; 
+		return ; 
+	}
+
+	for (std::array <int,3>& d: adrns){
+
+		std::array <int, 3> to_check = add_arrays( &( (*PVec) [index_of_polymer].chain[index_of_monomer].coords), &d);
+
+		impose_pbc(&to_check, x, y, z); 
+
+		if (checkOccupancy(&to_check, PVec)){
+			continue; 
+		}
+
+		else {
+
+			(*PVec)[index_of_polymer].chain[index_of_monomer-1].coords = to_check; 
+			TailSpin (PVec, index_of_polymer, index_of_monomer-1, x, y, z, b); 
+
+			if (*b){
+				break; 
+			}
+			else {
+				continue; 
+			}
+
+
+		}
+
+	}
+
+	return; 
+
+}
+
+
+void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b){
+
+	if (index_of_monomer == deg_poly-1){
+		std::cout << "You have reached the final spot of head spin!" << std::endl;
+		*b = true; 
+		return ;
+	}
+
+	for (std::array <int,3>& d: adrns){
+
+		std::array <int, 3> to_check = add_arrays ( &( (*PVec) [index_of_polymer].chain[index_of_monomer].coords ), &d);
+
+		impose_pbc (&to_check, x, y, z); 
+
+		if (checkOccupancy(&to_check, PVec)){
+			continue; 
+		}
+
+		else {
+
+			(*PVec)[index_of_polymer].chain[index_of_monomer+1].coords = to_check; 
+			HeadSpin (PVec, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, b);
+
+			if (*b){
+				break;
+			} 
+			else {
+				continue; 
+			}
+
+		}
+
+	}
+
+	return ;
+
+}
+
+
+bool checkOccupancy(std::array <int,3>* loc, std::vector <Polymer>* PVec){
+
+	for (const Polymer& pmer: *PVec){
+		for (const Particle& p: pmer.chain){
+			if (*loc == p.coords){
+				return true; 
+			}
+			else {
+				continue; 
+			}
+		}
+	}
+
+	return false; 
+
+}
+
+
+
+//void HeadSpin(std::vector <Polymer>* pmer, int index_of_polymer, int index_of_monomer, int x, int y, int z){
+
+
+//}
+
+
+
+
 
 //============================================================
 //============================================================
@@ -2210,9 +2344,4 @@ double ExtractEnergyOfFinalMove(std::string energy_file){
 // THE CODE: 
 
 
-std::vector <Polymer> PivotAlgorithm(std::vector <Polymer>* PolymerVector){
-
-
-
-}
 

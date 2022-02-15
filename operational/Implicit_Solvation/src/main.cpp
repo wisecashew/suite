@@ -162,14 +162,59 @@ int main(int argc, char** argv) {
         dumpEnergy (sysEnergy, step_number, efile, true);
     }
     
-    double sysEnergy_ {0}; 
+    double sysEnergy_ {0};
+    sysEnergy_++; 
+
     std::cout << "Energy of system is " << sysEnergy << std::endl;
 
      
 	int acc_counter = 0; 
     
+
+    bool spin_bool = false;  
+
+    int deg_poly = PolymerVector[0].deg_poly; 
+
+    std::cout << "Initial configuration is " << std::endl;
+    PolymerVector[0].printChainCoords(); 
+    std::cout << "----- starting moves -----" << std::endl;
+
+    TailSpin(&PolymerVector, 0, 3, x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl; 
+    HeadSpin(&PolymerVector, 0, 4, deg_poly,x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl;
+    TailSpin(&PolymerVector, 0, 1, x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl;
+    HeadSpin(&PolymerVector, 0, 5, deg_poly, x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl;
     
 
+    TailSpin(&PolymerVector, 0, 3, x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl; 
+    HeadSpin(&PolymerVector, 0, 4, deg_poly, x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl;
+    TailSpin(&PolymerVector, 0, 1, x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl;
+    HeadSpin(&PolymerVector, 0, 5, deg_poly, x, y, z, &spin_bool); 
+    spin_bool = false; 
+    PolymerVector[0].printChainCoords() ;
+    std::cout << "spin_bool is " << spin_bool << std::endl;
+    
+    /*
     bool IMP_BOOL = true; 
 
     std::vector <Polymer> PolymerVector_; 
@@ -238,7 +283,7 @@ int main(int argc, char** argv) {
         // std::cout <<"are you hitting  this line?"<<std::endl;
         IMP_BOOL = true; 
     }
-    
+    */
     auto stop = std::chrono::high_resolution_clock::now(); 
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 

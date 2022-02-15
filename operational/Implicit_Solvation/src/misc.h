@@ -133,4 +133,10 @@ double ExtractEnergyOfFinalMove(std::string energy_file);
 
 
 
+void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z );
+void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b);
+void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b);
+bool checkOccupancy(std::array <int,3>* loc, std::vector <Polymer>* PVec);
+
+
 #endif 

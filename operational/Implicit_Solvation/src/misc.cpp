@@ -685,6 +685,7 @@ void ClusterFlip(std::vector <Particle>* cluster){
 
 	if ((*cluster).at(0).orientation==1){
 		// std::cout << "hello, is this being hit? o=1?" << std::endl;
+
 		for (int i=0; i<static_cast<int>((*cluster).size()); i++ ){ 
 			(*cluster).at(i).orientation = 0;
 			// std::cout << "p.orientation is " << (*cluster).at(i).orientation << std::endl;
@@ -1884,26 +1885,30 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
-void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* b ){
+void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL){
 
-	int deg_of_poly = (*PolymerVector)[index].deg_poly; 
-	int index_sample = rng_uniform(0, deg_of_poly-1); 
+	int deg_of_poly = (*PolymerVector)[index_of_polymer].deg_poly; 
+	int index_monomer = rng_uniform(1, deg_of_poly-2); 
+
+	// std::cout << "Index of monomer is " << index_monomer << std::endl;
 
 	// decide which end of the polymer do i want to move around 
-
+	bool b = false; 
 	int back_or_front = rng_uniform(0, 1); 
 
 	if (back_or_front == 0){
 
 		// perform the configuration of the tail
-		TailSpin(PolymerVector, index, index_sample, x, y, z, b);  
+		// std::cout << "Performing tail spin..." << std::endl;
+		TailSpin(PolymerVector, index_of_polymer, index_monomer, x, y, z, &b, IMP_BOOL);  
 
 	}
 
 	else {
 
 		// perform the configuration of the head 
-		// HeadSpin(PolymerVector, index, index_sample, x, y, z); 
+		// std::cout << "Performing head spin..." << std::endl;
+		HeadSpin(PolymerVector, index_of_polymer, index_monomer, deg_of_poly, x, y, z, &b, IMP_BOOL); 
 
 	}
 
@@ -1912,13 +1917,20 @@ void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index, int 
 }
 
 
-void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b){
+void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL){
+
+	// std::cout << "index of monomer is " << index_of_monomer << std::endl;
 
 	if (index_of_monomer == 0){
-		std::cout << "You have reached the final spot via tail spin!" << std::endl;
+		// std::cout << "You have reached the final spot via tail spin!" << std::endl;
 		*b = true; 
+		*IMP_BOOL = true; 
 		return ; 
 	}
+
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+
+  	shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
 
 	for (std::array <int,3>& d: adrns){
 
@@ -1926,14 +1938,14 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 		impose_pbc(&to_check, x, y, z); 
 
-		if (checkOccupancy(&to_check, PVec)){
+		if (checkOccupancyTail(&to_check, PVec, index_of_polymer, index_of_monomer)){
 			continue; 
 		}
 
 		else {
 
 			(*PVec)[index_of_polymer].chain[index_of_monomer-1].coords = to_check; 
-			TailSpin (PVec, index_of_polymer, index_of_monomer-1, x, y, z, b); 
+			TailSpin (PVec, index_of_polymer, index_of_monomer-1, x, y, z, b, IMP_BOOL); 
 
 			if (*b){
 				break; 
@@ -1947,18 +1959,30 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 	}
 
+	if ( !(*b) ){
+		*IMP_BOOL = false; 
+	}
+	else {
+		(*PVec)[index_of_polymer].ChainToConnectivityMap(); 
+	}
+
 	return; 
 
 }
 
 
-void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b){
+void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL){
 
 	if (index_of_monomer == deg_poly-1){
-		std::cout << "You have reached the final spot of head spin!" << std::endl;
+		// std::cout << "You have reached the final spot of head spin!" << std::endl;
 		*b = true; 
+		*IMP_BOOL = true; 
 		return ;
 	}
+
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+
+  	shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
 
 	for (std::array <int,3>& d: adrns){
 
@@ -1966,14 +1990,14 @@ void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 		impose_pbc (&to_check, x, y, z); 
 
-		if (checkOccupancy(&to_check, PVec)){
+		if (checkOccupancyHead(&to_check, PVec, index_of_polymer, index_of_monomer)){
 			continue; 
 		}
 
 		else {
 
 			(*PVec)[index_of_polymer].chain[index_of_monomer+1].coords = to_check; 
-			HeadSpin (PVec, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, b);
+			HeadSpin (PVec, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, b, IMP_BOOL);
 
 			if (*b){
 				break;
@@ -1986,29 +2010,103 @@ void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 	}
 
+	if ( !(*b) ){
+		*IMP_BOOL = false; 
+	}
+	else {
+		(*PVec)[index_of_polymer].ChainToConnectivityMap(); 
+	}
+
 	return ;
 
 }
 
 
-bool checkOccupancy(std::array <int,3>* loc, std::vector <Polymer>* PVec){
+bool checkOccupancyTail(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer){
+	int Np = static_cast<int>( (*PVec).size() );  
 
-	for (const Polymer& pmer: *PVec){
-		for (const Particle& p: pmer.chain){
-			if (*loc == p.coords){
-				return true; 
+	for (int pnum = 0; pnum < Np; pnum++){
+
+		if (pnum == index_of_polymer){
+
+			int dpol = static_cast<int> ( (*PVec)[pnum].chain.size() ); 
+			for (int p = index_of_monomer; p < dpol; p++){
+
+				if ( *loc == (*PVec)[pnum].chain[p].coords ){
+					return true;
+				}
+				else {
+					continue;
+				}
+
 			}
-			else {
-				continue; 
-			}
+
 		}
+
+		else {
+
+			for (const Particle& p: (*PVec)[pnum].chain){
+
+				if ( *loc == p.coords ){
+					return true;
+				}
+
+				else {
+					continue;
+				}
+
+			}
+
+		}
+
 	}
 
 	return false; 
 
 }
 
+bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer){
+	int Np = static_cast<int>( (*PVec).size() );  
 
+	for (int pnum = 0; pnum < Np; pnum++){
+
+		if (pnum == index_of_polymer){
+
+			// int dpol = static_cast<int> ( (*PVec)[pnum].chain.size() ); 
+			for (int p = 0; p < index_of_monomer+1; p++){
+
+				if ( *loc == (*PVec)[pnum].chain[p].coords ){
+					return true;
+				}
+				else {
+					continue;
+				}
+
+			}
+
+		}
+
+		else {
+
+			for (const Particle& p: (*PVec)[pnum].chain){
+
+				if ( *loc == p.coords ){
+					return true;
+				}
+
+				else {
+					continue;
+				}
+
+			}
+
+		}
+
+	}
+
+	return false; 
+
+}
 
 //void HeadSpin(std::vector <Polymer>* pmer, int index_of_polymer, int index_of_monomer, int x, int y, int z){
 
@@ -2022,7 +2120,7 @@ bool checkOccupancy(std::array <int,3>* loc, std::vector <Polymer>* PVec){
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: MoveChooser 
+// NAME OF FUNCTION:                  
 //
 // PARAMETERS: a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
 // 
@@ -2044,7 +2142,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, i
     std::vector <Polymer> NewPol;
 
     Grid G_ ; 
-    int r = rng_uniform(1, 4);
+    int r = rng_uniform(1, 10);
     switch (r) {
         case (1):
             if (v){
@@ -2074,6 +2172,60 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, i
             }
             NewPol = KinkJump(PolymerVector, index, x, y, z, IMP_BOOL);
             break; 
+
+        case (5):
+        	if (v) {
+        		printf("Performing configuration sampling. \n"); 
+        		std::cout << "index of polymer is " << index << std::endl;
+        	}
+        	NewPol = *PolymerVector; 
+        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
+        	break;
+
+        case (6):
+        	if (v) {
+        		printf("Performing configuration sampling. \n"); 
+        		std::cout << "index of polymer is " << index << std::endl;
+        	}
+        	NewPol = *PolymerVector; 
+        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
+        	break;
+
+        case (7):
+        	if (v) {
+        		printf("Performing configuration sampling. \n"); 
+        		std::cout << "index of polymer is " << index << std::endl;
+        	}
+        	NewPol = *PolymerVector; 
+        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
+        	break;
+
+        case (8):
+        	if (v) {
+        		printf("Performing configuration sampling. \n"); 
+        		std::cout << "index of polymer is " << index << std::endl;
+        	}
+        	NewPol = *PolymerVector; 
+        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
+        	break;
+
+        case (9):
+        	if (v) {
+        		printf("Performing configuration sampling. \n"); 
+        		std::cout << "index of polymer is " << index << std::endl;
+        	}
+        	NewPol = *PolymerVector; 
+        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
+        	break;
+
+        case (10):
+        	if (v) {
+        		printf("Performing configuration sampling. \n"); 
+        		std::cout << "index of polymer is " << index << std::endl;
+        	}
+        	NewPol = *PolymerVector; 
+        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
+        	break;
     }
 
     return NewPol;

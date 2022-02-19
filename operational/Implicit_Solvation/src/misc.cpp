@@ -1679,12 +1679,36 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
 
     	b = false; 
 
-    	for (const Polymer& pmer: (*PolymerVector)){
-    		for (const Particle& p: pmer.chain){
+    	//for (const Polymer& pmer: (*PolymerVector)){
+    	for (int pmer_index=0; pmer_index < static_cast<int>((*PolymerVector).size()); pmer_index++) {
 
-    			if (p.coords == to_check){
-    				b = true; 
-    				break; 
+    		// for (const Particle& p: pmer.chain){
+    		for (int particle_index=0; particle_index < static_cast<int>((*PolymerVector)[pmer_index].chain.size()); particle_index++ ){ 
+
+
+    			if ((*PolymerVector)[pmer_index].chain[particle_index].coords == to_check){
+
+    				// check if p is the first element of the polymer of the right index! 
+    				if (pmer_index == index){
+
+    					if (particle_index == 0){
+
+    						b = false;
+    						break;
+
+    					}
+
+    					else {
+    						b = true; 
+    						break; 
+    					}
+
+    				}
+
+    				else {
+    					b = true;
+    					break;
+    				}
     			}
 
     		}
@@ -1696,7 +1720,7 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
     	}
 
     	if (!b){
-
+    		// if everything checks out, do the deed - make it slither forward 
     		for (int i{0}; i<deg_poly; i++){
 
     			if ( i != deg_poly-1 ){
@@ -1735,7 +1759,6 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
 //             End of ForwardReptation. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
 
 
 
@@ -1780,20 +1803,37 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
 
     	b = false; 
 
-    	for (const Polymer& pmer: (*PolymerVector)){
-    		for (const Particle& p: pmer.chain){
+    	for (int pmer_index=0; pmer_index < static_cast<int>((*PolymerVector).size()); pmer_index++) {
 
-    			if (p.coords == to_check){
-    				b = true; 
+    		// for (const Particle& p: pmer.chain){
+    		for (int particle_index=0; particle_index < static_cast<int>((*PolymerVector)[pmer_index].chain.size() ); particle_index++ ){ 
+
+    			if ((*PolymerVector)[pmer_index].chain[particle_index].coords == to_check ){ 
+
+    				if (pmer_index == index){
+
+    					if (particle_index == deg_poly-1){
+    						b = false; 						// false because i do not want the particle to be disregarded
+    						break; 
+    					}
+
+    					else {
+    						b = true;						// true, you have to disregard the particle
+    						break;
+    					}
+    				}
+    			}
+    			else {
+    				b = true;
     				break; 
     			}
 
+    			// if the current position is occupied by a bead that is not the right bead, move on. 
     		}
-
     		if (b) {
+    			// if the place is occupied and not by a good particle, get out of the loop and choose another to_check
     			break;
     		}
-
     	}
 
     	if (!b){
@@ -2142,7 +2182,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, i
     std::vector <Polymer> NewPol;
 
     Grid G_ ; 
-    int r = rng_uniform(1, 10);
+    int r = rng_uniform(1, 7);
     switch (r) {
         case (1):
             if (v){

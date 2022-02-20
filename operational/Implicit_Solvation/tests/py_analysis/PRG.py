@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(description="Read a trajectory file and obtain 
 parser.add_argument('-i', metavar=': input coordinate file from which Rg is calculated (coords.txt)', dest='i', action='store', help='enter address of coordinate file')
 parser.add_argument('-e', metavar=': edge length of the box in which the simulation was conducted', type=int, dest='e', action='store', help='enter the edge length of the cubic simulation box')
 parser.add_argument('-T', metavar=': thermodynamic temperature', type=float, dest='T', action='store', help='enter the thermodynamic temperature T of the simulation with k = 1 ')
-parser.add_argument('
+# parser.add_argument('
 
 args = parser.parse_args() 
 

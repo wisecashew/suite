@@ -159,7 +159,9 @@ if __name__ == "__main__":
     
     g = open('stat_kt' + str(args.T) + '.txt', 'w')
     g.write("min is {}.\n".format(np.min(rg) ) ) 
-    g.write("mean is {}\n".format( np.mean(rg) ) ) 
+    # start from one-fifth 
+    # starting index = int(len(rg)/5)
+    g.write("mean is {}\n".format( np.mean(rg [int(len(rg)/5):] ) ) ) 
     g.write("max is {}.\n".format( np.max(rg) ) )
     g.write("stderror is {}".format( np.std(rg)/np.sqrt(len(rg) ) ) )
     g.close() 

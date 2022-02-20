@@ -246,8 +246,8 @@ int main(int argc, char** argv) {
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
-	printf("\nNumber of moves accepted is %d.", acc_counter);
-    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
+    std::cout << "\nNumber of moves accepted is "<< acc_counter << ".";
+    std::cout << "\n\nTime taken for simulation: "<< duration.count() << " milliseconds.\n"; 
 
     return 0;
 

@@ -1,0 +1,3 @@
+This file contains energy of the Grid at certain points in the simulation.
+Energy | Step_Number
+-16 | 0

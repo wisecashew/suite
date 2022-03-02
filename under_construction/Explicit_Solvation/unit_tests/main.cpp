@@ -44,10 +44,10 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 0.2.1 of the Monte Carlo Engine. Set up on Jan 18, 2022, 11:04 PM.\n" <<
+		        "This version number 0.2.1 of the Monte Carlo Engine. Set up on Jan 26, 2022, 04:35 PM.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
-                "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. Usually meant to debug. \n"<<
+                "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
                 "Data only for accepts    [-a]           (NO ARG REQUIRED)              If you only want energy and coords for every accepted structure, use this option. \n"
                 "Restart simulation       [-r]           (NO ARG REQUIRED)              Pick up a simulation back from some kind of a starting point.\n"
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
@@ -122,177 +122,132 @@ int main(int argc, char** argv) {
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    Grid G;                             // setting up the grid object
-    bool call {true};                   // setting up the call for first input or not 
-    int step_number;                    // defining step_number for output reasons 
+    // Grid G;                             // setting up the grid object
+    // bool call {true};                   // setting up the call for first input or not 
+    // int step_number;                    // defining step_number for output reasons 
 
+    std::array <double,7> info_vec {ExtractTopologyFromFile(topology)}; 
+    const int N = ExtractNumberOfPolymers(positions); 
 
-    // define grid objects 
+    const int x = info_vec[0];
+    const int y = info_vec[1]; 
+    const int z = info_vec[2]; 
+    const double T = info_vec[3]; 
+    const double Emm_a = info_vec[4]; 
+    const double Emm_n = info_vec[5]; 
+    const double Ems = info_vec[6]; 
 
+    std::cout << "Number of polymers is " << N << ".\n";
+    std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
+    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems = "<< Ems << ".\n";  
+
+    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
+    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~\n" << std::endl;
+
+    int step_number = 0;
+    double sysEnergy {0}; 
+    std::vector <Polymer> PolymerVector; 
+    PolymerVector.reserve(N); 
     if (r){
-        G = CreateGridObjectRestart(positions, topology, restart_traj);
-        step_number = G.ExtractIndexOfFinalMove (restart_traj) ; 
-        G.CalculateEnergy();   
-        call = false; 
+        std::cout << "Restart mode activated.\n";
+        PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
+        step_number = ExtractIndexOfFinalMove(restart_traj);
+        sysEnergy = ExtractEnergyOfFinalMove(efile); 
     }
     else {
-        G = CreateGridObject(positions, topology);
-        std::cout << "Temperature of box is " << G.kT << "." << std::endl;
-        step_number = 0; 
-        G.dumpPositionsOfPolymers(step_number, dfile); 
-        G.dumpEnergyOfGrid(step_number, efile, true); 
-        call = false; 
-        G.CalculateEnergy();
+
+        PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
+        dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
+        sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems); 
+        dumpEnergy (sysEnergy, step_number, efile, true);
     }
-
-
-    std::cout << "Energy surface check: " << std::endl; 
-    std::cout << "monomer-monomer aligned interaction is " << G.Emm_a <<
-    "\nmonomer-monomer misaligned interaction is " << G.Emm_n <<"\nmonomer-solvent " << G.Ems
-    << std::endl; 
     
-    if (v){
-        std::cout << "Energy of box is: " << G.Energy << std::endl;
-        std::cout << "Next..." << std::endl;
-    }
+    double sysEnergy_ {0};
+    // sysEnergy_++; 
 
-    // grid objects have been validated. 
+    std::cout << "Energy of system is " << sysEnergy << std::endl;
+
+     
+	int acc_counter = 0; 
     
+    bool IMP_BOOL = true; 
 
-    Grid G_ ;
+    std::vector <Polymer> PolymerVector_; 
 
-    bool IMP_BOOL  {true}; 
-
-    if (a) {
-    printf("Simulation will output only information about accepted configurations.\n"); 
-
-    int acceptance_count {0} ; 
-	int temp_var {-1};							// this variable is to make sure acceptance_count is not recounted  
-    for (int i = step_number; i< (step_number+max_iter+1); i++) {
-
+    printf("Simulation will output information of every %d configuration.\n", dfreq); 
+    for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
         if ( v && (i%dfreq==0) ){
             printf("Move number %d.\n", i);
         }
         // choose a move 
-        G_ = MoveChooser(&G, v, &IMP_BOOL);  
-
+        PolymerVector_ = MoveChooser(&PolymerVector, x, y, z, v, &IMP_BOOL);  
+        // std::cout << "Is this being reached -- line after MoveChooser." << std::endl;
+        sysEnergy_ = CalculateEnergy(&PolymerVector_, x, y, z, Emm_a, Emm_n, Ems); 
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
+        
 
+        if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T) && IMP_BOOL ) {
 
-        if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
-            // accepted
             // replace old config with new config
-            if ( v ){ 
+            if ( v ){
+                printf("Checking validity of coords...");
+                printf("checkForOverlaps says: %d.\n", checkForOverlaps(PolymerVector_)); 
+                if (!checkForOverlaps(PolymerVector_)){
+                    printf("Something is fucked up overlaps-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+                printf("checkConnectivity says: %d\n", checkConnectivity(PolymerVector_, x, y, z)); 
+                if (! checkConnectivity(PolymerVector_, x, y, z) ){
+                    printf("Something is fucked up connectivity-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
                 printf("Accepted.\n");
-                printf("Energy of the system is %f.\n", G_.Energy);
-                printf("%d\n", IMP_BOOL);
+                printf("Energy of the system is %.2f.\n", sysEnergy_);
+                printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
+
+
             }
-			++acceptance_count; 
-            G = std::move(G_);
+
+            // std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+            
+            PolymerVector = std::move(PolymerVector_);
+            sysEnergy = sysEnergy_; 
+			++acc_counter;
         }
+
+        //if (!IMP_BOOL){
+        //    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;            
+        //}
 
 
         else {
             if ( v && (i%dfreq==0) ){
                 printf("Not accepted.\n");
-                printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G.Energy, G_.Energy);
+                printf("Energy of the suggested system is %.2f, while energy of the initial system is %.2f.\n", sysEnergy_, sysEnergy);
             }
-            // continue;
+            
         }
 
-        if ( ( acceptance_count % dfreq == 0) && ( temp_var != acceptance_count ) ){
-			printf("acceptance_count is %d and dfreq is %d.\n", acceptance_count, dfreq); 
-            G.dumpPositionsOfPolymers (i, dfile) ;
-            G.dumpEnergyOfGrid(i, efile, call) ; 
-			temp_var = acceptance_count ;
-        }
-		// printf("acceptance_count is ACTUALL %d ON LINE 199.\n", acceptance_count); 
-        // G.PolymersInGrid.at(0).printChainCoords();
+        if ( ( i % dfreq == 0) ){
+            
+            dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
+            dumpEnergy (sysEnergy, i, efile, false);
 
-        if (acceptance_count == Nacc){
-            printf("Simulation has accepted %d moves. Required to stop after accepting %d moves.\n", acceptance_count, Nacc);
-			printf("Total number of suggested moves is %d.\n", i);
-			break; 
+            
         }
-
+        // std::cout <<"are you hitting  this line?"<<std::endl;
         IMP_BOOL = true; 
     }
     
-    
     auto stop = std::chrono::high_resolution_clock::now(); 
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-
-    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() );
-
-    }
-
-
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-
-
-    else {
-
-        printf("Simulation will output information of every %d configuration.\n", dfreq); 
-        for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
-
-            
-
-            if ( v && (i%dfreq==0) ){
-                printf("Move number %d.\n", i);
-            }
-            // choose a move 
-            G_ = MoveChooser(&G, v, &IMP_BOOL);  
-
-            if ( v && (i%dfreq==0) ){
-                printf("Executing...\n");
-            }
-            
-
-            if ( MetropolisAcceptance (G.Energy, G_.Energy, G.kT) && IMP_BOOL ) {
-                // accepted
-                // replace old config with new config
-                if ( v ){ 
-                    printf("Accepted.\n");
-                    printf("Energy of the system is %f.\n", G_.Energy);
-                    printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
-                }
-
-                G = std::move(G_);
-            }
-
-
-            else {
-                if ( v && (i%dfreq==0) ){
-                    printf("Not accepted.\n");
-                    printf("Energy of the suggested system is %f, while energy of the initial system is %f.\n", G_.Energy, G.Energy);
-                }
-                
-            }
-
-            if ( ( i % dfreq == 0) ){
-                
-                G.dumpPositionsOfPolymers (i, dfile) ;
-                G.dumpEnergyOfGrid(i, efile, call) ; 
-                
-            }
-            // std::cout <<"are you hitting  this line?"<<std::endl;
-            IMP_BOOL = true; 
-        }
-    
-    
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-
+	
+	printf("\nNumber of moves accepted is %d.", acc_counter);
     printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
-   
-    }
-
 
     return 0;
 

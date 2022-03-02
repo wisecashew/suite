@@ -162,88 +162,177 @@ int main(int argc, char** argv) {
         dumpEnergy (sysEnergy, step_number, efile, true);
     }
     
-    double sysEnergy_ {0}; 
+    double sysEnergy_ {0};
+    sysEnergy_++; 
+
     std::cout << "Energy of system is " << sysEnergy << std::endl;
 
      
-	int acc_counter = 0; 
+	// int acc_counter = 0; 
     
-    
-
     bool IMP_BOOL = true; 
 
-    std::vector <Polymer> PolymerVector_; 
+    std::vector <Polymer> PolymerVector_ = PolymerVector;
 
-    printf("Simulation will output information of every %d configuration.\n", dfreq); 
-    for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
+    int deg_poly = PolymerVector[0].chain.size(); 
 
-        if ( v && (i%dfreq==0) ){
-            printf("Move number %d.\n", i);
+    bool fbool = false; 
+    
+    ConfigurationSampling(&PolymerVector_, 0, x, y, z, &IMP_BOOL); 
+
+
+    // start printing out stuff 
+    // Polymer index 0 is: 
+    std::cout << "Polymer 0 of initial configuration: " << std::endl; 
+    PolymerVector[0].printChainCoords(); 
+
+    std::cout << "Polymer 0 of new configuration: " << std::endl; 
+    PolymerVector_[0].printChainCoords(); 
+
+    std::cout << "Polymer 1 of initial configuration: " << std::endl; 
+    PolymerVector[1].printChainCoords(); 
+
+    std::cout << "Polymer 1 of new configuration: " << std::endl; 
+    PolymerVector_[1].printChainCoords(); 
+
+
+    std::cout << "\nLook at connectivity maps...\n" << std::endl; 
+
+    std::cout << "For initial configuration of polymers...\n"; 
+    std::cout << "Polymer 0: \n"; 
+    for (auto it = PolymerVector[0].ConnectivityMap.begin(); it != PolymerVector[0].ConnectivityMap.end(); it++){
+
+        std::cout << "For particle: "; 
+        print((it->first).coords); 
+        std::cout << "Connections are: " << std::endl; 
+        for (auto a: it->second){
+            print(a.coords); 
         }
-        // choose a move 
-        PolymerVector_ = MoveChooser(&PolymerVector, x, y, z, v, &IMP_BOOL);  
-        sysEnergy_ = CalculateEnergy(&PolymerVector_, x, y, z, Emm_a, Emm_n, Ems); 
-        if ( v && (i%dfreq==0) ){
-            printf("Executing...\n");
+
+    } 
+    std::cout << "\n\nPolymer 1: \n";
+    for (auto it = PolymerVector[1].ConnectivityMap.begin(); it != PolymerVector[1].ConnectivityMap.end(); it++){
+
+        std::cout << "For particle: "; 
+        print((it->first).coords); 
+        std::cout << "Connections are: " << std::endl; 
+        for (auto a: it->second){
+            print(a.coords); 
+        }
+
+    }
+
+    std::cout << "\nFor new configuration of polymers...\n"; 
+    std::cout << "Polymer 0: \n"; 
+    for (auto it = PolymerVector_[0].ConnectivityMap.begin(); it != PolymerVector_[0].ConnectivityMap.end(); it++){
+
+        std::cout << "For particle: "; 
+        print((it->first).coords); 
+        std::cout << "Connections are: " << std::endl; 
+        for (auto a: it->second){
+            print(a.coords); 
+        }
+
+    } 
+    std::cout << "\n\nPolymer 1: \n";
+    for (auto it = PolymerVector_[1].ConnectivityMap.begin(); it != PolymerVector_[1].ConnectivityMap.end(); it++){
+
+        std::cout << "For particle: "; 
+        print((it->first).coords); 
+        std::cout << "Connections are: " << std::endl; 
+        for (auto a: it->second){
+            print(a.coords); 
+        }
+
+    }
+
+    std::cout << "\n\nFor the first polymer in vector: \n";
+
+    for (int i = 0; i < static_cast<int>(PolymerVector[0].chain.size()); i++){
+
+        std::cout << "For initial config, location " << i << " is "; 
+        print (PolymerVector[0].chain[i].coords); 
+        std::cout << "Orientation is " << PolymerVector[0].chain[i].orientation <<", ptype is " << PolymerVector[0].chain[i].ptype << "." << std::endl;
+        std::cout << "For new config, location  " << i << " is "; 
+        print(PolymerVector_[0].chain[i].coords); 
+        std::cout << "Orientation is " << PolymerVector_[0].chain[i].orientation <<", ptype is " << PolymerVector_[0].chain[i].ptype << "." << std::endl;
+
+        if (PolymerVector_[0].chain[i].orientation != PolymerVector[0].chain[i].orientation){
+            std::cout << "Orientation is fucked." << std::endl;
+            exit(EXIT_FAILURE); 
+        }
+
+        if (PolymerVector[0].chain[i].ptype != PolymerVector_[0].chain[i].ptype){
+            std::cout << "Orientation is fucked." << std::endl;
+            exit(EXIT_FAILURE); 
+        }
+
+    }
+
+
+    std::cout << "\n\nFor the second polymer in vector: \n";
+    for (int i = 0; i < static_cast<int>(PolymerVector[1].chain.size()); i++){
+
+        std::cout << "For initial config, location " << i << " is "; 
+        print (PolymerVector[1].chain[i].coords); 
+        std::cout << "Orientation is " << PolymerVector[1].chain[i].orientation <<", ptype is " << PolymerVector[1].chain[i].ptype << "." << std::endl;
+        std::cout << "For new config, location  " << i << " is "; 
+        print(PolymerVector_[1].chain[i].coords); 
+        std::cout << "Orientation is " << PolymerVector_[1].chain[i].orientation <<", ptype is " << PolymerVector_[1].chain[i].ptype << "." << std::endl;
+
+        if (PolymerVector_[1].chain[i].orientation != PolymerVector[1].chain[i].orientation){
+            std::cout << "Orientation is fucked." << std::endl;
+            exit(EXIT_FAILURE); 
+        }
+
+        if (PolymerVector[1].chain[i].ptype != PolymerVector_[1].chain[i].ptype){
+            std::cout << "Type is fucked." << std::endl;
+            exit(EXIT_FAILURE); 
+        }
+
+    }
+
+
+    std::cout <<"\n\n";
+
+    for (int i = 0; i < static_cast<int>(PolymerVector[1].chain.size()); i++){
+
+        if (PolymerVector_[1].chain[i].coords != PolymerVector[1].chain[i].coords){
+            std::cout << "Problem positions are " << std::endl;
+            std::cout << "Initial position is "; 
+            print(PolymerVector[1].chain[i].coords); 
+            std::cout << "New position is "; 
+            print(PolymerVector_[1].chain[i].coords); 
+            std::cout <<"\n\n";
+        }
+        //
+
+    }
+
+
+
+    for (int i = 0; i < static_cast<int>(PolymerVector[0].chain.size()); i++){
+
+        if (PolymerVector_[0].chain[i].coords != PolymerVector[0].chain[i].coords){
+            std::cout << "Problem positions are " << std::endl;
+            std::cout << "Initial position is "; 
+            print(PolymerVector[0].chain[i].coords); 
+            std::cout << "New position is "; 
+            print(PolymerVector_[0].chain[i].coords); 
+            std::cout <<"\n\n";
         }
         
 
-        if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T) && IMP_BOOL ) {
-
-            // replace old config with new config
-            if ( v ){
-                printf("Checking validity of coords...");
-                printf("checkForOverlaps says: %d.\n", checkForOverlaps(PolymerVector_)); 
-                if (!checkForOverlaps(PolymerVector_)){
-                    printf("Something is fucked up overlaps-wise. \n");
-                    exit(EXIT_FAILURE);
-                }
-                printf("checkConnectivity says: %d\n", checkConnectivity(PolymerVector_, x, y, z)); 
-                if (! checkConnectivity(PolymerVector_, x, y, z) ){
-                    printf("Something is fucked up connectivity-wise. \n");
-                    exit(EXIT_FAILURE);
-                }
-                printf("Accepted.\n");
-                printf("Energy of the system is %.2f.\n", sysEnergy_);
-                printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
-            }
-
-            // std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
-            
-            PolymerVector = std::move(PolymerVector_);
-            sysEnergy = sysEnergy_; 
-			++acc_counter;
-        }
-
-        //if (!IMP_BOOL){
-        //    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;            
-        //}
-
-
-        else {
-            if ( v && (i%dfreq==0) ){
-                printf("Not accepted.\n");
-                printf("Energy of the suggested system is %.2f, while energy of the initial system is %.2f.\n", sysEnergy_, sysEnergy);
-            }
-            
-        }
-
-        if ( ( i % dfreq == 0) ){
-            
-            dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
-            dumpEnergy (sysEnergy, i, efile, false);
-
-            
-        }
-        // std::cout <<"are you hitting  this line?"<<std::endl;
-        IMP_BOOL = true; 
     }
-    
+
+
+
+
     auto stop = std::chrono::high_resolution_clock::now(); 
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
-	printf("\nNumber of moves accepted is %d.", acc_counter);
+	// printf("\nNumber of moves accepted is %d.", acc_counter);
     printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
 
     return 0;

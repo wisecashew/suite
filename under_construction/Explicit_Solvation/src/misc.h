@@ -45,7 +45,7 @@ void sarw_pbc(std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y
 
 
 // create a lattice 
-std::vector <std::vector <int>> create_lattice_pts(int x_len, int y_len, int z_len); 
+std::vector <std::array <int,3>> create_lattice_pts(int x_len, int y_len, int z_len); 
 
 
 // obtain the neighbor vector (list) 
@@ -84,7 +84,7 @@ int rng_uniform(int start, int end);
 double rng_uniform(double start, double end);
 
 // extracting info from files 
-std::array <double, 7> ExtractTopologyFromFile(std::string filename);
+std::array <double, 8> ExtractTopologyFromFile(std::string filename);
 double NumberExtractor(std::string s);
 
 // checking if info is accurate 
@@ -111,12 +111,16 @@ void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter,
     std::string efile, std::string restart_traj); 
 
 
+// create the solvent vector 
+std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Polymer>* PolymerVector); 
+
 bool checkValidityOfCoords(std::array <int,3> v, int x, int y, int z); 
 bool checkForOverlaps(std::vector <Polymer> PolymerVector);
 bool checkConnectivity(std::vector <Polymer> PolymerVector, int x, int y, int z); 
 std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y, int z);
-std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::string position, int x, int y, int z);
-double CalculateEnergy(std::vector <Polymer>* PolymerVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems);
+std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::string position);
+double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n);
+// double CalculateEnergy(std::vector <Polymer>* PolymerVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems);
 void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
 void dumpEnergy (double sysEnergy, int step, std::string filename, bool first_call); 
 std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL);
@@ -130,6 +134,15 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, 
 std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, int y, int z, bool v, bool* IMP_BOOL);
 int ExtractIndexOfFinalMove(std::string trajectory);
 double ExtractEnergyOfFinalMove(std::string energy_file); 
+
+Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, std::array <int,3> to_check);
+
+void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
+void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL );
+void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL);
+bool checkOccupancy(std::array <int,3>* loc, std::vector <Polymer>* PVec);
+bool checkOccupancyTail(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer);
+bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer);
 
 
 

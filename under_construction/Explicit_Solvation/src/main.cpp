@@ -14,7 +14,7 @@
 
 
 int main(int argc, char** argv) {
-    
+
     // set up 
     int opt; 
     int Nacc {-1}, dfreq {-1}, max_iter{-1};
@@ -115,58 +115,72 @@ int main(int argc, char** argv) {
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // parse inputs 
-    
+    // This command will take all of the above inputs and make sure they are valid. 
     InputParser (a, r, Nacc, dfreq, max_iter, positions, topology, dfile, efile, restart_traj); 
 
     // driver 
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    // Grid G;                             // setting up the grid object
-    // bool call {true};                   // setting up the call for first input or not 
-    // int step_number;                    // defining step_number for output reasons 
 
-    std::array <double,7> info_vec {ExtractTopologyFromFile(topology)}; 
+    // ExtractTopologyFromFile extracts all the topology from the input file 
+    std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
+
+    // ExtractNumberOfPolymers extracts the total number of chains in the input file 
     const int N = ExtractNumberOfPolymers(positions); 
 
+    // assign values from info_vec to variables 
     const int x = info_vec[0];
     const int y = info_vec[1]; 
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
     const double Emm_a = info_vec[4]; 
     const double Emm_n = info_vec[5]; 
-    const double Ems = info_vec[6]; 
+    const double Ems_a = info_vec[6];
+    const double Ems_n = info_vec[7]; 
 
     std::cout << "Number of polymers is " << N << ".\n";
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
-    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems = "<< Ems << ".\n";  
+    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems_a = "<< Ems_a << ", Ems_n = " << Ems_n <<".\n";  
 
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~\n" << std::endl;
 
+
+    // THIS MIGHT NEED TO CHANGE 
+    
+
     int step_number = 0;
     double sysEnergy {0}; 
     std::vector <Polymer> PolymerVector; 
+    
+
     PolymerVector.reserve(N); 
     if (r){
         std::cout << "Restart mode activated.\n";
-        PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
+        // PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
         step_number = ExtractIndexOfFinalMove(restart_traj);
-        sysEnergy = ExtractEnergyOfFinalMove(efile); 
+        // sysEnergy = ExtractEnergyOfFinalMove(efile); 
     }
     else {
 
         PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
         dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
-        sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems); 
-        dumpEnergy (sysEnergy, step_number, efile, true);
+        // sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems_a); 
+        // dumpEnergy (sysEnergy, step_number, efile, true);
     }
     
-    double sysEnergy_ {0};
-    // sysEnergy_++; 
+    // double sysEnergy_ {0};
+    
 
     std::cout << "Energy of system is " << sysEnergy << std::endl;
 
+    std::vector <Particle> SolventVector = CreateSolventVector(x, y, z, &PolymerVector);
+
+    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n); 
+
+
+    /*
      
 	int acc_counter = 0; 
     
@@ -241,13 +255,13 @@ int main(int argc, char** argv) {
         // std::cout <<"are you hitting  this line?"<<std::endl;
         IMP_BOOL = true; 
     }
-    
+    */
     auto stop = std::chrono::high_resolution_clock::now(); 
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
-	printf("\nNumber of moves accepted is %d.", acc_counter);
-    printf("\n\nTime taken for simulation: %lld milliseconds\n", duration.count() ); 
+	// printf("\nNumber of moves accepted is %d.", acc_counter);
+    std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
 
     return 0;
 

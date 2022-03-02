@@ -123,15 +123,15 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
 // double CalculateEnergy(std::vector <Polymer>* PolymerVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems);
 void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
 void dumpEnergy (double sysEnergy, int step, std::string filename, bool first_call); 
-std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL);
-std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL);
 std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL);
 std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, int y, int z, bool v, bool* IMP_BOOL);
+std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, bool v, bool* IMP_BOOL);
 int ExtractIndexOfFinalMove(std::string trajectory);
 double ExtractEnergyOfFinalMove(std::string energy_file); 
 

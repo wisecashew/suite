@@ -1078,14 +1078,12 @@ std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y,
 
 Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, std::array <int,3> to_check){
 
-
 	for (Polymer& pmer: (*PolymerVector)) {
 		for (Particle& p: pmer.chain){ 
 
 			if (to_check == p.coords){
 				return p;
 			}
-
 
 		}
 	}
@@ -1142,24 +1140,24 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
                 // std::cout << "neighbor list is: "; print (loc); 
                 // get the particle at loc 
             	
-            	Particle p_ptr {ParticleReporter (PolymerVector, SolvVector, loc) };
+            	Particle ptr {ParticleReporter (PolymerVector, SolvVector, loc) };
 
-            	if ((p_ptr).ptype == "monomer"){
+            	if ((ptr).ptype == "monomer"){
 
-            		if ((p_ptr).orientation == p.orientation ){
+            		if ((ptr).orientation == p.orientation ){
 
-            			Energy += Emm_a; 
+            			Energy += 0.5*Emm_a; 
 
             		}
             		else {
-            			Energy += Emm_n; 
+            			Energy += 0.5*Emm_n; 
             		}
 
             	}
 
             	else { // particle is of type solvent 
 
-            		if ( (p_ptr).orientation == p.orientation ){
+            		if ( (ptr).orientation == p.orientation ){
 
             			Energy += Ems_a;
             		}
@@ -1279,9 +1277,9 @@ void dumpEnergy (double sysEnergy, int step, std::string filename, bool first_ca
 // 
 // NAME OF FUNCTION: TailRotation
 //
-// PARAMETERS: index of a polymer to perform ZeroIndexRotation, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// PARAMETERS: index of a polymer to perform ZeroIndexRotation, the polymervector, and the dimensions of the box 
 // 
-// WHAT THE FUNCTION DOES: Given a Grid, it will perform a rotation of the monomer at the first index (the tail)
+// WHAT THE FUNCTION DOES: it will perform a rotation of the monomer at the first index (the tail)
 // of the polymer. As it stands, this function only rotates one molecule at the tail.
 //
 // PLANNED EXTENSION: Multiple molecules at the tail need to be rotated.    
@@ -1291,7 +1289,7 @@ void dumpEnergy (double sysEnergy, int step, std::string filename, bool first_ca
 //
 // THE CODE: 
 
-std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
 
     // get the neighborlist of particle at index 1 
@@ -1311,6 +1309,7 @@ std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int ind
     		++tries;
     		continue;
     	}
+
 
     	for (const Polymer& pmer: (*PolymerVector)){
     		for (const Particle& p: pmer.chain){
@@ -1332,7 +1331,17 @@ std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int ind
   			// std::cout << "max number of tries can be " << ne_list.size() << std::endl;
   			// std::cout << "This should be the only tries statement for this particular move." << std::endl;  
 			NewPol[index].chain[0].coords = to_rot; 
+
+			for (Particle& p: (*SolvVector)){
+				if (p.coords == to_rot){
+					p.coords = loc_0; 
+					break;
+				}
+
+			}
+
 			break;
+
   		}
   		else {
   			// std::cout << "Occupied, pick another place to rotate." << std::endl; 
@@ -1369,7 +1378,7 @@ std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, int ind
 //
 // THE CODE: 
 
-std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector,int index, int x, int y, int z, bool* IMP_BOOL){
 
 
     // get the neighborlist of particle at index 1 
@@ -1411,6 +1420,15 @@ std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, int ind
   			// std::cout << "max number of tries can be " << ne_list.size() << std::endl;
   			// std::cout << "This should be the only tries statement for this particular move." << std::endl;  
 			NewPol[index].chain[dop-1].coords = to_rot; 
+
+			for (Particle& p: (*SolvVector)){
+				if (p.coords == to_rot){
+					p.coords = loc_0; 
+					break;
+				}
+
+			}
+
 			break;
   		}
   		else {
@@ -1451,7 +1469,7 @@ std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, int ind
 // THE CODE: 
 
 
-std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
@@ -1460,11 +1478,11 @@ std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, int inde
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         // std::cout << "Zero index rotation!" << std::endl;
-        return TailRotation(PolymerVector, index, x, y, z, IMP_BOOL); 
+        return TailRotation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
     }
     else {
         // std::cout << "Final index rotation!" << std::endl;
-        return HeadRotation(PolymerVector, index, x, y, z, IMP_BOOL); 
+        return HeadRotation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
 
     }
     
@@ -1493,7 +1511,7 @@ std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, int inde
 // THE CODE: 
 
 
-std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
     std::vector <Polymer> NewPol = *PolymerVector; 
 
@@ -1544,6 +1562,13 @@ std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, int index, 
   			// std::cout << "max number of tries for kjump can be " << k_idx.size() << std::endl;
   			// std::cout << "This should be the only tries statement for this particular move." << std::endl;  
 			NewPol[index].chain[idx+1].coords = to_check; 
+			for (Particle& p: (*SolvVector)){
+				if (p.coords == to_check){
+					p.coords = (*PolymerVector)[index].chain[idx+1].coords; 
+					break;
+				}
+
+			}
 			break;
   		}
   		else {
@@ -1589,7 +1614,7 @@ std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, int index, 
 // THE CODE: 
 
 
-std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
 
     // std::array <int,3 > ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1};     // unit directions 
@@ -1652,6 +1677,25 @@ std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, int index
   			// std::cout << "This should be the only tries statement for this particular move." << std::endl; 
       		NewPol[index].chain[idx+1].coords = to_check_1;
       		NewPol[index].chain[idx+2].coords = to_check_2;
+      		int d = 0; 
+
+      		for (Particle& p: (*SolvVector)){
+				if (p.coords == to_check_1){
+					++d; 
+					p.coords = (*PolymerVector)[index].chain[idx+1].coords; 
+					if (d==2){
+						break;
+					}
+				}
+				else if (p.coords == to_check_2){
+					++d; 
+					p.coords = (*PolymerVector)[index].chain[idx+2].coords; 
+					if (d==2){
+						break;
+					}
+				}
+			}
+
       		break;
       	}
 
@@ -1706,7 +1750,7 @@ std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, int index
 //
 // THE CODE: 
 
-std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
     std::vector <Polymer> NewPol {*PolymerVector}; 
     int deg_poly = (*PolymerVector)[index].deg_poly; 
@@ -1719,7 +1763,7 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
     // ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), NewG.PolymersInGrid.at(index).chain.at(size-2).coords), ne_list.end() ); 
 
     bool b {false}; 
-
+    bool b_ind1{false};
 	size_t tries = 0; 
     for (std::array <int,3>& to_check: ne_list){
 
@@ -1740,6 +1784,7 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
     					if (particle_index == 0){
 
     						b = false;
+    						b_ind1 = true; 
     						break;
 
     					}
@@ -1763,6 +1808,10 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
     			break;
     		}
 
+    		if (b_ind1){
+    			break;
+    		}
+
     	}
 
     	if (!b){
@@ -1776,10 +1825,22 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, int
     				NewPol[index].chain[i].coords = to_check; 
     			}
     		}
+
+    		if (b_ind1){
+    			break;
+    		}
     		// std::cout << "number of tries is " << tries << std::endl;
   			// std::cout << "max number of tries for forward reptation can be " << ne_list.size() << std::endl;
   			// std::cout << "This should be the only tries statement for this particular move." << std::endl; 
-    		break;
+  			else {
+  				for (Particle& p: (*SolvVector)){
+					if (p.coords == to_check){
+						p.coords = (*PolymerVector)[index].chain[0].coords; 
+						break;
+					}
+				}	
+  			}
+    		
 
     	}
 
@@ -1843,7 +1904,7 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
     // ne_list.erase(std::remove(ne_list.begin(), ne_list.end(), NewG.PolymersInGrid.at(index).chain.at(size-2).coords), ne_list.end() ); 
 
     bool b { false }; 
-
+    bool b_indf { false }; 
 	size_t tries = 0; 
     for (std::array <int,3>& to_check: ne_list){
 
@@ -1880,6 +1941,11 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
     			// if the place is occupied and not by a good particle, get out of the loop and choose another to_check
     			break;
     		}
+
+    		if (b_indf){
+    			break;
+    		}
+
     	}
 
     	if (!b){
@@ -1893,6 +1959,19 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
     				NewPol[index].chain[deg_poly-1-i].coords = to_check; 
     			}
     		}
+
+    		if (b_indf){
+    			break;
+    		}
+
+    		else {
+  				for (Particle& p: (*SolvVector)){
+					if (p.coords == to_check){
+						p.coords = (*PolymerVector)[index].chain[deg_poly-1].coords; 
+						break;
+					}
+				}	
+  			}
     		// std::cout << "number of tries is " << tries << std::endl;
   			// std::cout << "max number of tries for back reptation can be " << ne_list.size() << std::endl;
   			// std::cout << "This should be the only tries statement for this particular move." << std::endl; 
@@ -1945,7 +2024,7 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
 //
 // THE CODE: 
 
-std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
@@ -1954,11 +2033,11 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, int index, 
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         // std::cout << "Zero index rotation!" << std::endl;
-        return BackwardReptation(PolymerVector, index, x, y, z, IMP_BOOL); 
+        return BackwardReptation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
     }
     else {
         // std::cout << "Final index rotation!" << std::endl;
-        return ForwardReptation(PolymerVector, index, x, y, z, IMP_BOOL); 
+        return ForwardReptation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
 
     }
     
@@ -2222,7 +2301,7 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 //
 // THE CODE: 
 
-std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, int y, int z, bool v, bool* IMP_BOOL){
+std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, bool v, bool* IMP_BOOL){
 
     int index = rng_uniform(0, static_cast<int>((*PolymerVector).size())-1); 
     std::vector <Polymer> NewPol;
@@ -2235,14 +2314,14 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, i
                printf("Performing end rotations.\n"); 
             }
             // 
-            NewPol = EndRotation(PolymerVector, index, x, y, z, IMP_BOOL);
+            NewPol = EndRotation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
             break;     
         
         case (2):
             if (v){
                printf("Performing crank shaft.\n"); 
             }
-            NewPol = CrankShaft(PolymerVector, index, x, y, z, IMP_BOOL);
+            NewPol = CrankShaft(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
             break; 
 
         case (3):
@@ -2256,7 +2335,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, int x, i
             if (v){
                printf("Performing kink jump.\n"); 
             }
-            NewPol = KinkJump(PolymerVector, index, x, y, z, IMP_BOOL);
+            NewPol = KinkJump(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
             break; 
 
         case (5):

@@ -7,6 +7,7 @@ Emm_a = -1, Emm_n = -1, Ems_a = 0, Ems_n = 0.
 Input file has no overlaps!
 Input polymers are well-connected!
 Energy of system is -16
+IMP_BOOL is 0
 
 
-Time taken for simulation: 4 milliseconds.
+Time taken for simulation: 16 milliseconds.

@@ -172,13 +172,112 @@ int main(int argc, char** argv) {
     
     // double sysEnergy_ {0};
     
-
-    std::cout << "Energy of system is " << sysEnergy << std::endl;
-
     std::vector <Particle> SolventVector = CreateSolventVector(x, y, z, &PolymerVector);
 
     sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n); 
+    std::cout << "Energy of system is " << sysEnergy << std::endl;
 
+    bool IMP_BOOL = true; 
+
+    PolymerVector = CrankShaft (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
+
+
+    PolymerVector = TailRotation(&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
+
+    PolymerVector = HeadRotation(&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
+
+    PolymerVector = KinkJump (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
+
+    IMP_BOOL = true;
+
+    PolymerVector = CrankShaft (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    std::cout <<"IMP_BOOL is " << IMP_BOOL << std::endl;
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
 
     /*
      

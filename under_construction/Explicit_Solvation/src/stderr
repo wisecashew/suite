@@ -8,6 +8,12 @@ Input file has no overlaps!
 Input polymers are well-connected!
 Energy of system is -16
 IMP_BOOL is 0
+In backwards reptation...
+hello. there is a hit.
+4 | 9 | 9 | 
+In acceptance land.
+4 | 9 | 9 | 
+IMP_BOOL is 1
 
 
-Time taken for simulation: 16 milliseconds.
+Time taken for simulation: 13 milliseconds.

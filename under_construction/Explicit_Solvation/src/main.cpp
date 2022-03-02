@@ -279,6 +279,52 @@ int main(int argc, char** argv) {
         }
     }
 
+    IMP_BOOL = true ; 
+
+    PolymerVector = ForwardReptation (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
+
+    IMP_BOOL = true; 
+
+    PolymerVector = BackwardReptation (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
+
+
+
     /*
      
 	int acc_counter = 0; 

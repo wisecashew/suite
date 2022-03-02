@@ -1775,7 +1775,7 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std
     		// for (const Particle& p: pmer.chain){
     		for (int particle_index=0; particle_index < static_cast<int>((*PolymerVector)[pmer_index].chain.size()); particle_index++ ){ 
 
-
+    			// if there is a match, do the following... 
     			if ((*PolymerVector)[pmer_index].chain[particle_index].coords == to_check){
 
     				// check if p is the first element of the polymer of the right index! 
@@ -1891,8 +1891,9 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std
 //
 // THE CODE: 
 
-std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, int index, int x, int y, int z, bool* IMP_BOOL){
+std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
+	std::cout << "In backwards reptation..." << std::endl;
     std::vector <Polymer> NewPol {*PolymerVector}; 
     int deg_poly = (*PolymerVector)[index].deg_poly; 
 
@@ -1908,32 +1909,43 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
 	size_t tries = 0; 
     for (std::array <int,3>& to_check: ne_list){
 
+    	// std::cout << "Attempt number " << tries << " is ";
+    	// print(to_check);
+
     	b = false; 
 
-    	for (int pmer_index=0; pmer_index < static_cast<int>((*PolymerVector).size()); pmer_index++) {
+    	for (int pmer_index=0; pmer_index < static_cast<int>((*PolymerVector).size()); ++pmer_index) {
 
     		// for (const Particle& p: pmer.chain){
-    		for (int particle_index=0; particle_index < static_cast<int>((*PolymerVector)[pmer_index].chain.size() ); particle_index++ ){ 
+    		for (int particle_index=0; particle_index < static_cast<int>((*PolymerVector)[pmer_index].chain.size() ); ++particle_index ){ 
 
+
+    			// in the event the to_check particle matches with something in the vector
+    			// check if that match is the final monomer bead 
     			if ((*PolymerVector)[pmer_index].chain[particle_index].coords == to_check ){ 
-
+    				
+    				std::cout << "hello. there is a hit." << std::endl;
+    				print(to_check); 
     				if (pmer_index == index){
 
     					if (particle_index == deg_poly-1){
-    						b = false; 						// false because i do not want the particle to be disregarded
+    						b = false; 	
+    						b_indf = true;					// false because i do not want the particle to be disregarded
     						break; 
     					}
 
     					else {
-    						b = true;						// true, you have to disregard the particle
+    						b = true;						// true, you have to disregard the to_check position
     						break;
     					}
     				}
+					else {
+    					b = true;
+    					break; 
+    				}
+
     			}
-    			else {
-    				b = true;
-    				break; 
-    			}
+    			
 
     			// if the current position is occupied by a bead that is not the right bead, move on. 
     		}
@@ -1949,13 +1961,15 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
     	}
 
     	if (!b){
-
+    		std::cout << "In acceptance land." << std::endl;
+    		print(to_check);
     		for (int i{0}; i<deg_poly; ++i){
 
     			if ( i != deg_poly-1 ){
     				NewPol[index].chain[deg_poly-1-i].coords = (*PolymerVector)[index].chain[deg_poly-2-i].coords ; 
     			}
     			else {
+
     				NewPol[index].chain[deg_poly-1-i].coords = to_check; 
     			}
     		}
@@ -1968,14 +1982,16 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, in
   				for (Particle& p: (*SolvVector)){
 					if (p.coords == to_check){
 						p.coords = (*PolymerVector)[index].chain[deg_poly-1].coords; 
+						// std::cout << "Is this break being hit?" << std::endl;
 						break;
 					}
 				}	
+				break;
   			}
     		// std::cout << "number of tries is " << tries << std::endl;
   			// std::cout << "max number of tries for back reptation can be " << ne_list.size() << std::endl;
   			// std::cout << "This should be the only tries statement for this particular move." << std::endl; 
-    		break;
+    		// break;
     	}
 
     	else {
@@ -2328,7 +2344,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
             if (v){
                printf("Performing reptation.\n"); 
             }
-            NewPol = Reptation(PolymerVector, index, x, y, z, IMP_BOOL); 
+            NewPol = Reptation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
             break; 
 
         case (4):

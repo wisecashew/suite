@@ -7,75 +7,26 @@ Emm_a = -1, Emm_n = -1, Ems_a = 0, Ems_n = 0.
 Input file has no overlaps!
 Input polymers are well-connected!
 Energy of system is -16
-Index of monomer is 5
-Pivot position is 3 | 8 | 0 | 
-Performed a tail spin...
+step number is 1
+IMP_BOOL is 1
 step number is 2
 IMP_BOOL is 1
-Index of monomer is 6
-Pivot position is 4 | 8 | 0 | 
-Performed a tail spin...
 step number is 3
 IMP_BOOL is 1
-Index of monomer is 6
-Pivot position is 4 | 8 | 0 | 
-Performed a tail spin...
 step number is 4
 IMP_BOOL is 1
-Index of monomer is 4
-Pivot position is 3 | 7 | 0 | 
-Performed a tail spin...
 step number is 5
 IMP_BOOL is 1
-Index of monomer is 2
-Pivot position is 3 | 9 | 0 | 
-Performed a tail spin...
 step number is 6
 IMP_BOOL is 1
-Index of monomer is 2
-Pivot position is 3 | 9 | 0 | 
-Performed a tail spin...
 step number is 7
 IMP_BOOL is 1
-Index of monomer is 1
-Pivot position is 3 | 9 | 9 | 
-Performed a tail spin...
 step number is 8
 IMP_BOOL is 1
-Index of monomer is 6
-Pivot position is 4 | 8 | 0 | 
-Performed a tail spin...
 step number is 9
 IMP_BOOL is 1
-Index of monomer is 3
-Pivot position is 4 | 7 | 2 | 
-Performed a tail spin...
 step number is 10
 IMP_BOOL is 1
-Index of monomer is 2
-Pivot position is 4 | 6 | 2 | 
-Performed a tail spin...
-step number is 11
-IMP_BOOL is 1
-Index of monomer is 3
-Pivot position is 4 | 7 | 2 | 
-Performed a tail spin...
-step number is 12
-IMP_BOOL is 1
-Index of monomer is 4
-Pivot position is 4 | 7 | 1 | 
-Performed a tail spin...
-step number is 13
-IMP_BOOL is 1
-There is a problem. 
-Solvent position = 4 | 7 | 2 | 
-Monomer position = 4 | 7 | 2 | 
-After chain regrowth. Exiting...
-3 | 7 | 2 | 
-4 | 7 | 2 | 
-4 | 6 | 2 | 
-4 | 6 | 1 | 
-4 | 7 | 1 | 
-4 | 7 | 0 | 
-4 | 8 | 0 | 
-4 | 8 | 1 | 
+
+
+Time taken for simulation: 11 milliseconds.

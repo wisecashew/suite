@@ -2183,13 +2183,14 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, std::vector
 // WHAT THE FUNCTION DOES: It performs a chain regrowth on an existing polymer. It will uniformly choose to perform a tailspin or a headspin. 
 // the second half of the code is to make sure the Solvent Vector is up to date after the polymer has been updated. 
 //
-// DEPENDENCIES: TailSpin, HeadSpin
+// DEPENDENCIES: TailSpin, HeadSpin, extract_positions_tail, extract_positions_head 
 //
 // THE CODE: 
 
 void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVec, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL){
 
-	std::vector <Polymer> copy_pvec {*PolymerVector}; 
+	// std::vector <Polymer> copy_pvec {*PolymerVector}; 
+	std::vector <std::array<int,3>> old_p;
 
 	int deg_of_poly = (*PolymerVector)[index_of_polymer].deg_poly; 
 	int index_monomer = rng_uniform(1, deg_of_poly-2); 
@@ -2198,20 +2199,18 @@ void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>*
 
 	// decide which end of the polymer do i want to move around 
 	bool b = false; 
-	int back_or_front = 0; //rng_uniform(0, 1); 
+	int back_or_front = rng_uniform(0, 1); 
 
 	if (back_or_front == 0){
-		std::cout << "Index of monomer is " << index_monomer << std::endl; 
-		std::cout << "Pivot position is "; 
-		print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
-		// perform the configuration of the tail
-		// std::cout << "Performing tail spin..." << std::endl;
+		old_p = extract_positions_tail ( &((*PolymerVector)[index_of_polymer].chain), index_monomer );
+		// std::cout << "Index of monomer is " << index_monomer << std::endl; 
+		// std::cout << "Pivot position is "; 
+		// print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
 		TailSpin(PolymerVector, index_of_polymer, index_monomer, x, y, z, &b, IMP_BOOL);  
-
 	}
 
 	else {
-
+		old_p = extract_positions_head ( &((*PolymerVector)[index_of_polymer].chain), index_monomer );
 		// perform the configuration of the head 
 		// std::cout << "Performing head spin..." << std::endl;
 		HeadSpin(PolymerVector, index_of_polymer, index_monomer, deg_of_poly, x, y, z, &b, IMP_BOOL); 
@@ -2225,9 +2224,9 @@ void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>*
 
 		if (back_or_front == 0 ){
 			// check tail end of poly
-			std::cout << "Performed a tail spin..." << std::endl;
+			// std::cout << "Performed a tail spin..." << std::endl;
 
-			std::vector <std::array <int,3>> old_p = extract_positions_tail ( &(copy_pvec[index_of_polymer].chain), index_monomer );
+			// std::vector <std::array <int,3>> old_p = extract_positions_tail ( &(copy_pvec[index_of_polymer].chain), index_monomer );
 			std::vector < std::array <int,3>> new_p = extract_positions_tail ( &((*PolymerVector)[index_of_polymer].chain), index_monomer ) ;  
 
 			// sort both vectors 
@@ -2235,24 +2234,27 @@ void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>*
 			std::sort ( new_p.begin(), new_p.end()); 
 
 			// collect common elements 
-			std::unordered_set <int> common; 
-			std::set_intersection( old_p.begin(), old_p.end(), new_p.begin(), new_p.end(), std::inserter(common, common.begin()) ); 
+			std::vector <std::array <int,3>> store; 
+			std::set_intersection( old_p.begin(), old_p.end(), new_p.begin(), new_p.end(), std::back_inserter(store) ); 
 
 			// erase items in each vector that match the items in the set 
 			
-			for (const std::array <int,3>& a: common){
+			for (const std::array <int,3>& a: store){
 
-				for (size_t j{0}; j < old_p.size(); ++j;){
+				for (size_t j{0}; j < old_p.size(); ++j){
 					
+					if (a == old_p[j]){
+						old_p.erase(std::remove(old_p.begin(), old_p.end(), a), old_p.end() ); 
+						new_p.erase(std::remove(new_p.begin(), new_p.end(), a), new_p.end() );
+						break;
+					}
 				}
-
 			}
 
-			//old_p.erase(std::remove_if( old_p.begin(), old_p.end(), [&](int n) {return common.count(n); } ), old_p.end() );
-			//new_p.erase(std::remove_if( new_p.begin(), new_p.end(), [&](int n) {return common.count(n); } ), new_p.end() ); 
+			// make sure that the solvent particles that were originally at the spots NOW occupied by the polymer
+			// are set to the spots originally occupied by the polymer 
 
-
-			for (size_t i{0}; i<old_p.size(); ++i;){
+			for (size_t i{0}; i<old_p.size(); ++i){
 
 				for ( Particle& p: (*SolvVec)){ 
 
@@ -2260,47 +2262,53 @@ void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>*
 
 						p.coords = old_p[i];
 						break; 
-
 					}
-
 				}
-
 			}
-
-			/*for (int i{0}; i<index_monomer; ++i){
-
-				if ( (*PolymerVector)[index_of_polymer].chain[i].coords != copy_pvec[index_of_polymer].chain[i].coords ){
-
-					// find the solvent particle that needs to be displaced 
-					for (Particle& p: (*SolvVec)){
-						if (p.coords == (*PolymerVector)[index_of_polymer].chain[i].coords ){
-							// std::cout << "coordinate of particle in solvent vector before change..." << std::endl;
-							// print(p.coords); 
-							p.coords = copy_pvec[index_of_polymer].chain[i].coords; 
-							// std::cout << "coordinate of particle in solvent vector after change..." << std::endl;
-							// print(p.coords); 
-							break; 
-						}
-					}
-				}
-			}*/
 		}
 		else {
+			
 			// check head end of poly
+			// std::vector <std::array <int,3>> old_p = extract_positions_head ( &(copy_pvec[index_of_polymer].chain), index_monomer );
+			std::vector <std::array <int,3>> new_p = extract_positions_head ( &((*PolymerVector)[index_of_polymer].chain), index_monomer ) ;  
 
-			for (int i{index_monomer+1}; i < deg_of_poly; ++i){
+			// sort both vectors 
+			std::sort ( old_p.begin(), old_p.end()); 
+			std::sort ( new_p.begin(), new_p.end()); 
 
-				if ( (*PolymerVector)[index_of_polymer].chain[i].coords != copy_pvec[index_of_polymer].chain[i].coords ){
+			// collect common elements 
+			std::vector <std::array <int,3>> store; 
+			std::set_intersection( old_p.begin(), old_p.end(), new_p.begin(), new_p.end(), std::back_inserter(store) ); 
 
-					// find the solvent particle that needs to be displaced 
-					for (Particle& p: (*SolvVec)){
-						if (p.coords == (*PolymerVector)[index_of_polymer].chain[i].coords ){
-							p.coords = copy_pvec[index_of_polymer].chain[i].coords; 
-							break; 
-						}
+			// erase items in each vector that match the items in the set 
+			
+			for (const std::array <int,3>& a: store){
+
+				for (size_t j{0}; j < old_p.size(); ++j){
+					
+					if (a == old_p[j]){
+						old_p.erase(std::remove(old_p.begin(), old_p.end(), a), old_p.end() ); 
+						new_p.erase(std::remove(new_p.begin(), new_p.end(), a), new_p.end() );
+						break;
 					}
 				}
 			}
+
+			// make sure that the solvent particles that were originally at the spots NOW occupied by the polymer
+			// are set to the spots originally occupied by the polymer 
+
+			for (size_t i{0}; i<old_p.size(); ++i){
+
+				for ( Particle& p: (*SolvVec)){ 
+
+					if (p.coords == new_p[i]){
+
+						p.coords = old_p[i];
+						break; 
+					}
+				}
+			}
+
 		}
 	}
 
@@ -2325,7 +2333,21 @@ std::vector <std::array <int,3>> extract_positions_tail (std::vector <Particle>*
 }
 
 
+std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle>* chain, int pivot_idx){
 
+	int deg_of_poly = static_cast<int>( (*chain).size() ); 
+	std::vector <std::array <int,3>> extracted; 
+	extracted.reserve(deg_of_poly-pivot_idx-1); 
+
+	for (int i{pivot_idx+1}; i<deg_of_poly; ++i){
+
+		extracted.push_back ( (*chain)[i].coords ); 
+
+	}
+
+	return extracted;
+
+}
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -2521,13 +2543,6 @@ bool checkOccupancyTail(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 }
 
 
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of HeadSpin
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-
 
 bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer){
 	int Np = static_cast<int>( (*PVec).size() );  
@@ -2571,13 +2586,52 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 
 }
 
-//void HeadSpin(std::vector <Polymer>* pmer, int index_of_polymer, int index_of_monomer, int x, int y, int z){
 
+//============================================================
+//============================================================
+//
+// 
+// NAME OF FUNCTION: OrientationFlip
+//
+// PARAMETERS: std::vector <Particle>* SolvVect
+// 
+// WHAT THE FUNCTION DOES: randomly picks a region of space, and perturbs the orientation of the solvent molecule 
+// in that region 
+//
+// DEPENDENCIES: impose_pbc
+//
+// THE CODE: 
 
-//}
+void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region){
 
+	// pick a random point on the lattice 
+	std::array <int,3> rpoint = {2,0,0}; // {rng_uniform(0,x-1), rng_uniform(0,y-1), rng_uniform (0,z-1)}; 
+	std::array <int,3> loc; 
+	std::cout << "Starting location is "; 
+	print(rpoint); 
 
+	for (int i{0}; i < size_of_region; ++i){
+		for (int j{0}; j < size_of_region; ++j){
+			for (int k{0}; k < size_of_region; ++k){
 
+				// std::cout << "i = " << i << ", j = " << j << ", k = " << k <<"." << std::endl;
+
+				loc[0] = (rpoint[0]+i)%x;
+				loc[1] = (rpoint[1]+j)%y;
+				loc[2] = (rpoint[2]+k)%z;
+
+				for (Particle& p: (*SolvVect)){
+
+					if (p.coords == loc){
+						p.orientation = rng_uniform(0,5); 
+						break;
+					}
+				}
+			}
+		}
+	}
+	return; 
+}
 
 
 //============================================================
@@ -2585,7 +2639,7 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 // 
 // NAME OF FUNCTION:                  
 //
-// PARAMETERS: a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// PARAMETERS: *PolymerVector, *SolvVector, x, y, z, v, *BOOL
 // 
 // WHAT THE FUNCTION DOES: Given a Grid, it will perform a certain Monte Carlo move on the Grid. 
 // The move could be from any of the following: 

@@ -145,5 +145,7 @@ bool checkOccupancyTail(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer);
 
 std::vector <std::array <int,3>> extract_positions_tail (std::vector <Particle>* chain, int pivot_idx);
+std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle>* chain, int pivot_idx);
+void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
 
 #endif 

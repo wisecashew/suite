@@ -178,9 +178,10 @@ int main(int argc, char** argv) {
     std::cout << "Energy of system is " << sysEnergy << std::endl;
 
     bool IMP_BOOL = true; 
+    IMP_BOOL = false;
 
-    PolymerVector = CrankShaft (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
-    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+    // PolymerVector = CrankShaft (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    // dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
 
     for (Particle& p: SolventVector){
 
@@ -201,13 +202,14 @@ int main(int argc, char** argv) {
         }
     }
 
-    for (int i{0}; i<100; ++i){
+    
+    for (int i{0}; i<10; ++i){
         ChainRegrowth (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
         dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
         std::cout << "step number is " << step_number << std::endl;
         std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
 
-        for (Particle& p: SolventVector){
+        /*for (Particle& p: SolventVector){
             // print(p.coords);
             for (const Polymer& pmer: PolymerVector){
                 for (const Particle& pp: pmer.chain){
@@ -226,8 +228,23 @@ int main(int argc, char** argv) {
                     }
                 }
             }
-        }
+        }*/ 
     }
+     
+
+    /*std::vector <Particle> cSolvVect = SolventVector; 
+    OrientationFlip (&SolventVector, x, y, z, 5); 
+    for (size_t i{0}; i < cSolvVect.size(); ++i){
+
+        if (SolventVector[i].orientation != cSolvVect[i].orientation ){
+
+            std::cout << "Position of particle is "; 
+            print( SolventVector[i].coords ); 
+
+        }
+
+    }*/
+
     /*
     PolymerVector = TailRotation(&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
     dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);

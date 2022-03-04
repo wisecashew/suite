@@ -12,6 +12,8 @@
 #include <regex>
 #include <tuple> 
 #include <array>
+#include <iterator>
+#include <unordered_set>
 
 /* ==================================================
 These are some objects I have defined which I tend to use often. 
@@ -492,6 +494,118 @@ bool acceptance(int dE, double kT){
 // ===================================================================
 // extract information
 // ===================================================================
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractNumberOfPolymers 
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts the number of polymers from that file. 
+// 
+// DEPENDENCIES: subtract_vectors 
+//
+// THE CODE: 
+
+
+int ExtractNumberOfPolymers(std::string filename){
+    std::regex start("START"); 
+    std::regex end ("END"); 
+    std::ifstream myfile (filename); 
+
+    if ( !myfile ){
+        std::cerr << "File named " << filename << " could not be opened!" << std::endl; 
+        exit(EXIT_FAILURE);
+    }
+
+    std::string myString; 
+    // std::vector <std::string> StartContents; 
+    // std::vector <std::string> EndContents; 
+
+    int numberOfStarts {0}, numberOfEnds {0}; 
+
+    // std::cout << "This is from ExtractNumberOfPolymers..." << std::endl;
+    if (myfile.is_open()) {
+        while ( std::getline(myfile, myString) ) {
+            
+            // std::cout << myString << std::endl; 
+            // std::getline(myfile, myString); // pipe file's content into stream 
+
+            if (std::regex_search(myString, start)){
+                ++numberOfStarts; 
+            }
+            else if (std::regex_search(myString, end)){
+                ++numberOfEnds; 
+            }
+            else if ( myString.empty()){
+                std::cerr << "ERROR: Empty line found. Bad positions file. " << std::endl;
+                exit (EXIT_FAILURE);
+            }
+        }
+    }
+
+    if (numberOfStarts==numberOfEnds){
+        return numberOfStarts;
+    }
+    else {
+        std::cerr << "Number of starts is not the same as number of ends. Bad input file." << std::endl;
+        return 0;
+    }
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractNumberOfPolymers. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: ExtractContentFromFile
+//
+// PARAMETERS: std::string filename 
+// 
+// WHAT THE FUNCTION DOES: it looks at the positions file, and extracts all the data from the file 
+// in the form of a vector of strings.  
+// 
+// DEPENDENCIES: none apart from the STL
+//
+// THE CODE: 
+
+std::vector <std::string> ExtractContentFromFile(std::string filename){
+    std::ifstream myfile (filename); 
+
+    if ( !myfile ){
+        std::cerr << "File named " << filename << " could not be opened!" << std::endl; 
+        exit(EXIT_FAILURE);
+    }
+
+    std::string mystring; 
+    std::vector <std::string> contents; 
+
+    if (myfile.is_open() ){
+        while ( std::getline(myfile, mystring) ) {
+            // pipe file's content into stream 
+            contents.push_back(mystring); 
+        }
+    }
+
+    return contents; 
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ExtractContentFromFile. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
 
 
 double NumberExtractor(std::string s){
@@ -1782,20 +1896,15 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std
     				if (pmer_index == index){
 
     					if (particle_index == 0){
-
     						b = false;
     						b_ind1 = true; 
     						break;
-
     					}
-
     					else {
     						b = true; 
     						break; 
     					}
-
     				}
-
     				else {
     					b = true;
     					break;
@@ -1816,6 +1925,7 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std
 
     	if (!b){
     		// if everything checks out, do the deed - make it slither forward 
+    		// std::cout << "In acceptance land." << std::endl; 
     		for (int i{0}; i<deg_poly; i++){
 
     			if ( i != deg_poly-1 ){
@@ -1838,7 +1948,8 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std
 						p.coords = (*PolymerVector)[index].chain[0].coords; 
 						break;
 					}
-				}	
+				}
+				break;	
   			}
     		
 
@@ -1893,7 +2004,6 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std
 
 std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
-	std::cout << "In backwards reptation..." << std::endl;
     std::vector <Polymer> NewPol {*PolymerVector}; 
     int deg_poly = (*PolymerVector)[index].deg_poly; 
 
@@ -1909,9 +2019,6 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, st
 	size_t tries = 0; 
     for (std::array <int,3>& to_check: ne_list){
 
-    	// std::cout << "Attempt number " << tries << " is ";
-    	// print(to_check);
-
     	b = false; 
 
     	for (int pmer_index=0; pmer_index < static_cast<int>((*PolymerVector).size()); ++pmer_index) {
@@ -1919,13 +2026,12 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, st
     		// for (const Particle& p: pmer.chain){
     		for (int particle_index=0; particle_index < static_cast<int>((*PolymerVector)[pmer_index].chain.size() ); ++particle_index ){ 
 
-
     			// in the event the to_check particle matches with something in the vector
     			// check if that match is the final monomer bead 
     			if ((*PolymerVector)[pmer_index].chain[particle_index].coords == to_check ){ 
     				
-    				std::cout << "hello. there is a hit." << std::endl;
-    				print(to_check); 
+    				// std::cout << "hello. there is a hit." << std::endl;
+    				// print(to_check); 
     				if (pmer_index == index){
 
     					if (particle_index == deg_poly-1){
@@ -1961,8 +2067,8 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, st
     	}
 
     	if (!b){
-    		std::cout << "In acceptance land." << std::endl;
-    		print(to_check);
+    		// std::cout << "In acceptance land." << std::endl;
+    		// print(to_check);
     		for (int i{0}; i<deg_poly; ++i){
 
     			if ( i != deg_poly-1 ){
@@ -2066,7 +2172,24 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, std::vector
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
-void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL){
+//============================================================
+//============================================================
+//
+// 
+// NAME OF FUNCTION: ChainRegrowth
+//
+// PARAMETERS: index of a polymer to reptate forward or backward, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: It performs a chain regrowth on an existing polymer. It will uniformly choose to perform a tailspin or a headspin. 
+// the second half of the code is to make sure the Solvent Vector is up to date after the polymer has been updated. 
+//
+// DEPENDENCIES: TailSpin, HeadSpin
+//
+// THE CODE: 
+
+void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVec, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL){
+
+	std::vector <Polymer> copy_pvec {*PolymerVector}; 
 
 	int deg_of_poly = (*PolymerVector)[index_of_polymer].deg_poly; 
 	int index_monomer = rng_uniform(1, deg_of_poly-2); 
@@ -2075,10 +2198,12 @@ void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index_of_po
 
 	// decide which end of the polymer do i want to move around 
 	bool b = false; 
-	int back_or_front = rng_uniform(0, 1); 
+	int back_or_front = 0; //rng_uniform(0, 1); 
 
 	if (back_or_front == 0){
-
+		std::cout << "Index of monomer is " << index_monomer << std::endl; 
+		std::cout << "Pivot position is "; 
+		print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
 		// perform the configuration of the tail
 		// std::cout << "Performing tail spin..." << std::endl;
 		TailSpin(PolymerVector, index_of_polymer, index_monomer, x, y, z, &b, IMP_BOOL);  
@@ -2093,10 +2218,135 @@ void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index_of_po
 
 	}
 
+	// In the above half of the code, tailspin or headspin will be performed. However, once it has been performed, 
+	// you have to make sure the solvent molecules that have been displaced will now have another home 
+
+	if (*IMP_BOOL){
+
+		if (back_or_front == 0 ){
+			// check tail end of poly
+			std::cout << "Performed a tail spin..." << std::endl;
+
+			std::vector <std::array <int,3>> old_p = extract_positions_tail ( &(copy_pvec[index_of_polymer].chain), index_monomer );
+			std::vector < std::array <int,3>> new_p = extract_positions_tail ( &((*PolymerVector)[index_of_polymer].chain), index_monomer ) ;  
+
+			// sort both vectors 
+			std::sort ( old_p.begin(), old_p.end()); 
+			std::sort ( new_p.begin(), new_p.end()); 
+
+			// collect common elements 
+			std::unordered_set <int> common; 
+			std::set_intersection( old_p.begin(), old_p.end(), new_p.begin(), new_p.end(), std::inserter(common, common.begin()) ); 
+
+			// erase items in each vector that match the items in the set 
+			
+			for (const std::array <int,3>& a: common){
+
+				for (size_t j{0}; j < old_p.size(); ++j;){
+					
+				}
+
+			}
+
+			//old_p.erase(std::remove_if( old_p.begin(), old_p.end(), [&](int n) {return common.count(n); } ), old_p.end() );
+			//new_p.erase(std::remove_if( new_p.begin(), new_p.end(), [&](int n) {return common.count(n); } ), new_p.end() ); 
+
+
+			for (size_t i{0}; i<old_p.size(); ++i;){
+
+				for ( Particle& p: (*SolvVec)){ 
+
+					if (p.coords == new_p[i]){
+
+						p.coords = old_p[i];
+						break; 
+
+					}
+
+				}
+
+			}
+
+			/*for (int i{0}; i<index_monomer; ++i){
+
+				if ( (*PolymerVector)[index_of_polymer].chain[i].coords != copy_pvec[index_of_polymer].chain[i].coords ){
+
+					// find the solvent particle that needs to be displaced 
+					for (Particle& p: (*SolvVec)){
+						if (p.coords == (*PolymerVector)[index_of_polymer].chain[i].coords ){
+							// std::cout << "coordinate of particle in solvent vector before change..." << std::endl;
+							// print(p.coords); 
+							p.coords = copy_pvec[index_of_polymer].chain[i].coords; 
+							// std::cout << "coordinate of particle in solvent vector after change..." << std::endl;
+							// print(p.coords); 
+							break; 
+						}
+					}
+				}
+			}*/
+		}
+		else {
+			// check head end of poly
+
+			for (int i{index_monomer+1}; i < deg_of_poly; ++i){
+
+				if ( (*PolymerVector)[index_of_polymer].chain[i].coords != copy_pvec[index_of_polymer].chain[i].coords ){
+
+					// find the solvent particle that needs to be displaced 
+					for (Particle& p: (*SolvVec)){
+						if (p.coords == (*PolymerVector)[index_of_polymer].chain[i].coords ){
+							p.coords = copy_pvec[index_of_polymer].chain[i].coords; 
+							break; 
+						}
+					}
+				}
+			}
+		}
+	}
+
 	return; 
 
 }
 
+
+std::vector <std::array <int,3>> extract_positions_tail (std::vector <Particle>* chain, int pivot_idx){
+
+	std::vector <std::array <int,3>> extracted;
+	extracted.reserve(pivot_idx); 
+
+	for (int i{0}; i<pivot_idx; ++i){
+
+		extracted.push_back( (*chain)[i].coords );
+	}
+
+	return extracted; 
+
+
+}
+
+
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ChainRegrowth
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//============================================================
+//============================================================
+//
+// 
+// NAME OF FUNCTION: TailSpin
+//
+// PARAMETERS: std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL
+// 
+// WHAT THE FUNCTION DOES: It performs a tailspin. 
+// the second half of the code is to make sure the Solvent Vector is up to date after the polymer has been updated. THIS IS A RECURSIVE FUNCTION. 
+//
+// DEPENDENCIES: impose_pbc, checkOccupancyTail
+//
+// THE CODE: 
 
 void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL){
 
@@ -2111,7 +2361,7 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
-  	shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
+  	std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
 
 	for (std::array <int,3>& d: adrns){
 
@@ -2151,6 +2401,30 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 }
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of TailSpin
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+//============================================================
+//============================================================
+//
+// 
+// NAME OF FUNCTION: HeadSpin
+//
+// PARAMETERS: index of a polymer to reptate forward or backward, a well-defined Grid Object ie a Grid which has all its attributes set up (correctly)
+// 
+// WHAT THE FUNCTION DOES: It performs a chain regrowth on an existing polymer. It will uniformly choose to perform a tailspin or a headspin. 
+// the second half of the code is to make sure the Solvent Vector is up to date after the polymer has been updated. 
+//
+// DEPENDENCIES: impose_pbc, checkOccupancyTail
+//
+// THE CODE: 
+
+
 
 void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL){
 
@@ -2163,7 +2437,7 @@ void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 
-  	shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
+  	std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
 
 	for (std::array <int,3>& d: adrns){
 
@@ -2246,6 +2520,15 @@ bool checkOccupancyTail(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 
 }
 
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of HeadSpin
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
 bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer){
 	int Np = static_cast<int>( (*PVec).size() );  
 
@@ -2253,7 +2536,6 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 
 		if (pnum == index_of_polymer){
 
-			// int dpol = static_cast<int> ( (*PVec)[pnum].chain.size() ); 
 			for (int p = 0; p < index_of_monomer+1; p++){
 
 				if ( *loc == (*PVec)[pnum].chain[p].coords ){
@@ -2322,7 +2604,6 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
     int index = rng_uniform(0, static_cast<int>((*PolymerVector).size())-1); 
     std::vector <Polymer> NewPol;
 
-    Grid G_ ; 
     int r = rng_uniform(1, 7);
     switch (r) {
         case (1):
@@ -2360,52 +2641,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
         		std::cout << "index of polymer is " << index << std::endl;
         	}
         	NewPol = *PolymerVector; 
-        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
-        	break;
-
-        case (6):
-        	if (v) {
-        		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *PolymerVector; 
-        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
-        	break;
-
-        case (7):
-        	if (v) {
-        		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *PolymerVector; 
-        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
-        	break;
-
-        case (8):
-        	if (v) {
-        		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *PolymerVector; 
-        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
-        	break;
-
-        case (9):
-        	if (v) {
-        		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *PolymerVector; 
-        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
-        	break;
-
-        case (10):
-        	if (v) {
-        		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *PolymerVector; 
-        	ConfigurationSampling(&NewPol, index, x, y, z, IMP_BOOL ); 
+        	ChainRegrowth(&NewPol, SolvVector, index, x, y, z, IMP_BOOL ); 
         	break;
     }
 

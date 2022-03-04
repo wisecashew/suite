@@ -183,6 +183,7 @@ int main(int argc, char** argv) {
     dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
 
     for (Particle& p: SolventVector){
+
         // print(p.coords);
         for (const Polymer& pmer: PolymerVector){
             for (const Particle& pp: pmer.chain){
@@ -193,12 +194,41 @@ int main(int argc, char** argv) {
                     print(p.coords);
                     std::cout << "Monomer position = "; 
                     print(pp.coords); 
+                    std::cout << "After crankshaft.\n";  
+                    exit (EXIT_FAILURE); 
                 }
             }
         }
     }
 
+    for (int i{0}; i<100; ++i){
+        ChainRegrowth (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+        dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+        std::cout << "step number is " << step_number << std::endl;
+        std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
 
+        for (Particle& p: SolventVector){
+            // print(p.coords);
+            for (const Polymer& pmer: PolymerVector){
+                for (const Particle& pp: pmer.chain){
+
+                    if (p.coords == pp.coords){
+                        std::cout << "There is a problem. " << std::endl; 
+                        std::cout << "Solvent position = ";
+                        print(p.coords);
+                        std::cout << "Monomer position = "; 
+                        print(pp.coords); 
+                        std::cout << "After chain regrowth. Exiting...\n";  
+
+                        (PolymerVector)[0].printChainCoords(); 
+
+                        exit (EXIT_FAILURE); 
+                    }
+                }
+            }
+        }
+    }
+    /*
     PolymerVector = TailRotation(&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
     dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
 
@@ -213,6 +243,8 @@ int main(int argc, char** argv) {
                     print(p.coords);
                     std::cout << "Monomer position = "; 
                     print(pp.coords); 
+                    std::cout << "After tail rotation.\n";  
+                    exit (EXIT_FAILURE); 
                 }
             }
         }
@@ -232,6 +264,8 @@ int main(int argc, char** argv) {
                     print(p.coords);
                     std::cout << "Monomer position = "; 
                     print(pp.coords); 
+                    std::cout << "After head rotation.\n";  
+                    exit (EXIT_FAILURE); 
                 }
             }
         }
@@ -251,6 +285,8 @@ int main(int argc, char** argv) {
                     print(p.coords);
                     std::cout << "Monomer position = "; 
                     print(pp.coords); 
+                    std::cout << "After kink jump.\n";  
+                    exit (EXIT_FAILURE); 
                 }
             }
         }
@@ -274,6 +310,8 @@ int main(int argc, char** argv) {
                     print(p.coords);
                     std::cout << "Monomer position = "; 
                     print(pp.coords); 
+                    std::cout << "After crank shaft.\n";  
+                    exit (EXIT_FAILURE); 
                 }
             }
         }
@@ -295,6 +333,8 @@ int main(int argc, char** argv) {
                     print(p.coords);
                     std::cout << "Monomer position = "; 
                     print(pp.coords); 
+                    std::cout << "After forward reptation.\n";  
+                    exit (EXIT_FAILURE); 
                 }
             }
         }
@@ -318,13 +358,109 @@ int main(int argc, char** argv) {
                     print(p.coords);
                     std::cout << "Monomer position = "; 
                     print(pp.coords); 
+                    std::cout << "After backward reptation.\n";  
+                    exit (EXIT_FAILURE); 
+                }
+            }
+        }
+    }
+
+    IMP_BOOL = true; 
+
+    ChainRegrowth (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                    std::cout << "After chain regrowth.\n";  
+                    exit (EXIT_FAILURE); 
                 }
             }
         }
     }
 
 
+    IMP_BOOL = true; 
 
+    ChainRegrowth (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                    std::cout << "After chain regrowth.\n";  
+                    exit (EXIT_FAILURE); 
+                }
+            }
+        }
+    }
+
+    ChainRegrowth (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    std::cout << "After chain regrowth.\n"; 
+                    print(pp.coords); 
+                }
+            }
+        }
+    }
+
+    ChainRegrowth (&PolymerVector, &SolventVector, 0, x, y, z, &IMP_BOOL); 
+    dumpPositionsOfPolymers(&PolymerVector, ++step_number, dfile);
+
+    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+
+    for (Particle& p: SolventVector){
+        // print(p.coords);
+        for (const Polymer& pmer: PolymerVector){
+            for (const Particle& pp: pmer.chain){
+
+                if (p.coords == pp.coords){
+                    std::cout << "There is a problem. " << std::endl; 
+                    std::cout << "Solvent position = ";
+                    print(p.coords);
+                    std::cout << "Monomer position = "; 
+                    print(pp.coords); 
+                    std::cout << "After chain regrowth. Exiting...\n";  
+                    exit (EXIT_FAILURE); 
+                }
+            }
+        }
+    }
+    */
     /*
      
 	int acc_counter = 0; 

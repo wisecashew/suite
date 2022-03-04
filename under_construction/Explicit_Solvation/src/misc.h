@@ -137,13 +137,13 @@ double ExtractEnergyOfFinalMove(std::string energy_file);
 
 Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, std::array <int,3> to_check);
 
-void ConfigurationSampling(std::vector <Polymer>* PolymerVector, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
+void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
 void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL );
 void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL);
 bool checkOccupancy(std::array <int,3>* loc, std::vector <Polymer>* PVec);
 bool checkOccupancyTail(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer);
 bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer);
 
-
+std::vector <std::array <int,3>> extract_positions_tail (std::vector <Particle>* chain, int pivot_idx);
 
 #endif 

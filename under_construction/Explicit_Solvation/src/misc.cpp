@@ -798,6 +798,34 @@ Polymer makePolymer(std::vector <std::array <int,3> > locations, std::string typ
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
+
+// ===============================================================
+
+/*
+Polymer makePolymer_ZeroOrientation(std::vector <std::array <int,3> > locations, std::string type_m){
+	std::vector <int> pmer_spins; 
+    int size_ = locations.size(); 
+
+    std::vector <Particle> ptc_vec; 
+
+    for (int i=0;i<static_cast<int>( size_ ); i++ ){
+        Particle p (locations.at(i), type_m, 0); 
+        ptc_vec.push_back(p); 
+    }
+
+    Polymer pmer (size_, ptc_vec);
+
+    return pmer; 
+}
+*/
+
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+
+
 // ===============================================================
 
 
@@ -838,6 +866,7 @@ bool MetropolisAcceptance(double E1, double E2, double kT){
 	double dE = E2-E1; 
 	double prob = std::exp(-1/kT*dE); 
 	double r = rng_uniform(0.0, 1.0); 
+	// std::cout << "Probability is " << prob <<"." << std::endl;
 
 	// std::cout << "E1 is " << E1 << std::endl;
 	// std::cout << "E2 is " << E2 << std::endl;
@@ -1350,6 +1379,35 @@ void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, s
 //             End of dumpPositionsOfPolymer. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+void dumpPositionOfSolvent(std::vector <Particle>* SolventVector, int step, std::string filename){
+
+	std::ofstream dump_file(filename, std::ios::out); 
+    dump_file <<"Dumping coordinates at step " << step << ".\n";
+    
+    // dump_file <<"Dumping coordinates at step " << step << ".\n";
+    int count = 0; 
+        
+    dump_file <<"Dumping coordinates of solvent # " << count << ".\n";
+    dump_file<<"START" << "\n";
+    
+    for (const Particle& p: *SolventVector){
+    	dump_file<<"Orientation: " << p.orientation <<", ";
+        for (int i: p.coords){
+            dump_file << i << " | "; 
+        }
+        dump_file << "\n"; 
+    }
+    ++count ; 
+    dump_file <<"END"<<"\n";
+    
+    
+    dump_file << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n";
+    dump_file.close();
+
+    return; 
+}
 
 
 //============================================================
@@ -2605,10 +2663,10 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region){
 
 	// pick a random point on the lattice 
-	std::array <int,3> rpoint = {2,0,0}; // {rng_uniform(0,x-1), rng_uniform(0,y-1), rng_uniform (0,z-1)}; 
+	std::array <int,3> rpoint = {rng_uniform(0,x-1), rng_uniform(0,y-1), rng_uniform (0,z-1)}; 
 	std::array <int,3> loc; 
-	std::cout << "Starting location is "; 
-	print(rpoint); 
+	// std::cout << "Starting location is "; 
+	// print(rpoint); 
 
 	for (int i{0}; i < size_of_region; ++i){
 		for (int j{0}; j < size_of_region; ++j){
@@ -2656,15 +2714,15 @@ void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int
 std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, bool v, bool* IMP_BOOL){
 
     int index = rng_uniform(0, static_cast<int>((*PolymerVector).size())-1); 
-    std::vector <Polymer> NewPol;
-
-    int r = rng_uniform(1, 7);
+    std::vector <Polymer> NewPol = (*PolymerVector); 
+    int r = rng_uniform(1, 6);
     switch (r) {
         case (1):
             if (v){
                printf("Performing end rotations.\n"); 
             }
             // 
+            
             NewPol = EndRotation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
             break;     
         
@@ -2672,6 +2730,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
             if (v){
                printf("Performing crank shaft.\n"); 
             }
+            
             NewPol = CrankShaft(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
             break; 
 
@@ -2679,6 +2738,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
             if (v){
                printf("Performing reptation.\n"); 
             }
+            
             NewPol = Reptation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
             break; 
 
@@ -2686,6 +2746,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
             if (v){
                printf("Performing kink jump.\n"); 
             }
+
             NewPol = KinkJump(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
             break; 
 
@@ -2697,6 +2758,13 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
         	NewPol = *PolymerVector; 
         	ChainRegrowth(&NewPol, SolvVector, index, x, y, z, IMP_BOOL ); 
         	break;
+
+        case (6): 
+        	if (v){
+        		printf("Performing orientation flips. \n");
+        	}
+        	OrientationFlip(SolvVector, x, y, z, 4); 
+        	break; 
     }
 
     return NewPol;
@@ -3000,6 +3068,62 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of ExtractIndexOfFinalMove 
+//             End of CreateSolventVector
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: CreateSolventVector_ZeroOrientation
+//
+// PARAMETERS: int x, int y, int z, std::vector <Polymer>* PolymerVector  
+// 
+// WHAT THE FUNCTION DOES: it looks at the polymer vector and solvates the lattice with solvent molecules 
+// 
+// DEPENDENCIES: create_lattice_points 
+//
+// THE CODE: 
+
+/*
+std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Polymer>* PolymerVector){
+
+	// create the lattice 
+	std::vector <std::array <int,3>> lattice = create_lattice_pts(x,y,z); 
+
+	// remove all the points where monomer segments are present 
+	int monomer_count = 0; 
+
+	for (Polymer pmer: *PolymerVector){
+		for (Particle p: pmer.chain){
+
+			++monomer_count; 
+			lattice.erase(std::find(lattice.begin(), lattice.end(), p.coords)); 
+
+		}
+	}
+
+	int nsolpart = x*y*z - monomer_count; 
+
+	std::vector <Particle> SolvPartVector; 
+	SolvPartVector.reserve(nsolpart); 
+
+	for (int i{0}; i<nsolpart; ++i){
+
+		Particle p = Particle (lattice[i], "solvent", 0);
+		SolvPartVector.push_back(p);  
+
+	}
+
+	return SolvPartVector; 
+
+}
+*/
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of CreateSolventVector
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

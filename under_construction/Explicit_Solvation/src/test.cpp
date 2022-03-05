@@ -8,8 +8,8 @@ int main() {
 
 	std::array <int,3> a1 = {1,0,0}, a2 = {2,0,0}, a3 = {3,0,0}, a4= {4,0,0}, a5={5,0,0}, a6={6,0,0};
 
-	std::vector <std::array <int,3>> v1 = {a1,a2,a4,a5};
-	std::vector <std::array <int,3>> v2 = {a3,a4,a5,a6};
+	std::vector <std::array <int,3>> v1 = {a1,a2,a4,a5,a6};
+	std::vector <std::array <int,3>> v2 = {a3,a4,a5};
 
 	std::vector <std::array <int,3>> v3;
 

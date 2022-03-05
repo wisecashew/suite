@@ -134,6 +134,7 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, std::vector
 std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, bool v, bool* IMP_BOOL);
 int ExtractIndexOfFinalMove(std::string trajectory);
 double ExtractEnergyOfFinalMove(std::string energy_file); 
+void dumpPositionOfSolvent(std::vector <Particle>* SolventVector, int step, std::string filename);
 
 Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, std::array <int,3> to_check);
 

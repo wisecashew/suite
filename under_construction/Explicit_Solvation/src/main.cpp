@@ -14,7 +14,7 @@
 
 
 int main(int argc, char** argv) {
-    
+
     // set up 
     int opt; 
     int Nacc {-1}, dfreq {-1}, max_iter{-1};
@@ -115,75 +115,103 @@ int main(int argc, char** argv) {
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // parse inputs 
-    
+    // This command will take all of the above inputs and make sure they are valid. 
     InputParser (a, r, Nacc, dfreq, max_iter, positions, topology, dfile, efile, restart_traj); 
 
     // driver 
 
     auto start = std::chrono::high_resolution_clock::now(); 
 
-    // Grid G;                             // setting up the grid object
-    // bool call {true};                   // setting up the call for first input or not 
-    // int step_number;                    // defining step_number for output reasons 
 
-    std::array <double,7> info_vec {ExtractTopologyFromFile(topology)}; 
+    // ExtractTopologyFromFile extracts all the topology from the input file 
+    std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
+
+    // ExtractNumberOfPolymers extracts the total number of chains in the input file 
     const int N = ExtractNumberOfPolymers(positions); 
 
+    // assign values from info_vec to variables 
     const int x = info_vec[0];
     const int y = info_vec[1]; 
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
     const double Emm_a = info_vec[4]; 
     const double Emm_n = info_vec[5]; 
-    const double Ems = info_vec[6]; 
+    const double Ems_a = info_vec[6];
+    const double Ems_n = info_vec[7]; 
 
     std::cout << "Number of polymers is " << N << ".\n";
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
-    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems = "<< Ems << ".\n";  
+    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems_a = "<< Ems_a << ", Ems_n = " << Ems_n <<".\n";  
 
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~\n" << std::endl;
 
+
+    // THIS MIGHT NEED TO CHANGE 
+    
+
     int step_number = 0;
     double sysEnergy {0}; 
     std::vector <Polymer> PolymerVector; 
+    
     PolymerVector.reserve(N); 
+
     if (r){
         std::cout << "Restart mode activated.\n";
-        PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
+        // PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
         step_number = ExtractIndexOfFinalMove(restart_traj);
-        sysEnergy = ExtractEnergyOfFinalMove(efile); 
+        // sysEnergy = ExtractEnergyOfFinalMove(efile); 
     }
     else {
 
         PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
         dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
-        sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems); 
-        dumpEnergy (sysEnergy, step_number, efile, true);
+        // sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems_a); 
+        // dumpEnergy (sysEnergy, step_number, efile, true);
     }
     
     double sysEnergy_ {0};
-    // sysEnergy_++; 
+
+    std::vector <Particle> SolventVector = CreateSolventVector(x, y, z, &PolymerVector);
+
+    /////////////////////////////////////////////////
+    for (Polymer& pmer:PolymerVector){
+        for (Particle& p: pmer.chain){
+            p.orientation = 0; 
+        }
+    }
+
+    for (Particle& p: SolventVector){
+        p.orientation = 0; 
+    }
+    /////////////////////////////////////////////////
+
+    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n); 
+    dumpEnergy (sysEnergy, step_number, efile, false);
+
+    // defined single orientation solvents and polymers 
 
     std::cout << "Energy of system is " << sysEnergy << std::endl;
-
      
 	int acc_counter = 0; 
     
     bool IMP_BOOL = true; 
 
     std::vector <Polymer> PolymerVector_; 
+    std::vector <Particle> SolventVector_; 
 
     printf("Simulation will output information of every %d configuration.\n", dfreq); 
+
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
         if ( v && (i%dfreq==0) ){
             printf("Move number %d.\n", i);
         }
         // choose a move 
-        PolymerVector_ = MoveChooser(&PolymerVector, x, y, z, v, &IMP_BOOL);  
+        SolventVector_ = SolventVector; 
+        PolymerVector_ = MoveChooser(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL);  
         // std::cout << "Is this being reached -- line after MoveChooser." << std::endl;
-        sysEnergy_ = CalculateEnergy(&PolymerVector_, x, y, z, Emm_a, Emm_n, Ems); 
+        sysEnergy_ = CalculateEnergy(&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n); 
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
@@ -214,19 +242,19 @@ int main(int argc, char** argv) {
             // std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
             
             PolymerVector = std::move(PolymerVector_);
+            SolventVector = std::move(SolventVector_); 
             sysEnergy = sysEnergy_; 
 			++acc_counter;
         }
-
-        //if (!IMP_BOOL){
-        //    std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;            
-        //}
 
 
         else {
             if ( v && (i%dfreq==0) ){
                 printf("Not accepted.\n");
                 printf("Energy of the suggested system is %.2f, while energy of the initial system is %.2f.\n", sysEnergy_, sysEnergy);
+            }
+            if (v && !IMP_BOOL){
+                std::cout << "There was no change in the state of the system." << std::endl;
             }
             
         }
@@ -240,14 +268,22 @@ int main(int argc, char** argv) {
         }
         // std::cout <<"are you hitting  this line?"<<std::endl;
         IMP_BOOL = true; 
+
+        // for (Particle& p: SolventVector){
+        //    std::cout << "Orientation is " << p.orientation << ", particle type is " << p.ptype << ", location is "; 
+        //    print(p.coords);
+        // }
+
     }
-    
+
+    dumpPositionOfSolvent(&SolventVector, max_iter, "solvent_coords");
+
     auto stop = std::chrono::high_resolution_clock::now(); 
     
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
-    std::cout << "\nNumber of moves accepted is "<< acc_counter << ".";
-    std::cout << "\n\nTime taken for simulation: "<< duration.count() << " milliseconds.\n"; 
+	// printf("\nNumber of moves accepted is %d.", acc_counter);
+    std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
 
     return 0;
 

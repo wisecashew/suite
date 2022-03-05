@@ -1,0 +1,1175 @@
+Output to console will be verbose. 
+Number of polymers is 1.
+x = 10, y = 10, z = 10, T = 0.5.
+Emm_a = -1, Emm_n = -1, Ems_a = -1, Ems_n = -1.
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+Input file has no overlaps!
+Input polymers are well-connected!
+Energy of system is -39
+Simulation will output information of every 1 configuration.
+Move number 1.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -39.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 2.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -39.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 3.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -39.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 4.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -39.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 5.
+Performing kink jump.
+Executing...
+Probability is 7.38906.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -40.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 6.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 7.38906.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 7.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 8.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 9.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 10.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 11.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 12.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 13.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -40.00, while energy of the initial system is -41.00.
+Move number 14.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 15.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 16.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 17.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 18.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 19.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 20.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 21.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 22.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 23.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 24.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 25.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 26.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 27.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 28.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 29.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 30.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 31.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 32.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 33.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 34.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 35.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 36.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 37.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 38.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -40.00, while energy of the initial system is -41.00.
+Move number 39.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 40.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 41.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 42.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 43.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 44.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 45.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -40.00, while energy of the initial system is -41.00.
+Move number 46.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 47.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 48.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 49.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 50.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 51.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 52.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 53.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.0183156.
+Not accepted.
+Energy of the suggested system is -39.00, while energy of the initial system is -41.00.
+Move number 54.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 55.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -40.00, while energy of the initial system is -41.00.
+Move number 56.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 57.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 58.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 59.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 60.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 61.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 62.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 63.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 64.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 65.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 66.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -40.00, while energy of the initial system is -41.00.
+Move number 67.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -40.00, while energy of the initial system is -41.00.
+Move number 68.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 69.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 70.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 71.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -40.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 72.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -40.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 73.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -39.00, while energy of the initial system is -40.00.
+Move number 74.
+Performing kink jump.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -40.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 75.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -40.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 76.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 7.38906.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 77.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 78.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 79.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 80.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 81.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 82.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.135335.
+Not accepted.
+Energy of the suggested system is -40.00, while energy of the initial system is -41.00.
+Move number 83.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 84.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 85.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 86.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 87.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 88.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 89.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 90.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 91.
+Performing configuration sampling. 
+index of polymer is 0
+Executing...
+Probability is 0.0183156.
+Not accepted.
+Energy of the suggested system is -39.00, while energy of the initial system is -41.00.
+Move number 92.
+Performing crank shaft.
+Executing...
+Probability is 1.
+Not accepted.
+Energy of the suggested system is -41.00, while energy of the initial system is -41.00.
+There was no change in the state of the system.
+Move number 93.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 94.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 95.
+Performing end rotations.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 96.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 97.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 98.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 99.
+Performing reptation.
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+Move number 100.
+Performing orientation flips. 
+Executing...
+Probability is 1.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted.
+Energy of the system is -41.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+
+
+Time taken for simulation: 31 milliseconds.

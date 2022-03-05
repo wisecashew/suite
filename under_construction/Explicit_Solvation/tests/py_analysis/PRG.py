@@ -14,7 +14,7 @@ parser = argparse.ArgumentParser(description="Read a trajectory file and obtain 
 parser.add_argument('-i', metavar=': input coordinate file from which Rg is calculated (coords.txt)', dest='i', action='store', help='enter address of coordinate file')
 parser.add_argument('-e', metavar=': edge length of the box in which the simulation was conducted', type=int, dest='e', action='store', help='enter the edge length of the cubic simulation box')
 parser.add_argument('-T', metavar=': thermodynamic temperature', type=float, dest='T', action='store', help='enter the thermodynamic temperature T of the simulation with k = 1 ')
-parser.add_argument('
+# parser.add_argument('
 
 args = parser.parse_args() 
 
@@ -65,7 +65,7 @@ def get_Rg(coord_arr, xlen, ylen, zlen):
     # sc_coords = np.zeros((1,3))
     
     for i in range(N): 
-        rsum += np.linalg.norm( coord_arr[i,:]- r_com ) 
+        rsum += np.linalg.norm( coord_arr[i,:]- r_com )**2 
     
     rsum = rsum/N 
     
@@ -158,8 +158,8 @@ if __name__ == "__main__":
     plt.savefig('rg_kT'+ str(args.T) + '.png',dpi=1200)
     
     g = open('stat_kt' + str(args.T) + '.txt', 'w')
-    g.write("min is {} and index is {}\n".format(np.min(rg), np.argmin(rg))) 
+    g.write("min is {}.\n".format(np.min(rg) ) ) 
     g.write("mean is {}\n".format( np.mean(rg) ) ) 
-    g.write("max is {} and index is {}.\n".format( np.max(rg), np.argmax(rg) ) )
+    g.write("max is {}.\n".format( np.max(rg) ) )
     g.write("stderror is {}".format( np.std(rg)/np.sqrt(len(rg) ) ) )
     g.close() 

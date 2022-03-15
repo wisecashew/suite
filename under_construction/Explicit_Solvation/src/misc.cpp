@@ -1240,6 +1240,7 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 	} 
 
 	std::cout << "Something is profoundly fucked." << std::endl;
+    exit(EXIT_FAILURE);
 	// Particle p;
 	return (*SolvVect)[0]; 
 
@@ -1266,15 +1267,19 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 //
 // THE CODE: 
 
-double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n){
-    double Energy {0.0}; 
-    
+double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* m_neighbor, int* a_contacts, int* n_contacts){
+    double Energy {0.0};
+    // std::cout << "Inside CalculateEnergy..." << std::endl; 
+    (*m_neighbor) = 0; 
+    (*a_contacts) = 0; 
+    (*n_contacts) = 0;  
     // polymer-polymer interaction energies 
     for (const Polymer& pmer: (*PolymerVector)) {
         for (const Particle& p: pmer.chain){
-            
+            // std::cout << "Particle of interest: "; 
+            // print(p.coords);  
             // std::vector <Particle> part_vec = pmer.ConnectivityMap[p];
-            
+            // std::cout << "Neighbors are... \n";
             std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(p.coords, x, y, z); // get neighbor list 
 
             // consider bonded interactions  
@@ -1286,7 +1291,9 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
             	Particle ptr {ParticleReporter (PolymerVector, SolvVector, loc) };
 
             	if ((ptr).ptype == "monomer"){
-
+                    (*m_neighbor) += 0.5; 
+                    // print(loc); 
+                    
             		if ((ptr).orientation == p.orientation ){
 
             			Energy += 0.5*Emm_a; 
@@ -1301,10 +1308,11 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
             	else { // particle is of type solvent 
 
             		if ( (ptr).orientation == p.orientation ){
-
+                        (*a_contacts) += 1;
             			Energy += Ems_a;
             		}
             		else {
+                        (*n_contacts) += 1; 
             			Energy += Ems_n; 
             		}
 
@@ -1427,19 +1435,17 @@ void dumpPositionOfSolvent(std::vector <Particle>* SolventVector, int step, std:
 // THE CODE: 
 
 
-void dumpEnergy (double sysEnergy, int step, std::string filename, bool first_call){
+void dumpEnergy (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename, bool first_call){
     std::ofstream dump_file(filename, std::ios::app); 
     // std::ostringstream os; 
     if (first_call){
         dump_file <<"This file contains energy of the Grid at certain points in the simulation.\n";
-        dump_file <<"Energy | Step_Number\n" ;
+        dump_file <<"Energy | Monomer-monomer contacts | aligned solvent-monomer contacts | misaligned solvent-monomer contacts | Step_Number\n" ;
     }
     
-    dump_file << sysEnergy << " | " << step << "\n";
+    dump_file << sysEnergy << " | " << m_contacts << " | " << a_contacts << " | " << n_contacts << " | " << step << "\n";
     
-
     return; 
-
 }
 
 

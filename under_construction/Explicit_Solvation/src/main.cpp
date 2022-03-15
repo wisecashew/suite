@@ -43,8 +43,8 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "This is the main driver for the monte carlo simulation of polymers in a box.\n" <<
-		        "This version number 0.2.1 of the Monte Carlo Engine. Set up on Jan 26, 2022, 04:35 PM.\n" <<
+                "This is the main driver for the monte carlo simulation of polymers in a box. This is an explicit solvent simulation.\n" <<
+		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. \nSet up on Mar 13, 2022, 01:00 AM.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
@@ -166,8 +166,6 @@ int main(int argc, char** argv) {
 
         PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
         dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
-        // sysEnergy = CalculateEnergy (&PolymerVector, x, y, z, Emm_a, Emm_n, Ems_a); 
-        // dumpEnergy (sysEnergy, step_number, efile, true);
     }
     
     double sysEnergy_ {0};
@@ -185,9 +183,11 @@ int main(int argc, char** argv) {
         p.orientation = 0; 
     }
     /////////////////////////////////////////////////
-
-    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n); 
-    dumpEnergy (sysEnergy, step_number, efile, false);
+    double m_neighbors = 0, m_neicopy = 0; 
+    int a_contacts = 0, a_contcopy = 0; 
+    int n_contacts = 0, n_contcopy = 0;  
+    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+    dumpEnergy (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile, false);
 
     // defined single orientation solvents and polymers 
 
@@ -196,7 +196,8 @@ int main(int argc, char** argv) {
 	int acc_counter = 0; 
     
     bool IMP_BOOL = true; 
-
+    bool metropolis = false;
+ 
     std::vector <Polymer> PolymerVector_; 
     std::vector <Particle> SolventVector_; 
 
@@ -210,15 +211,23 @@ int main(int argc, char** argv) {
         // choose a move 
         SolventVector_ = SolventVector; 
         PolymerVector_ = MoveChooser(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL);  
-        // std::cout << "Is this being reached -- line after MoveChooser." << std::endl;
-        sysEnergy_ = CalculateEnergy(&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n); 
+        if ( !(metropolis) ){
+            m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
+        }
+        else {
+            m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
+            metropolis = false; 
+        }
+        // metropolis = false; 
+        
+        sysEnergy_ = CalculateEnergy(&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
         
 
         if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T) && IMP_BOOL ) {
-
+            metropolis = true; 
             // replace old config with new config
             if ( v ){
                 printf("Checking validity of coords...");
@@ -262,9 +271,17 @@ int main(int argc, char** argv) {
         if ( ( i % dfreq == 0) ){
             
             dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
-            dumpEnergy (sysEnergy, i, efile, false);
-
-            
+            if ( metropolis ){
+                dumpEnergy (sysEnergy, i, m_neighbors, a_contacts, n_contacts, efile, false);
+                // metropolis = false; 
+            }
+            else {
+                // std::cout << "in the not accepted region on step " << i << "..." << std::endl;
+                dumpEnergy (sysEnergy, i, m_neicopy, a_contcopy, n_contcopy, efile, false);
+                // std::cout << "m_neighbors is " << m_neighbors <<", a_contacts is " << a_contacts << ", n_contacts is " << n_contacts<<std::endl;
+                // std::cout << "m_neicopy is " << m_neicopy <<", a_contcopy is " << a_contcopy << ", n_contcopy is " << n_contcopy<<std::endl;
+                
+            }            
         }
         // std::cout <<"are you hitting  this line?"<<std::endl;
         IMP_BOOL = true; 

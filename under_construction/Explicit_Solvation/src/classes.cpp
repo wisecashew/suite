@@ -41,7 +41,7 @@
 
 
 void Polymer::printChainCoords(){
-    for (Particle p: this->chain){
+    for (Particle& p: this->chain){
         p.printCoords(); 
     }
     return; 

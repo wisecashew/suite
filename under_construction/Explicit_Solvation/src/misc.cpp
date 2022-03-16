@@ -1221,6 +1221,7 @@ std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y,
 
 Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, std::array <int,3> to_check){
 
+
 	for (Polymer& pmer: (*PolymerVector)) {
 		for (Particle& p: pmer.chain){ 
 
@@ -1238,7 +1239,16 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 		}
 
 	} 
+    std::cout << "location of to_check: "; print(to_check); 
+    std::cout << "Fucked up part. Coords of polymer: \n"; 
+    (*PolymerVector)[0].printChainCoords();     
+    
+    std::cout << "Coords of solvent: \n";    
 
+    for (const Particle& p: *SolvVect){
+        print(p.coords); 
+    }
+    
 	std::cout << "Something is profoundly fucked." << std::endl;
     exit(EXIT_FAILURE);
 	// Particle p;
@@ -2263,6 +2273,8 @@ void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>*
 
 	// decide which end of the polymer do i want to move around 
 	bool b = false; 
+    bool first_entry_bool = true; 
+
 	int back_or_front = rng_uniform(0, 1); 
 
 	if (back_or_front == 0){
@@ -2270,15 +2282,17 @@ void ChainRegrowth(std::vector <Polymer>* PolymerVector, std::vector <Particle>*
 		// std::cout << "Index of monomer is " << index_monomer << std::endl; 
 		// std::cout << "Pivot position is "; 
 		// print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
-		TailSpin(PolymerVector, index_of_polymer, index_monomer, x, y, z, &b, IMP_BOOL);  
+        // std::cout << "Tail spin being performed..." << std::endl;
+		TailSpin(PolymerVector, index_of_polymer, index_monomer, x, y, z, &b, IMP_BOOL, &first_entry_bool);  
 	}
 
 	else {
 		old_p = extract_positions_head ( &((*PolymerVector)[index_of_polymer].chain), index_monomer );
-		// perform the configuration of the head 
-		// std::cout << "Performing head spin..." << std::endl;
-		HeadSpin(PolymerVector, index_of_polymer, index_monomer, deg_of_poly, x, y, z, &b, IMP_BOOL); 
-
+        // std::cout << "Index of monomer is " << index_monomer << std::endl; 
+		// std::cout << "Pivot position is "; 
+		// print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
+        // std::cout << "Head spin being performed..." << std::endl;
+		HeadSpin(PolymerVector, index_of_polymer, index_monomer, deg_of_poly, x, y, z, &b, IMP_BOOL, &first_entry_bool); 
 	}
 
 	// In the above half of the code, tailspin or headspin will be performed. However, once it has been performed, 
@@ -2434,40 +2448,52 @@ std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle>*
 //
 // THE CODE: 
 
-void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL){
+void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool){
 
 	// std::cout << "index of monomer is " << index_of_monomer << std::endl;
+    
+    if (*first_entry_bool){
+	    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  	    std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
+        *first_entry_bool = false; 
+    }
+
 
 	if (index_of_monomer == 0){
 		// std::cout << "You have reached the final spot via tail spin!" << std::endl;
 		*b = true; 
 		*IMP_BOOL = true; 
+		(*PVec)[index_of_polymer].ChainToConnectivityMap(); 
 		return ; 
 	}
 
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-
-  	std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
-
-	for (std::array <int,3>& d: adrns){
-
+    
+    // std::cout << "Current pivot point is "; print(  (*PVec) [index_of_polymer].chain[index_of_monomer].coords );
+	for (std::array <int,3>& d: adrns){ 
+        
+        // std::cout << "d is "; print(d); 
 		std::array <int, 3> to_check = add_arrays( &( (*PVec) [index_of_polymer].chain[index_of_monomer].coords), &d);
 
 		impose_pbc(&to_check, x, y, z); 
+        // std::cout << "Growth location is "; print(to_check); 
 
 		if (checkOccupancyTail(&to_check, PVec, index_of_polymer, index_of_monomer)){
+            // std::cout << "This location is occupied! - "; print(to_check); 
+            // std::cout << "Moving on to another growth spot..." << std::endl;
 			continue; 
 		}
 
 		else {
 
 			(*PVec)[index_of_polymer].chain[index_of_monomer-1].coords = to_check; 
-			TailSpin (PVec, index_of_polymer, index_of_monomer-1, x, y, z, b, IMP_BOOL); 
+            // std::cout << "Moving in deeper...\n\t"; 
+			TailSpin (PVec, index_of_polymer, index_of_monomer-1, x, y, z, b, IMP_BOOL, first_entry_bool); 
 
 			if (*b){
 				break; 
 			}
 			else {
+                // std::cout << "We went down a rabbithole, but it failed. So moving on..." << std::endl;
 				continue; 
 			}
 
@@ -2478,9 +2504,6 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 	if ( !(*b) ){
 		*IMP_BOOL = false; 
-	}
-	else {
-		(*PVec)[index_of_polymer].ChainToConnectivityMap(); 
 	}
 
 	return; 
@@ -2510,40 +2533,51 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 //
 // THE CODE: 
 
-
-
-void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL){
+void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool){
+    
+     if (*first_entry_bool){
+	    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  	    std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
+        *first_entry_bool = false; 
+    }
 
 	if (index_of_monomer == deg_poly-1){
 		// std::cout << "You have reached the final spot of head spin!" << std::endl;
 		*b = true; 
-		*IMP_BOOL = true; 
+		*IMP_BOOL = true;
+		(*PVec)[index_of_polymer].ChainToConnectivityMap(); 
 		return ;
 	}
 
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-
-  	std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
+	// unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  	// std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
+    
+    // std::cout << "Current pivot point is "; print(  (*PVec) [index_of_polymer].chain[index_of_monomer].coords );
 
 	for (std::array <int,3>& d: adrns){
-
+        // std::cout << "d is "; print(d); 
 		std::array <int, 3> to_check = add_arrays ( &( (*PVec) [index_of_polymer].chain[index_of_monomer].coords ), &d);
 
 		impose_pbc (&to_check, x, y, z); 
+        // std::cout << "Growth location is "; print(to_check); 
 
 		if (checkOccupancyHead(&to_check, PVec, index_of_polymer, index_of_monomer)){
+            // std::cout << "This location is occupied! - "; print(to_check); 
+            // std::cout << "Moving on to another growth spot..." << std::endl;
 			continue; 
 		}
 
 		else {
 
-			(*PVec)[index_of_polymer].chain[index_of_monomer+1].coords = to_check; 
-			HeadSpin (PVec, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, b, IMP_BOOL);
+			(*PVec)[index_of_polymer].chain[index_of_monomer+1].coords = to_check;
+            // std::cout << "Moving in deeper...\n\t"; 
+			HeadSpin (PVec, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, b, IMP_BOOL, first_entry_bool);
 
 			if (*b){
 				break;
 			} 
 			else {
+                // std::cout << "We went down a rabbithole, but it failed. So moving on..." << std::endl;
 				continue; 
 			}
 
@@ -2553,9 +2587,6 @@ void HeadSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 
 	if ( !(*b) ){
 		*IMP_BOOL = false; 
-	}
-	else {
-		(*PVec)[index_of_polymer].ChainToConnectivityMap(); 
 	}
 
 	return ;
@@ -2666,7 +2697,7 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 //
 // THE CODE: 
 
-void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region){
+void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region) {
 
 	// pick a random point on the lattice 
 	std::array <int,3> rpoint = {rng_uniform(0,x-1), rng_uniform(0,y-1), rng_uniform (0,z-1)}; 

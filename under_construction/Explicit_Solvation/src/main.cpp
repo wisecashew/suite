@@ -171,7 +171,9 @@ int main(int argc, char** argv) {
     double sysEnergy_ {0};
 
     std::vector <Particle> SolventVector = CreateSolventVector(x, y, z, &PolymerVector);
-
+    
+    // size_t nSolvPart = SolventVector.size(); 
+    
     /////////////////////////////////////////////////
     for (Polymer& pmer:PolymerVector){
         for (Particle& p: pmer.chain){
@@ -210,7 +212,8 @@ int main(int argc, char** argv) {
         }
         // choose a move 
         SolventVector_ = SolventVector; 
-        PolymerVector_ = MoveChooser(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL);  
+        PolymerVector_ = MoveChooser(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL);   
+        
         if ( !(metropolis) ){
             m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
         }
@@ -220,7 +223,10 @@ int main(int argc, char** argv) {
         }
         // metropolis = false; 
         
-        sysEnergy_ = CalculateEnergy(&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+        if (IMP_BOOL){ 
+            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+        }
+
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
@@ -276,21 +282,12 @@ int main(int argc, char** argv) {
                 // metropolis = false; 
             }
             else {
-                // std::cout << "in the not accepted region on step " << i << "..." << std::endl;
                 dumpEnergy (sysEnergy, i, m_neicopy, a_contcopy, n_contcopy, efile, false);
-                // std::cout << "m_neighbors is " << m_neighbors <<", a_contacts is " << a_contacts << ", n_contacts is " << n_contacts<<std::endl;
-                // std::cout << "m_neicopy is " << m_neicopy <<", a_contcopy is " << a_contcopy << ", n_contcopy is " << n_contcopy<<std::endl;
-                
             }            
         }
-        // std::cout <<"are you hitting  this line?"<<std::endl;
+        
         IMP_BOOL = true; 
-
-        // for (Particle& p: SolventVector){
-        //    std::cout << "Orientation is " << p.orientation << ", particle type is " << p.ptype << ", location is "; 
-        //    print(p.coords);
-        // }
-
+           
     }
 
     dumpPositionOfSolvent(&SolventVector, max_iter, "solvent_coords");

@@ -4,6 +4,6 @@ z = 32
 kT = 5.0   
 Emm_a = -2
 Emm_n = -2 
-Ems_a = -3
+Ems_a = -2.1
 Ems_n = -0
 END OF FILE

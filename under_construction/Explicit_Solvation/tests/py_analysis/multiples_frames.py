@@ -1,4 +1,4 @@
-#!/usr/licensed/anaconda3/2020.7/bin/python
+#!/usr/bin/env python3
 import re 
 import numpy as np
 import matplotlib

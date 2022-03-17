@@ -1,7 +1,8 @@
-#!/usr/licensed/anaconda3/2020.7/bin/python
+#!/usr/bin/env python3
 import re 
 import numpy as np
 import matplotlib.pyplot as plt 
+from matplotlib.ticker import MaxNLocator
 import argparse 
 
 parser = argparse.ArgumentParser(description='Reads a trajectory and generates a movie of all the selected frames in the trajectory.')
@@ -111,9 +112,9 @@ for line in coord_file:
 fig=plt.figure(figsize=(4,4)) 
 ax = fig.add_subplot(111, projection='3d')
 
-ax.set_xticklabels([])
-ax.set_yticklabels([])
-ax.set_zticklabels([]) 
+# ax.set_xticklabels([])
+# ax.set_yticklabels([])
+# ax.set_zticklabels([]) 
 
 
 xmin, ymin, zmin = 10000, 10000, 10000
@@ -157,6 +158,7 @@ ax.set_zlabel("Z")
 ax.set_xlim3d(left=xmin-1, right=xmax+1)
 ax.set_ylim3d(bottom=ymin-1, top=ymax+1)
 ax.set_zbound(lower=zmin-1, upper =zmax+1)
+
 
 plt.savefig(args.n, dpi=1200)
 plt.show()

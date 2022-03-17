@@ -117,6 +117,7 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 bool checkValidityOfCoords(std::array <int,3> v, int x, int y, int z); 
 bool checkForOverlaps(std::vector <Polymer> PolymerVector);
 bool checkConnectivity(std::vector <Polymer> PolymerVector, int x, int y, int z); 
+bool checkForSolventMonomerOverlap(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolventVector); 
 std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y, int z);
 std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::string position);
 double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* m_neighbor, int* a_contacts, int* n_contacts);
@@ -130,6 +131,7 @@ std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, std::vect
 std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL);
 std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> Translation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, bool v, bool* IMP_BOOL);
 int ExtractIndexOfFinalMove(std::string trajectory);
 double ExtractEnergyOfFinalMove(std::string energy_file); 

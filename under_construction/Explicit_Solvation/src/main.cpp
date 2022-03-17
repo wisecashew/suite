@@ -223,6 +223,8 @@ int main(int argc, char** argv) {
         }
         // metropolis = false; 
         
+        std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
+
         if (IMP_BOOL){ 
             sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
         }
@@ -230,7 +232,6 @@ int main(int argc, char** argv) {
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
-        
 
         if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T) && IMP_BOOL ) {
             metropolis = true; 
@@ -242,6 +243,12 @@ int main(int argc, char** argv) {
                     printf("Something is fucked up overlaps-wise. \n");
                     exit(EXIT_FAILURE);
                 }
+
+                if (!checkForSolventMonomerOverlap (&PolymerVector_, &SolventVector_) ){
+                    printf("Something is fucked up solvent-monomer overlaps-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+
                 printf("checkConnectivity says: %d\n", checkConnectivity(PolymerVector_, x, y, z)); 
                 if (! checkConnectivity(PolymerVector_, x, y, z) ){
                     printf("Something is fucked up connectivity-wise. \n");

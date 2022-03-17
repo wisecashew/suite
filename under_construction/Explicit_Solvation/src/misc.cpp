@@ -1054,6 +1054,63 @@ bool checkForOverlaps(std::vector <Polymer> PolymerVector){
 //============================================================
 //============================================================
 // 
+// NAME OF FUNCTION: checkForSolventMonomerOverlap
+//
+// PARAMETERS: std::vector <int> PolymerVector
+// 
+// WHAT THE FUNCTION DOES: It looks at a vector of polymers that are supposed to go into the Grid. If
+// two (or more) monomer units occupy the same spot, it will freak out and exit out of compilation. 
+// 
+// DEPENDENCIES: No custom functions required apart from those defined previously in object Grid. 
+//
+// THE CODE: 
+
+
+bool checkForSolventMonomerOverlap(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolventVector){
+    
+    std::vector <std::array <int,3>> loc_list; 
+
+    for (Polymer& pmer: (*PolymerVector)) {
+        for (Particle& p: pmer.chain){
+            // check if element exists in vector 
+                if (std::find(loc_list.begin(), loc_list.end(), p.coords) != loc_list.end() ){
+                    std::cerr << "you have a repeated element." << std::endl;
+                    return false; 
+                    }
+            
+                else{
+                    loc_list.push_back(p.coords);  
+                }
+            }
+        }    
+    
+    for (Particle& p: (*SolventVector)){
+
+    	if (std::find(loc_list.begin(), loc_list.end(), p.coords) != loc_list.end() ){
+            std::cerr << "you have a repeated element. There is a fuck up." << std::endl;
+            return false;    		
+    	}
+
+    }
+
+
+    std::cout << "Input file has no overlap between and internally amongst solvent and monomers!" << std::endl;
+    return true;
+
+}
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of checkForOverlaps. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+
+
+//============================================================
+//============================================================
+// 
 // NAME OF FUNCTION: checkConnectivity
 //
 // PARAMETERS: std::vector <int> PolymerVector
@@ -1240,10 +1297,10 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 
 	} 
     std::cout << "location of to_check: "; print(to_check); 
-    std::cout << "Fucked up part. Coords of polymer: \n"; 
+    // std::cout << "Fucked up part. Coords of polymer: \n"; 
     (*PolymerVector)[0].printChainCoords();     
-    
-    std::cout << "Coords of solvent: \n";    
+    (*PolymerVector)[1].printChainCoords(); 
+    // std::cout << "Coords of solvent: \n";    
 
     for (const Particle& p: *SolvVect){
         print(p.coords); 
@@ -2752,7 +2809,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
 
     int index = rng_uniform(0, static_cast<int>((*PolymerVector).size())-1); 
     std::vector <Polymer> NewPol = (*PolymerVector); 
-    int r = rng_uniform(1, 6);
+    int r = rng_uniform(1, 7);
     switch (r) {
         case (1):
             if (v){
@@ -2802,6 +2859,13 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
         	}
         	OrientationFlip(SolvVector, x, y, z, 4); 
         	break; 
+
+        case (7):
+        	if (v){
+        		printf("Performing translation. \n");
+        	}
+        	NewPol = Translation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
+        	break;
     }
 
     return NewPol;
@@ -3111,56 +3175,149 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 
 
 
-
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: CreateSolventVector_ZeroOrientation
+// NAME OF FUNCTION: Translation
 //
 // PARAMETERS: int x, int y, int z, std::vector <Polymer>* PolymerVector  
 // 
-// WHAT THE FUNCTION DOES: it looks at the polymer vector and solvates the lattice with solvent molecules 
+// WHAT THE FUNCTION DOES: It takes a polymer and translates it in a certain direction 
 // 
-// DEPENDENCIES: create_lattice_points 
+// DEPENDENCIES: impose_pbc, add_arrays 
 //
 // THE CODE: 
 
-/*
-std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Polymer>* PolymerVector){
 
-	// create the lattice 
-	std::vector <std::array <int,3>> lattice = create_lattice_pts(x,y,z); 
+std::vector <Polymer> Translation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
-	// remove all the points where monomer segments are present 
-	int monomer_count = 0; 
+	std::cout << "Index of polymer to be translated is " << index <<"." << std::endl;
 
-	for (Polymer pmer: *PolymerVector){
-		for (Particle p: pmer.chain){
+	std::vector <Polymer> NewPol = *PolymerVector; 
 
-			++monomer_count; 
-			lattice.erase(std::find(lattice.begin(), lattice.end(), p.coords)); 
+	int deg_poly = static_cast<int> ((*PolymerVector)[index].chain.size()) ; 
+	// bool breakout_completely = false; 
+	size_t npoly = (*PolymerVector).size(); 
+
+	// choose a random direction 
+	std::array <int,3> rdirection = adrns[ rng_uniform(0,5) ]; 
+	std::cout <<"displacement direction is "; print(rdirection); 
+
+	// choose a displacement length 
+	int dl = rng_uniform(1, static_cast<int>(round(x/2)) ) ; 
+
+	std::cout << "displacement length is " << dl << std::endl;
+
+	// define displacement vector 
+	for (int i{0}; i<3; ++i){
+		rdirection[i] = rdirection[i]*dl;
+	}
+
+	std::cout << "displacement vector is "; print(rdirection); 
+
+	std::array <int,3> to_check; 
+
+	// displace each particle 
+	for (Particle& p: NewPol[index].chain){
+
+		// std::cout << "p.coords is (before assignment)"; print(p.coords); 
+		// define a new position for the particle 
+		to_check = add_arrays(&(p.coords), &rdirection); 
+
+
+		// impose periodic boundary conditions 
+		impose_pbc(&to_check, x, y, z); 
+		// std::cout << "to_check is "; print(to_check); 
+
+		///// start check loop 
+		for (size_t i{0}; i < npoly; ++i){
+
+			// do not consider the same polymer 
+			if (static_cast<int>(i) == index){
+				continue; 
+			}
+
+			for (const Particle& p_v: (*PolymerVector)[i].chain){
+
+				if (to_check == p_v.coords){
+					(*IMP_BOOL) = false; 
+					std::cout << "Translation process deemed impossible." << std::endl;
+					return NewPol;  
+				}
+			}
+
+		}
+		///// end check loop
+
+		p.coords = to_check; 
+
+	}
+
+	// now that every particle has been displaced correctly, make sure that every solvent particle that was originally in the spot of the monomer particle finds another home 
+	// the edge case where when a monomer particle occupies a spot that previously occupied by another monomer particle... 
+
+	// find out which particles went from a monomer-occupied region to a previously monomer occupied region 
+
+	std::vector <std::array <int,3>> old_locations = extract_positions_tail(& ((*PolymerVector)[index].chain ), deg_poly );
+	std::vector <std::array <int,3>> new_locations = extract_positions_tail(& (NewPol[index].chain), deg_poly );
+
+	// sort both vectors
+	std::sort ( old_locations.begin(), old_locations.end() ); 
+	std::sort ( new_locations.begin(), new_locations.end() ); 
+
+	// collect common elements 
+	std::vector < std::array <int,3>> store; 
+	std::set_intersection( old_locations.begin(), old_locations.end(), new_locations.begin(), new_locations.end(), std::back_inserter(store)); 
+
+	// erase items in each vector that match the items in the set 
+
+	for (const std::array <int,3>& a: store ){
+
+		for (size_t j{0}; j < old_locations.size(); ++j){
+
+			if (a == old_locations[j]){
+				old_locations.erase(std::remove(old_locations.begin(), old_locations.end(), a), old_locations.end() ); 
+				new_locations.erase(std::remove(new_locations.begin(), new_locations.end(), a), new_locations.end() ); 
+				break; 
+			}
 
 		}
 	}
 
-	int nsolpart = x*y*z - monomer_count; 
+	// now plant all the solvent particles that were originally there before the monomers came in to the spots originally occupied
+	// by monomers which are not occupied by monomers anymore. 
 
-	std::vector <Particle> SolvPartVector; 
-	SolvPartVector.reserve(nsolpart); 
+	for (size_t i{0}; i<old_locations.size(); ++i){
 
-	for (int i{0}; i<nsolpart; ++i){
+		for (Particle& p: (*SolvVector)){
 
-		Particle p = Particle (lattice[i], "solvent", 0);
-		SolvPartVector.push_back(p);  
+			if (p.coords == new_locations[i]){
+
+				p.coords = old_locations[i];
+				break; 
+
+			}
+
+		}
 
 	}
 
-	return SolvPartVector; 
+	// std::cout << "Relevant polymer coordinates: " << std::endl;
+	// NewPol[index].printChainCoords();
 
+
+	NewPol[index].ChainToConnectivityMap(); 
+	*IMP_BOOL = true; 
+
+	return NewPol;
 }
-*/
+
+
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of CreateSolventVector
+//             End of Translation
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+

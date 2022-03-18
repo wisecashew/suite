@@ -10,10 +10,16 @@ parser.add_argument('-x', dest='x', action='store', type=int, help='Length of ce
 parser.add_argument('-y', dest='y', action='store', type=int, help='Length of cell along the y axis.')
 parser.add_argument('-z', dest='z', action='store', type=int, help='Length of cell along the z axis.')
 parser.add_argument('-p', dest='p', action='store', type=int, help='Extract coordinates given at this move.')
-parser.add_argument('-n', dest='n', action='store', type=str, help='Name of image file to be created.')
-parser.add_argument('--traj', dest='traj', action='store', type=str, help='Name of trajectory file.')
+parser.add_argument('-n', metavar='stepX.png', dest='n', action='store', type=str, help='Name of image file to be created.')
+parser.add_argument('--traj', metavar='coords.txt', dest='traj', action='store', type=str, help='Name of trajectory file.')
+parser.add_argument('-w', dest='w', action='store', type=int, default=0, help='Enter 0 if you do not want the whole box view. Enter 1 if you want the whole box view.')
 
 args = parser.parse_args() 
+
+
+if (args.w != 0 and args.w !=1 ):
+    print("Bad args.w value. Only 0 or 1 allowed.")
+    exit()
 
 ################################
 ### functions 
@@ -155,10 +161,14 @@ for key in master_dict[step_to_extract]:
 ax.set_xlabel("X")
 ax.set_ylabel("Y")
 ax.set_zlabel("Z")
-ax.set_xlim3d(left=xmin-1, right=xmax+1)
-ax.set_ylim3d(bottom=ymin-1, top=ymax+1)
-ax.set_zbound(lower=zmin-1, upper =zmax+1)
-
+if (args.w==0):
+    ax.set_xlim3d(left= xmin-1, right=xmax+1)
+    ax.set_ylim3d(bottom= ymin-1, top=ymax+1)
+    ax.set_zbound(lower= zmin-1, upper =zmax+1)
+else:
+    ax.set_xlim3d(left= -args.x, right=args.x)
+    ax.set_ylim3d(bottom= -args.y, top=args.y)
+    ax.set_zbound(lower= -args.z, upper=args.z)
 
 plt.savefig(args.n, dpi=1200)
 plt.show()

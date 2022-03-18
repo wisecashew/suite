@@ -189,6 +189,11 @@ int main(int argc, char** argv) {
     int a_contacts = 0, a_contcopy = 0; 
     int n_contacts = 0, n_contcopy = 0;  
     sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+
+    m_neicopy  = m_neighbors; 
+    a_contcopy = a_contacts; 
+    n_contcopy = n_contacts; 
+
     dumpEnergy (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile, false);
 
     // defined single orientation solvents and polymers 
@@ -221,7 +226,6 @@ int main(int argc, char** argv) {
             m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
             metropolis = false; 
         }
-        // metropolis = false; 
         
         std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
 

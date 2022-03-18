@@ -8,6 +8,6 @@ for i in range(len(df["energy"].values)):
     m = df["mc"].values[i] 
     a = df["ac"].values[i] 
     n = df["nc"].values[i]
-    if (e != -m  -a  -n):
+    if (e != -2*m  -0*a  -0*n):
         print("Fuck up at " + str(df["ts"].values[i])) 
         break

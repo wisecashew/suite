@@ -2,8 +2,8 @@ x = 10
 y = 10
 z = 10 
 kT = 0.1   
-Emm_a = -2
-Emm_n = -2 
-Ems_a = -0
-Ems_n = -0
+Emm_a = -1
+Emm_n = -1 
+Ems_a = -4
+Ems_n = -4
 END OF FILE

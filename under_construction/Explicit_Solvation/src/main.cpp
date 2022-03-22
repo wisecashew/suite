@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box. This is an explicit solvent simulation.\n" <<
-		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. \nSet up on Mar 13, 2022, 01:00 AM.\n" <<
+		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. Polymer orientations are also flipped in this simulation. \nSet up on Mar 22, 2022, 11:46 AM.\n" <<
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
@@ -227,7 +227,7 @@ int main(int argc, char** argv) {
             metropolis = false; 
         }
         
-        std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
+        // std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
 
         if (IMP_BOOL){ 
             sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 

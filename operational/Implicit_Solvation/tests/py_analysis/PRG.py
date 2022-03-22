@@ -54,15 +54,9 @@ def get_Rg(coord_arr, xlen, ylen, zlen):
     
     coord_arr = unfuck_polymer(coord_arr, xlen, ylen, zlen)
     
-    # for i in range(coord_arr.shape[0]):
-    #     for j in range(coord_arr.shape[1]): 
-    #        coord_arr[i,j] = modified_modulo(coord_arr[i,j], xlen) 
-    
     r_com = np.mean(coord_arr, axis=0) 
     N = coord_arr.shape[0]
     rsum = 0
-    
-    # sc_coords = np.zeros((1,3))
     
     for i in range(N): 
         rsum += np.linalg.norm( coord_arr[i,:]- r_com )**2 
@@ -148,6 +142,13 @@ if __name__ == "__main__":
         steps.append(key) 
     
     
+    q = open('rg_list.dat','w')
+    c=0
+    for r in rg: 
+        q.write(str(c) + "  " + str(r)+"\n")
+        c+=1
+    q.close() 
+        
     plt.hist(rg, density=True, bins=100)
     plt.xlabel('Radius of gyration')
     plt.ylabel('Frequency')

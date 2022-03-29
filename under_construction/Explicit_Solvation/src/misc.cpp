@@ -1263,7 +1263,7 @@ std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y,
 // 
 // !!!!!!!!! CRITICAL OBJECT TO RUN SIMULATION ACCURATELY !!!!!!!!!!!!!!!!!!!
 // 
-// NAME OF FUNCTION: MonomerCheck
+// NAME OF FUNCTION: ParticleReporter 
 //
 // PARAMETERS: PolymerVector, x, y, z
 //
@@ -1297,7 +1297,7 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 
 	} 
     std::cout << "location of to_check: "; print(to_check); 
-    // std::cout << "Fucked up part. Coords of polymer: \n"; 
+    std::cout << "Fucked up part. Coords of polymer: \n"; 
     (*PolymerVector)[0].printChainCoords();     
     (*PolymerVector)[1].printChainCoords(); 
     // std::cout << "Coords of solvent: \n";    
@@ -1314,7 +1314,52 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 }
 
 
+//============================================================
+//============================================================
+// 
+// !!!!!!!!! CRITICAL OBJECT TO RUN SIMULATION ACCURATELY !!!!!!!!!!!!!!!!!!!
+// 
+// NAME OF FUNCTION: MonomerCheck
+//
+// PARAMETERS: PolymerVector, to_check
+//
+// WHAT THE FUNCTION DOES: Calculates energy of the current Grid. Critical to correctly evolve system. 
+// includes nearest neighbor interactions with and without directional effects.  
+//
+// DEPENDENCIES: obtain_ne_list 
+//
+// OPTIMIZATION OPPORTUNITY: I am double counting monomer-monomer interactions. This can possibly be avoided. 
+//
+// THE CODE: 
 
+bool MonomerReporter (std::vector <Polymer>* PolymerVector, std::array <int,3>* to_check){
+
+
+	for (Polymer& pmer: (*PolymerVector)) {
+		for (Particle& p: pmer.chain){ 
+
+			if ((*to_check) == p.coords){
+				return true;
+			}
+		}
+	}
+
+	return false; 
+
+}
+
+bool MonomerReporter (std::vector <Polymer>* PolymerVector, std::array <int,3>* check_1, std::array <int,3>* check_2){
+
+	for (const Polymer& pmer: (*PolymerVector)) {
+      		for (const Particle& p: pmer.chain){
+
+      			if (p.coords == (*to_check_1) || p.coords == (*to_check_2) ){	 
+      				return true; 
+      			}
+      		}
+      	}
+    return false; 
+}
 
 
 //============================================================
@@ -1572,9 +1617,7 @@ std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, std::ve
 
     	}
   		if (!b){
-  			// std::cout << "number of tries is " << tries << std::endl;
-  			// std::cout << "max number of tries can be " << ne_list.size() << std::endl;
-  			// std::cout << "This should be the only tries statement for this particular move." << std::endl;  
+
 			NewPol[index].chain[0].coords = to_rot; 
 
 			for (Particle& p: (*SolvVector)){
@@ -1601,6 +1644,55 @@ std::vector <Polymer> TailRotation(std::vector <Polymer>* PolymerVector, std::ve
 	}
 	
 	NewPol[index].ChainToConnectivityMap(); 
+	return NewPol; 
+}
+
+
+std::vector <Polymer> TailRotation_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+
+    // get the neighborlist of particle at index 1 
+    std::array <int,3> loc_0 = (*PolymerVector)[index].chain[0].coords; 
+    std::array <int,3> loc_1 = (*PolymerVector)[index].chain[1].coords;
+    std::vector <Polymer> NewPol {*PolymerVector};
+    
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
+
+	(*rweight) = 0; 
+
+	// find all spots that are available 
+	std::vector <std::array <int,3>> idx_v; 
+	for (std::array <int,3>& to_rot: ne_list){
+ 		
+		if ( to_rot == loc_1){
+			continue; 
+		}
+
+		else if ( ! (MonomerReporter(PolymerVector, &to_rot) ) ){
+			(*rweight) += 1;
+			idx_v.push_back( to_rot );  
+		}
+		
+	}
+
+    if ( (*rweight) == 0 ){
+    	*IMP_BOOL = false;
+    }
+
+
+	else {
+
+		NewPol[index].chain[0].coords = idx_v[0];  
+		for (Particle& p: (*SolvVector)){
+			if (p.coords == to_rot){
+				p.coords = loc_0; 
+				break;
+			}
+		}
+
+		NewPol[index].ChainToConnectivityMap(); 
+	}
+	
 	return NewPol; 
 }
 
@@ -1693,6 +1785,55 @@ std::vector <Polymer> HeadRotation(std::vector <Polymer>* PolymerVector, std::ve
 }
 
 
+std::vector <Polymer> HeadRotation_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector,int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+
+    // get the neighborlist of particle at index 1 
+    int dop = (*PolymerVector)[index].deg_poly; 
+    std::array <int,3> loc_0 = (*PolymerVector)[index].chain[dop-1].coords; 
+    std::array <int,3> loc_1 = (*PolymerVector)[index].chain[dop-2].coords;
+    std::vector <Polymer> NewPol {*PolymerVector};
+    
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
+
+    (*rweight) = 0; 
+	
+    // find all spots that are available 
+    std::vector <std::array <int,3>, 6> idx_v; 
+
+    for (std::array <int,3>& to_rot: ne_list){
+
+    	if (to_rot == loc_1){
+    		continue; 
+    	}
+    	else if ( ! (MonomerReporter(PolymerVector, &to_rot) ) ){
+    		(*rweight) += 1; 
+    		idx_v.push_back(to_rot); 
+    	}
+
+    }
+
+    if ( (*rweight) == 0){
+    	*IMP_BOOL = false;
+    }
+
+    else {
+
+    	NewPol[index].chain[dop-1].coords = idx_v[0]; 
+
+    	for (Particle& p: (*SolvVector)){
+    		if (p.coords == to_rot){
+    			p.coords = loc_0;
+    			break; 
+    		}
+    	}
+
+    	NewPol[index].ChainToConnectivity(); 
+
+    }
+
+	return NewPol; 
+}
 
 
 //============================================================
@@ -1728,6 +1869,26 @@ std::vector <Polymer> EndRotation(std::vector <Polymer>* PolymerVector, std::vec
     else {
         // std::cout << "Final index rotation!" << std::endl;
         return HeadRotation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
+
+    }
+    
+}
+
+
+std::vector <Polymer> EndRotation_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = distribution(generator); 
+    // std::cout << "rng is " << num << std::endl;
+    if (num==0){
+        // std::cout << "Zero index rotation!" << std::endl;
+        return TailRotation_Rosenbluth(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL, rweight); 
+    }
+    else {
+        // std::cout << "Final index rotation!" << std::endl;
+        return HeadRotation_Rosenbluth(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL, rweight); 
 
     }
     
@@ -1834,6 +1995,64 @@ std::vector <Polymer> KinkJump(std::vector <Polymer>* PolymerVector, std::vector
     return NewPol; 
 
 }
+
+
+std::vector <Polymer> KinkJump_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+    std::vector <Polymer> NewPol = *PolymerVector; 
+
+    std::vector <int> k_idx = NewPol.at(index).findKinks(); 
+
+    (*rweight) = 0; 
+
+    if (k_idx.size() == 0 ){
+        *IMP_BOOL = false;
+        // std::cout << "No kinks found in polymer..." << std::endl;
+        return *PolymerVector;
+    }
+
+    std::vector <std::array <int,3>> idx_v; 
+
+    for (int idx: k_idx){
+
+        // std::cout << "idx right before kink spot is " << idx << std::endl; 
+
+        // std::array <int,3> d1 = subtract_arrays(&(NewG.PolymersInGrid[index].chain[idx+1].coords), &(NewG.PolymersInGrid[index].chain[idx].coords) );
+        std::array <int,3> d2 = subtract_arrays(&(NewPol[index].chain[idx+2].coords), &(NewPol[index].chain[idx+1].coords) ); 
+
+        std::array <int,3> to_check = add_arrays( &( NewPol[index].chain[idx].coords ), &d2); 
+        
+        impose_pbc(&to_check, x, y, z); 
+
+        if ( ! ( MonomerReporter (PolymerVector, &to_check) ) ){
+        	(*rweight) += 1;
+        	idx_v.push_back(to_check);  
+        }
+
+    }
+    
+    if ( (*rweight) == 0){
+    	*IMP_BOOL = false; 
+    }
+
+	else {
+		
+		NewPol[index].chain[idx+1].coords = idx_v[0]; 
+		
+		for (Particle& p: (*SolvVector)){
+			if (p.coords == idx_v[0]){
+				p.coords = (*PolymerVector)[index].chain[idx+1].coords; 
+				break;
+			}
+		}
+
+		NewPol[index].ChainToConnectivityMap(); 
+	}
+
+    return NewPol; 
+
+}
+
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -1959,6 +2178,88 @@ std::vector <Polymer> CrankShaft(std::vector <Polymer>* PolymerVector, std::vect
 	}
 
 	NewPol[index].ChainToConnectivityMap();
+
+    // std::cout << "Have you reached the end of the Crank?" << std::endl;
+    return NewPol;
+
+}
+
+
+
+
+std::vector <Polymer> CrankShaft_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+
+    std::vector <Polymer> NewPol {*PolymerVector}; 
+    std::vector <int> c_idx = NewPol[index].findCranks(); 
+
+    if ( c_idx.size()==0 ){
+        *IMP_BOOL = false;  
+        return NewPol; 
+    }
+    
+
+    std::shuffle (std::begin (c_idx), std::end(c_idx), std::default_random_engine() ); 
+	std::vector <std::array <int,3>> idx_v1;
+	std::vector <std::array <int,3>> idx_v2;
+
+	(*rweight) = 0; 
+
+
+    for (int idx: c_idx){
+
+        std::array <int,3> HingeToKink = subtract_arrays(&(NewPol[index].chain[idx+2].coords), &(NewPol[index].chain[idx+3].coords) ); 
+        std::array <int,3> HingeToHinge = subtract_arrays(&(NewPol[index].chain[idx+3].coords ), &(NewPol[index].chain[idx].coords ) );
+
+        std::array <std::array <int,3>,3> drns = HingeSwingDirections (& (HingeToHinge), &(HingeToKink), x, y, z); 
+        int choice = rng_uniform(0,2); 
+
+        std::array <int,3> d1 = drns[choice];  //subtract_vectors( &(NewG.PolymersInGrid.at(index).chain.at(idx+3).coords), &(NewG.PolymersInGrid.at(index).chain.at(idx+2).coords) );
+
+        std::array <int,3> to_check_1 = add_arrays ( &(NewPol[index].chain[idx].coords), &d1 ); 
+        std::array <int,3> to_check_2 = add_arrays ( &(NewPol[index].chain[idx+3].coords), &d1 ); 
+        impose_pbc(&to_check_1, x, y, z); 
+        impose_pbc(&to_check_2, x, y, z);   
+
+		
+      	// check if site is unoccupied 
+        if ( ! ( MonomerReporter (PolymerVector, &to_check_1, &to_check_2) ) ){
+        	idx_v1.push_back(to_check_1); 
+        	idx_v2.push_back(to_check_2); 
+        	rweight += 1; 
+        }
+    }
+
+    // if the site is unoccupied for sure 
+
+    if ((*rweight) == 0){
+    	*IMP_BOOL = false; 
+    }
+
+  	else {
+
+  		NewPol[index].chain[idx+1].coords = idx_v1[0];
+  		NewPol[index].chain[idx+2].coords = idx_v2[0];
+  		int d = 0; 
+
+  		for (Particle& p: (*SolvVector)){
+			if (p.coords == to_check_1){
+				++d; 
+				p.coords = (*PolymerVector)[index].chain[idx+1].coords; 
+				if (d==2){
+					break;
+				}
+			}
+			else if (p.coords == to_check_2){
+				++d; 
+				p.coords = (*PolymerVector)[index].chain[idx+2].coords; 
+				if (d==2){
+					break;
+				}
+			}
+		}
+		NewPol[index].ChainToConnectivityMap();
+  	}
 
     // std::cout << "Have you reached the end of the Crank?" << std::endl;
     return NewPol;
@@ -2102,6 +2403,69 @@ std::vector <Polymer> ForwardReptation(std::vector <Polymer>* PolymerVector, std
     return NewPol; 
 
 } 
+
+
+////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////
+
+
+std::vector <Polymer> ForwardReptation_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+    std::vector <Polymer> NewPol {*PolymerVector}; 
+    int deg_poly = (*PolymerVector)[index].deg_poly; 
+
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( NewPol[index].chain[deg_poly-1].coords, x, y, z ); 
+    std::vector <std::array<int,3>> idx_v; 
+
+    (*rweight) = 0; 
+
+    for (std::array <int,3>& to_check: ne_list){
+
+    	if ( to_check == NewPol[index].chain[deg_poly-2].coords ){
+    		continue; 
+    	}
+
+		else if ( ! (MonomerReporter(PolymerVector, &to_check) )){
+			(*rweight) += 1; 
+			idx_v.push_back(to_check);
+		}
+	}
+
+	if ( (*rweight) == 0){
+		*IMP_BOOL = false;
+	}
+
+	else {
+		// if everything checks out, do the deed - make it slither forward 
+		// std::cout << "In acceptance land." << std::endl; 
+		for (int i{0}; i<deg_poly; ++i){
+
+			if ( i != deg_poly-1 ){
+				NewPol[index].chain[i].coords = (*PolymerVector)[index].chain[i+1].coords ; 
+			}
+			else {
+				NewPol[index].chain[i].coords = idx_v[0]; 
+			}
+		}
+		
+		for (Particle& p: (*SolvVector)){
+			if (p.coords == idx_v[0]){
+				p.coords = (*PolymerVector)[index].chain[0].coords; 
+				break;
+			}
+		}	
+		
+		NewPol[index].ChainToConnectivityMap();
+	}
+
+    return NewPol; 
+
+} 
+
+
+
+
+
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -2248,6 +2612,68 @@ std::vector <Polymer> BackwardReptation(std::vector <Polymer>* PolymerVector, st
 
 } 
 
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+
+std::vector <Polymer> BackwardReptation_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+    std::vector <Polymer> NewPol {*PolymerVector}; 
+    int deg_poly = (*PolymerVector)[index].deg_poly; 
+
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( NewPol[index].chain[0].coords, x, y, z ); 
+    std::vector <std::array <int,3>> idx_v; 
+
+    (*rweight) = 0; 
+
+     
+    for (std::array <int,3>& to_check: ne_list){
+
+    	if ( to_check == NewPol[index].chain[1].coords){
+    		continue; 
+    	}
+
+    	else if ( ! (MonomerReporter(PolymerVector, &to_check) ) ){
+    		(*rweight) += 1; 
+    		idx_v.push_back(to_check); 
+    	}
+    }
+
+    if ( (*rweight) == 0 ){
+    	*IMP_BOOL = false; 
+    }
+
+    else {
+    	for (int i{0}; i <deg_poly; ++i){
+    		if ( i != deg_poly-1 ){
+    			NewPol[index].chain[deg_poly-1-i].coords = (*PolymerVector)[index].chain[deg_poly-2-i].coords;
+    		}
+    		else {
+    			NewPol[index].chain[deg_poly-1-i].coords = idx_v[0]; 
+    		}
+    	}
+
+    	for (Particle& p: (*SolvVector)) {
+    		if (p.coords == idx_v[0]){
+    			p.coords = (*PolymerVector)[index].chain[deg_poly-1].coords;
+    			break;
+    		}
+    	}
+
+    	NewPol[index].ChainToConnectivityMap(); 
+    }
+
+    return NewPol; 
+
+}
+
+
+
+
+
+
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //             End of BackwardReptation. 
@@ -2291,6 +2717,26 @@ std::vector <Polymer> Reptation(std::vector<Polymer>* PolymerVector, std::vector
     else {
         // std::cout << "Final index rotation!" << std::endl;
         return ForwardReptation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL); 
+
+    }
+    
+}
+
+
+std::vector <Polymer> Reptation_Rosenbluth(std::vector<Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, int* rweight){
+
+    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = distribution(generator); 
+    // std::cout << "rng is " << num << std::endl;
+    if (num==0){
+        // std::cout << "Zero index rotation!" << std::endl;
+        return BackwardReptation_Rosenbluth(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL, rweight); 
+    }
+    else {
+        // std::cout << "Final index rotation!" << std::endl;
+        return ForwardReptation_Rosenbluth(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL, rweight); 
 
     }
     
@@ -2566,6 +3012,82 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 	return; 
 
 }
+
+
+
+//////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////
+
+
+void TailSpin_Rosenbluth(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool){
+
+	// std::cout << "index of monomer is " << index_of_monomer << std::endl;
+    
+    if (*first_entry_bool){
+	    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  	    std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
+        *first_entry_bool = false; 
+    }
+
+
+	if (index_of_monomer == 0){
+		// std::cout << "You have reached the final spot via tail spin!" << std::endl;
+		*b = true; 
+		*IMP_BOOL = true; 
+		(*PVec)[index_of_polymer].ChainToConnectivityMap(); 
+		return ; 
+	}
+
+    
+    // std::cout << "Current pivot point is "; print(  (*PVec) [index_of_polymer].chain[index_of_monomer].coords );
+	for (std::array <int,3>& d: adrns){ 
+        
+        // std::cout << "d is "; print(d); 
+		std::array <int, 3> to_check = add_arrays( &( (*PVec) [index_of_polymer].chain[index_of_monomer].coords), &d);
+
+		impose_pbc(&to_check, x, y, z); 
+        // std::cout << "Growth location is "; print(to_check); 
+
+		if (checkOccupancyTail(&to_check, PVec, index_of_polymer, index_of_monomer)){
+            // std::cout << "This location is occupied! - "; print(to_check); 
+            // std::cout << "Moving on to another growth spot..." << std::endl;
+			continue; 
+		}
+
+		else {
+
+			(*PVec)[index_of_polymer].chain[index_of_monomer-1].coords = to_check; 
+            // std::cout << "Moving in deeper...\n\t"; 
+			TailSpin (PVec, index_of_polymer, index_of_monomer-1, x, y, z, b, IMP_BOOL, first_entry_bool); 
+
+			if (*b){
+				break; 
+			}
+			else {
+                // std::cout << "We went down a rabbithole, but it failed. So moving on..." << std::endl;
+				continue; 
+			}
+
+
+		}
+
+	}
+
+	if ( !(*b) ){
+		*IMP_BOOL = false; 
+	}
+
+	return; 
+
+}
+
+
+
+
+
+
+
+
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

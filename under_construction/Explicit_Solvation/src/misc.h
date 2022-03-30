@@ -31,11 +31,6 @@ bool acceptance(int dE, double kT);
 int PolymerEnergySolvent   (std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy);
 int PolymerEnergySolvation (std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy, int intr_energymm);
 
-
-void modified_direction (std::array<int,3>* a, int x, int y, int z);
-int  modified_modulo    (int divident, int divisor);
-
-
 // checking if info is accurate 
 bool isSymmetric(std::vector <std::vector <double>> mat);
 
@@ -43,9 +38,14 @@ bool isSymmetric(std::vector <std::vector <double>> mat);
 // flipping the orientation of a bunch of particles 
 void ClusterFlip(std::vector <Particle>*);
 
-
 // sending a string to a file
 void StringToFile(std::string filename, std::string to_send);
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+// imposing modified modulo methods 
+void modified_direction (std::array<int,3>* a, int x, int y, int z);
+int  modified_modulo    (int divident, int divisor);
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // imposing periodic boundary conditions 
@@ -77,6 +77,7 @@ std::array  <int,3> add_arrays  (std::array <int,3>* a1, std::array <int,3>* a2)
 // subtracting the two 
 std::vector <int>   subtract_vectors (std::vector <int>* v1, std::vector <int>* v2); 
 std::array  <int,3> subtract_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
+
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
@@ -165,6 +166,7 @@ std::vector <Polymer> BackwardReptation    (std::vector <Polymer>* PolymerVector
 std::vector <Polymer> Reptation            (std::vector<Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 std::vector <Polymer> Translation          (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
+void                  PolymerFlip          (std::vector <Polymer>* PolyVec);
 void                  ChainRegrowth        (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
 void                  TailSpin             (std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool );
 void                  HeadSpin             (std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool);

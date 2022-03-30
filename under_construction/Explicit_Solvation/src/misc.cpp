@@ -3558,6 +3558,19 @@ void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int
 }
 
 
+void PolymerFlip ( std::vector <Polymer>* PolyVec){
+
+	for (Polymer& pmer: (*PolyVec)){
+		for (Particle& p: pmer.chain){
+			p.orientation = rng_uniform (0,5); 
+		}
+	}
+
+	return; 
+
+}
+
+
 //============================================================
 //============================================================
 // 
@@ -3649,7 +3662,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* PolymerVect
 
     int index = rng_uniform(0, static_cast<int>((*PolymerVector).size())-1); 
     std::vector <Polymer> NewPol = (*PolymerVector); 
-    int r = rng_uniform(1, 7);
+    int r = rng_uniform(1, 8);
     switch (r) {
         case (1):
             if (v){
@@ -3706,6 +3719,14 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* PolymerVect
         	}
         	NewPol = Translation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
         	break;
+
+        case (8):
+        	if (v){
+        		printf("Performing polymer orientation flips. \n");
+        	}
+        	NewPol = *PolymerVector; 
+        	PolymerFlip (&NewPol);
+        	break; 
     }
 
     return NewPol;

@@ -209,6 +209,7 @@ int main(int argc, char** argv) {
     std::vector <Particle> SolventVector_; 
 
     printf("Simulation will output information of every %d configuration.\n", dfreq); 
+    double rweight = 0; 
 
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
@@ -216,6 +217,7 @@ int main(int argc, char** argv) {
             printf("Move number %d.\n", i);
         }
         // choose a move 
+        
         SolventVector_ = SolventVector; 
         PolymerVector_ = MoveChooser(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL);   
         

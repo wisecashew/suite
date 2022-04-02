@@ -3569,19 +3569,6 @@ void PolymerFlip ( std::vector <Polymer>* PolVec ){
 }
 
 
-void PolymerFlip ( std::vector <Polymer>* PolyVec){
-
-	for (Polymer& pmer: (*PolyVec)){
-		for (Particle& p: pmer.chain){
-			p.orientation = rng_uniform (0,5); 
-		}
-	}
-
-	return; 
-
-}
-
-
 //============================================================
 //============================================================
 // 

@@ -1497,6 +1497,7 @@ void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, s
             for (int i: p.coords){
                 dump_file << i << " | "; 
             }
+            dump_file << p.orientation << " | ";
             dump_file << "\n"; 
         }
         ++count ; 
@@ -3711,6 +3712,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* PolymerVect
         		printf("Performing orientation flips. \n");
         	}
         	OrientationFlip(SolvVector, x, y, z, 4); 
+        	(*rweight) = 1; 
         	break; 
 
         case (7):
@@ -3726,6 +3728,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* PolymerVect
         	}
         	NewPol = *PolymerVector; 
         	PolymerFlip (&NewPol);
+        	(*rweight) = 1; 
         	break; 
     }
 

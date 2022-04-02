@@ -44,7 +44,8 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box. This is an explicit solvent simulation.\n" <<
-		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. \nSet up on Mar 13, 2022, 01:00 AM.\n" <<
+		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. \nSet up on Mar 30, 2022, 01:00 AM.\n" <<
+                "This code employs Rosenbluth sampling.\n" << 
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
@@ -156,18 +157,8 @@ int main(int argc, char** argv) {
     
     PolymerVector.reserve(N); 
 
-    if (r){
-        std::cout << "Restart mode activated.\n";
-        // PolymerVector = ExtractPolymersFromTraj(restart_traj, positions, x, y, z); 
-        step_number = ExtractIndexOfFinalMove(restart_traj);
-        // sysEnergy = ExtractEnergyOfFinalMove(efile); 
-    }
-    else {
-
-        PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
-        dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
-    }
-    
+    PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
+        
     double sysEnergy_ {0};
 
     std::vector <Particle> SolventVector = CreateSolventVector(x, y, z, &PolymerVector);
@@ -185,6 +176,9 @@ int main(int argc, char** argv) {
         p.orientation = 0; 
     }
     /////////////////////////////////////////////////
+
+    dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
+    
     double m_neighbors = 0, m_neicopy = 0; 
     int a_contacts = 0, a_contcopy = 0; 
     int n_contacts = 0, n_contcopy = 0;  
@@ -208,8 +202,9 @@ int main(int argc, char** argv) {
     std::vector <Polymer> PolymerVector_; 
     std::vector <Particle> SolventVector_; 
 
-    printf("Simulation will output information of every %d configuration.\n", dfreq); 
     double rweight = 0; 
+
+    printf("Simulation will output information of every %d configuration.\n", dfreq); 
 
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
@@ -217,10 +212,11 @@ int main(int argc, char** argv) {
             printf("Move number %d.\n", i);
         }
         // choose a move 
-        
         SolventVector_ = SolventVector; 
-        PolymerVector_ = MoveChooser(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL);   
+        PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight);   
         
+        std::cout << "the rosenbluth weight is " << rweight << "." << std::endl;
+
         if ( !(metropolis) ){
             m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
         }
@@ -239,7 +235,7 @@ int main(int argc, char** argv) {
             printf("Executing...\n");
         }
 
-        if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T) && IMP_BOOL ) {
+        if ( IMP_BOOL && MetropolisAcceptance (sysEnergy, sysEnergy_, T, rweight) ) {
             metropolis = true; 
             // replace old config with new config
             if ( v ){

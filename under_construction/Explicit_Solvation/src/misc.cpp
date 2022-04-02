@@ -776,7 +776,7 @@ Polymer makePolymer(std::vector <std::array <int,3> > locations, std::string typ
     for (int i=0; i<static_cast<int>(size_); i++){
         unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
         std::mt19937 generator(seed); 
-        std::uniform_int_distribution<int> distribution (0,5); 
+        std::uniform_int_distribution<int> distribution (0,1); 
         pmer_spins.push_back(distribution(generator));
     }
 
@@ -3516,7 +3516,7 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 //============================================================
 //
 // 
-// NAME OF FUNCTION: OrientationFlip
+// NAME OF FUNCTION: OrientationFlip and PolymerFlip
 //
 // PARAMETERS: std::vector <Particle>* SolvVect
 // 
@@ -3558,6 +3558,16 @@ void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int
 	return; 
 }
 
+void PolymerFlip ( std::vector <Polymer>* PolVec ){
+
+    for (Polymer& pmer: (*PolVec) ){
+        for (Particle& p: pmer.chain){
+            p.orientation = rng_uniform(0,5); 
+        }
+    }
+    return; 
+}
+
 
 void PolymerFlip ( std::vector <Polymer>* PolyVec){
 
@@ -3595,7 +3605,7 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
 
     int index = rng_uniform(0, static_cast<int>((*PolymerVector).size())-1); 
     std::vector <Polymer> NewPol = (*PolymerVector); 
-    int r = rng_uniform(1, 7);
+    int r = rng_uniform(1, 8);
     switch (r) {
         case (1):
             if (v){
@@ -3652,6 +3662,14 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* PolymerVector, std::vec
         	}
         	NewPol = Translation(PolymerVector, SolvVector, index, x, y, z, IMP_BOOL);
         	break;
+        
+        case (8):
+            if (v){
+                printf("Performing a polymer orientation flip.\n"); 
+            }
+            NewPol = *PolymerVector;
+            PolymerFlip(&NewPol); 
+            break; 
     }
 
     return NewPol;
@@ -4024,7 +4042,7 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 
 	for (int i{0}; i<nsolpart; ++i){
 
-		Particle p = Particle (lattice[i], "solvent", rng_uniform(0, 5));
+		Particle p = Particle (lattice[i], "solvent", rng_uniform(0, 1));
 		SolvPartVector.push_back(p);  
 
 	}
@@ -4057,7 +4075,7 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 
 std::vector <Polymer> Translation(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL){
 
-	std::cout << "Index of polymer to be translated is " << index <<"." << std::endl;
+	// std::cout << "Index of polymer to be translated is " << index <<"." << std::endl;
 
 	std::vector <Polymer> NewPol = *PolymerVector; 
 
@@ -4067,19 +4085,19 @@ std::vector <Polymer> Translation(std::vector <Polymer>* PolymerVector, std::vec
 
 	// choose a random direction 
 	std::array <int,3> rdirection = adrns[ rng_uniform(0,5) ]; 
-	std::cout <<"displacement direction is "; print(rdirection); 
+	// std::cout <<"displacement direction is "; print(rdirection); 
 
 	// choose a displacement length 
 	int dl = rng_uniform(1, static_cast<int>(round(x/2)) ) ; 
 
-	std::cout << "displacement length is " << dl << std::endl;
+	// std::cout << "displacement length is " << dl << std::endl;
 
 	// define displacement vector 
 	for (int i{0}; i<3; ++i){
 		rdirection[i] = rdirection[i]*dl;
 	}
 
-	std::cout << "displacement vector is "; print(rdirection); 
+	// std::cout << "displacement vector is "; print(rdirection); 
 
 	std::array <int,3> to_check; 
 
@@ -4107,7 +4125,7 @@ std::vector <Polymer> Translation(std::vector <Polymer>* PolymerVector, std::vec
 
 				if (to_check == p_v.coords){
 					(*IMP_BOOL) = false; 
-					std::cout << "Translation process deemed impossible." << std::endl;
+					// std::cout << "Translation process deemed impossible." << std::endl;
 					return NewPol;  
 				}
 			}

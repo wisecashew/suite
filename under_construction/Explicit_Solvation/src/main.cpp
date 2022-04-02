@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
             metropolis = false; 
         }
         
-        std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
+        // std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
 
         if (IMP_BOOL){ 
             sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 

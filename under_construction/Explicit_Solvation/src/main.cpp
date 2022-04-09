@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     // set up 
     int opt; 
     int Nacc {-1}, dfreq {-1}, max_iter{-1};
-    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, restart_traj{"blank"};  
+    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, restart_traj{"blank"}, mfile {"blank"};  
     bool v = false, a = false, r = false;
 
     while ( (opt = getopt(argc, argv, ":f:M:N:T:o:u:p:t:e:vhar")) != -1 )
@@ -57,7 +57,8 @@ int main(int argc, char** argv) {
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates.\n" <<
                 "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Dump energy of grid at each step in a file.\n"<<
                 "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology.\n" <<
-                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n"<<
+                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
+                "Orientation file         [-e]           (STRING ARGUMENT REQUIRED)     Name of file which will contain orientation of monomer and neighboring solvent particles.\n" << 
                 "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer.\n";  
                 exit(EXIT_SUCCESS);
                 break;
@@ -104,12 +105,14 @@ int main(int argc, char** argv) {
                 std::cout <<"Will attempt to restart simulation by taking coordinates from a previous trajectory file." << std::endl;
                 r = true; 
                 break; 
+            
+            case 'e':
+                mfile=optarg;
+                break; 
 
             case ':':
                 std::cout << "ERROR: Missing arg for " << static_cast <char> (optopt) << "." << std::endl;
-                exit(EXIT_FAILURE);
-                
-                
+                exit(EXIT_FAILURE);           
                 break; 
         }
     }
@@ -117,7 +120,7 @@ int main(int argc, char** argv) {
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // parse inputs 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser (a, r, Nacc, dfreq, max_iter, positions, topology, dfile, efile, restart_traj); 
+    InputParser (a, r, Nacc, dfreq, max_iter, positions, topology, dfile, efile, restart_traj, mfile); 
 
     // driver 
 
@@ -188,8 +191,9 @@ int main(int argc, char** argv) {
     a_contcopy = a_contacts; 
     n_contcopy = n_contacts; 
 
-    dumpEnergy (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile, false);
-
+    dumpEnergy (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile);
+    dumpOrientation(&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
+    
     // defined single orientation solvents and polymers 
 
     std::cout << "Energy of system is " << sysEnergy << std::endl;
@@ -215,7 +219,7 @@ int main(int argc, char** argv) {
         SolventVector_ = SolventVector; 
         PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight);   
         
-        std::cout << "the rosenbluth weight is " << rweight << "." << std::endl;
+        // std::cout << "the rosenbluth weight is " << rweight << "." << std::endl;
 
         if ( !(metropolis) ){
             m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
@@ -287,11 +291,13 @@ int main(int argc, char** argv) {
             
             dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
             if ( metropolis ){
-                dumpEnergy (sysEnergy, i, m_neighbors, a_contacts, n_contacts, efile, false);
-                // metropolis = false; 
+                dumpEnergy (sysEnergy, i, m_neighbors, a_contacts, n_contacts, efile);
+                dumpOrientation ( &PolymerVector, &SolventVector, i, mfile, x, y, z); 
+                 
             }
             else {
-                dumpEnergy (sysEnergy, i, m_neicopy, a_contcopy, n_contcopy, efile, false);
+                dumpEnergy (sysEnergy, i, m_neicopy, a_contcopy, n_contcopy, efile);
+                dumpOrientation (&PolymerVector, &SolventVector, i, mfile, x, y, z); 
             }            
         }
         

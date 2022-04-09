@@ -887,13 +887,13 @@ bool MetropolisAcceptance(double E1, double E2, double kT, double rweight){
 	double dE = E2-E1; 
 	double prob = std::exp(-1/kT*dE) * rweight; 
 	double r = rng_uniform(0.0, 1.0); 
-	std::cout << "Probability is " << prob <<"." << std::endl;
+	// std::cout << "Probability is " << prob <<"." << std::endl;
 
 	// std::cout << "E1 is " << E1 << std::endl;
 	// std::cout << "E2 is " << E2 << std::endl;
 
-	std::cout << "Probability of acceptance is " << prob << "." << std::endl;
-	std::cout << "RNG is " << r << "." << std::endl;
+	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
+	// std::cout << "RNG is " << r << "." << std::endl;
 	if (r < prob){
 		return true; 
 	}
@@ -931,7 +931,7 @@ void StringToFile(std::string filename, std::string to_send){
 
 void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter, 
 	std::string positions, std::string topology, std::string dfile, 
-	std::string efile, std::string restart_traj){
+	std::string efile, std::string restart_traj, std::string mfile){
 
 	// if acceptance criterion is NOT CALLED 
 
@@ -975,9 +975,9 @@ void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter,
 
 	// simulation requires an initial "positions" file, a topology file, a coordinate dump, and an energydump file 
 
-    if (positions=="blank" || topology == "blank" || dfile=="blank" || efile == "blank" ){
-        std::cerr << "positions is " << positions <<", topology is " << topology <<", coordinate dump file is " << dfile << ", energy dump file is " << efile << std::endl;
-        std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file)" <<
+    if (positions=="blank" || topology == "blank" || dfile=="blank" || efile == "blank" || mfile == "blank" ){
+        std::cerr << "positions is " << positions <<", topology is " << topology <<", coordinate dump file is " << dfile << ", energy dump file is " << efile << ", orientation file is " << mfile << "." << std::endl;
+        std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file) and/or for option e (name of orientation file)" <<
         " and/or for option u (name of energy dump file) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);    
     }
@@ -992,6 +992,7 @@ void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter,
     else if (!r){
         std::ofstream dump_file (dfile);
         std::ofstream energy_dump_file (efile);
+        std::ofstream or_file (mfile); 
     }
 
 
@@ -1569,19 +1570,55 @@ void dumpPositionOfSolvent(std::vector <Particle>* SolventVector, int step, std:
 // THE CODE: 
 
 
-void dumpEnergy (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename, bool first_call){
+void dumpEnergy (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename){
     std::ofstream dump_file(filename, std::ios::app); 
     // std::ostringstream os; 
-    if (first_call){
-        dump_file <<"This file contains energy of the Grid at certain points in the simulation.\n";
-        dump_file <<"Energy | Monomer-monomer contacts | aligned solvent-monomer contacts | misaligned solvent-monomer contacts | Step_Number\n" ;
-    }
     
     dump_file << sysEnergy << " | " << m_contacts << " | " << a_contacts << " | " << n_contacts << " | " << step << "\n";
     
     return; 
 }
 
+//============================================================
+//============================================================
+//
+// NAME OF FUNCTION: dumpOrientations 
+//
+// PARAMETERS: (std::vector <Polymer>* PV, std::vector <Particle>* SV, int step, std::string filename), and some attributes present in the Grid Object 
+// 'step' is the current time step we are at. This is an integer which is likely defined in the driver code.  
+// 'filename' is the file to which I am going to print out coordinate information about the polymer. 
+//
+// WHAT THE FUNCTION DOES: It takes the coordinates of the polymers and solvents and throws out neighboring orientations  
+//   
+//
+// DEPENDENCIES: No custom function required. All can be done from C++ STL. 
+//
+// THE CODE: 
+
+void dumpOrientation( std::vector <Polymer>* PV, std::vector <Particle>* SV, int step, std::string filename, int x, int y, int z ) {
+    
+    std::ofstream dump_file (filename, std::ios::app); 
+    dump_file << "START for Step " << step << ".\n";
+    Particle t_particle; 
+    for ( const Polymer& pmer: (*PV) ) {
+        for ( const Particle& p: pmer.chain ) {
+            
+            dump_file << p.orientation << " | ";
+            std::array <std::array<int,3> ,6> ne_list = obtain_ne_list (p.coords, x, y, z) ;
+            for ( const std::array <int,3>& ne: ne_list) {
+                t_particle = ParticleReporter (PV, SV, ne);
+                if (t_particle.ptype == "solvent"){
+                    dump_file << t_particle.orientation << " | ";  
+                } 
+            }
+            dump_file << "\n"; 
+        } 
+    }
+    
+    dump_file << "END. \n";
+    return;
+
+}
 
 
 //============================================================
@@ -1695,7 +1732,7 @@ std::vector <Polymer> TailRotation_Rosenbluth(std::vector <Polymer>* PolymerVect
 		}
 
 		else if ( ! (MonomerReporter(PolymerVector, &to_rot) ) ){
-			std::cout << "a free location is "; print(to_rot); 
+			// std::cout << "a free location is "; print(to_rot); 
 			(*rweight) += 1;
 			idx_v.push_back( to_rot );  
 		}
@@ -1711,7 +1748,7 @@ std::vector <Polymer> TailRotation_Rosenbluth(std::vector <Polymer>* PolymerVect
 		int r = rng_uniform(0, static_cast<int> (idx_v.size() - 1) ); 
 		NewPol[index].chain[0].coords = idx_v[ r ];  
 
-		std::cout << "Suggested rot position is "; print (idx_v [r]); 
+		// std::cout << "Suggested rot position is "; print (idx_v [r]); 
 
 		for (Particle& p: (*SolvVector)){
 			if (p.coords == idx_v[ r ]){
@@ -1843,7 +1880,7 @@ std::vector <Polymer> HeadRotation_Rosenbluth(std::vector <Polymer>* PolymerVect
 		}
 
     	else if ( ! (MonomerReporter(PolymerVector, &to_rot) ) ){
-    		std::cout << "a free location is "; print(to_rot); 
+    		// std::cout << "a free location is "; print(to_rot); 
     		(*rweight) += 1; 
     		idx_v.push_back(to_rot); 
     	}
@@ -1857,7 +1894,7 @@ std::vector <Polymer> HeadRotation_Rosenbluth(std::vector <Polymer>* PolymerVect
     else {
     	int r = rng_uniform(0, static_cast<int> (idx_v.size() - 1) ); 
     	NewPol[index].chain[dop-1].coords = idx_v[ r ]; 
-    	std::cout << "Suggested rot position is "; print (idx_v [r]); 
+    	// std::cout << "Suggested rot position is "; print (idx_v [r]); 
     	for (Particle& p: (*SolvVector)){
     		if (p.coords == idx_v[ r ]){
     			p.coords = loc_0;
@@ -2064,8 +2101,8 @@ std::vector <Polymer> KinkJump_Rosenbluth(std::vector <Polymer>* PolymerVector, 
         impose_pbc(&to_check, x, y, z); 
 
         if ( ! ( MonomerReporter (PolymerVector, &to_check) ) ){
-        	std::cout << "kink is at "; print(NewPol[index].chain[idx+1].coords);
-        	std::cout << "a free location is "; print(to_check); 
+        	// std::cout << "kink is at "; print(NewPol[index].chain[idx+1].coords);
+        	// std::cout << "a free location is "; print(to_check); 
         	(*rweight) += 1;
         	idx_v.push_back(idx);  
         	pos_v.push_back(to_check); 
@@ -2082,7 +2119,7 @@ std::vector <Polymer> KinkJump_Rosenbluth(std::vector <Polymer>* PolymerVector, 
 		int r = rng_uniform(0, static_cast<int> (idx_v.size() - 1) ); 
 		NewPol[index].chain[idx_v[r]+1].coords = pos_v[r]; 
 
-		std::cout << "kink jump spot is: "; print(pos_v[r]);
+		// std::cout << "kink jump spot is: "; print(pos_v[r]);
 		
 		for (Particle& p: (*SolvVector)){
 			if (p.coords == pos_v[r]){
@@ -2241,7 +2278,7 @@ std::vector <Polymer> CrankShaft_Rosenbluth(std::vector <Polymer>* PolymerVector
 
     if ( c_idx.size()==0 ){
         *IMP_BOOL = false;  
-        std::cout << "No cranks..." << std::endl;
+        // std::cout << "No cranks..." << std::endl;
         return NewPol; 
     }
     
@@ -2279,15 +2316,15 @@ std::vector <Polymer> CrankShaft_Rosenbluth(std::vector <Polymer>* PolymerVector
 
     if ( (*rweight) == 0 ){
     	*IMP_BOOL = false; 
-    	std::cout << "No allowable crankshafts." << std::endl;
+    	// std::cout << "No allowable crankshafts." << std::endl;
     }
 
   	else {
 
   		int r = rng_uniform( 0, pos_v1.size() - 1 ); 
 
-  		std::cout << "cranked pos 1 is "; print(pos_v1[r]); 
-  		std::cout << "cranked pos 2 is "; print(pos_v2[r]); 
+  		// std::cout << "cranked pos 1 is "; print(pos_v1[r]); 
+  		// std::cout << "cranked pos 2 is "; print(pos_v2[r]); 
 
   		NewPol[index].chain[idx+1].coords = pos_v1[r];
   		NewPol[index].chain[idx+2].coords = pos_v2[r];
@@ -2491,7 +2528,7 @@ std::vector <Polymer> ForwardReptation_Rosenbluth(std::vector <Polymer>* Polymer
 		int r = rng_uniform( 0, idx_v.size()-1 );
 		// if everything checks out, do the deed - make it slither forward 
 		// std::cout << "In acceptance land." << std::endl; 
-		std::cout << "location of new spot is "; print(idx_v[r]); 
+		// std::cout << "location of new spot is "; print(idx_v[r]); 
 		for (int i{0}; i<deg_poly; ++i){
 
 			if ( i != deg_poly-1 ){
@@ -3234,7 +3271,7 @@ void TailSpin_Rosenbluth(std::vector <Polymer>* PVec, int index_of_polymer, int 
 	}
 
     
-    std::cout << "Current pivot point is "; print(  (*PVec) [index_of_polymer].chain[index_of_monomer].coords );
+    // std::cout << "Current pivot point is "; print(  (*PVec) [index_of_polymer].chain[index_of_monomer].coords );
     int rw_tmp = 0; 
     std::vector <std::array <int,3>> ind_v; 
 	for (std::array <int,3>& d: adrns){ 
@@ -3250,7 +3287,7 @@ void TailSpin_Rosenbluth(std::vector <Polymer>* PVec, int index_of_polymer, int 
 
 		else {
 			rw_tmp += 1;
-			std::cout <<"a possible position is: "; print(to_check); 
+			// std::cout <<"a possible position is: "; print(to_check); 
 			ind_v.push_back(to_check); 
 		}
 	}
@@ -3262,7 +3299,7 @@ void TailSpin_Rosenbluth(std::vector <Polymer>* PVec, int index_of_polymer, int 
 	else{
 		(*PVec)[index_of_polymer].chain[index_of_monomer-1].coords = ind_v[ rng_uniform(0, rw_tmp-1) ]; 
 		(*rweight) = (*rweight) * rw_tmp/6; 
-		std::cout << "rweight is " << *rweight << std::endl;
+		// std::cout << "rweight is " << *rweight << std::endl;
     	// std::cout << "Moving in deeper...\n\t"; 
 		TailSpin_Rosenbluth (PVec, index_of_polymer, index_of_monomer-1, x, y, z, IMP_BOOL, first_entry_bool, rweight); 
 	}

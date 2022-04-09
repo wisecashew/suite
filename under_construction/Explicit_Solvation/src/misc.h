@@ -81,9 +81,9 @@ std::array  <int,3> subtract_arrays  (std::array <int,3>* a1, std::array <int,3>
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
-void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter, 
+void InputParser (bool a, bool r, int Nacc, int dfreq, int max_iter, 
     std::string positions, std::string topology, std::string dfile, 
-    std::string efile, std::string restart_traj); 
+    std::string efile, std::string restart_traj, std::string mfile); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -147,8 +147,9 @@ bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // dump methods 
 void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
-void dumpEnergy              (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename, bool first_call); 
+void dumpEnergy              (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename); 
 void dumpPositionOfSolvent   (std::vector <Particle>* SolventVector, int step, std::string filename);
+void dumpOrientation         (std::vector <Polymer>* PV, std::vector <Particle>* SV, int step, std::string filename, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 

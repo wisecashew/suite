@@ -19,10 +19,6 @@ def extract_loc_from_string(a_string):
     
     return np.asarray(loc) 
 
-
-        
-    
-
 def modified_modulo(divident, divisor):
     midway = divisor/2
     if (divident%divisor > midway):
@@ -134,7 +130,7 @@ if __name__ == "__main__":
         else:         
             monomer_coords = extract_loc_from_string(line)
             # print(monomer_coords)
-            master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords) )
+            master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords[0:-1]) )
             continue
     
     e2e = [] 

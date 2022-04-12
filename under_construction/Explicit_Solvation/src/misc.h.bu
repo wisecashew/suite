@@ -119,9 +119,8 @@ std::vector <std::array <int,3>> create_lattice_pts  (int x_len, int y_len, int 
 bool checkValidityOfCoords                (std::array <int,3> v, int x, int y, int z); 
 bool checkForOverlaps                     (std::vector <Polymer> Polymers);
 bool checkConnectivity                    (std::vector <Polymer> Polymers, int x, int y, int z); 
-bool checkForSolventMonomerOverlap        (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent); 
-int  IsSolvent                            (std::vector <Polymer>* Polymers, std::array <int,3> to_check);
-int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std::array <int,3> to_check);
+bool checkForSolventMonomerOverlap        (std::vector <Polymer>* Polymers, std::vector <Particle>* SolventVector); 
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // extraction methods 
 std::vector <Polymer>  ExtractPolymersFromFile    (std::string filename, int x, int y, int z);
@@ -139,7 +138,7 @@ double                 NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* m_neighbor, int* a_contacts, int* n_contacts);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* m_neighbor, int* a_contacts, int* n_contacts);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -149,8 +148,8 @@ bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight);
 // dump methods 
 void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
 void dumpEnergy              (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename); 
-void dumpPositionOfSolvent   (std::vector <Particle>* Solvent, int step, std::string filename);
-void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int step, std::string filename, int x, int y, int z);
+void dumpPositionOfSolvent   (std::vector <Particle>* SolventVector, int step, std::string filename);
+void dumpOrientation         (std::vector <Polymer>* PV, std::vector <Particle>* SV, int step, std::string filename, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -158,27 +157,26 @@ void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Part
 // Polymer moves
 
 
-std::vector <Polymer> TailRotation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL);
-std::vector <Polymer> HeadRotation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> EndRotation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> KinkJump             (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> CrankShaft           (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL);
-std::vector <Polymer> ForwardReptation     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL);
-std::vector <Polymer> BackwardReptation    (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> Reptation            (std::vector<Polymer>*  Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> TailRotation         (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> HeadRotation         (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> EndRotation          (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> KinkJump             (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> CrankShaft           (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> ForwardReptation     (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL);
+std::vector <Polymer> BackwardReptation    (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> Reptation            (std::vector<Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL); 
 void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
-void                  OrientationFlipLocal (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z);
-void                  PolymerFlip          (std::vector <Polymer>* Polymers);
-void                  ChainRegrowth        (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
-void                  TailSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool );
-void                  HeadSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool);
-std::vector <Polymer> MoveChooser          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL);
+void                  PolymerFlip          (std::vector <Polymer>* PolyVec);
+void                  ChainRegrowth        (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVect, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
+void                  TailSpin             (std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool );
+void                  HeadSpin             (std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool);
+std::vector <Polymer> MoveChooser          (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int x, int y, int z, bool v, bool* IMP_BOOL);
 
 // methods relevant to chain regrowth 
-bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* Polymers);
-bool checkOccupancyTail                                 (std::array <int,3>* loc, std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer);
-bool checkOccupancyHead                                 (std::array <int,3>* loc, std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer);
+bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* PVec);
+bool checkOccupancyTail                                 (std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer);
+bool checkOccupancyHead                                 (std::array <int,3>* loc, std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer);
 std::vector <std::array <int,3>> extract_positions_tail (std::vector <Particle>* chain, int pivot_idx);
 std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle>* chain, int pivot_idx);
 
@@ -191,18 +189,18 @@ std::array <std::array <int,3>,3> HingeSwingDirections (std::array <int,3>* Hing
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Polymer moves with Rosenbluth sampling methods 
 
-std::vector <Polymer> TailRotation_Rosenbluth      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-std::vector <Polymer> HeadRotation_Rosenbluth      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-std::vector <Polymer> EndRotation_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-std::vector <Polymer> KinkJump_Rosenbluth          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-std::vector <Polymer> CrankShaft_Rosenbluth        (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-std::vector <Polymer> ForwardReptation_Rosenbluth  (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-std::vector <Polymer> BackwardReptation_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-std::vector <Polymer> Reptation_Rosenbluth         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-void                  ChainRegrowth_Rosenbluth     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL); 
-void                  TailSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
-void                  HeadSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> TailRotation_Rosenbluth      (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> HeadRotation_Rosenbluth      (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> EndRotation_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> KinkJump_Rosenbluth          (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> CrankShaft_Rosenbluth        (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> ForwardReptation_Rosenbluth  (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> BackwardReptation_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> Reptation_Rosenbluth         (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+void                  ChainRegrowth_Rosenbluth     (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVec, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL); 
+void                  TailSpin_Rosenbluth          (std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
+void                  HeadSpin_Rosenbluth          (std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
+std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVector, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 

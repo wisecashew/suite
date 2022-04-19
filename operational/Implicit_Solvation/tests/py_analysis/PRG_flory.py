@@ -12,8 +12,8 @@ give you Radius of Gyration
 
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration histogram.")
-parser.add_argument('-i', metavar='coords.txt', dest='i', action='store', help='enter address of coordinate file.')
-parser.add_argument('-e', metavar='E', type=int, dest='e', action='store', help='enter the edge length of the cubic simulation box.')
+parser.add_argument('-U', metavar='UX', dest='U', action='store', type=str, help='enter identifier of energy surface.')
+parser.add_argument('-T', metavar='T', dest='T', type=str, action='store', help='enter a temperatyre')
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this index.', default=100)
 
 args = parser.parse_args() 
@@ -67,7 +67,7 @@ def get_Rg(coord_arr, xlen, ylen, zlen):
 
 
 def get_pdict(filename, x, y, z):
-    f = open(args.i, 'r')
+    f = open(filename, 'r')
     coord_file = f.readlines() 
     
     st_b_str = "Dumping coordinates at step" 
@@ -124,89 +124,40 @@ def get_pdict(filename, x, y, z):
 
 if __name__ == "__main__":
     
-    filename = args.i 
-    xlen, ylen, zlen = args.e, args.e, args.e
-     
-    master_dict = get_pdict (filename, xlen, ylen, zlen) 
-    
-    '''
-    f = open( args.i , "r")
-    coord_file = f.readlines() 
-    
-    st_b_str = "Dumping coordinates at step" 
-    pmer_num_str = "Dumping coordinates of Polymer"
-    start_str = "START"
-    end_str_1 = "END" 
-    end_str_2 = "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n" 
-    
-    # master_dict will be dictionary which will contain polymer coordinates at each step 
-    # chunky data structure
-    master_dict = {} 
-    
-    xlen, ylen, zlen = args.e, args.e, args.e
-    
-    step_flag = 0 
-    pmer_flag = -1 
-    end_step_flag = 0
-    step_num = 0 
-    
-    # given a string, it will extract all numbers out in chronological order 
-    # and put them in a numpy array 
-    
-    for line in coord_file: 
-        if (re.search(st_b_str, line)):
-            
-            step_num = int((extract_loc_from_string(line.replace('.', ' ')) ) )
-            
-            master_dict[step_num] = {}
-            
-            step_flag = 1
-            pmer_flag = -1
-            end_step_flag = 0
-            continue
+    U = args.U
+    T = args.T 
+    dop_list = [8, 16, 24, 30, 40] 
         
-        elif (re.search(start_str, line)):
-            continue
+    rg_mean = [] 
+    
+    for dop in dop_list:
+        filename = U +"/DOP_"+str(dop)+"/"+T+"/coords.txt"
+        master_dict = get_pdict (filename, dop+2, dop+2, dop+2) 
 
-        elif (re.search(pmer_num_str, line)):
-            pmer_flag += 1
-            master_dict[step_num][pmer_flag] = np.empty ( (0,3) )
-            
-            continue
-            
-        elif (re.search(end_str_1, line)):
-            end_step_flag = 1
-            step_flag = 0 
-            pmer_flag = -1
-            continue
-
-        elif (re.search(end_str_2, line)):
-            continue
+        rg = [] 
+        steps = [] 
+        for key in master_dict: 
+            rg.append( get_Rg(master_dict[key][0], dop+2, dop+2, dop+2) ) 
+            steps.append(key)  
+        # d = {'RG': rg, 'moves': steps }
+        # df = pd.DataFrame(data=d)["RG"] 
+        rg_mean.append( np.mean(rg[args.s:]) )         
+    
+    rg_mean = np.array (rg_mean) 
         
-        else:
-            monomer_coords = extract_loc_from_string(line)
-            master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords) )
-            continue
-    '''
+    plt.plot( np.log(dop_list), np.log(rg_mean) )
     
-    rg = [] 
-    steps = [] 
-    
-    for key in master_dict: 
-        rg.append( get_Rg(master_dict[key][0], xlen, ylen, zlen) ) 
-        steps.append(key)  
-    
-    d = {'RG': rg, 'moves': steps }
-    df = pd.DataFrame(data=d)["RG"] 
-    
-    df.plot(kind= "hist", density = True, bins=50)    
+    L = np.polyfit( np.log(dop_list), np.log(rg_mean), 1) 
+
+    print ("Flory exponent is {:.2f}".format(L[0]/2) )  
+    # df.plot(kind= "hist", density = True, bins=50)    
     # df.plot(kind="kde")
     # plt.hist(rg[args.s:], density=True)
-    plt.xlabel('Radius of gyration')
-    plt.ylabel('Frequency')
-    plt.title('Radius of gyration trend as phase space is sampled')
-    print("min is {} and index is {}".format(np.min(rg[args.s:]), np.argmin(rg[args.s:])))
-    print("mean is {}".format( np.mean(rg[args.s:]  )  ) ) 
-    print("max is {} and index is {}.".format( np.max(rg[args.s:] ), np.argmax(rg[args.s:] ) ) ) 
+    # plt.xlabel('Radius of gyration')
+    # plt.ylabel('Frequency')
+    # plt.title('Radius of gyration trend as phase space is sampled')
+    # print("min is {} and index is {}".format(np.min(rg[args.s:]), np.argmin(rg[args.s:])))
+    # print("mean is {}".format( np.mean(rg[args.s:]  )  ) ) 
+    # print("max is {} and index is {}.".format( np.max(rg[args.s:] ), np.argmax(rg[args.s:] ) ) ) 
     plt.show() 
     

@@ -45,7 +45,7 @@ int main(int argc, char** argv) {
                 std::cout << 
                 "This is the main driver for the monte carlo simulation of polymers in a box. This is an explicit solvent simulation.\n" <<
 		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. \nSet up on Mar 30, 2022, 01:00 AM.\n" <<
-                "This code employs Rosenbluth sampling.\n" << 
+                "This code employs Rosenbluth sampling and both local and multiple solvent flips.\n" << 
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
         // choose a move 
         SolventVector_ = SolventVector; 
         PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight);   
-        
+        // std::cout << "This is a line right outside main.cpp, after movechooser_r."<<std::endl; 
         // std::cout << "the rosenbluth weight is " << rweight << "." << std::endl;
 
         if ( !(metropolis) ){
@@ -230,21 +230,28 @@ int main(int argc, char** argv) {
         }
         
         // std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
+        
+        // std::cout << "Outside calcenergy..." << std::endl;
+        // PolymerVector_[0].printChainCoords();         
 
         if (IMP_BOOL){ 
             sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+            // std::cout << "has energy been calculated?" << std::endl;
         }
 
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
-
+        
+        
         if ( IMP_BOOL && MetropolisAcceptance (sysEnergy, sysEnergy_, T, rweight) ) {
             metropolis = true; 
+            // std::cout << "bro..." << std::endl;
             // replace old config with new config
             if ( v ){
                 printf("Checking validity of coords...");
                 printf("checkForOverlaps says: %d.\n", checkForOverlaps(PolymerVector_)); 
+                std::cout <<"Is this the last thing?" << std::endl;
                 if (!checkForOverlaps(PolymerVector_)){
                     printf("Something is fucked up overlaps-wise. \n");
                     exit(EXIT_FAILURE);
@@ -256,6 +263,7 @@ int main(int argc, char** argv) {
                 }
 
                 printf("checkConnectivity says: %d\n", checkConnectivity(PolymerVector_, x, y, z)); 
+                std::cout << "Is this another last thing?" << std::endl;
                 if (! checkConnectivity(PolymerVector_, x, y, z) ){
                     printf("Something is fucked up connectivity-wise. \n");
                     exit(EXIT_FAILURE);
@@ -286,17 +294,26 @@ int main(int argc, char** argv) {
             }
             
         }
+        
+        // std::cout << "Is this being hit after the no change in the state print statement?" << std::endl;
 
         if ( ( i % dfreq == 0) ){
             
+            // std::cout << "Am I inside the dump zone?" << std::endl;  
+            // PolymerVector[0].printChainCoords(); 
+            // std::cout << "Am I inside the dump zone again?" << std::endl;  
             dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
             if ( metropolis ){
+                // std::cout << "metropolis is " << metropolis << ". let the dumping begin!" << std::endl;
                 dumpEnergy (sysEnergy, i, m_neighbors, a_contacts, n_contacts, efile);
+                // std::cout << "dumping out orientations... " << std::endl;
                 dumpOrientation ( &PolymerVector, &SolventVector, i, mfile, x, y, z); 
                  
             }
             else {
+                // std::cout << "metropolis is " << metropolis <<". let the dumping begin! " << std::endl;
                 dumpEnergy (sysEnergy, i, m_neicopy, a_contcopy, n_contcopy, efile);
+                // std::cout << "dumping out orientations... " << std::endl;
                 dumpOrientation (&PolymerVector, &SolventVector, i, mfile, x, y, z); 
             }            
         }
@@ -308,7 +325,6 @@ int main(int argc, char** argv) {
     dumpPositionOfSolvent(&SolventVector, max_iter, "solvent_coords");
 
     auto stop = std::chrono::high_resolution_clock::now(); 
-    
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
 	// printf("\nNumber of moves accepted is %d.", acc_counter);

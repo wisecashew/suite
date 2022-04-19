@@ -120,8 +120,8 @@ bool checkValidityOfCoords                (std::array <int,3> v, int x, int y, i
 bool checkForOverlaps                     (std::vector <Polymer> Polymers);
 bool checkConnectivity                    (std::vector <Polymer> Polymers, int x, int y, int z); 
 bool checkForSolventMonomerOverlap        (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent); 
-int  IsSolvent                            (std::vector <Polymer>* Polymers, std::array <int,3> to_check);
-int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std::array <int,3> to_check);
+int  IsSolvent                            (std::vector <Polymer>* Polymers, std::array <int,3>* to_check);
+int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std::array <int,3>* to_check);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // extraction methods 
 std::vector <Polymer>  ExtractPolymersFromFile    (std::string filename, int x, int y, int z);

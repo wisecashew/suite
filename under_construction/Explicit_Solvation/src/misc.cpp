@@ -1090,23 +1090,24 @@ bool checkForOverlaps(std::vector <Polymer> PolymerVector){
 
 bool checkForSolventMonomerOverlap(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolventVector){
     
-    std::vector <std::array <int,3>> loc_list; 
+    std::vector <std::array <int,3>> loc_list;
+    loc_list.reserve( (*SolventVector).size() ); 
 
-    for (Polymer& pmer: (*PolymerVector)) {
-        for (Particle& p: pmer.chain){
+    for (const Polymer& pmer: (*PolymerVector)) {
+        for (const Particle& p: pmer.chain){
             // check if element exists in vector 
                 if (std::find(loc_list.begin(), loc_list.end(), p.coords) != loc_list.end() ){
                     std::cerr << "you have a repeated element." << std::endl;
                     return false; 
-                    }
+                }
             
                 else{
                     loc_list.push_back(p.coords);  
                 }
-            }
-        }    
+        }
+    }    
     
-    for (Particle& p: (*SolventVector)){
+    for (const Particle& p: (*SolventVector)){
 
     	if (std::find(loc_list.begin(), loc_list.end(), p.coords) != loc_list.end() ){
             std::cerr << "you have a repeated element. There is a fuck up." << std::endl;
@@ -1169,6 +1170,7 @@ bool checkConnectivity(std::vector <Polymer> PolymerVector, int x, int y, int z)
     }
 
     std::cout << "Input polymers are well-connected!" << std::endl;
+    // std::cout << "Am i INSIDE CHECKCONNECTIVITY here?" << std::endl;
     return true;
 }
 
@@ -1300,9 +1302,8 @@ std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y,
 
 Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, std::array <int,3> to_check){
 
-
-	for (Polymer& pmer: (*PolymerVector)) {
-		for (Particle& p: pmer.chain){ 
+	for (const Polymer& pmer: (*PolymerVector)) {
+		for (const Particle& p: pmer.chain){ 
 
 			if (to_check == p.coords){
 				return p;
@@ -1311,24 +1312,22 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 		}
 	}
 
-	for (Particle& p: *SolvVect){
+	for (const Particle& p: *SolvVect){
 
 		if (to_check == p.coords){
 			return p;
 		}
 
 	} 
-    std::cout << "location of to_check: "; print(to_check); 
-    std::cout << "Fucked up part. Coords of polymer: \n"; 
-    (*PolymerVector)[0].printChainCoords();     
-    (*PolymerVector)[1].printChainCoords(); 
+    // (*PolymerVector)[0].printChainCoords();     
+    // (*PolymerVector)[1].printChainCoords(); 
     // std::cout << "Coords of solvent: \n";    
 
     for (const Particle& p: *SolvVect){
         print(p.coords); 
     }
     
-	std::cout << "Something is profoundly fucked." << std::endl;
+	std::cout << "Something is profoundly fucked - reporting from ParticleReporter." << std::endl;
     exit(EXIT_FAILURE);
 	// Particle p;
 	return (*SolvVect)[0]; 
@@ -1336,27 +1335,27 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 }
 
 // used only inside OrientationFlip local
-int SolventIndexReporter ( std::vector <Particle>* Solvent, std::array <int,3> to_check){
+/*int SolventIndexReporter ( std::vector <Particle>* Solvent, std::array <int,3>* to_check){
 
 	int idx {0}; 
 	for (const Particle& p: *Solvent){
 		idx += 1; 
-		if (p.coords == to_check){
+		if (p.coords == (*to_check)){
 			return idx;
 		}
 	}
 
-	std::cout <<"Something is profoundly fucked." << std::endl;
+	std::cout <<"Something is profoundly fucked (SolventIndexReporter)." << std::endl;
 	return -1; 
 
-}
+}*/
 
-int IsSolvent( std::vector <Polymer>* Polymers, std::array <int,3> to_check ){
+/*int IsSolvent( std::vector <Polymer>* Polymers, std::array <int,3>* to_check ){
 
 	for (const Polymer& pmer: (*Polymers) ){
 		for (const Particle& p: pmer.chain ){
 
-			if (p.coords == to_check){
+			if (p.coords == (*to_check)){
 				return 0;
 			}
 
@@ -1365,7 +1364,7 @@ int IsSolvent( std::vector <Polymer>* Polymers, std::array <int,3> to_check ){
 
 	return 1; 
 
-}
+}*/
 
 //============================================================
 //============================================================
@@ -1434,30 +1433,24 @@ bool MonomerReporter (std::vector <Polymer>* PolymerVector, std::array <int,3>* 
 
 double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* m_neighbor, int* a_contacts, int* n_contacts){
     double Energy {0.0};
-    // std::cout << "Inside CalculateEnergy..." << std::endl; 
     (*m_neighbor) = 0; 
     (*a_contacts) = 0; 
     (*n_contacts) = 0;  
     // polymer-polymer interaction energies 
+    // (*PolymerVector)[0].printChainCoords();
     for (const Polymer& pmer: (*PolymerVector)) {
         for (const Particle& p: pmer.chain){
-            // std::cout << "Particle of interest: "; 
-            // print(p.coords);  
-            // std::vector <Particle> part_vec = pmer.ConnectivityMap[p];
-            // std::cout << "Neighbors are... \n";
             std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(p.coords, x, y, z); // get neighbor list 
 
             // consider bonded interactions  
             
-            for (std::array <int, 3>& loc: ne_list){
-                // std::cout << "neighbor list is: "; print (loc); 
+            for (const std::array <int, 3>& loc: ne_list){
                 // get the particle at loc 
             	
             	Particle ptr {ParticleReporter (PolymerVector, SolvVector, loc) };
 
             	if ((ptr).ptype == "monomer"){
                     (*m_neighbor) += 0.5; 
-                    // print(loc); 
                     
             		if ((ptr).orientation == p.orientation ){
 
@@ -1519,6 +1512,7 @@ void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, s
     std::ofstream dump_file(filename, std::ios::app); 
     dump_file <<"Dumping coordinates at step " << step << ".\n";
     
+ 
     // dump_file <<"Dumping coordinates at step " << step << ".\n";
     int count = 0; 
     for (const Polymer& pmer: *PolymersInGrid){
@@ -1626,18 +1620,24 @@ void dumpEnergy (double sysEnergy, int step, double m_contacts, int a_contacts, 
 //
 // THE CODE: 
 
+// dumping orientations of solvent around monomer segments
 void dumpOrientation( std::vector <Polymer>* PV, std::vector <Particle>* SV, int step, std::string filename, int x, int y, int z ) {
-    
+    // std::cout<< "just inside dumpO..."<<std::endl; 
     std::ofstream dump_file (filename, std::ios::app); 
     dump_file << "START for Step " << step << ".\n";
     Particle t_particle; 
     for ( const Polymer& pmer: (*PV) ) {
         for ( const Particle& p: pmer.chain ) {
-            
+            // std::cout << "particle is at "; print(p.coords);  
             dump_file << p.orientation << " | ";
             std::array <std::array<int,3> ,6> ne_list = obtain_ne_list (p.coords, x, y, z) ;
+            // std::cout << "neighbor list: " << std::endl;
+            // print(ne_list); 
             for ( const std::array <int,3>& ne: ne_list) {
+                // std::cout <<"Particle positions: "; 
+                // print (ne) ;
                 t_particle = ParticleReporter (PV, SV, ne);
+                // std::cout << "Reported~\n"; 
                 if (t_particle.ptype == "solvent"){
                     dump_file << t_particle.orientation << " | ";  
                 } 
@@ -3630,28 +3630,27 @@ void OrientationFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Partic
 
 
 	// obtain the list of solvent particles neighboring the polymer 
-	std::vector <int> solvent_indices; 
-	for (Polymer& pmer: (*Polymers)) {
-		for (Particle& p: pmer.chain) {
+	std::vector <int> solvent_indices;
+    solvent_indices.reserve((*Solvent).size()); 
+      
+	for (const Polymer& pmer: (*Polymers)) {
+		for (const Particle& p: pmer.chain) {
 
 			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
-
-			for (const std::array<int,3>& ne: ne_list){
-				if (IsSolvent (Polymers, ne)){
-					solvent_indices.push_back (SolventIndexReporter (Solvent, ne));
-				}
-			}
+            for (const std::array <int,3>& n: ne_list){ 
+                
+                for (int j{0}; j<static_cast<int>( (*Solvent).size() ); ++j){
+                    if (n == (*Solvent)[j].coords){
+                        solvent_indices.push_back(j); 
+                    }
+                }                
+            }	
 		}
 	}
 
 	// get rid of repeated indices
 	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
 	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
-
-	std::random_device rd;
-    std::mt19937 g(rd());
-
-	std::shuffle ( solvent_indices.begin(), solvent_indices.end(), g ); 
 
 	// std::cout << "size of solvent_indices is " << solvent_indices.size() << std::endl; 
 
@@ -3667,7 +3666,6 @@ void OrientationFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Partic
 		// std::cout << "orientation is " << (*Solvent)[idx].orientation <<", location is: "; 
 		// print( (*Solvent)[idx].coords ); 
 		(*Solvent)[idx].orientation = rng_uniform (0, 5); 
-		// std::cout << "orientation is " << (*Solvent)[idx].orientation << std::endl;
 		++counter; 
 
 	}
@@ -3684,6 +3682,7 @@ void PolymerFlip ( std::vector <Polymer>* PolVec ){
             p.orientation = rng_uniform(0,5); 
         }
     }
+    // std::cout << "Performed flip." << std::endl;
     return; 
 }
 
@@ -3706,7 +3705,7 @@ void PolymerFlip ( std::vector <Polymer>* PolVec ){
 // DEPENDENCIES: rng_uniform, CalculateEnergy, EndRotation, KinkJump, CrankShaft, Reptation, IsingFlip  
 //
 // THE CODE: 
-
+/*
 std::vector <Polymer> MoveChooser(std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
@@ -3757,10 +3756,11 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* Polymers, std::vector <
 
         case (6): 
         	if (v){
-        		printf("Performing orientation flips. \n");
+        		printf("Performing solvent orientation flips. \n");
         	}
-        	// OrientationFlip(SolvVector, x, y, z, 4); 
-        	OrientationFlipLocal (Polymers, Solvent, x, y, z); 
+        	OrientationFlip(Solvent, x, y, z, 4); 
+        	// OrientationFlipLocal (Polymers, Solvent, x, y, z); 
+            // std::cout << "performed flip local." << std::endl;
         	break; 
 
         case (7):
@@ -3781,14 +3781,14 @@ std::vector <Polymer> MoveChooser(std::vector <Polymer>* Polymers, std::vector <
 
     return NewPol;
 }
-
+*/
 //////////////////////////////////////////////////////////////
 
 std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
     std::vector <Polymer> NewPol = (*Polymers); 
-    int r = rng_uniform(1, 8);
+    int r = rng_uniform(1, 9);
     switch (r) {
         case (1):
             if (v){
@@ -3834,21 +3834,30 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
 
         case (6): 
         	if (v){
-        		printf("Performing orientation flips. \n");
+        		printf("Performing local solvent orientation flips. \n");
         	}
         	// OrientationFlip(Solvent, x, y, z, 4); 
         	OrientationFlipLocal (Polymers, Solvent, x, y, z); 
         	(*rweight) = 1; 
+            // std::cout << "performed flip local." << std::endl;
         	break; 
-
+        
         case (7):
+            if (v){
+                printf("Performing solvent orientation flips. \n"); 
+            }
+            OrientationFlip(Solvent, x, y, z, 4);
+            (*rweight) = 1; 
+            break; 
+
+        case (8):
         	if (v){
         		printf("Performing translation. \n");
         	}
         	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
         	break;
 
-        case (8):
+        case (9):
         	if (v){
         		printf("Performing polymer orientation flips. \n");
         	}

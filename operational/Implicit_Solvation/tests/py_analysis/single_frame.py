@@ -110,7 +110,7 @@ for line in coord_file:
     else:
         # print(pmer_flag)
         monomer_coords = extract_loc_from_string ( line ) 
-        master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords) )
+        master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords[0:-1]) )
         continue 
 
 

@@ -129,66 +129,6 @@ if __name__ == "__main__":
      
     master_dict = get_pdict (filename, xlen, ylen, zlen) 
     
-    '''
-    f = open( args.i , "r")
-    coord_file = f.readlines() 
-    
-    st_b_str = "Dumping coordinates at step" 
-    pmer_num_str = "Dumping coordinates of Polymer"
-    start_str = "START"
-    end_str_1 = "END" 
-    end_str_2 = "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n" 
-    
-    # master_dict will be dictionary which will contain polymer coordinates at each step 
-    # chunky data structure
-    master_dict = {} 
-    
-    xlen, ylen, zlen = args.e, args.e, args.e
-    
-    step_flag = 0 
-    pmer_flag = -1 
-    end_step_flag = 0
-    step_num = 0 
-    
-    # given a string, it will extract all numbers out in chronological order 
-    # and put them in a numpy array 
-    
-    for line in coord_file: 
-        if (re.search(st_b_str, line)):
-            
-            step_num = int((extract_loc_from_string(line.replace('.', ' ')) ) )
-            
-            master_dict[step_num] = {}
-            
-            step_flag = 1
-            pmer_flag = -1
-            end_step_flag = 0
-            continue
-        
-        elif (re.search(start_str, line)):
-            continue
-
-        elif (re.search(pmer_num_str, line)):
-            pmer_flag += 1
-            master_dict[step_num][pmer_flag] = np.empty ( (0,3) )
-            
-            continue
-            
-        elif (re.search(end_str_1, line)):
-            end_step_flag = 1
-            step_flag = 0 
-            pmer_flag = -1
-            continue
-
-        elif (re.search(end_str_2, line)):
-            continue
-        
-        else:
-            monomer_coords = extract_loc_from_string(line)
-            master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords) )
-            continue
-    '''
-    
     rg = [] 
     steps = [] 
     

@@ -3675,9 +3675,9 @@ void OrientationFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Partic
 }
 
 
-void PolymerFlip ( std::vector <Polymer>* PolVec ){
+void PolymerFlip ( std::vector <Polymer>* Polymers ){
 
-    for (Polymer& pmer: (*PolVec) ){
+    for (Polymer& pmer: (*Polymers) ){
         for (Particle& p: pmer.chain){
             p.orientation = rng_uniform(0,5); 
         }
@@ -3686,6 +3686,18 @@ void PolymerFlip ( std::vector <Polymer>* PolVec ){
     return; 
 }
 
+void PolymerFlipLocal ( std::vector <Polymer>* Polymers ){
+
+    for (Polymer& pmer: (*Polymers) ){
+        
+        int idx = rng_uniform (0, static_cast<int> (pmer.chain.size()-1) ) ;
+        pmer.chain[idx].orientation =  rng_uniform(0,5)  ; 
+        std::cout << "flipped idx is " << std::endl; 
+        // break; 
+        
+    }
+    return; 
+}
 
 //============================================================
 //============================================================
@@ -3788,7 +3800,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
     std::vector <Polymer> NewPol = (*Polymers); 
-    int r = rng_uniform(1, 9);
+    int r = rng_uniform(1, 10);
     switch (r) {
         case (1):
             if (v){
@@ -3819,7 +3831,6 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             if (v){
                printf("Performing kink jump.\n"); 
             }
-
             NewPol = KinkJump_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
             break; 
 
@@ -3836,10 +3847,8 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         	if (v){
         		printf("Performing local solvent orientation flips. \n");
         	}
-        	// OrientationFlip(Solvent, x, y, z, 4); 
         	OrientationFlipLocal (Polymers, Solvent, x, y, z); 
         	(*rweight) = 1; 
-            // std::cout << "performed flip local." << std::endl;
         	break; 
         
         case (7):
@@ -3865,6 +3874,15 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         	PolymerFlip (&NewPol);
         	(*rweight) = 1; 
         	break; 
+    
+        case (10):
+            if (v){
+                printf("Performing local polymer orientation flips. \n");
+            }
+            NewPol = *Polymers;
+            PolymerFlipLocal (&NewPol); 
+            (*rweight) = 1;
+            break;
     }
 
     return NewPol;

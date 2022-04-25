@@ -122,13 +122,13 @@ if __name__ == "__main__":
     print("Is this running?") 
     U            = args.U
     dop          = args.dop
-    temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+    temperatures = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
         
     rg_mean = np.array([])
     rg_std  = np.array([]) 
     for T in temperatures:
         rg_rel = np.array([])
-        for cfile in ["coords1.txt", "coords2.txt", "coords3.txt", "coords4.txt", "coords5.txt"]:
+        for cfile in ["coords.txt"]: # , "coords2.txt", "coords3.txt", "coords4.txt", "coords5.txt"]:
             filename = U +"/DOP_"+str(dop)+"/"+str(T)+"/"+cfile
             master_dict = get_pdict (filename, dop+2, dop+2, dop+2) 
             rg = np.array([])  
@@ -142,8 +142,8 @@ if __name__ == "__main__":
     
     fig = plt.figure() 
     ax  = plt.axes() 
-    print(rg_std)
-    ax.errorbar   ( temperatures, rg_mean, yerr=rg_std ) 
+    # print(rg_std)
+    ax.errorbar   ( temperatures, rg_mean, yerr= 0 )# rg_std ) 
     ax.set_xlabel ( "Temperature" ) 
     ax.set_ylabel ( "Radius of gyration" ) 
     ax.set_xticks ( np.arange(0,12,1) ) 

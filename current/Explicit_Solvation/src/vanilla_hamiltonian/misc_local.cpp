@@ -3686,109 +3686,26 @@ void PolymerFlip ( std::vector <Polymer>* PolVec ){
     return; 
 }
 
+void PolymerFlipLocal ( std::vector <Polymer>* Polymers ){
 
-//============================================================
-//============================================================
-// 
-// NAME OF FUNCTION:                  
-//
-// PARAMETERS: *PolymerVector, *SolvVector, x, y, z, v, *BOOL
-// 
-// WHAT THE FUNCTION DOES: Given a Grid, it will perform a certain Monte Carlo move on the Grid. 
-// The move could be from any of the following: 
-// 1. End Rotation
-// 2. Kink Jump
-// 3. Crank Shaft
-// 4. Reptation
-// 5. Aggressive End rotation
-//
-// DEPENDENCIES: rng_uniform, CalculateEnergy, EndRotation, KinkJump, CrankShaft, Reptation, IsingFlip  
-//
-// THE CODE: 
-/*
-std::vector <Polymer> MoveChooser(std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL){
-
-    int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    std::vector <Polymer> NewPol = (*Polymers); 
-    int r = rng_uniform(1, 8);
-    switch (r) {
-        case (1):
-            if (v){
-               printf("Performing end rotations.\n"); 
-            }
-            // 
-            
-            NewPol = EndRotation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-            break;     
+    for (Polymer& pmer: (*Polymers) ){
         
-        case (2):
-            if (v){
-               printf("Performing crank shaft.\n"); 
-            }
-            
-            NewPol = CrankShaft(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-            break; 
-
-        case (3):
-            if (v){
-               printf("Performing reptation.\n"); 
-            }
-            
-            NewPol = Reptation(Polymers, Solvent, index, x, y, z, IMP_BOOL); 
-            break; 
-
-        case (4):
-            if (v){
-               printf("Performing kink jump.\n"); 
-            }
-
-            NewPol = KinkJump(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-            break; 
-
-        case (5):
-        	if (v) {
-        		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *Polymers; 
-        	ChainRegrowth(&NewPol, Solvent, index, x, y, z, IMP_BOOL ); 
-        	break;
-
-        case (6): 
-        	if (v){
-        		printf("Performing solvent orientation flips. \n");
-        	}
-        	OrientationFlip(Solvent, x, y, z, 4); 
-        	// OrientationFlipLocal (Polymers, Solvent, x, y, z); 
-            // std::cout << "performed flip local." << std::endl;
-        	break; 
-
-        case (7):
-        	if (v){
-        		printf("Performing translation. \n");
-        	}
-        	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-        	break;
+        int idx = rng_uniform (0, static_cast<int> (pmer.chain.size()-1) ) ;
+        pmer.chain[idx].orientation = rng_uniform(0,5); 
+        // std::cout << "flipped idx is " << std::endl; 
+        // break; 
         
-        case (8):
-            if (v){
-                printf("Performing a polymer orientation flip.\n"); 
-            }
-            NewPol = *Polymers;
-            PolymerFlip(&NewPol); 
-            break; 
     }
-
-    return NewPol;
+    return; 
 }
-*/
+
 //////////////////////////////////////////////////////////////
 
 std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
     std::vector <Polymer> NewPol = (*Polymers); 
-    int r = rng_uniform(1, 8);
+    int r = rng_uniform(1, 9);
     switch (r) {
         case (1):
             if (v){
@@ -3836,20 +3753,11 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         	if (v){
         		printf("Performing local solvent orientation flips. \n");
         	}
-        	// OrientationFlip(Solvent, x, y, z, 4); 
         	OrientationFlipLocal (Polymers, Solvent, x, y, z); 
         	(*rweight) = 1; 
             // std::cout << "performed flip local." << std::endl;
         	break; 
         
-        /*case (6):
-            if (v){
-                printf("Performing solvent orientation flips. \n"); 
-            }
-            OrientationFlip(Solvent, x, y, z, 4);
-            (*rweight) = 1; 
-            break; 
-        */ 
         case (7):
         	if (v){
         		printf("Performing translation. \n");
@@ -3864,7 +3772,16 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         	NewPol = *Polymers; 
         	PolymerFlip (&NewPol);
         	(*rweight) = 1; 
-        	break; 
+        	break;
+
+        case (9):
+            if (v) {
+                printf("Performing local polymer orientation flips. \n");
+            }
+            NewPol = *Polymers; 
+            PolymerFlipLocal (&NewPol); 
+            (*rweight) = 1;
+            break;
     }
 
     return NewPol;

@@ -18,7 +18,6 @@ temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0
 U_list =["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"]
 
 plt.figure( figsize=(8,6) )
-# plt.title("DOP = "+str(args.dop), fontsize=24 ) 
 
 if args.ev==1:
     U_list.append("Uexcl")

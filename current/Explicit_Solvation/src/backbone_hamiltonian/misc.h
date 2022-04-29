@@ -171,6 +171,7 @@ std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std
 void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
 void                  OrientationFlipLocal (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z);
 void                  PolymerFlip          (std::vector <Polymer>* Polymers);
+void                  PolymerFlipLocal     (std::vector <Polymer>* Polymers); 
 void                  ChainRegrowth        (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
 void                  TailSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool );
 void                  HeadSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool);
@@ -205,8 +206,6 @@ void                  TailSpin_Rosenbluth          (std::vector <Polymer>* Polym
 void                  HeadSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
 std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-
 
 
 #endif 

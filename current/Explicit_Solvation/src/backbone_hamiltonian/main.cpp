@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "This is the main driver for the monte carlo simulation of polymers in a box. This is an explicit solvent simulation.\n" <<
+                "This is the main driver for the Monte Carlo simulation of polymers in a box with a backbone potential. This is an explicit solvent simulation.\n" <<
 		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. \nSet up on Mar 30, 2022, 01:00 AM.\n" <<
                 "This code employs Rosenbluth sampling and both local and multiple solvent flips.\n" << 
                 "These are all the options we have available right now: \n" <<

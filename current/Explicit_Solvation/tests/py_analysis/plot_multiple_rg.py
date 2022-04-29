@@ -141,6 +141,7 @@ if __name__ == "__main__":
             if U=="Uexcl" and T == 0.01:
                 continue
             filename = U +"/DOP_"+str(dop)+"/"+str(T)+"/coords.txt"
+            # print(filename)
             master_dict = get_pdict (filename, dop+2, dop+2, dop+2) 
             rg = [] 
             

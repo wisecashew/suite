@@ -24,7 +24,7 @@ plt.title("$U$ = "+str(args.U) )
 energy_list = []
 cv_list = []  
 for temp in temperatures: 
-    df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/"+str(temp)+"/energydump3.txt", sep=' \| ', names=["energy", "mm", "ac", "nc", "time_step"], engine='python')
+    df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/"+str(temp)+"/energydump.txt", sep=' \| ', names=["energy", "mm", "ac", "nc", "time_step"], engine='python')
     cv_list.append((np.mean( df["energy"].values[args.s:] **2 ) - (np.mean ( df["energy"].values[args.s:] ) **2 ))/(temp**2))
     energy_list.append(np.mean( df["energy"].values[args.s:] ) ) 
 
@@ -33,7 +33,7 @@ plt.plot(temperatures, np.asarray(cv_list), linestyle='-.', marker='^')
 # plt.legend(Np_list)
 plt.ylabel  ("heat capacity")
 plt.xlabel  ("temperature")
-plt.xticks  (np.arange(0,11,0.5))
+plt.xticks  (np.arange(0,11,1.0))
 plt.savefig ("cv_plot"+str(args.dop)+".png", dpi=1200)
 plt.show()
 

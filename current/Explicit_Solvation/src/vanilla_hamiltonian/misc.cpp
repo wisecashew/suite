@@ -887,13 +887,13 @@ bool MetropolisAcceptance(double E1, double E2, double kT, double rweight){
 	double dE = E2-E1; 
 	double prob = std::exp(-1/kT*dE) * rweight; 
 	double r = rng_uniform(0.0, 1.0); 
-	// std::cout << "Probability is " << prob <<"." << std::endl;
-
+	std::cout << "Probability is " << prob <<"." << std::endl;
+    std::cout << "rweight is " << rweight << "." << std::endl;
 	// std::cout << "E1 is " << E1 << std::endl;
 	// std::cout << "E2 is " << E2 << std::endl;
 
 	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
-	// std::cout << "RNG is " << r << "." << std::endl;
+	std::cout << "RNG is " << r << "." << std::endl;
 	if (r < prob){
 		return true; 
 	}
@@ -1334,38 +1334,6 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 
 }
 
-// used only inside OrientationFlip local
-/*int SolventIndexReporter ( std::vector <Particle>* Solvent, std::array <int,3>* to_check){
-
-	int idx {0}; 
-	for (const Particle& p: *Solvent){
-		idx += 1; 
-		if (p.coords == (*to_check)){
-			return idx;
-		}
-	}
-
-	std::cout <<"Something is profoundly fucked (SolventIndexReporter)." << std::endl;
-	return -1; 
-
-}*/
-
-/*int IsSolvent( std::vector <Polymer>* Polymers, std::array <int,3>* to_check ){
-
-	for (const Polymer& pmer: (*Polymers) ){
-		for (const Particle& p: pmer.chain ){
-
-			if (p.coords == (*to_check)){
-				return 0;
-			}
-
-		}
-	}
-
-	return 1; 
-
-}*/
-
 //============================================================
 //============================================================
 // 
@@ -1441,11 +1409,8 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
     for (const Polymer& pmer: (*PolymerVector)) {
         for (const Particle& p: pmer.chain){
             std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(p.coords, x, y, z); // get neighbor list 
-
-            // consider bonded interactions  
             
             for (const std::array <int, 3>& loc: ne_list){
-                // get the particle at loc 
             	
             	Particle ptr {ParticleReporter (PolymerVector, SolvVector, loc) };
 
@@ -3626,12 +3591,13 @@ void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int
 }
 
 
-void OrientationFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z){
-
+void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight){
 
 	// obtain the list of solvent particles neighboring the polymer 
 	std::vector <int> solvent_indices;
-    solvent_indices.reserve((*Solvent).size()); 
+    int NSolvent = static_cast<int> ((*Solvent).size() ); 
+    int Nmer     = x*y*z - NSolvent; 
+    solvent_indices.reserve(NSolvent); 
       
 	for (const Polymer& pmer: (*Polymers)) {
 		for (const Particle& p: pmer.chain) {
@@ -3639,9 +3605,10 @@ void OrientationFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Partic
 			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
             for (const std::array <int,3>& n: ne_list){ 
                 
-                for (int j{0}; j<static_cast<int>( (*Solvent).size() ); ++j){
+                for (int j{0}; j<NSolvent; ++j){
                     if (n == (*Solvent)[j].coords){
                         solvent_indices.push_back(j); 
+                        break; 
                     }
                 }                
             }	
@@ -3651,149 +3618,168 @@ void OrientationFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Partic
 	// get rid of repeated indices
 	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
 	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
-
-	// std::cout << "size of solvent_indices is " << solvent_indices.size() << std::endl; 
-
-	int stopping_idx = rng_uniform(0, static_cast<int>(solvent_indices.size() - 1) ); 
-
-	// std::cout << "stopping_idx is " << stopping_idx << std::endl;
+    
+    // number of surrounding solvent molecules 
+    int Nsurr = static_cast<int>( solvent_indices.size() ); 
+	
+    // number of solvent molecules to flip 
+    int stopping_idx = rng_uniform(0, static_cast<int>(Nsurr - 1) ); 
+    
+    *rweight = 1; 
+    for (int i {0}; i < stopping_idx; ++i){
+        *rweight = (*rweight) * (Nsurr-i)/(Nmer+Nsurr-i); 
+    }
+	
 	int counter = 0; 
 	for (int idx: solvent_indices){
 
 		if (counter == stopping_idx){
 			break;
 		}
-		// std::cout << "orientation is " << (*Solvent)[idx].orientation <<", location is: "; 
-		// print( (*Solvent)[idx].coords ); 
 		(*Solvent)[idx].orientation = rng_uniform (0, 5); 
 		++counter; 
-
 	}
+
+	return; 
+
+}
+///////////////////////////////////////////////////////////////////////////
+//
+//
+//
+
+void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight){
+
+	// obtain the list of solvent particles neighboring the polymer 
+	std::vector <int> solvent_indices;
+    int NSolvent = static_cast<int> ((*Solvent).size() ); 
+    int Nmer     = x*y*z - NSolvent; 
+    solvent_indices.reserve(NSolvent); 
+      
+	for (const Polymer& pmer: (*Polymers)) {
+		for (const Particle& p: pmer.chain) {
+
+			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
+            for (const std::array <int,3>& n: ne_list){ 
+                
+                for (int j{0}; j<NSolvent; ++j){
+                    if (n == (*Solvent)[j].coords){
+                        solvent_indices.push_back(j); 
+                        break; 
+                    }
+                }                
+            }	
+		}
+	}
+
+	// get rid of repeated indices
+	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
+	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
+    
+    // number of surrounding solvent molecules 
+    int Nsurr = static_cast<int>( solvent_indices.size() ); 
+	
+    // number of solvent molecules to flip 
+    int stopping_idx = rng_uniform(0, static_cast<int>(Nsurr - 1) ); 
+    
+    *rweight = 1; 
+    for (int i {0}; i < stopping_idx; ++i){
+        *rweight = (*rweight) * (Nsurr-i)/(Nmer+Nsurr-i); 
+    }
+	
+	int idx = solvent_indices [ rng_uniform(0, Nsurr-1) ]; 
+    (*Solvent)[idx].orientation = rng_uniform (0, 5); 
+		
 
 	return; 
 
 }
 
 
-void PolymerFlip ( std::vector <Polymer>* Polymers ){
+///////////////////////////////////////////////////////////////////////////
+void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight ){
+    
+    std::vector <int> solvent_indices;
+    int NSolvent = static_cast<int> ((*Solvent).size() ); 
+    int Nmer     = x*y*z - NSolvent; 
+    solvent_indices.reserve(NSolvent); 
+      
+	for (const Polymer& pmer: (*Polymers)) {
+		for (const Particle& p: pmer.chain) {
 
+			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
+            for (const std::array <int,3>& n: ne_list){ 
+                
+                for (int j{0}; j<NSolvent; ++j){
+                    if (n == (*Solvent)[j].coords){
+                        solvent_indices.push_back(j); 
+                        break;
+                    }
+                }                
+            }	
+		}
+	}
+	// get rid of repeated indices
+	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
+	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
+    
+    // number of surrounding solvent molecules 
+    int Nsurr = static_cast<int>( solvent_indices.size() ); 
+
+    int i = 0;
+    *rweight = 1; 
     for (Polymer& pmer: (*Polymers) ){
         for (Particle& p: pmer.chain){
             p.orientation = rng_uniform(0,5); 
+            *rweight = (*rweight) * (Nmer-i)/(Nsurr+Nmer-i) ; 
         }
     }
-    // std::cout << "Performed flip." << std::endl;
+    std::cout << "biasing weight for polymer flip is " << *rweight << std::endl;
     return; 
 }
 
-void PolymerFlipLocal ( std::vector <Polymer>* Polymers ){
+void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int p_idx, int x, int y, int z, double* rweight ){
+    
+    // obtain the list of solvent particles neighboring the polymer 
+	std::vector <int> solvent_indices;
+    int NSolvent = static_cast<int> ((*Solvent).size() ); 
+    int Nmer     = x*y*z - NSolvent; 
+    solvent_indices.reserve(NSolvent); 
+      
+	for (const Polymer& pmer: (*Polymers)) {
+		for (const Particle& p: pmer.chain) {
 
-    for (Polymer& pmer: (*Polymers) ){
-        
-        int idx = rng_uniform (0, static_cast<int> (pmer.chain.size()-1) ) ;
-        pmer.chain[idx].orientation =  rng_uniform(0,5)  ; 
-        std::cout << "flipped idx is " << std::endl; 
-        // break; 
-        
-    }
+			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
+            for (const std::array <int,3>& n: ne_list){ 
+                
+                for (int j{0}; j<NSolvent; ++j){
+                    if (n == (*Solvent)[j].coords){
+                        solvent_indices.push_back(j); 
+                        break;
+                    }
+                }                
+            }	
+		}
+	}
+
+	// get rid of repeated indices
+	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
+	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
+    
+    // number of surrounding solvent molecules 
+    int Nsurr = static_cast<int>( solvent_indices.size() ); 
+
+    // index of polymer 
+    // int p_idx = rng_uniform ( 0, static_cast<int> ( (*Polymers).size())- 1);
+    
+    // index of monomer unit 
+    int idx = rng_uniform   ( 0, static_cast<int> ((*Polymers)[p_idx].chain.size()-1) ) ;
+    (*Polymers)[p_idx].chain[idx].orientation = rng_uniform(0,5); 
+    *rweight = Nmer/(Nmer+Nsurr); 
+    
     return; 
 }
 
-//============================================================
-//============================================================
-// 
-// NAME OF FUNCTION:                  
-//
-// PARAMETERS: *PolymerVector, *SolvVector, x, y, z, v, *BOOL
-// 
-// WHAT THE FUNCTION DOES: Given a Grid, it will perform a certain Monte Carlo move on the Grid. 
-// The move could be from any of the following: 
-// 1. End Rotation
-// 2. Kink Jump
-// 3. Crank Shaft
-// 4. Reptation
-// 5. Aggressive End rotation
-//
-// DEPENDENCIES: rng_uniform, CalculateEnergy, EndRotation, KinkJump, CrankShaft, Reptation, IsingFlip  
-//
-// THE CODE: 
-/*
-std::vector <Polymer> MoveChooser(std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL){
-
-    int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    std::vector <Polymer> NewPol = (*Polymers); 
-    int r = rng_uniform(1, 8);
-    switch (r) {
-        case (1):
-            if (v){
-               printf("Performing end rotations.\n"); 
-            }
-            // 
-            
-            NewPol = EndRotation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-            break;     
-        
-        case (2):
-            if (v){
-               printf("Performing crank shaft.\n"); 
-            }
-            
-            NewPol = CrankShaft(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-            break; 
-
-        case (3):
-            if (v){
-               printf("Performing reptation.\n"); 
-            }
-            
-            NewPol = Reptation(Polymers, Solvent, index, x, y, z, IMP_BOOL); 
-            break; 
-
-        case (4):
-            if (v){
-               printf("Performing kink jump.\n"); 
-            }
-
-            NewPol = KinkJump(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-            break; 
-
-        case (5):
-        	if (v) {
-        		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *Polymers; 
-        	ChainRegrowth(&NewPol, Solvent, index, x, y, z, IMP_BOOL ); 
-        	break;
-
-        case (6): 
-        	if (v){
-        		printf("Performing solvent orientation flips. \n");
-        	}
-        	OrientationFlip(Solvent, x, y, z, 4); 
-        	// OrientationFlipLocal (Polymers, Solvent, x, y, z); 
-            // std::cout << "performed flip local." << std::endl;
-        	break; 
-
-        case (7):
-        	if (v){
-        		printf("Performing translation. \n");
-        	}
-        	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-        	break;
-        
-        case (8):
-            if (v){
-                printf("Performing a polymer orientation flip.\n"); 
-            }
-            NewPol = *Polymers;
-            PolymerFlip(&NewPol); 
-            break; 
-    }
-
-    return NewPol;
-}
-*/
 //////////////////////////////////////////////////////////////
 
 std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight){
@@ -3831,6 +3817,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             if (v){
                printf("Performing kink jump.\n"); 
             }
+
             NewPol = KinkJump_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
             break; 
 
@@ -3845,20 +3832,18 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
 
         case (6): 
         	if (v){
-        		printf("Performing local solvent orientation flips. \n");
+        		printf("Performing solvent orientation flips. \n");
         	}
-        	OrientationFlipLocal (Polymers, Solvent, x, y, z); 
-        	(*rweight) = 1; 
+        	SolventFlip (Polymers, Solvent, x, y, z, rweight); 
         	break; 
-        
-        case (7):
-            if (v){
-                printf("Performing solvent orientation flips. \n"); 
-            }
-            OrientationFlip(Solvent, x, y, z, 4);
-            (*rweight) = 1; 
-            break; 
 
+        case (7):
+            if (v) {
+                printf("Performing single solvent orientation flip. \n");
+            }
+            SolventFlipSingular (Polymers, Solvent, x, y, z, rweight); 
+            break;
+        
         case (8):
         	if (v){
         		printf("Performing translation. \n");
@@ -3871,17 +3856,15 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         		printf("Performing polymer orientation flips. \n");
         	}
         	NewPol = *Polymers; 
-        	PolymerFlip (&NewPol);
-        	(*rweight) = 1; 
-        	break; 
-    
+        	PolymerFlip ( &NewPol, Solvent, x, y, z, rweight );
+        	break;
+
         case (10):
-            if (v){
+            if (v) {
                 printf("Performing local polymer orientation flips. \n");
             }
-            NewPol = *Polymers;
-            PolymerFlipLocal (&NewPol); 
-            (*rweight) = 1;
+            NewPol = *Polymers; 
+            PolymerFlipLocal (&NewPol, Solvent, index, x, y, z, rweight); 
             break;
     }
 

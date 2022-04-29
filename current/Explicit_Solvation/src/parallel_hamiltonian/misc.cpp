@@ -1462,7 +1462,7 @@ bool MonomerReporter (std::vector <Polymer>* PolymerVector, std::array <int,3>* 
 //
 // THE CODE: 
 
-double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double Ems_h, double Eb_f, double Eb_u, double* m_neighbor, int* a_contacts, int* h_contacts, int* n_contacts){
+double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double Ems_h, double Eb_f, double Eb_u, double* m_neighbor, int* a_contacts, int* n_contacts, int* h_contacts){
     double Energy {0.0};
     (*m_neighbor) = 0; 
     (*a_contacts) = 0; 
@@ -1473,7 +1473,7 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
     int bonded = 0; 
     for (const Polymer& pmer: (*PolymerVector)) {
         for (const Particle& p: pmer.chain){
-        	std::cout << "--------\nParticle of interest: "; print(p.coords); 
+        	// std::cout << "--------\nParticle of interest: "; print(p.coords); 
             std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(p.coords, x, y, z); // get neighbor list 
             
             // identify who is bonded to that atom 
@@ -1496,13 +1496,13 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
 
                 		if (bond_dirn == p.orientation){
                 			// if bond direction is anti-parallel to p_ orientation 
-                			std::cout << "Unfavorable bonded config. + "<< Eb_u << std::endl;
-                			print( p_.coords ); 
+                			// std::cout << "Unfavorable bonded config. + "<< Eb_u << std::endl;
+                			// print( p_.coords ); 
                 			Energy += Eb_u; 
                 		}
                 		else {
-                			print( p_.coords ); 
-                			std::cout << "Favorable bonded config. + " << Eb_f << std::endl;
+                			// print( p_.coords ); 
+                			// std::cout << "Favorable bonded config. + " << Eb_f << std::endl;
                 			Energy += Eb_f; 
                 		}
 
@@ -1541,13 +1541,13 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
                     	
             			if ( (ptr).orientation == p.orientation ){
 
-            				std::cout << "Aligned: + "<< Emm_a << "." << std::endl;
+            				// std::cout << "Aligned: + "<< Emm_a << "." << std::endl;
             				Energy += 0.5*Emm_a; 
 
             			}
             			// if not antiparallel along direction of bond... 
             			else {
-            				std::cout << "Not aligned: + "<< Emm_n << "." << std::endl;
+            				// std::cout << "Not aligned: + "<< Emm_n << "." << std::endl;
             				Energy += 0.5*Emm_n; 
             			}
 
@@ -1555,13 +1555,13 @@ double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Partic
 
             		else { 
 
-            			std::array <int,3> bond = subtract_arrays ( &(ptr.coords), & (p.coords)); 
-            			modified_direction (&bond, x, y, z); 
+            			// std::array <int,3> bond = subtract_arrays ( &(ptr.coords), & (p.coords)); 
+            			// modified_direction (&bond, x, y, z); 
 
             			if ( (ptr).orientation == p.orientation ){
             				(*a_contacts) += 1;
-            				std::array <int,3> bond = subtract_arrays ( &(ptr.coords), & (p.coords)); 
-            				modified_direction (&bond, x, y, z); 
+            				 std::array <int,3> bond = subtract_arrays ( &(ptr.coords), & (p.coords)); 
+            				 modified_direction (&bond, x, y, z); 
             				if ( ( (ptr).orientation ==  BondMap [bond] ) || ( (ptr).orientation == Dir2InvMap [ BondMap[bond] ])  ){
             					(*h_contacts) += 1; 
             					Energy += Ems_h;	

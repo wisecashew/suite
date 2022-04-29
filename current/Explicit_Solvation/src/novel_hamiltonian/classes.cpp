@@ -70,7 +70,7 @@ void Polymer::printChainCoords(){
 
 void Polymer::printOrientation(){
     for (Particle p:this->chain){
-        std::cout << p.orientation << " | ";
+        std::cout << p.o1 << " | " << p.o2 << " | ";
     }
     std::cout << std::endl;
     return;

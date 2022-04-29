@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
 
 
     // ExtractTopologyFromFile extracts all the topology from the input file 
-    std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
+    std::array <double,12> info_vec {ExtractTopologyFromFile(topology)}; 
 
     // ExtractNumberOfPolymers extracts the total number of chains in the input file 
     const int N = ExtractNumberOfPolymers(positions); 
@@ -138,14 +138,13 @@ int main(int argc, char** argv) {
     const int y = info_vec[1]; 
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
-    const double Emm_a = info_vec[4]; 
-    const double Emm_n = info_vec[5]; 
-    const double Ems_a = info_vec[6];
-    const double Ems_n = info_vec[7]; 
+    const std::array <double, 8> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
+    // {Emm_p1a_p2a, Emm_p1n_p2a, Ems_p1a_p2a, Ems_p1n_p2n, Emm_p1a_p2n, Emm_p1n_p2n, Ems_p1a_p2n, Ems_p1n_p2n};
 
     std::cout << "Number of polymers is " << N << ".\n";
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
-    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems_a = "<< Ems_a << ", Ems_n = " << Ems_n <<".\n";  
+    std::cout << "Emm_p1a_p2a = " << E[0] <<", Emm_p1n_p2a = " << E[1] << ", Ems_p1a_p2a = "<< E[2] << ", Ems_p1n_p2a = " << E[3] << \
+    ", Emm_p1a_p2n = " << E[4] << ", Emm_p1n_p2n = " << E[5] << ", Ems_p1a_p2n = " << E[6] << ", Ems_p1n_p2n = " << E[7] << ".\n";  
 
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~\n" << std::endl;
@@ -156,6 +155,7 @@ int main(int argc, char** argv) {
 
     int step_number = 0;
     double sysEnergy {0}; 
+    // sysEnergy++;
     std::vector <Polymer> PolymerVector; 
     
     PolymerVector.reserve(N); 
@@ -163,6 +163,7 @@ int main(int argc, char** argv) {
     PolymerVector = ExtractPolymersFromFile(positions, x, y, z); 
         
     double sysEnergy_ {0};
+    // sysEnergy_++;
 
     std::vector <Particle> SolventVector = CreateSolventVector(x, y, z, &PolymerVector);
     
@@ -171,12 +172,14 @@ int main(int argc, char** argv) {
     /////////////////////////////////////////////////
     for (Polymer& pmer:PolymerVector){
         for (Particle& p: pmer.chain){
-            p.orientation = 0; 
+            p.o1 = 0; 
+            p.o2 = 0; 
         }
     }
 
     for (Particle& p: SolventVector){
-        p.orientation = 0; 
+        p.o1 = 0;
+        p.o2 = 0;  
     }
     /////////////////////////////////////////////////
 
@@ -185,20 +188,19 @@ int main(int argc, char** argv) {
     double m_neighbors = 0, m_neicopy = 0; 
     int a_contacts = 0, a_contcopy = 0; 
     int n_contacts = 0, n_contcopy = 0;  
-    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, &E, &m_neighbors, &a_contacts, &n_contacts); 
 
     m_neicopy  = m_neighbors; 
     a_contcopy = a_contacts; 
     n_contcopy = n_contacts; 
 
-    dumpEnergy (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile);
+    dumpEnergy     (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile);
     dumpOrientation(&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
     
     // defined single orientation solvents and polymers 
 
     std::cout << "Energy of system is " << sysEnergy << std::endl;
      
-	int acc_counter = 0; 
     
     bool IMP_BOOL = true; 
     bool metropolis = false;
@@ -206,10 +208,10 @@ int main(int argc, char** argv) {
     std::vector <Polymer> PolymerVector_; 
     std::vector <Particle> SolventVector_; 
 
-    double rweight = 0; 
+    double rweight = 1; 
 
     printf("Simulation will output information of every %d configuration.\n", dfreq); 
-
+    
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
         if ( v && (i%dfreq==0) ){
@@ -235,7 +237,7 @@ int main(int argc, char** argv) {
         // PolymerVector_[0].printChainCoords();         
 
         if (IMP_BOOL){ 
-            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, &E, &m_neighbors, &a_contacts, &n_contacts); 
             // std::cout << "has energy been calculated?" << std::endl;
         }
 
@@ -280,7 +282,7 @@ int main(int argc, char** argv) {
             PolymerVector = std::move(PolymerVector_);
             SolventVector = std::move(SolventVector_); 
             sysEnergy = sysEnergy_; 
-			++acc_counter;
+			// ++acc_counter;
         }
 
 
@@ -323,13 +325,13 @@ int main(int argc, char** argv) {
     }
 
     dumpPositionOfSolvent(&SolventVector, max_iter, "solvent_coords");
-
+    
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
 	// printf("\nNumber of moves accepted is %d.", acc_counter);
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
-
+     
     return 0;
 
 }

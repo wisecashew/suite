@@ -16,21 +16,22 @@ class Particle{
 public: 
     std::array <int,3> coords;                                        // the coordinates of the particles
     std::string ptype; 
-    int orientation;
+    int o1;
+    int o2; 
 
     bool operator<(const Particle& rhs)const{
         return (this->coords) < (rhs.coords); 
     }
 
     bool operator==(const Particle& rhs){
-        return std::tie(coords, ptype, orientation) == std::tie(rhs.coords, rhs.ptype, rhs.orientation );
+        return std::tie(coords, ptype, o1, o2) == std::tie(rhs.coords, rhs.ptype, rhs.o1, rhs.o2 );
     } 
 
 
     // constructor 
     Particle(){};  // default constructor
 
-    Particle (std::array <int, 3> crds, std::string type_, int orientation_): coords (crds), ptype (type_), orientation (orientation_){
+    Particle (std::array <int, 3> crds, std::string type_, int o1_, int o2_): coords (crds), ptype (type_), o1 (o1_), o2 (o2_) {
 
     }
 

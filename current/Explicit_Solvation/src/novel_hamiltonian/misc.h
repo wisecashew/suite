@@ -124,21 +124,21 @@ int  IsSolvent                            (std::vector <Polymer>* Polymers, std:
 int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std::array <int,3>* to_check);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // extraction methods 
-std::vector <Polymer>  ExtractPolymersFromFile    (std::string filename, int x, int y, int z);
-std::vector <Polymer>  ExtractPolymersFromFile    (std::string filename);
-std::vector <Polymer>  ExtractPolymersFromTraj    (std::string trajectory, std::string position);
-int                    ExtractIndexOfFinalMove    (std::string trajectory);
-double                 ExtractEnergyOfFinalMove   (std::string energy_file); 
-int                    ExtractNumberOfPolymers    (std::string filename);
-std::array <double, 8> ExtractTopologyFromFile    (std::string filename);
-double                 NumberExtractor            (std::string s);
+std::vector <Polymer>   ExtractPolymersFromFile    (std::string filename, int x, int y, int z);
+std::vector <Polymer>   ExtractPolymersFromFile    (std::string filename);
+std::vector <Polymer>   ExtractPolymersFromTraj    (std::string trajectory, std::string position);
+int                     ExtractIndexOfFinalMove    (std::string trajectory);
+double                  ExtractEnergyOfFinalMove   (std::string energy_file); 
+int                     ExtractNumberOfPolymers    (std::string filename);
+std::array <double, 12> ExtractTopologyFromFile    (std::string filename);
+double                  NumberExtractor            (std::string s);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* m_neighbor, int* a_contacts, int* n_contacts);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, const std::array <double,8>* E, double* m_neighbor, int* a_contacts, int* n_contacts);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

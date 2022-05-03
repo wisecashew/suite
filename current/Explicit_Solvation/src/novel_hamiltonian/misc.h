@@ -138,7 +138,7 @@ double                  NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, const std::array <double,8>* E, double* m_neighbor, int* a_contacts, int* n_contacts);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, const std::array <double,8>* E, std::array <double,5>* mm_c, std::array <int,5>* ms_c);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -147,7 +147,7 @@ bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // dump methods 
 void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
-void dumpEnergy              (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename); 
+void dumpEnergy              (double sysEnergy, int step, std::array<double,5>* mm_c, std::array<int,5>* ms_c, std::string filename); 
 void dumpPositionOfSolvent   (std::vector <Particle>* Solvent, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int step, std::string filename, int x, int y, int z);
 
@@ -156,11 +156,15 @@ void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Part
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Polymer moves
 
-std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
-void                  SolventFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlipLocal     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, double* rweight); 
+void                  SolventFlipO1         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
+void                  SolventFlipO2         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
+void                  SolventFlipSingularO1 (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
+void                  SolventFlipSingularO2 (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
+void                  PolymerFlipO1         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight, int Nsurr);
+void                  PolymerFlipO2         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight, int Nsurr);
+void                  PolymerFlipLocalO1    (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int p_idx, int x, int y, int z, double* rweight, int Nsurr); 
+void                  PolymerFlipLocalO2    (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int p_idx, int x, int y, int z, double* rweight, int Nsurr); 
+
 
 // methods relevant to chain regrowth 
 bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* Polymers);
@@ -188,7 +192,7 @@ std::vector <Polymer> Reptation_Rosenbluth         (std::vector <Polymer>* Polym
 void                  ChainRegrowth_Rosenbluth     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL); 
 void                  TailSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
 void                  HeadSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, int Nsurr);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
@@ -209,5 +213,7 @@ void                  ChainRegrowth        (std::vector <Polymer>* Polymers, std
 void                  TailSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool );
 void                  HeadSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool);
 std::vector <Polymer> MoveChooser          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL);
+std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
+void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
 
 #endif 

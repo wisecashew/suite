@@ -43,7 +43,7 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "This is the main driver for the monte carlo simulation of polymers in a box. This is an explicit solvent simulation.\n" <<
+                "This is the main driver for the monte carlo simulation of polymers in a box with the novel embedded Ising model. This is an explicit solvent simulation.\n" <<
 		        "This version number 0.2.3 of the Monte Carlo Engine. \nThis will keep the energydump with the number of monomer-monomer contacts, aligned and misaligned interactions. \nSet up on Mar 30, 2022, 01:00 AM.\n" <<
                 "This code employs Rosenbluth sampling and both local and multiple solvent flips.\n" << 
                 "These are all the options we have available right now: \n" <<
@@ -139,12 +139,12 @@ int main(int argc, char** argv) {
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
     const std::array <double, 8> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
-    // {Emm_p1a_p2a, Emm_p1n_p2a, Ems_p1a_p2a, Ems_p1n_p2n, Emm_p1a_p2n, Emm_p1n_p2n, Ems_p1a_p2n, Ems_p1n_p2n};
+    // {Emm_p1a_p2a, Ems_p1a_p2a, Emm_p1n_p2a, Emm_p1a_p2n, Ems_p1n_p2a, Ems_p1a_p2n, Emm_p1n_p2n, Ems_p1n_p2n};
 
     std::cout << "Number of polymers is " << N << ".\n";
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
-    std::cout << "Emm_p1a_p2a = " << E[0] <<", Emm_p1n_p2a = " << E[1] << ", Ems_p1a_p2a = "<< E[2] << ", Ems_p1n_p2a = " << E[3] << \
-    ", Emm_p1a_p2n = " << E[4] << ", Emm_p1n_p2n = " << E[5] << ", Ems_p1a_p2n = " << E[6] << ", Ems_p1n_p2n = " << E[7] << ".\n";  
+    std::cout << "Emm_p1a_p2a = " << E[0] <<", Ems_p1a_p2a = " << E[1] << ", Emm_p1n_p2a = "<< E[2] << ", Emm_p1a_p2n = " << E[3] << "\n" << \
+    ", Ems_p1n_p2a = " << E[4] << ", Ems_p1a_p2n = " << E[5] << ", Emm_p1n_p2n = " << E[6] << ", Ems_p1n_p2n = " << E[7] << ".\n";
 
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
     std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~\n" << std::endl;
@@ -155,7 +155,6 @@ int main(int argc, char** argv) {
 
     int step_number = 0;
     double sysEnergy {0}; 
-    // sysEnergy++;
     std::vector <Polymer> PolymerVector; 
     
     PolymerVector.reserve(N); 
@@ -185,16 +184,17 @@ int main(int argc, char** argv) {
 
     dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
     
-    double m_neighbors = 0, m_neicopy = 0; 
-    int a_contacts = 0, a_contcopy = 0; 
-    int n_contacts = 0, n_contcopy = 0;  
-    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, &E, &m_neighbors, &a_contacts, &n_contacts); 
+    std::array <double,5> mm_c      =   {0,0,0,0,0};
+    std::array <double,5> mm_c_copy =   {0,0,0,0,0}; 
+    std::array <int,5>    ms_c      =   {0,0,0,0,0}; 
+    std::array <int,5>    ms_c_copy =   {0,0,0,0,0}; 
+    
+    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, &E, &(mm_c), &(ms_c) ); // &m_neighbors, &a_contacts, &n_contacts); 
+    
+    mm_c_copy = mm_c; 
+    ms_c_copy = ms_c; 
 
-    m_neicopy  = m_neighbors; 
-    a_contcopy = a_contacts; 
-    n_contcopy = n_contacts; 
-
-    dumpEnergy     (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile);
+    dumpEnergy     (sysEnergy, step_number, &(mm_c), &(ms_c), efile);
     dumpOrientation(&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
     
     // defined single orientation solvents and polymers 
@@ -212,33 +212,38 @@ int main(int argc, char** argv) {
 
     printf("Simulation will output information of every %d configuration.\n", dfreq); 
     
+    int Nsurr = ms_c[0]; 
+
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
         if ( v && (i%dfreq==0) ){
             printf("Move number %d.\n", i);
         }
-        // choose a move 
-        SolventVector_ = SolventVector; 
-        PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight);   
-        // std::cout << "This is a line right outside main.cpp, after movechooser_r."<<std::endl; 
-        // std::cout << "the rosenbluth weight is " << rweight << "." << std::endl;
 
         if ( !(metropolis) ){
-            m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
+            mm_c = mm_c_copy;
+            ms_c = ms_c_copy;
+            // m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
+            Nsurr = ms_c[0]; 
         }
         else {
-            m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
-            metropolis = false; 
+            mm_c_copy  = mm_c; 
+            ms_c_copy  = ms_c; 
+            // m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
+            Nsurr      = ms_c[0];
+            metropolis = false;
+            
         }
         
-        // std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
+        // choose a move 
         
-        // std::cout << "Outside calcenergy..." << std::endl;
-        // PolymerVector_[0].printChainCoords();         
+        SolventVector_ = SolventVector; 
+        PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight, Nsurr);   
+        
 
         if (IMP_BOOL){ 
-            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, &E, &m_neighbors, &a_contacts, &n_contacts); 
-            // std::cout << "has energy been calculated?" << std::endl;
+            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, &E, &mm_c, &ms_c); 
+            
         }
 
         if ( v && (i%dfreq==0) ){
@@ -248,8 +253,6 @@ int main(int argc, char** argv) {
         
         if ( IMP_BOOL && MetropolisAcceptance (sysEnergy, sysEnergy_, T, rweight) ) {
             metropolis = true; 
-            // std::cout << "bro..." << std::endl;
-            // replace old config with new config
             if ( v ){
                 printf("Checking validity of coords...");
                 printf("checkForOverlaps says: %d.\n", checkForOverlaps(PolymerVector_)); 
@@ -301,23 +304,20 @@ int main(int argc, char** argv) {
 
         if ( ( i % dfreq == 0) ){
             
-            // std::cout << "Am I inside the dump zone?" << std::endl;  
-            // PolymerVector[0].printChainCoords(); 
-            // std::cout << "Am I inside the dump zone again?" << std::endl;  
             dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
             if ( metropolis ){
                 // std::cout << "metropolis is " << metropolis << ". let the dumping begin!" << std::endl;
-                dumpEnergy (sysEnergy, i, m_neighbors, a_contacts, n_contacts, efile);
+                dumpEnergy (sysEnergy, i, &mm_c, &ms_c, efile);
                 // std::cout << "dumping out orientations... " << std::endl;
                 dumpOrientation ( &PolymerVector, &SolventVector, i, mfile, x, y, z); 
                  
             }
             else {
                 // std::cout << "metropolis is " << metropolis <<". let the dumping begin! " << std::endl;
-                dumpEnergy (sysEnergy, i, m_neicopy, a_contcopy, n_contcopy, efile);
+                dumpEnergy (sysEnergy, i, &mm_c_copy, &ms_c_copy, efile);
                 // std::cout << "dumping out orientations... " << std::endl;
                 dumpOrientation (&PolymerVector, &SolventVector, i, mfile, x, y, z); 
-            }            
+            }
         }
         
         IMP_BOOL = true; 
@@ -329,7 +329,6 @@ int main(int argc, char** argv) {
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
-	// printf("\nNumber of moves accepted is %d.", acc_counter);
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
      
     return 0;

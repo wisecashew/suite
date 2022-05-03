@@ -113,7 +113,7 @@ def get_pdict(filename, x, y, z):
 
         else:
             monomer_coords                   = extract_loc_from_string ( line ) 
-            master_dict[step_num][pmer_flag] = np.vstack ( (master_dict[step_num][pmer_flag], monomer_coords[0:-1] ) ) 
+            master_dict[step_num][pmer_flag] = np.vstack ( (master_dict[step_num][pmer_flag], monomer_coords[0:-2] ) ) 
             continue
     
     return master_dict 
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     print("Is this running?") 
     U            = args.U
     dop          = args.dop
-    temperatures = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+    temperatures = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]
         
     rg_mean = np.array([])
     rg_std  = np.array([]) 
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     ax.errorbar   ( temperatures, rg_mean, yerr= 0 )# rg_std ) 
     ax.set_xlabel ( "Temperature" ) 
     ax.set_ylabel ( "Radius of gyration" ) 
-    ax.set_xticks ( np.arange(0,12,1) ) 
+    ax.set_xticks ( np.arange(0,22,1) ) 
     plt.savefig   ( "rg_plot"+str(args.dop)+".png", dpi=1200 ) 
     plt.show() 
     

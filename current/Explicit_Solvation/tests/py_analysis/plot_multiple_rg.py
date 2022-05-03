@@ -114,7 +114,7 @@ def get_pdict(filename, x, y, z):
 
         else:
             monomer_coords                   = extract_loc_from_string ( line ) 
-            master_dict[step_num][pmer_flag] = np.vstack ( (master_dict[step_num][pmer_flag], monomer_coords[0:-1] ) ) 
+            master_dict[step_num][pmer_flag] = np.vstack ( (master_dict[step_num][pmer_flag], monomer_coords[0:-2] ) ) 
             continue
     
     return master_dict 
@@ -123,7 +123,7 @@ if __name__ == "__main__":
     
     U_list       = ["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"]
     dop          = args.dop
-    temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0]
+    temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]
         
     if args.ev==1:
         U_list.append("Uexcl")

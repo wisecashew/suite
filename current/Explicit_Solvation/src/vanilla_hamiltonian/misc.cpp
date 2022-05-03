@@ -887,13 +887,12 @@ bool MetropolisAcceptance(double E1, double E2, double kT, double rweight){
 	double dE = E2-E1; 
 	double prob = std::exp(-1/kT*dE) * rweight; 
 	double r = rng_uniform(0.0, 1.0); 
-	std::cout << "Probability is " << prob <<"." << std::endl;
-    std::cout << "rweight is " << rweight << "." << std::endl;
+	// std::cout << "Probability is " << prob <<"." << std::endl;
+    // std::cout << "rweight is " << rweight << "." << std::endl;
 	// std::cout << "E1 is " << E1 << std::endl;
 	// std::cout << "E2 is " << E2 << std::endl;
-
 	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
-	std::cout << "RNG is " << r << "." << std::endl;
+	// std::cout << "RNG is " << r << "." << std::endl;
 	if (r < prob){
 		return true; 
 	}
@@ -3734,7 +3733,7 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
             *rweight = (*rweight) * (Nmer-i)/(Nsurr+Nmer-i) ; 
         }
     }
-    std::cout << "biasing weight for polymer flip is " << *rweight << std::endl;
+    // std::cout << "biasing weight for polymer flip is " << *rweight << std::endl;
     return; 
 }
 

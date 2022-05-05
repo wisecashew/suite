@@ -3516,7 +3516,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
     std::vector <Polymer> NewPol = (*Polymers); 
-    int r = rng_uniform(1, 5);
+    int r = rng_uniform(1, 9);
     switch (r) {
         case (1):
             if (v){
@@ -3574,14 +3574,14 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             SolventFlipSingular (Polymers, Solvent, x, y, z, rweight); 
             break;
         
-        case (8):
-        	if (v){
-        		printf("Performing translation. \n");
-        	}
-        	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-        	break;
+        //case (8):
+        //	if (v){
+        //		printf("Performing translation. \n");
+        //	}
+        //	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
+        //	break;
 
-        case (9):
+        case (8):
         	if (v){
         		printf("Performing polymer orientation flips. \n");
         	}
@@ -3589,7 +3589,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         	PolymerFlip ( &NewPol, Solvent, x, y, z, rweight, Nsurr );
         	break;
 
-        case (10):
+        case (9):
             if (v) {
                 printf("Performing local polymer orientation flips. \n");
             }

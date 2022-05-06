@@ -3784,7 +3784,7 @@ void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>*
 std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    std::vector <Polymer> NewPol = (*Polymers); 
+    std::vector <Polymer> NewPol; // = (*Polymers); 
     int r = rng_uniform(1, 10);
     switch (r) {
         case (1):

@@ -2098,9 +2098,11 @@ std::vector <Polymer> BondVibration_Rosenbluth (std::vector <Polymer>* Polymers,
 	for ( std::array<int,3>& dx: adrns ){
 		// impose important condition on dx
 		if ( ( std::find ( adrns.begin(), adrns.end(), add_arrays(&d1, &dx) ) != adrns.end() ) && ( std::find ( adrns.begin(), adrns.end(), subtract_arrays(&d2, &dx)) != adrns.end() ) ){
-			std::cout << "first check: "; print( add_arrays(&d1, &dx)); 
-			std::cout << "second check: "; print (subtract_arrays(&d2, &dx)); 
-			std::array <int,3> temp = add_arrays ( & ( (*Polymers)[index].chain[m_idx].coords), &dx ) ; 
+			
+            // std::cout << "first check: "; print( add_arrays(&d1, &dx)); 
+			// std::cout << "second check: "; print (subtract_arrays(&d2, &dx)); 
+			
+            std::array <int,3> temp = add_arrays ( & ( (*Polymers)[index].chain[m_idx].coords), &dx ) ; 
 			impose_pbc ( &temp, x, y, z );
 			if ( ! ( MonomerReporter (Polymers, & ( temp ) ) ) ) {
 				good_dx [count] = d_idx;
@@ -2123,13 +2125,13 @@ std::vector <Polymer> BondVibration_Rosenbluth (std::vector <Polymer>* Polymers,
 	std::array <int,3> new_loc = add_arrays ( &((*Polymers)[index].chain[m_idx].coords), &( adrns[ good_dx[d_rng]] ) );
 	impose_pbc ( &new_loc, x, y, z); 
 
-	std::cout << "Vibration location is "; print( (*Polymers)[index].chain[m_idx].coords );
+	// std::cout << "Vibration location is "; print( (*Polymers)[index].chain[m_idx].coords );
 
 
 	(NewPol)[index].chain[m_idx].coords = new_loc;
 	(*rweight) = static_cast<double>(count)/26.0; 
 	
-	std::cout << "Location is "; print ( (NewPol)[index].chain[m_idx].coords ); 
+	// std::cout << "Location is "; print ( (NewPol)[index].chain[m_idx].coords ); 
 
 	NewPol[index].ChainToConnectivityMap (); 
 
@@ -2781,7 +2783,7 @@ void ChainRegrowth_Rosenbluth(std::vector <Polymer>* PolymerVector, std::vector 
 	// decide which end of the polymer do i want to move around 
     bool first_entry_bool = true; 
 
-	int back_or_front = 0; //rng_uniform(0, 1); 
+	int back_or_front = rng_uniform(0, 1); 
 
 	if (back_or_front == 0){
 		old_p = extract_positions_tail ( &((*PolymerVector)[index_of_polymer].chain), index_monomer );
@@ -3026,7 +3028,7 @@ void TailSpin(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_mo
 //////////////////////////////////////////////////////////////
 
 
-void TailSpin_Rosenbluth(std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
+void TailSpin_Rosenbluth (std::vector <Polymer>* PVec, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
 
 	// std::cout << "index of monomer is " << index_of_monomer << std::endl;
     
@@ -3406,7 +3408,7 @@ void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
     
     *rweight = 1; 
     for (int i {0}; i < stopping_idx; ++i){
-        *rweight = (*rweight) * (Nsurr-i)/(Nmer+Nsurr-i); 
+        *rweight = (*rweight) * static_cast<double>(Nsurr-i)/static_cast<double>(Nmer+Nsurr-i); 
     }
 	
 	int counter = 0; 
@@ -3463,7 +3465,7 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
     
     *rweight = 1; 
     for (int i {0}; i < stopping_idx; ++i){
-        *rweight = (*rweight) * (Nsurr-i)/(Nmer+Nsurr-i); 
+        *rweight = (*rweight) * static_cast<double>((Nsurr-i))/static_cast<double>(Nmer+Nsurr-i); 
     }
 	
 	int idx = solvent_indices [ rng_uniform(0, Nsurr-1) ]; 
@@ -3487,10 +3489,10 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
     for (Polymer& pmer: (*Polymers) ){
         for (Particle& p: pmer.chain){
             p.orientation = rng_uniform(0,5); 
-            *rweight = (*rweight) * (Nmer-i)/(Nsurr+Nmer-i) ; 
+            *rweight = (*rweight) * static_cast<double>((Nmer-i))/static_cast<double>(Nsurr+Nmer-i) ; 
         }
     }
-    // std::cout << "biasing weight for polymer flip is " << *rweight << std::endl;
+    
     return; 
 }
 
@@ -3505,8 +3507,8 @@ void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>*
 
     int idx = rng_uniform   ( 0, static_cast<int> ((*Polymers)[p_idx].chain.size()-1) ) ;
     (*Polymers)[p_idx].chain[idx].orientation = rng_uniform(0,5); 
-    *rweight = Nmer/(Nmer+Nsurr); 
-    
+    *rweight = static_cast<double>(Nmer)/static_cast<double>(Nmer+Nsurr); 
+    // std::cout << "rosenbluth weight for PolymerFlipLocal is " << *rweight << std::endl; 
     return; 
 }
 
@@ -3515,8 +3517,8 @@ void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>*
 std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, int Nsurr){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    std::vector <Polymer> NewPol = (*Polymers); 
-    int r = rng_uniform(1, 9);
+    std::vector <Polymer> NewPol;// = (*Polymers); 
+    int r = rng_uniform(1, 8);
     switch (r) {
         case (1):
             if (v){
@@ -3529,21 +3531,13 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         
         case (2):
             if (v){
-               printf("Performing crank shaft.\n"); 
-            }
-            
-            NewPol = CrankShaft_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
-            break; 
-
-        case (3):
-            if (v){
                printf("Performing reptation.\n"); 
             }
             
             NewPol = Reptation_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
             break; 
 
-        case (4):
+        case (3):
             if (v){
                printf("Performing bond vibration.\n"); 
             }
@@ -3551,37 +3545,30 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             NewPol = BondVibration_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
             break; 
 
-        case (5):
+        case (4):
         	if (v) {
         		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
+        		// std::cout << "index of polymer is " << index << std::endl;
         	}
         	NewPol = *Polymers; 
         	ChainRegrowth_Rosenbluth (&NewPol, Solvent, index, x, y, z, IMP_BOOL, rweight ); 
         	break;
         
-        case (6): 
+        case (5): 
         	if (v){
         		printf("Performing solvent orientation flips. \n");
         	}
         	SolventFlip (Polymers, Solvent, x, y, z, rweight); 
         	break; 
 
-        case (7):
+        case (6):
             if (v) {
                 printf("Performing single solvent orientation flip. \n");
             }
             SolventFlipSingular (Polymers, Solvent, x, y, z, rweight); 
             break;
         
-        //case (8):
-        //	if (v){
-        //		printf("Performing translation. \n");
-        //	}
-        //	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-        //	break;
-
-        case (8):
+        case (7):
         	if (v){
         		printf("Performing polymer orientation flips. \n");
         	}
@@ -3589,7 +3576,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         	PolymerFlip ( &NewPol, Solvent, x, y, z, rweight, Nsurr );
         	break;
 
-        case (9):
+        case (8):
             if (v) {
                 printf("Performing local polymer orientation flips. \n");
             }

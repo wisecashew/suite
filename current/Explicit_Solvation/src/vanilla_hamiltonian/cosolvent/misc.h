@@ -96,6 +96,8 @@ void print (std::vector <double> v);
 // print out an array 
 void print (std::array <int,3> a); 
 void print (std::array <double,3> a);
+void print (std::array <double,8> a);
+void print (std::array <double,6> a);
 
 // print out a list of vectors
 void print (std::vector <std::vector <int>> v); 
@@ -138,7 +140,7 @@ double                 NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, std::array<double,6>& E, std::array<double,6>& contacts );
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, std::array<double,6>* E, std::array<double,6>* contacts );
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -156,11 +158,12 @@ void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Part
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Polymer moves
 
-std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
+std::vector <Polymer> Translation          (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
 void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
-void                  SolventFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlipLocal     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, double* rweight); 
+void                  SolventFlip          (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
+void                  PolymerFlip          (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
+void                  PolymerFlipLocal     (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, double* rweight); 
+void                  SolventExchange      (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int x, int y, int z);
 
 // methods relevant to chain regrowth 
 bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* Polymers);

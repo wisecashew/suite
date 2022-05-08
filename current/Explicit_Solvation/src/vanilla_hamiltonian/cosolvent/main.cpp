@@ -138,14 +138,12 @@ int main(int argc, char** argv) {
     const int y = info_vec[1]; 
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
-    // const double Emm_a = info_vec[4]; 
-    // const double Emm_n = info_vec[5]; 
-    // const double Ems_a = info_vec[6];
-    // const double Ems_n = info_vec[7]; 
+
     const double frac = info_vec[4]; // fraction of solvent 1 
     std::array <double,6> E = {info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10]}; 
     std::cout << "Number of polymers is " << N << ".\n";
-    std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
+    std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ", frac = " << frac << ".\n"; 
+    std::cout << "frac is the fraction of molecules of type 'solvent1'. \n";
     std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] << \
             ", Ems2_a = "<< E[4] << ", Ems2_n = " << E[5] << ".\n";  
 
@@ -183,24 +181,21 @@ int main(int argc, char** argv) {
     dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
     
     std::array <double,6> contacts = {0,0,0,0,0,0}; 
-    // double m_neighbors = 0, m_neicopy = 0; 
-    // int a_contacts = 0, a_contcopy = 0; 
-    // int n_contacts = 0, n_contcopy = 0;  
-    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, E, contacts); 
+
+    std::cout << "Print statement right before Calculate Energy..." << std::endl;
+
+    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, &E, &contacts); 
     
     std::array <double,6> contacts_copy = contacts; 
-    // m_neicopy  = m_neighbors; 
-    // a_contcopy = a_contacts; 
-    // n_contcopy = n_contacts; 
 
-    dumpEnergy (sysEnergy, step_number, contacts, efile);
+    dumpEnergy     (sysEnergy, step_number, contacts, efile);
     dumpOrientation(&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
     
     // defined single orientation solvents and polymers 
 
     std::cout << "Energy of system is " << sysEnergy << std::endl;
      
-	int acc_counter = 0; 
+	// int acc_counter = 0; 
     
     bool IMP_BOOL = true; 
     bool metropolis = false;
@@ -220,11 +215,9 @@ int main(int argc, char** argv) {
         
         if ( !(metropolis) ){
             contacts = contacts_copy; 
-            // m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
         }
         else {
             contacts_copy = contacts; 
-            // m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
             metropolis = false; 
         }
         
@@ -233,8 +226,9 @@ int main(int argc, char** argv) {
         PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight);   
 
         if (IMP_BOOL){ 
-            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, E, contacts); 
-            // std::cout << "has energy been calculated?" << std::endl;
+            // std::cout << "Are you evaluating energy?" << std::endl;
+            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, &E, &contacts); 
+            // std::cout << "New energy is " << sysEnergy_ << "." << std::endl;
         }
 
         if ( v && (i%dfreq==0) ){
@@ -244,8 +238,6 @@ int main(int argc, char** argv) {
         
         if ( IMP_BOOL && MetropolisAcceptance (sysEnergy, sysEnergy_, T, rweight) ) {
             metropolis = true; 
-            // std::cout << "bro..." << std::endl;
-            // replace old config with new config
             if ( v ){
                 printf("Checking validity of coords...");
                 printf("checkForOverlaps says: %d.\n", checkForOverlaps(PolymerVector_)); 
@@ -266,25 +258,23 @@ int main(int argc, char** argv) {
                     printf("Something is fucked up connectivity-wise. \n");
                     exit(EXIT_FAILURE);
                 }
-                printf("Accepted.\n");
+                printf("Accepted!!\n");
                 printf("Energy of the system is %.2f.\n", sysEnergy_);
                 printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
 
 
             }
-
-            // std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
             
             PolymerVector = std::move(PolymerVector_);
             SolventVector = std::move(SolventVector_); 
             sysEnergy = sysEnergy_; 
-			++acc_counter;
+			// ++acc_counter;
         }
 
 
         else {
             if ( v && (i%dfreq==0) ){
-                printf("Not accepted.\n");
+                printf("Not accepted...\n");
                 printf("Energy of the suggested system is %.2f, while energy of the initial system is %.2f.\n", sysEnergy_, sysEnergy);
             }
             if (v && !IMP_BOOL){
@@ -297,21 +287,15 @@ int main(int argc, char** argv) {
 
         if ( ( i % dfreq == 0) ){
             
-            // std::cout << "Am I inside the dump zone?" << std::endl;  
-            // PolymerVector[0].printChainCoords(); 
-            // std::cout << "Am I inside the dump zone again?" << std::endl;  
+
             dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
             if ( metropolis ){
-                // std::cout << "metropolis is " << metropolis << ". let the dumping begin!" << std::endl;
                 dumpEnergy (sysEnergy, i, contacts, efile);
-                // std::cout << "dumping out orientations... " << std::endl;
                 dumpOrientation ( &PolymerVector, &SolventVector, i, mfile, x, y, z); 
                  
             }
             else {
-                // std::cout << "metropolis is " << metropolis <<". let the dumping begin! " << std::endl;
                 dumpEnergy (sysEnergy, i, contacts_copy, efile);
-                // std::cout << "dumping out orientations... " << std::endl;
                 dumpOrientation (&PolymerVector, &SolventVector, i, mfile, x, y, z); 
             }            
         }
@@ -322,8 +306,6 @@ int main(int argc, char** argv) {
 
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-	
-	// printf("\nNumber of moves accepted is %d.", acc_counter);
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
 
     return 0;

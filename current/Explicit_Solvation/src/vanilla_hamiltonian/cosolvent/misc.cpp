@@ -113,17 +113,24 @@ void modified_direction(std::array<int,3>* a, int x, int y, int z){
 
 std::vector <int> UniqueNRandomNumbers (int idx_1, int idx_f, int N){
     
+	// std::cout <<"idx_1 is " << idx_1 << ", idx_f is " << idx_f << ", size of array " << N << "." << std::endl;
+
     std::vector <int> a2b (idx_f-idx_1+1,0); 
     for (int i{idx_1}; i<idx_f+1; ++i){
         a2b[i-idx_1] = i;
     }
+
+    // std::cout << "a2b is "; print(a2b); 
     
     std::vector <int> uniq (N,0);
+    int idx = 0; 
     for (int i{0}; i<N; ++i){
-        uniq[i] = a2b[rng_uniform(0, idx_f-idx_1+1-i)];
+    	idx = rng_uniform(0, idx_f-idx_1-i);
+    	// std::cout << "idx for a2b is " << idx << std::endl;
+        uniq[i] = a2b[idx];
         a2b.erase(std::remove(a2b.begin(), a2b.end(), uniq[i]), a2b.end() );
     }
-    
+    // std::cout << "uniq is "; print(uniq); 
     return uniq;
 
 }
@@ -231,6 +238,19 @@ void print(std::array <double, 3> v){
 	std::cout << std::endl;
 }
 
+void print(std::array <double,8> v){
+	for (double i: v){
+		std::cout << i << " | " ;
+	}
+	std::cout << std::endl;
+}
+
+void print(std::array <double,6> v){
+	for (double i: v){
+		std::cout << i << " | " ;
+	}
+	std::cout << std::endl;
+}
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
@@ -1325,9 +1345,9 @@ std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y,
 //
 // THE CODE: 
 
-Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVect, std::array <int,3> to_check){
+Particle ParticleReporter (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvents, std::array <int,3> to_check){
 
-	for (const Polymer& pmer: (*PolymerVector)) {
+	for (const Polymer& pmer: (*Polymers)) {
 		for (const Particle& p: pmer.chain){ 
 
 			if (to_check == p.coords){
@@ -1337,7 +1357,7 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
 		}
 	}
 
-	for (const Particle& p: *SolvVect){
+	for (const Particle& p: *Solvents){
 
 		if (to_check == p.coords){
 			return p;
@@ -1347,15 +1367,17 @@ Particle ParticleReporter (std::vector <Polymer>* PolymerVector, std::vector <Pa
     // (*PolymerVector)[0].printChainCoords();     
     // (*PolymerVector)[1].printChainCoords(); 
     // std::cout << "Coords of solvent: \n";    
-
-    for (const Particle& p: *SolvVect){
+	std::cout << "Problem location is "; 
+	print(to_check);
+    for (const Particle& p: *Solvents){
+    	// std::cout << "porblem location is ";
         print(p.coords); 
     }
     
 	std::cout << "Something is profoundly fucked - reporting from ParticleReporter." << std::endl;
     exit(EXIT_FAILURE);
 	// Particle p;
-	return (*SolvVect)[0]; 
+	return (*Solvents)[0]; 
 
 }
 
@@ -1424,51 +1446,57 @@ bool MonomerReporter (std::vector <Polymer>* PolymerVector, std::array <int,3>* 
 //
 // THE CODE: 
 
-double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, std::array<double,6>& E, std::array<double,6>& contacts){
+double CalculateEnergy(std::vector <Polymer>* PolymerVector, std::vector <Particle>* SolvVector, int x, int y, int z, std::array<double,6>* E, std::array<double,6>* contacts){
     double Energy {0.0};
-    contacts = {0,0,0,0,0,0};
-    // polymer-polymer interaction energies 
-    // (*PolymerVector)[0].printChainCoords();
+    (*contacts) = {0,0,0,0,0,0};
+
     for (const Polymer& pmer: (*PolymerVector)) {
         for (const Particle& p: pmer.chain){
             std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(p.coords, x, y, z); // get neighbor list 
-            
+            // std::cout << "particle of interest is "; print(p.coords); 
             for (const std::array <int, 3>& loc: ne_list){
             	
             	Particle ptr {ParticleReporter (PolymerVector, SolvVector, loc) };
+            	// std::cout << "\tptr ptype is " << ptr.ptype << std::endl; 
+            	// std::cout << "\tptr orientation is " << ptr.orientation << std::endl; 
+            	// std::cout << "\tptr location is "; print( ptr.coords ); 
 
             	if ((ptr).ptype == "monomer"){
+            		// std::cout << "\t\tmonomer is neighbor." << std::endl;
             		if ((ptr).orientation == p.orientation ){
-                        contacts[0] += 0.5; 
-            			Energy += 0.5*E[0]; 
+                        (*contacts)[0] += 0.5; 
+            			Energy += 0.5* (*E)[0]; 
             		}
             		else {
-                        contacts[1] += 0.5; 
-            			Energy += 0.5*E[1]; 
+                        (*contacts)[1] += 0.5; 
+            			Energy += 0.5* (*E)[1]; 
             		}
             	}
             	else if ((ptr).ptype == "solvent1"){ // particle is of type solvent 
+            		// std::cout << "\t\tsolvent1 is neighbor." << std::endl;
             		if ( (ptr).orientation == p.orientation ){
-                        contacts[2] += 1;
-            			Energy += E[2];
+            			
+                        (*contacts)[2] += 1;
+            			Energy += (*E)[2];
             		}
             		else {
-                        contacts[3] += 1; 
-            			Energy += E[3]; 
+                        (*contacts)[3] += 1; 
+            			Energy += (*E)[3]; 
             		}
             	}
                 else if ( (ptr).ptype == "solvent2" ) {
+                	// std::cout << "\t\tsolvent1 is neighbor." << std::endl;
                     if ( (ptr).orientation == p.orientation ) {
-                        contacts[4] += 1; 
-                        Energy += E[4];
+                        (*contacts)[4] += 1; 
+                        Energy += (*E)[4];
                     }
                     else {
-                        contacts[5] += 1;
-                        Energy += E[5]; 
+                        (*contacts)[5] += 1;
+                        Energy += (*E)[5]; 
                     }
                 }
                 else {
-                    std::cout << "Something is profoundly fucked -- message from calculate energy.";
+                    // std::cout << "Something is profoundly fucked -- message from calculate energy.";
                     exit(EXIT_FAILURE); 
                 }
             }
@@ -1575,7 +1603,7 @@ void dumpPositionOfSolvent(std::vector <Particle>* SolventVector, int step, std:
 //============================================================
 //============================================================
 //
-// NAME OF FUNCTION: dumpEnergyOfGrid 
+// NAME OF FUNCTION: dumpEnergy
 //
 // PARAMETERS: (int step, std::string filename), and some attributes present in the Grid Object 
 // 'step' is the current time step we are at. This is an integer which is likely defined in the driver code.  
@@ -1593,8 +1621,8 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,6>& contacts, std
     
     std::ofstream dump_file(filename, std::ios::app); 
     dump_file << sysEnergy << " | " << contacts[0]+contacts[1] << " | " << contacts[0] << " | " << contacts[1] \
-            << " | " << contacts[2] + contacts[3] << " | " << contacts[2] << " | " << contacts[3] << " | " << contacts[4] + contacts[5] << \
-            " | " << contacts[4] << " | " << contacts[5] << " | " << step << "\n";
+            << " | " << contacts[2]+contacts[3]+contacts[4]+contacts[5] << " | " <<contacts[2] + contacts[3] << " | " << contacts[2] << " | " << contacts[3] << " | " << \
+            contacts[4] + contacts[5] << " | " << contacts[4] << " | " << contacts[5] << " | " << step << "\n";
     return; 
 }
 
@@ -3808,27 +3836,28 @@ void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>*
 }
 
 
-void SolventExchange (std::vector <Polymer>& Polymers, std::vector <Particle>& Solvent, int x, int y, int z, double frac){
+void SolventExchange (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z){
     
     // solvent 1 indices are from 0 to static_cast<int>(frac* Solvent.size()) 
-    int s1_max_idx = static_cast<int>( frac * Solvent.size() ) - 1; 
-    int s2_min_idx = s1_max_idx+1; 
+    int NSolvent = static_cast<int> (Solvent->size() ); 
+    // int s1_max_idx = static_cast<int>( frac * NSolvent ) - 1; 
+    // int s2_min_idx = s1_max_idx+1; 
 
     // replace polymer-surrounding solvent molecules with either s1 or s2 	
     // obtain the list of solvent particles neighboring the polymer 
 	std::vector <int> solvent_indices;
-    int NSolvent = static_cast<int> (Solvent.size() ); 
+    
     // int Nmer     = x*y*z - NSolvent; 
     solvent_indices.reserve(NSolvent); 
       
-	for (const Polymer& pmer: (Polymers)) {
+	for (const Polymer& pmer: (*Polymers)) {
 		for (const Particle& p: pmer.chain) {
 
 			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
             for (const std::array <int,3>& n: ne_list){ 
                 
                 for (int j{0}; j<NSolvent; ++j){
-                    if (n == (Solvent)[j].coords){
+                    if (n == (*Solvent)[j].coords){
                         solvent_indices.push_back(j); 
                         break; 
                     }
@@ -3841,51 +3870,47 @@ void SolventExchange (std::vector <Polymer>& Polymers, std::vector <Particle>& S
 	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
 	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
     
+    // std::cout << "Locations of solvent molecules surrounding polymer are " << std::endl; 
+    //for (int i: solvent_indices){
+    //	print((*Solvent)[i].coords); 
+    //}
+    // std::cout << "solvent indices surrounding polymer are: ";
+	// print(solvent_indices);
+
+
     // number of surrounding solvent molecules 
     int Nsurr = static_cast<int>( solvent_indices.size() ); 
 	int nexchange = 0;
-    int min = 0;  
-    // pick which molecules must be sent near polymer: 1 or 2 
-    if (rng_uniform(0,1)){
-        // send solvent type 1 near polymer 
-        // how many to send?
-        // minimum between number of s1 molecules and number of solvents around polymer  
-        min = std::min (s1_max_idx+1, Nsurr);
-        if (min == 0){
-           return; 
-        } 
-        nexchange = rng_uniform (1, min ); 
-        std::vector <int> idx_s1   = UniqueNRandomNumbers(0, s1_max_idx, nexchange); 
-        std::vector <int> idx_surr = UniqueNRandomNumbers(0, Nsurr-1, nexchange); 
 
-        for (int j{0}; j < min; ++j) {
-            Particle temp = Solvent[idx_s1[j]]; 
-            Solvent[idx_s1[j]] = Solvent[solvent_indices[ idx_surr[j] ] ]; 
-            Solvent[solvent_indices [idx_surr[j]] ]= temp; 
-        }
+    nexchange = rng_uniform (1, Nsurr); 
+    // std::cout << "nexchange is " << nexchange << std::endl;
+    std::vector <int> idx_s1   = UniqueNRandomNumbers(0, NSolvent-1, nexchange); 
+    // std::cout << "indices of solvent molecules to exchange from the bath is "; print(idx_s1); 
+    std::vector <int> idx_surr = UniqueNRandomNumbers(0, Nsurr-1   , nexchange); 
+    // std::cout << "indices of solvent molecules to exchange from the shell is "; print(idx_surr); 
 
-        return; 
-        
+    for (int j{0}; j < nexchange; ++j) {
+    	// std::cout << " j = " <<    j << std::endl;
+    	// std::cout << "Switch will take place between: (bath particle) "; print ((*Solvent)[ idx_s1[j] ].coords);
+    	// std::cout << " and (shell particle) "; print( (*Solvent)[solvent_indices[idx_surr[j]]].coords ); 
+
+        Particle temp = (*Solvent)[idx_s1[j]]; 
+        // std::cout << "type of particle from bath is " << temp.ptype << "." << std::endl;
+        // if (temp.ptype == "solvent2"){
+        //	std::cout <<"HITTTTTT!!!!!!!" << std::endl;
+        //}
+
+        (*Solvent)[idx_s1[j]].ptype = (*Solvent)[solvent_indices[ idx_surr[j] ] ].ptype;
+        (*Solvent)[idx_s1[j]].orientation = (*Solvent)[solvent_indices[ idx_surr[j] ] ].orientation; 
+
+        (*Solvent)[solvent_indices [idx_surr[j]] ].ptype       = temp.ptype;
+        (*Solvent)[solvent_indices [idx_surr[j]] ].orientation = temp.orientation; 
+        // std::cout << "solvent_indices[idx_surr["<<j<<"]] is " << solvent_indices[idx_surr[j]] << std::endl; 
+        // std::cout << "idx_surr["<<j<<"] is " << idx_surr[j] << std::endl;
+
     }
-    else {
-        // minimum between number of s2 molecules and number of solvents around polymer
-        int ns2part = NSolvent-(s1_max_idx+1);  
-        min = std::min ( ns2part, Nsurr );
-        if (min==0){ 
-            return; 
-        }
-        nexchange = rng_uniform(0, min); 
-        std::vector <int> idx_s2   = UniqueNRandomNumbers(s2_min_idx, s2_min_idx+ns2part-1, nexchange); 
-        std::vector <int> idx_surr = UniqueNRandomNumbers(0, Nsurr-1, nexchange); 
-
-        for (int j{0}; j<min; ++j){ 
-            Particle temp = Solvent [idx_s2[j]];
-            Solvent [idx_s2[j]] = Solvent[solvent_indices[ idx_surr[j] ] ];
-            Solvent[solvent_indices[idx_surr[j]]] = temp; 
-        }
-        
-        return;
-    }
+    // std::cout << "Exchange has been performed." << std::endl;
+    return; 
     
 }
 
@@ -3895,7 +3920,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
     std::vector <Polymer> NewPol; // = (*Polymers); 
-    int r = rng_uniform(1, 10);
+    int r = rng_uniform(1, 11);
     switch (r) {
         case (1):
             if (v){
@@ -3944,6 +3969,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         		printf("Performing solvent orientation flips. \n");
         	}
         	SolventFlip (Polymers, Solvent, x, y, z, rweight); 
+        	return (*Polymers); 
         	break; 
 
         case (7):
@@ -3951,6 +3977,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
                 printf("Performing single solvent orientation flip. \n");
             }
             SolventFlipSingular (Polymers, Solvent, x, y, z, rweight); 
+            return (*Polymers);
             break;
         
         case (8):
@@ -3975,6 +4002,14 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             NewPol = *Polymers; 
             PolymerFlipLocal (&NewPol, Solvent, index, x, y, z, rweight); 
             break;
+
+        case (11):
+        	if (v) {
+        		printf("Performing solvent exchanged from around the polymer. \n"); 
+        	}
+        	SolventExchange(Polymers, Solvent, x, y, z); 
+        	*rweight = 1;
+        	return (*Polymers);
     }
 
     return NewPol;
@@ -4255,17 +4290,15 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 
 	for (Polymer pmer: *PolymerVector){
 		for (Particle p: pmer.chain){
-
 			++monomer_count; 
 			lattice.erase(std::find(lattice.begin(), lattice.end(), p.coords)); 
-
 		}
 	}
 
 	int nsolpart = x*y*z - monomer_count; 
 
-	std::vector <Particle> SolvPartVector; 
-	SolvPartVector.reserve(nsolpart); 
+	std::vector <Particle> Solvents; 
+	Solvents.reserve(nsolpart); 
     
     // number of solvent type 1 particles 
     int nsolpart1 = static_cast<int>(nsolpart*frac); 
@@ -4274,14 +4307,18 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 	for (int i{0}; i<nsolpart1; ++i){
 
 		Particle p = Particle (lattice[i], "solvent1", rng_uniform(0, 1));
-		SolvPartVector.push_back(p);  
+		Solvents.push_back(p);  
 
 	}
     for (int i{nsolpart1}; i<nsolpart; ++i) {
         Particle p = Particle (lattice[i], "solvent2", rng_uniform(0,1)); 
+        Solvents.push_back(p); 
     }
+ 
+    std::cout << "Number of solvent1 particles is " << nsolpart1 << "." << std::endl; 
+    std::cout << "Number of solvent2 particles is " << nsolpart-nsolpart1 << "." << std::endl; 
 
-	return SolvPartVector; 
+	return Solvents; 
 
 }
 

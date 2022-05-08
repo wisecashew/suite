@@ -3559,6 +3559,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         		printf("Performing solvent orientation flips. \n");
         	}
         	SolventFlip (Polymers, Solvent, x, y, z, rweight); 
+        	return (*Polymers);
         	break; 
 
         case (6):
@@ -3566,6 +3567,7 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
                 printf("Performing single solvent orientation flip. \n");
             }
             SolventFlipSingular (Polymers, Solvent, x, y, z, rweight); 
+            return (*Polymers); 
             break;
         
         case (7):

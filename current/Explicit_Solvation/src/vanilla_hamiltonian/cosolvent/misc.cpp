@@ -974,54 +974,47 @@ void StringToFile(std::string filename, std::string to_send){
 // ===============================================================
 // ===============================================================
 
-void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter, 
+void InputParser(int dfreq, int max_iter, 
 	std::string positions, std::string topology, std::string dfile, 
-	std::string efile, std::string restart_traj, std::string mfile){
+	std::string efile, std::string mfile, std::string stats_file){
 
 	// if acceptance criterion is NOT CALLED 
 
-	if (!a) {
-		if (Nacc != -1) {
-			std::cerr << "ERROR: You do not need to provide a -N option if you are not looking for accepted configuration statistics. Use -a if you want to use -N. Safeguarding against uncontrolled behavior. Exiting..." << std::endl;
-            exit (EXIT_FAILURE);
-		}
+	if (dfreq == -1 || max_iter == -1){
+        std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+        exit (EXIT_FAILURE);
+    }
 
-		if (dfreq == -1 || max_iter == -1){
-            std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-            exit (EXIT_FAILURE);
-        }
-
-	}
+	
 
 	// if restart is NOT CALLED
-	if (!r){
-		if (restart_traj != "blank"){
-            std::cerr << "ERROR: You cannot ask for a trajectory coordinate file with -T without the -r flag. Safeguard against uncontrolled behavior. Exiting..." << std::endl;
-            exit (EXIT_FAILURE); 
-        }
-        if (dfreq == -1 || max_iter == -1 ){
-            std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-            exit (EXIT_FAILURE);
-        }
-
-    }
+	// if (!r){
+	//	if (restart_traj != "blank"){
+    //        std::cerr << "ERROR: You cannot ask for a trajectory coordinate file with -T without the -r flag. Safeguard against uncontrolled behavior. Exiting..." << std::endl;
+    //        exit (EXIT_FAILURE); 
+    //    }
+    //    if (dfreq == -1 || max_iter == -1 ){
+    //        std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+    //        exit (EXIT_FAILURE);
+    //    }
+    // }
     
-    else {
-        if (dfreq == -1 || max_iter == -1 ){
-            std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-            exit (EXIT_FAILURE);
-        }
-        else if (restart_traj == "blank"){
-            std::cerr << "ERROR: Need a trajectory file -T if -r option is being called. Exiting..." << std::endl;
-            exit(EXIT_FAILURE); 
-        }
+    
+    if (dfreq == -1 || max_iter == -1 ){
+        std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+        exit (EXIT_FAILURE);
+    }
+    //    else if (restart_traj == "blank"){
+    //        std::cerr << "ERROR: Need a trajectory file -T if -r option is being called. Exiting..." << std::endl;
+    //        exit(EXIT_FAILURE); 
+    //    }
 
-	}
+	
 
 	// simulation requires an initial "positions" file, a topology file, a coordinate dump, and an energydump file 
 
-    if (positions=="blank" || topology == "blank" || dfile=="blank" || efile == "blank" || mfile == "blank" ){
-        std::cerr << "positions is " << positions <<", topology is " << topology <<", coordinate dump file is " << dfile << ", energy dump file is " << efile << ", orientation file is " << mfile << "." << std::endl;
+    if (positions=="blank" || topology == "blank" || dfile=="blank" || efile == "blank" || mfile == "blank" || stats_file == "blank"){
+        std::cerr << "positions is " << positions <<", topology is " << topology <<", coordinate dump file is " << dfile << ", energy dump file is " << efile << ", orientation file is " << mfile << ", move statistics is " << stats_file << "." << std::endl;
         std::cerr << "ERROR: No value for option p (positions file) and/or for option t (energy and geometry file) and/or for option o (name of output dump file) and/or for option e (name of orientation file)" <<
         " and/or for option u (name of energy dump file) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);    
@@ -1029,17 +1022,15 @@ void InputParser(bool a, bool r, int Nacc, int dfreq, int max_iter,
 
     // set up outputs 
 
-    if (r){
-        std::ofstream dump_file(dfile, std::ios::app); 
-        std::ofstream energy_dump_file (efile, std::ios::app); 
-    }
+    // if (r){
+    //     std::ofstream dump_file(dfile, std::ios::app); 
+    //     std::ofstream energy_dump_file (efile, std::ios::app); 
+    // }
 
-    else if (!r){
-        std::ofstream dump_file (dfile);
-        std::ofstream energy_dump_file (efile);
-        std::ofstream or_file (mfile); 
-    }
-
+    std::ofstream dump_file (dfile);
+    std::ofstream energy_dump_file (efile);
+    std::ofstream or_file (mfile); 
+    std::ofstream sfile (stats_file); 
 
 	return; 
 
@@ -1625,6 +1616,42 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,6>& contacts, std
             contacts[4] + contacts[5] << " | " << contacts[4] << " | " << contacts[5] << " | " << step << "\n";
     return; 
 }
+
+//============================================================
+//============================================================
+//
+// NAME OF FUNCTION: dumpMoveStatistics
+//
+// PARAMETERS: (int step, std::string filename), and some attributes present in the Grid Object
+// 'step' is the current time step we are at. This is an integer which is likely defined in the driver code.
+// 'filename' is the file to which I am going to print out coordinate information about the polymer.
+//
+// WHAT THE FUNCTION DOES: It takes the coordinates of the polymers in the current Grid object \, and prints them
+// out to a text file.
+//
+// DEPENDENCIES: No custom function required. All can be done from C++ STL.
+//
+// THE CODE:
+
+void dumpMoveStatistics (std::array <int,10>* attempts, std::array <int,10>* acceptances, int step, std::string stats_file){
+
+    std::ofstream dump_file (stats_file, std::ios::app);
+    dump_file << "For step " << step << ".\n";
+
+
+    dump_file << "End rotations                    - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << ".\n";
+    dump_file << "Crank shaft rotations            - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n";
+    dump_file << "Kink jumps                       - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n";
+    dump_file << "Reptation                        - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << ".\n";
+    dump_file << "Chain regrowth                   - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << ".\n";
+    dump_file << "Solvent orientation flips        - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n";
+    dump_file << "Single solvent orientation flips - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << ".\n";
+    dump_file << "Polymer orientation flips        - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n";
+    dump_file << "Local polymer orientation flips  - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n";
+    dump_file << "Solvent exchange                 - attempts: " << (*attempts)[9] <<", acceptances: " << (*acceptances)[9] << ", acceptance fraction: " << static_cast<double>((*acceptances)[9])/static_cast<double>((*attempts)[9]) << ".\n";
+
+}
+
 
 //============================================================
 //============================================================
@@ -2566,6 +2593,11 @@ std::vector <Polymer> ForwardReptation_Rosenbluth(std::vector <Polymer>* Polymer
     	if ( to_check == NewPol[index].chain[deg_poly-2].coords ){
     		continue; 
     	}
+        
+        else if ( to_check == NewPol[index].chain[0].coords ) {
+            (*rweight) += 1; 
+            idx_v.push_back (to_check); 
+        }
 
 		else if ( ! (MonomerReporter(PolymerVector, &to_check) )){
 			(*rweight) += 1; 
@@ -2778,6 +2810,11 @@ std::vector <Polymer> BackwardReptation_Rosenbluth(std::vector <Polymer>* Polyme
     	if ( to_check == NewPol[index].chain[1].coords){
     		continue; 
     	}
+        
+        else if ( to_check == NewPol[index].chain[deg_poly-1].coords ) {
+            (*rweight) += 1; 
+            idx_v.push_back(to_check); 
+        }
 
     	else if ( ! (MonomerReporter(PolymerVector, &to_check) ) ){
     		(*rweight) += 1; 
@@ -3752,85 +3789,33 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 
 
 ///////////////////////////////////////////////////////////////////////////
-void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight ){
+void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight, int Nsurr ){
     
-    std::vector <int> solvent_indices;
     int NSolvent = static_cast<int> ((*Solvent).size() ); 
     int Nmer     = x*y*z - NSolvent; 
-    solvent_indices.reserve(NSolvent); 
-      
-	for (const Polymer& pmer: (*Polymers)) {
-		for (const Particle& p: pmer.chain) {
-
-			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
-            for (const std::array <int,3>& n: ne_list){ 
-                
-                for (int j{0}; j<NSolvent; ++j){
-                    if (n == (*Solvent)[j].coords){
-                        solvent_indices.push_back(j); 
-                        break;
-                    }
-                }                
-            }	
-		}
-	}
-	// get rid of repeated indices
-	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
-	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
     
-    // number of surrounding solvent molecules 
-    int Nsurr = static_cast<int>( solvent_indices.size() ); 
-
     int i = 0;
     *rweight = 1; 
     for (Polymer& pmer: (*Polymers) ){
         for (Particle& p: pmer.chain){
             p.orientation = rng_uniform(0,5); 
-            *rweight = (*rweight) * (Nmer-i)/(Nsurr+Nmer-i) ; 
+            *rweight = (*rweight) * static_cast<double>(Nmer-i)/static_cast<double>(Nsurr+Nmer-i) ; 
+            i = i + 1;
         }
     }
-    // std::cout << "biasing weight for polymer flip is " << *rweight << std::endl;
     return; 
 }
 
-void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int p_idx, int x, int y, int z, double* rweight ){
+void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int p_idx, int x, int y, int z, double* rweight, int Nsurr ){
     
-    // obtain the list of solvent particles neighboring the polymer 
-	std::vector <int> solvent_indices;
     int NSolvent = static_cast<int> ((*Solvent).size() ); 
     int Nmer     = x*y*z - NSolvent; 
-    solvent_indices.reserve(NSolvent); 
       
-	for (const Polymer& pmer: (*Polymers)) {
-		for (const Particle& p: pmer.chain) {
-
-			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
-            for (const std::array <int,3>& n: ne_list){ 
-                
-                for (int j{0}; j<NSolvent; ++j){
-                    if (n == (*Solvent)[j].coords){
-                        solvent_indices.push_back(j); 
-                        break;
-                    }
-                }                
-            }	
-		}
-	}
-
-	// get rid of repeated indices
-	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
-	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
-    
-    // number of surrounding solvent molecules 
-    int Nsurr = static_cast<int>( solvent_indices.size() ); 
-
-    // index of polymer 
-    // int p_idx = rng_uniform ( 0, static_cast<int> ( (*Polymers).size())- 1);
     
     // index of monomer unit 
     int idx = rng_uniform   ( 0, static_cast<int> ((*Polymers)[p_idx].chain.size()-1) ) ;
     (*Polymers)[p_idx].chain[idx].orientation = rng_uniform(0,5); 
-    *rweight = Nmer/(Nmer+Nsurr); 
+    *rweight = static_cast<double>(Nmer)/static_cast<double>(Nmer+Nsurr); 
     
     return; 
 }
@@ -3838,10 +3823,7 @@ void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>*
 
 void SolventExchange (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z){
     
-    // solvent 1 indices are from 0 to static_cast<int>(frac* Solvent.size()) 
     int NSolvent = static_cast<int> (Solvent->size() ); 
-    // int s1_max_idx = static_cast<int>( frac * NSolvent ) - 1; 
-    // int s2_min_idx = s1_max_idx+1; 
 
     // replace polymer-surrounding solvent molecules with either s1 or s2 	
     // obtain the list of solvent particles neighboring the polymer 
@@ -3852,10 +3834,8 @@ void SolventExchange (std::vector <Polymer>* Polymers, std::vector <Particle>* S
       
 	for (const Polymer& pmer: (*Polymers)) {
 		for (const Particle& p: pmer.chain) {
-
 			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
             for (const std::array <int,3>& n: ne_list){ 
-                
                 for (int j{0}; j<NSolvent; ++j){
                     if (n == (*Solvent)[j].coords){
                         solvent_indices.push_back(j); 
@@ -3870,89 +3850,72 @@ void SolventExchange (std::vector <Polymer>* Polymers, std::vector <Particle>* S
 	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
 	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
     
-    // std::cout << "Locations of solvent molecules surrounding polymer are " << std::endl; 
-    //for (int i: solvent_indices){
-    //	print((*Solvent)[i].coords); 
-    //}
-    // std::cout << "solvent indices surrounding polymer are: ";
-	// print(solvent_indices);
-
-
     // number of surrounding solvent molecules 
     int Nsurr = static_cast<int>( solvent_indices.size() ); 
 	int nexchange = 0;
 
     nexchange = rng_uniform (1, Nsurr); 
-    // std::cout << "nexchange is " << nexchange << std::endl;
     std::vector <int> idx_s1   = UniqueNRandomNumbers(0, NSolvent-1, nexchange); 
-    // std::cout << "indices of solvent molecules to exchange from the bath is "; print(idx_s1); 
     std::vector <int> idx_surr = UniqueNRandomNumbers(0, Nsurr-1   , nexchange); 
-    // std::cout << "indices of solvent molecules to exchange from the shell is "; print(idx_surr); 
 
     for (int j{0}; j < nexchange; ++j) {
-    	// std::cout << " j = " <<    j << std::endl;
-    	// std::cout << "Switch will take place between: (bath particle) "; print ((*Solvent)[ idx_s1[j] ].coords);
-    	// std::cout << " and (shell particle) "; print( (*Solvent)[solvent_indices[idx_surr[j]]].coords ); 
 
         Particle temp = (*Solvent)[idx_s1[j]]; 
-        // std::cout << "type of particle from bath is " << temp.ptype << "." << std::endl;
-        // if (temp.ptype == "solvent2"){
-        //	std::cout <<"HITTTTTT!!!!!!!" << std::endl;
-        //}
 
         (*Solvent)[idx_s1[j]].ptype = (*Solvent)[solvent_indices[ idx_surr[j] ] ].ptype;
         (*Solvent)[idx_s1[j]].orientation = (*Solvent)[solvent_indices[ idx_surr[j] ] ].orientation; 
 
         (*Solvent)[solvent_indices [idx_surr[j]] ].ptype       = temp.ptype;
         (*Solvent)[solvent_indices [idx_surr[j]] ].orientation = temp.orientation; 
-        // std::cout << "solvent_indices[idx_surr["<<j<<"]] is " << solvent_indices[idx_surr[j]] << std::endl; 
-        // std::cout << "idx_surr["<<j<<"] is " << idx_surr[j] << std::endl;
 
     }
-    // std::cout << "Exchange has been performed." << std::endl;
+    
     return; 
     
 }
 
 //////////////////////////////////////////////////////////////
 
-std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight){
+std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,10>* attempts, int* move_number, int Nsurr){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
     std::vector <Polymer> NewPol; // = (*Polymers); 
-    int r = rng_uniform(1, 11);
+    int r = rng_uniform(1, 10);
     switch (r) {
         case (1):
             if (v){
                printf("Performing end rotations.\n"); 
             }
-            // 
-            
             NewPol = EndRotation_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
+            *move_number = 1; 
+            (*attempts)[0] += 1;
             break;     
         
         case (2):
             if (v){
                printf("Performing crank shaft.\n"); 
             }
-            
             NewPol = CrankShaft_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
+            *move_number = 2; 
+            (*attempts)[1] += 1;
             break; 
 
         case (3):
             if (v){
                printf("Performing reptation.\n"); 
             }
-            
             NewPol = Reptation_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
+            *move_number = 3;
+            (*attempts)[2] += 1; 
             break; 
 
         case (4):
             if (v){
                printf("Performing kink jump.\n"); 
             }
-
             NewPol = KinkJump_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
+            *move_number = 4; 
+            (*attempts)[3] += 1; 
             break; 
 
         case (5):
@@ -3962,6 +3925,8 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         	}
         	NewPol = *Polymers; 
         	ChainRegrowth_Rosenbluth (&NewPol, Solvent, index, x, y, z, IMP_BOOL, rweight ); 
+            *move_number = 5; 
+            (*attempts)[4] += 1; 
         	break;
 
         case (6): 
@@ -3969,6 +3934,8 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
         		printf("Performing solvent orientation flips. \n");
         	}
         	SolventFlip (Polymers, Solvent, x, y, z, rweight); 
+            *move_number = 6;
+            (*attempts)[5] += 1; 
         	return (*Polymers); 
         	break; 
 
@@ -3977,38 +3944,46 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
                 printf("Performing single solvent orientation flip. \n");
             }
             SolventFlipSingular (Polymers, Solvent, x, y, z, rweight); 
+            *move_number = 7;
+            (*attempts)[6] += 1; 
             return (*Polymers);
             break;
         
-        case (8):
-        	if (v){
-        		printf("Performing translation. \n");
-        	}
-        	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
-        	break;
+        // case (8):
+        //	if (v){
+        //		printf("Performing translation. \n");
+        //	}
+        // 	NewPol = Translation(Polymers, Solvent, index, x, y, z, IMP_BOOL);
+        //	break;
 
-        case (9):
+        case (8):
         	if (v){
         		printf("Performing polymer orientation flips. \n");
         	}
         	NewPol = *Polymers; 
-        	PolymerFlip ( &NewPol, Solvent, x, y, z, rweight );
+        	PolymerFlip ( &NewPol, Solvent, x, y, z, rweight, Nsurr );
+            *move_number = 8;
+            (*attempts)[7] += 1;
         	break;
 
-        case (10):
+        case (9):
             if (v) {
                 printf("Performing local polymer orientation flips. \n");
             }
             NewPol = *Polymers; 
-            PolymerFlipLocal (&NewPol, Solvent, index, x, y, z, rweight); 
+            PolymerFlipLocal (&NewPol, Solvent, index, x, y, z, rweight, Nsurr); 
+            *move_number = 9; 
+            (*attempts)[8] += 1;
             break;
 
-        case (11):
+        case (10):
         	if (v) {
         		printf("Performing solvent exchanged from around the polymer. \n"); 
         	}
         	SolventExchange(Polymers, Solvent, x, y, z); 
         	*rweight = 1;
+            *move_number = 10; 
+            (*attempts)[9] += 1; 
         	return (*Polymers);
     }
 
@@ -4302,6 +4277,7 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
     
     // number of solvent type 1 particles 
     int nsolpart1 = static_cast<int>(nsolpart*frac); 
+    std::cout << "Number of particles of type1 are: " << nsolpart1 << std::endl; 
     // int nsolpart2 = nsolpart - nsolpart1; 
 
 	for (int i{0}; i<nsolpart1; ++i){

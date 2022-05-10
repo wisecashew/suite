@@ -1,0 +1,175 @@
+#!/usr/licensed/anaconda3/2020.7/bin/python
+
+import numpy as np 
+import re 
+import matplotlib.pyplot as plt 
+import pandas as pd
+import matplotlib.cm as cm 
+import os
+import argparse 
+parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration plot given a degree of polymerization over a range of temperatures and potential energy surfaces.")
+parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
+parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this index.', default=100)
+parser.add_argument('--excl_vol', dest='ev', action='store', type=int, help='flag to include excluded volume forcefield.', default=0)  
+
+args = parser.parse_args() 
+
+def dir2float (list_of_dirs):
+    l = [] 
+    for dir_name in list_of_dirs:
+        try:
+            l.append(float(dir_name)) 
+        except ValueError:
+            continue
+    l.sort()
+    return l 
+
+def extract_loc_from_string(a_string):
+    loc = [int(word) for word in a_string.split() if word.isdigit()]
+    
+    return np.asarray(loc)     
+
+def modified_modulo(divident, divisor):
+    midway = divisor/2
+    if (divident%divisor > midway):
+        result = (divident%divisor)-divisor 
+        return result
+    else:
+        return divident%divisor         
+
+
+def unfuck_polymer(polymer, x, y, z): 
+    unfucked_polymer = np.asarray([polymer[0,:]])
+    
+    for i in range ( polymer.shape[0]-1 ) :
+        diff = polymer[i+1,:] - polymer[i,:]
+        
+        for j in range(3):
+            diff[j] = modified_modulo(diff[j], x)
+        
+        unfucked_polymer = np.vstack( (unfucked_polymer, unfucked_polymer[i]+diff ) )
+    
+    return unfucked_polymer         
+
+
+def get_Rg(coord_arr, xlen, ylen, zlen):
+    
+    coord_arr = unfuck_polymer(coord_arr, xlen, ylen, zlen)
+    
+    r_com = np.mean(coord_arr, axis=0) 
+    N = coord_arr.shape[0]
+    rsum = 0
+    
+    for i in range(N): 
+        rsum += np.linalg.norm( coord_arr[i,:]- r_com )**2 
+    
+    rsum = rsum/N 
+    
+    return rsum 
+
+
+def get_pdict(filename, x, y, z):
+    f = open(filename, 'r')
+    coord_file = f.readlines() 
+    
+    st_b_str = "Dumping coordinates at step" 
+    pmer_num_str = "Dumping coordinates of Polymer"
+    start_str = "START"
+    end_str_1 = "END" 
+    end_str_2 = "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n" 
+
+    # master_dict will be the dictionary which will contain polymer coordinates at each step     
+    master_dict = {} 
+    xlen, ylen, zlen = x, y, z
+    
+    step_flag     = 0
+    pmer_flag     = 0
+    end_step_flag = 0
+    step_num      = 0
+
+    # given a string, it will extract all numbers out in chronological order 
+    # and put them in a numpy array 
+    
+    for line in coord_file:
+        if ( re.search(st_b_str, line)):
+            step_num = int ( ( extract_loc_from_string ( line.replace('.', ' ') ) ) )
+            master_dict [step_num] = {}
+            
+            step_flag     = 1
+            pmer_flag     = -1
+            end_step_flag = 0
+            continue 
+
+        elif ( re.search(start_str, line) ):
+            continue
+
+        elif ( re.search(pmer_num_str, line) ):
+            pmer_flag += 1
+            master_dict[step_num][pmer_flag] = np.empty ( (0,3) ) 
+            continue 
+
+        elif ( re.search(end_str_1, line) ): 
+            end_step_flag = 1
+            step_flag     = 0
+            pmer_flag     = -1 
+            continue 
+
+        elif ( re.search(end_str_2, line) ):
+            continue 
+
+        else:
+            monomer_coords                   = extract_loc_from_string ( line ) 
+            master_dict[step_num][pmer_flag] = np.vstack ( (master_dict[step_num][pmer_flag], monomer_coords[0:-1] ) ) 
+            continue
+    
+    return master_dict 
+
+if __name__ == "__main__":
+    
+    U_list       = ["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"]
+    dop          = args.dop
+        
+    if args.ev==1:
+        U_list.append("Uexcl")
+
+    fig = plt.figure( figsize=(8,6) )
+    ax  = plt.axes() 
+    ax.tick_params(axis='x', labelsize=16)
+    ax.tick_params(axis='y', labelsize=16)
+    i = 0 
+    Tmax = []
+    for U in U_list:
+        rg_mean = [] 
+        rg_std  = [] 
+        temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
+        Tmax.append (np.max(temperatures))
+        for T in temperatures:
+            # if U=="Uexcl" and T == 0.01:
+            #     continue
+            filename = U +"/DOP_"+str(dop)+"/"+str(T)+"/coords.txt"
+            # print(filename)
+            master_dict = get_pdict (filename, dop+2, dop+2, dop+2) 
+            rg = [] 
+            
+            for key in master_dict: 
+                rg.append( get_Rg(master_dict[key][0], dop+2, dop+2, dop+2) ) 
+
+            rg_mean.append ( np.mean(rg[args.s:]) )         
+            rg_std.append  ( np.std(rg[args.s:])/np.sqrt(len(rg[args.s::100]) ))
+        
+        rg_mean = np.array (rg_mean) 
+        rg_std  = np.array (rg_std )    
+       
+        if U=="Uexcl":
+            ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, linewidth=3 )
+        else:
+            ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, linewidth=1, color=cm.copper(i/9)) 
+        i+=1 
+    
+    ax.legend     ( U_list, loc='best', fontsize=12)
+    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
+    ax.set_ylabel ( "$R_g ^2$", fontsize=18) 
+    ax.set_xticks ( np.arange(0, np.max(Tmax)+2,1) ) 
+    plt.savefig   ( "DOP_"+str(args.dop)+"_rg.png", dpi=1200)
+    plt.show() 
+        

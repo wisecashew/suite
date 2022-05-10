@@ -3490,6 +3490,7 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
         for (Particle& p: pmer.chain){
             p.orientation = rng_uniform(0,5); 
             *rweight = (*rweight) * static_cast<double>((Nmer-i))/static_cast<double>(Nsurr+Nmer-i) ; 
+            i+=1; 
         }
     }
     
@@ -3524,8 +3525,6 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             if (v){
                printf("Performing end rotations.\n"); 
             }
-            // 
-            
             NewPol = EndRotation_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
             break;     
         
@@ -3533,7 +3532,6 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             if (v){
                printf("Performing reptation.\n"); 
             }
-            
             NewPol = Reptation_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
             break; 
 
@@ -3541,7 +3539,6 @@ std::vector <Polymer> MoveChooser_Rosenbluth (std::vector <Polymer>* Polymers, s
             if (v){
                printf("Performing bond vibration.\n"); 
             }
-
             NewPol = BondVibration_Rosenbluth (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight);
             break; 
 

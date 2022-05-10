@@ -17,11 +17,11 @@ int main(int argc, char** argv) {
 
     // set up 
     int opt; 
-    int Nacc {-1}, dfreq {-1}, max_iter{-1};
-    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, restart_traj{"blank"}, mfile {"blank"};  
-    bool v = false, a = false, r = false;
+    int dfreq {-1}, max_iter{-1};
+    std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, mfile {"blank"}, stats_file {"blank"};  
+    bool v = false;
 
-    while ( (opt = getopt(argc, argv, ":f:M:N:T:o:u:p:t:e:vhar")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:f:M:o:u:p:t:e:vh")) != -1 )
     {
         switch (opt) 
         {
@@ -32,10 +32,10 @@ int main(int argc, char** argv) {
 
 
 
-            case 'N':
+            // case 'N':
                 // std::cout << "Option Nmov was called with argument " << optarg << std::endl; 
-                Nacc = atoi(optarg); 
-                break; 
+                // Nacc = atoi(optarg); 
+                // break; 
 
             case 'M':
                 max_iter = atoi(optarg); 
@@ -49,16 +49,15 @@ int main(int argc, char** argv) {
                 "These are all the options we have available right now: \n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
-                "Data only for accepts    [-a]           (NO ARG REQUIRED)              If you only want energy and coords for every accepted structure, use this option. \n"
-                "Restart simulation       [-r]           (NO ARG REQUIRED)              Pick up a simulation back from some kind of a starting point.\n"
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of maximum moves  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
-                "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
+                // "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
                 "Position coordinates     [-p]           (STRING ARGUMENT REQUIRED)     File with position coordinates.\n" <<
                 "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Dump energy of grid at each step in a file.\n"<<
                 "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     File with energetic interactions and geometric bounds ie the topology.\n" <<
-                "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
+                // "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
                 "Orientation file         [-e]           (STRING ARGUMENT REQUIRED)     Name of file which will contain orientation of monomer and neighboring solvent particles.\n" << 
+                "Move statistics file     [-s]           (STRING ARGUMENT REQUIRED)     Name of file with move statistics. \n" <<
                 "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of file which will contain coordinates of polymer.\n";  
                 exit(EXIT_SUCCESS);
                 break;
@@ -77,14 +76,17 @@ int main(int argc, char** argv) {
                 dfile = optarg;
                 break;
 
-            case 'T':
-                restart_traj = optarg;
-                break;
+            //case 'T':
+            //    restart_traj = optarg;
+            //   break;
 
             case 'u':
                 efile = optarg;
                 break;
 
+            case 's':
+                stats_file = optarg;
+                break;
 
             case '?':
                 std::cout << "ERROR: Unknown option " << static_cast<char>(optopt) << " was provided." << std::endl;
@@ -96,15 +98,15 @@ int main(int argc, char** argv) {
                 v = true;
                 break;
 
-            case 'a':
-                std::cout <<"Only accepted structures will be outputted." << std::endl;
-                a = true; 
-                break; 
+            // case 'a':
+            //    std::cout <<"Only accepted structures will be outputted." << std::endl;
+            //    a = true; 
+            //    break; 
 
-            case 'r':
-                std::cout <<"Will attempt to restart simulation by taking coordinates from a previous trajectory file." << std::endl;
-                r = true; 
-                break; 
+            // case 'r':
+            //    std::cout <<"Will attempt to restart simulation by taking coordinates from a previous trajectory file." << std::endl;
+            //    r = true; 
+            //    break; 
             
             case 'e':
                 mfile=optarg;
@@ -120,7 +122,7 @@ int main(int argc, char** argv) {
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // parse inputs 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser (a, r, Nacc, dfreq, max_iter, positions, topology, dfile, efile, restart_traj, mfile); 
+    InputParser (dfreq, max_iter, positions, topology, dfile, efile, mfile, stats_file); 
 
     // driver 
 
@@ -142,6 +144,9 @@ int main(int argc, char** argv) {
     const double Emm_n = info_vec[5]; 
     const double Ems_a = info_vec[6];
     const double Ems_n = info_vec[7]; 
+    
+    std::array <int,9> attempts    = {0,0,0,0,0,0,0,0,0};
+    std::array <int,9> acceptances = {0,0,0,0,0,0,0,0,0}; 
 
     std::cout << "Number of polymers is " << N << ".\n";
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
@@ -182,31 +187,37 @@ int main(int argc, char** argv) {
 
     dumpPositionsOfPolymers(&PolymerVector, step_number, dfile); 
     
-    double m_neighbors = 0, m_neicopy = 0; 
-    int a_contacts = 0, a_contcopy = 0; 
-    int n_contacts = 0, n_contcopy = 0;  
-    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
+    double mm_aligned  = 0,  mm_aligned_copy  = 0; 
+    double mm_naligned = 0,  mm_naligned_copy = 0;
+    int ms_aligned     = 0,  ms_aligned_copy  = 0;
+    int ms_naligned    = 0,  ms_naligned_copy = 0; 
+    
+    sysEnergy = CalculateEnergy(&PolymerVector, &SolventVector, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &mm_aligned, &mm_naligned, &ms_aligned, &ms_naligned); 
 
-    m_neicopy  = m_neighbors; 
-    a_contcopy = a_contacts; 
-    n_contcopy = n_contacts; 
+    mm_aligned_copy   = mm_aligned ; 
+    mm_naligned_copy  = mm_naligned; 
+    ms_aligned_copy   = ms_aligned ;
+    ms_naligned_copy  = ms_naligned;
 
-    dumpEnergy (sysEnergy, step_number, m_neighbors, a_contacts, n_contacts, efile);
-    dumpOrientation(&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
+    dumpEnergy      (sysEnergy, step_number, mm_aligned, mm_naligned, ms_aligned, ms_naligned, efile); 
+    dumpOrientation (&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
     
     // defined single orientation solvents and polymers 
 
     std::cout << "Energy of system is " << sysEnergy << std::endl;
      
-	int acc_counter = 0; 
+	// int acc_counter = 0; 
     
     bool IMP_BOOL = true; 
     bool metropolis = false;
  
-    std::vector <Polymer> PolymerVector_; 
+    std::vector <Polymer> PolymerVector_ ; 
     std::vector <Particle> SolventVector_; 
+    
+    int Nsurr = ms_aligned+ms_naligned; 
 
-    double rweight = 0; 
+    double rweight =  0; 
+    int move_number = 0; 
 
     printf("Simulation will output information of every %d configuration.\n", dfreq); 
 
@@ -215,37 +226,34 @@ int main(int argc, char** argv) {
         if ( v && (i%dfreq==0) ){
             printf("Move number %d.\n", i);
         }
-        // choose a move 
-        SolventVector_ = SolventVector; 
-        PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight);   
-        // std::cout << "This is a line right outside main.cpp, after movechooser_r."<<std::endl; 
-        // std::cout << "the rosenbluth weight is " << rweight << "." << std::endl;
 
         if ( !(metropolis) ){
-            m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
+            // m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
+            mm_aligned = mm_aligned_copy; mm_naligned = mm_naligned_copy; ms_aligned = ms_aligned_copy; ms_naligned = ms_naligned_copy;
+            Nsurr = ms_aligned + ms_naligned;
         }
         else {
-            m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
+            // m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
+            mm_aligned_copy = mm_aligned; mm_naligned_copy = mm_naligned; ms_aligned_copy = ms_aligned; ms_naligned_copy = ms_naligned;
+            Nsurr = ms_aligned + ms_naligned;
             metropolis = false; 
         }
         
-        // std::cout << "step number is " << i << ", and IMP_BOOL is " << IMP_BOOL << std::endl;
+        // choose a move 
+        SolventVector_ = SolventVector; 
+        PolymerVector_ = MoveChooser_Rosenbluth(&PolymerVector, &SolventVector_, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, Nsurr); 
         
-        // std::cout << "Outside calcenergy..." << std::endl;
-        // PolymerVector_[0].printChainCoords();         
-
         if (IMP_BOOL){ 
-            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &m_neighbors, &a_contacts, &n_contacts); 
-            // std::cout << "has energy been calculated?" << std::endl;
+            sysEnergy_ = CalculateEnergy (&PolymerVector_, &SolventVector_, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &mm_aligned, &mm_naligned, &ms_aligned, &ms_naligned); 
         }
 
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
         
-        
         if ( IMP_BOOL && MetropolisAcceptance (sysEnergy, sysEnergy_, T, rweight) ) {
             metropolis = true; 
+            acceptances[move_number-1]+=1;
             // std::cout << "bro..." << std::endl;
             // replace old config with new config
             if ( v ){
@@ -280,7 +288,7 @@ int main(int argc, char** argv) {
             PolymerVector = std::move(PolymerVector_);
             SolventVector = std::move(SolventVector_); 
             sysEnergy = sysEnergy_; 
-			++acc_counter;
+			// ++acc_counter;
         }
 
 
@@ -295,25 +303,17 @@ int main(int argc, char** argv) {
             
         }
         
-        // std::cout << "Is this being hit after the no change in the state print statement?" << std::endl;
-
         if ( ( i % dfreq == 0) ){
-            
-            // std::cout << "Am I inside the dump zone?" << std::endl;  
-            // PolymerVector[0].printChainCoords(); 
-            // std::cout << "Am I inside the dump zone again?" << std::endl;  
+           
+            dumpMoveStatistics     (&attempts, &acceptances, i, stats_file);  
             dumpPositionsOfPolymers(&PolymerVector, i, dfile); 
             if ( metropolis ){
-                // std::cout << "metropolis is " << metropolis << ". let the dumping begin!" << std::endl;
-                dumpEnergy (sysEnergy, i, m_neighbors, a_contacts, n_contacts, efile);
-                // std::cout << "dumping out orientations... " << std::endl;
+                dumpEnergy (sysEnergy, i, mm_aligned, mm_naligned, ms_aligned, ms_naligned, efile);
                 dumpOrientation ( &PolymerVector, &SolventVector, i, mfile, x, y, z); 
                  
             }
             else {
-                // std::cout << "metropolis is " << metropolis <<". let the dumping begin! " << std::endl;
-                dumpEnergy (sysEnergy, i, m_neicopy, a_contcopy, n_contcopy, efile);
-                // std::cout << "dumping out orientations... " << std::endl;
+                dumpEnergy (sysEnergy, i, mm_aligned_copy, mm_naligned_copy, ms_aligned_copy, ms_naligned_copy, efile);
                 dumpOrientation (&PolymerVector, &SolventVector, i, mfile, x, y, z); 
             }            
         }
@@ -327,7 +327,6 @@ int main(int argc, char** argv) {
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
-	// printf("\nNumber of moves accepted is %d.", acc_counter);
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
 
     return 0;

@@ -81,9 +81,9 @@ std::array  <int,3> subtract_arrays  (std::array <int,3>* a1, std::array <int,3>
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
-void InputParser (bool a, bool r, int Nacc, int dfreq, int max_iter, 
+void InputParser (int dfreq, int max_iter, 
     std::string positions, std::string topology, std::string dfile, 
-    std::string efile, std::string restart_traj, std::string mfile); 
+    std::string efile, std::string mfile, std::string stats_file); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -152,6 +152,7 @@ void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, s
 void dumpEnergy              (double sysEnergy, int step, std::array<double,6>& contacts, std::string filename); 
 void dumpPositionOfSolvent   (std::vector <Particle>* Solvent, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int step, std::string filename, int x, int y, int z);
+void dumpMoveStatistics      (std::array <int,10>* attempts, std::array <int,10>* acceptances, int step, std::string stats_file);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -161,8 +162,8 @@ void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Part
 std::vector <Polymer> Translation          (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
 void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
 void                  SolventFlip          (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlip          (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlipLocal     (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, double* rweight); 
+void                  PolymerFlip          (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight, int Nsurr);
+void                  PolymerFlipLocal     (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, double* rweight, int Nsurr); 
 void                  SolventExchange      (std::vector <Polymer>*  Polymers, std::vector <Particle>* Solvent, int x, int y, int z);
 
 // methods relevant to chain regrowth 
@@ -191,7 +192,7 @@ std::vector <Polymer> Reptation_Rosenbluth         (std::vector <Polymer>* Polym
 void                  ChainRegrowth_Rosenbluth     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL); 
 void                  TailSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
 void                  HeadSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,10>* attempts, int* move_number, int Nsurr);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 

@@ -49,15 +49,15 @@ int  modified_modulo    (int divident, int divisor);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // imposing periodic boundary conditions 
-void impose_pbc (std::vector <int>* vect, int x_len, int y_len, int z_len); 
-void impose_pbc (std::array <int,3>* arr, int x_len, int y_len, int z_len);
+void impose_pbc (std::vector <int>* vect , int x_len, int y_len, int z_len); 
+void impose_pbc (std::array  <int,3>* arr, int x_len, int y_len, int z_len);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // obtain neighbor list 
-std::vector <std::vector <int>>     obtain_ne_list (std::vector <int> loc, int x_len, int y_len, int z_len); 
-std::array  <std::array <int,3>, 6> obtain_ne_list (std::array <int,3> loc, int x_len, int y_len, int z_len);
+std::vector <std::vector <int>>     obtain_ne_list (std::vector <int>   loc, int x_len, int y_len, int z_len); 
+std::array  <std::array <int,3>, 6> obtain_ne_list (std::array  <int,3> loc, int x_len, int y_len, int z_len);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -81,9 +81,7 @@ std::array  <int,3> subtract_arrays  (std::array <int,3>* a1, std::array <int,3>
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
-void InputParser (bool a, bool r, int Nacc, int dfreq, int max_iter, 
-    std::string positions, std::string topology, std::string dfile, 
-    std::string efile, std::string restart_traj, std::string mfile); 
+void InputParser (int dfreq, int max_iter, std::string positions, std::string topology, std::string dfile, std::string efile, std::string mfile, std::string stats_file); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -138,7 +136,7 @@ double                 NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* m_neighbor, int* a_contacts, int* n_contacts);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* mm_aligned, double* mm_naligned, int* ms_aligned, int* ms_naligned);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -146,10 +144,11 @@ bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // dump methods 
-void dumpPositionsOfPolymers (std::vector <Polymer>* PolymersInGrid, int step, std::string filename);
-void dumpEnergy              (double sysEnergy, int step, double m_contacts, int a_contacts, int n_contacts, std::string filename); 
+void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, std::string filename);
+void dumpEnergy              (double sysEnergy, int step, double mm_aligned, double mm_naligned, int ms_aligned, int ms_naligned, std::string filename);
 void dumpPositionOfSolvent   (std::vector <Particle>* Solvent, int step, std::string filename);
-void dumpOrientation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int step, std::string filename, int x, int y, int z);
+void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector <Particle>* Solvent, int step, std::string filename, int x, int y, int z);
+void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,9>* acceptances, int step, std::string stats_file); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -188,7 +187,7 @@ std::vector <Polymer> Reptation_Rosenbluth         (std::vector <Polymer>* Polym
 void                  ChainRegrowth_Rosenbluth     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL); 
 void                  TailSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
 void                  HeadSpin_Rosenbluth          (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight);
+std::vector <Polymer> MoveChooser_Rosenbluth       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, int Nsurr);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 

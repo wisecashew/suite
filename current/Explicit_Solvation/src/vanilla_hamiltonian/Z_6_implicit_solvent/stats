@@ -1,20 +1,10 @@
-For step 1.
-End rotations                    - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Crank shafts                     - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Reptation                        - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Chain regrowth                   - attempts: 1, acceptances: 0, acceptance fraction: 0.
-Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Single solvent orientation flips - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Local polymer orientation flips  - attempts: 0, acceptances: 0, acceptance fraction: nan.
-For step 2.
-End rotations                    - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Crank shafts                     - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Reptation                        - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Chain regrowth                   - attempts: 2, acceptances: 0, acceptance fraction: 0.
-Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Single solvent orientation flips - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: nan.
-Local polymer orientation flips  - attempts: 0, acceptances: 0, acceptance fraction: nan.
+For step 10000.
+End rotations                    - attempts: 1131, acceptances: 1, acceptance fraction: 0.000884173.
+Kink jumps                       - attempts: 1151, acceptances: 0, acceptance fraction: 0.
+Crank shafts                     - attempts: 1096, acceptances: 11, acceptance fraction: 0.0100365.
+Reptation                        - attempts: 1090, acceptances: 33, acceptance fraction: 0.0302752.
+Chain regrowth                   - attempts: 1109, acceptances: 42, acceptance fraction: 0.037872.
+Solvent orientation flips        - attempts: 1130, acceptances: 116, acceptance fraction: 0.102655.
+Single solvent orientation flips - attempts: 1103, acceptances: 836, acceptance fraction: 0.757933.
+Polymer orientation flips        - attempts: 1084, acceptances: 40, acceptance fraction: 0.0369004.
+Local polymer orientation flips  - attempts: 1106, acceptances: 261, acceptance fraction: 0.235986.

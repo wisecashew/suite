@@ -1779,7 +1779,7 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 		}
 	}
 
-	(*Polymers)[index].ChainToConnectivityMap(); 
+	// (*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/6.0; 
 
 
@@ -1956,7 +1956,7 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 		}
 	}
 
-	(*Polymers)[index].ChainToConnectivityMap(); 
+	// (*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/6.0; 
 
 
@@ -2187,7 +2187,7 @@ void KinkJump (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent,
 		}
 	}
 
-	(*Polymers)[index].ChainToConnectivityMap(); 
+	// (*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/( k_idx.size() ); 
 
 
@@ -2398,7 +2398,7 @@ void CrankShaft (std::vector <Polymer>* Polymers, std::vector <Particle>* Solven
 			}
 		}
 	}
-	(*Polymers) [index].ChainToConnectivityMap();
+	// (*Polymers) [index].ChainToConnectivityMap();
 	(*rweight) = (*rweight)/3.0 ; 
   	
 
@@ -2633,12 +2633,12 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle>* 
 				break;
 			}
 		}
-		(*Polymers)[index].ChainToConnectivityMap();
+		// (*Polymers)[index].ChainToConnectivityMap();
 		(*rweight) = (*rweight)/6; 
 	}
 
 	else {
-		(*Polymers)[index].ChainToConnectivityMap();
+		// (*Polymers)[index].ChainToConnectivityMap();
 		(*rweight) = (*rweight)/6; 
 		return; 
 	}
@@ -2838,12 +2838,12 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle>*
 				break;
 			}
 		}
-		(*Polymers)[index].ChainToConnectivityMap(); 
+		// (*Polymers)[index].ChainToConnectivityMap(); 
 		(*rweight) = (*rweight)/6; 
 	}
 
 	else {
-		(*Polymers)[index].ChainToConnectivityMap(); 
+		// (*Polymers)[index].ChainToConnectivityMap(); 
 		(*rweight) = (*rweight)/6; 
 		return; 
 	}
@@ -3034,64 +3034,73 @@ void Reptation (std::vector<Polymer>* Polymers, std::vector <Particle>* Solvent,
 void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL, double* rweight){
 
 	int deg_of_poly = (*Polymers)[index_of_polymer].deg_poly; 
-	int index_monomer = rng_uniform (2, deg_of_poly-3); // (1, deg_of_poly-2); 
+	int index_monomer = rng_uniform (1, deg_of_poly-2); // (1, deg_of_poly-2); 
 
 	// std::cout << "Index of monomer is " << index_monomer << std::endl;
 
 	// decide which end of the polymer do i want to move around 
     bool first_entry_bool = true; 
 
-	int back_or_front = 0; //rng_uniform(0, 1); 
+	int back_or_front = rng_uniform(0, 1); 
 
-	std::vector <std::array<int,3>> old_p;
+	std::vector <std::array<int,3>> old_cut;
+	std::vector <std::array <int,3>> new_cut;	
+	old_cut.reserve (index_monomer*6);
+	new_cut.reserve (index_monomer*6);
+	
 
 	if (back_or_front == 0){
-		old_p = extract_positions_tail ( &((*Polymers)[index_of_polymer].chain), index_monomer );
-		std::cout << "Index of monomer is " << index_monomer << std::endl; 
-		std::cout << "Pivot position is "; 
-		print((*Polymers)[index_of_polymer].chain[index_monomer].coords); 
-        std::cout << "Tail spin being performed..." << std::endl;
-		TailSpin (Polymers, index_of_polymer, index_monomer, x, y, z, IMP_BOOL, &first_entry_bool, rweight);  
-		(*Polymers)[0].printChainCoords();
-		std::cout << "old tail is: " << std::endl;
-		print(old_p);
 		
-		// get rid of all the intersections between new tail and old tail
+		old_cut = extract_positions_tail ( &((*Polymers)[index_of_polymer].chain), index_monomer );
 
-		std::vector <std::array <int,3>> new_p;
+		TailSpin (Polymers, index_of_polymer, index_monomer, x, y, z, IMP_BOOL, &first_entry_bool, rweight);  
+		
 		for ( int i{0}; i < index_monomer; ++i ){
-			new_p.push_back ( (*Polymers)[index_of_polymer].chain[i].coords );
+			new_cut.push_back ( (*Polymers)[index_of_polymer].chain[i].coords );
 		}
-		std::cout << "new tail is: " << std::endl;
-		print(new_p);
 
 		std::vector <std::array <int,3>> intersection; 
 
 		for ( int i{0}; i < index_monomer; ++i){
 			for ( int j{0}; j <index_monomer; ++j){
-				if ( old_p[j] == new_p [i] ){
-					intersection.push_back(old_p[j]);
+				if ( old_cut[j] == new_cut [i] ){
+					intersection.push_back(old_cut[j]);
 					break;
 				}
 			}				
 		}
 
 		for (std::array <int,3>& a: intersection){
-			old_p.erase ( std::remove (old_p.begin(), old_p.end(), a), old_p.end() );
+			old_cut.erase ( std::remove (old_cut.begin(), old_cut.end(), a), old_cut.end() );
 		}
-
-		std::cout << "Cleaned out old_p is: " << std::endl;
-		print (old_p);
 
 	}
 
 	else {
-		old_p = extract_positions_head ( &((*Polymers)[index_of_polymer].chain), index_monomer );
-        // std::cout << "Index of monomer is " << index_monomer << std::endl; 
-		// std::cout << "Pivot position is "; 
-		// print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
-        // std::cout << "Head spin being performed..." << std::endl;
+
+		old_cut = extract_positions_head ( &((*Polymers)[index_of_polymer].chain), index_monomer );
 		HeadSpin (Polymers, index_of_polymer, index_monomer, deg_of_poly, x, y, z, IMP_BOOL, &first_entry_bool, rweight); 
+
+		for (int i{index_monomer+1}; i<deg_of_poly; ++i ){
+			new_cut.push_back ( (*Polymers)[index_of_polymer].chain[i].coords );
+		}
+
+		std::vector <std::array <int,3>> intersection; 
+
+		for ( int i{index_monomer+1}; i < deg_of_poly; ++i){
+			for ( int j{index_monomer+1}; j <deg_of_poly; ++j){
+				if ( old_cut[j - (index_monomer+1) ] == new_cut [i - (index_monomer+1) ] ){
+					intersection.push_back(old_cut[ j - (index_monomer+1) ]);
+					break;
+				}
+			}				
+		}
+
+		for (std::array <int,3>& a: intersection){
+			old_cut.erase ( std::remove (old_cut.begin(), old_cut.end(), a), old_cut.end() );
+		}
+
+
 	}
 
 	if (*IMP_BOOL) {
@@ -3101,13 +3110,13 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 		// find neighbors from the old tail to delete 
 		std::vector <std::array <int,3>> solvent_to_delete; 
 		std::vector <std::array <int,3>> solvent_to_add; 
-		solvent_to_delete.reserve (old_p.size()*6); solvent_to_add.reserve (old_p.size()*6); 
+		solvent_to_delete.reserve (old_cut.size()*6); solvent_to_add.reserve (old_cut.size()*6); 
 
 		if (back_or_front == 0){
 			// ################### begin tail corrections... ############################
 
 			// start populating solvent_to_delete with solvent neighbors from old_p
-			for ( std::array <int,3>& loc: old_p ){
+			for ( std::array <int,3>& loc: old_cut ){
 				ne_before = obtain_ne_list (loc, x, y, z);
 
 				// make sure there is no monomer in ne_list...
@@ -3131,15 +3140,16 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 				}
 			}
 
-			// repopulate *Solvent with old_p to account for all the solvent that went through monomerreporter and monomerneighbor reporter
+			// add on molecules from new_cut to solvent_to_delete
+			for ( std::array <int,3>& to_del: new_cut ){
+				solvent_to_delete.push_back( to_del );
+			}
 
-			for ( std::array<int,3>& loc: old_p ) {
+			// tack on molecules to Solvent that must be in Solvent so that they get appropriately eliminated or not 
+			for ( std::array<int,3>& loc: old_cut ) {
 				Particle temp ( loc, "solvent", 0 );
 				(*Solvent).push_back ( temp );
 			}
-
-			std::cout << "solvent to delete are: " << std::endl;
-			print ( solvent_to_delete );
 
 			for ( int i{0}; i < index_monomer; ++i){
 				ne_after = obtain_ne_list ( (*Polymers)[index_of_polymer].chain[i].coords, x, y, z);
@@ -3155,9 +3165,6 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 					}
 				}
 			}
-
-			std::cout << "solvent to add are: " << std::endl;
-			print ( solvent_to_add );
 
 			// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
 			// deleting elements that MUST NOT be in *Solvent... 
@@ -3194,19 +3201,16 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 					(*Solvent).push_back( temp ); 
 				}
 			}
-			std::cout << "solvent coords are: " << std::endl;
-			for (auto s: *Solvent ){
-				print(s.coords);
-			}
 
 			// ################### end tail corrections... ############################
+
 		}
 
 		else {
 			// ################### begin head corrections... ############################
 
 			// start populating solvent_to_delete with solvent neighbors from old_p
-			for ( std::array <int,3>& loc: old_p ){
+			for ( std::array <int,3>& loc: old_cut ){
 				ne_before = obtain_ne_list (loc, x, y, z);
 
 				// make sure there is no monomer in ne_list... 
@@ -3229,6 +3233,17 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 					}
 				}
 			}
+
+			// add on molecules from new_cut to solvent_to_delete
+			for ( std::array <int,3>& to_del: new_cut ){
+				solvent_to_delete.push_back( to_del );
+			}
+
+			// tack on molecules to Solvent that must be in Solvent so that they get appropriately eliminated or not 
+			for ( std::array<int,3>& loc: old_cut ) {
+				Particle temp ( loc, "solvent", 0 );
+				(*Solvent).push_back ( temp );
+			}			
 
 			for ( int i{index_monomer+1}; i<deg_of_poly; ++i ){
 				ne_after = obtain_ne_list ( (*Polymers)[index_of_polymer].chain[i].coords, x, y, z );
@@ -3353,7 +3368,7 @@ void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 	if (index_of_monomer == 0){
 		// std::cout << "You have reached the final spot via tail spin!" << std::endl;
 		*IMP_BOOL = true; 
-		(*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
+		// (*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
 		return ; 
 	}
 
@@ -3430,7 +3445,7 @@ void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 	if (index_of_monomer == deg_poly-1){
 		// std::cout << "You have reached the final spot of head spin!" << std::endl;
 		*IMP_BOOL = true;
-		(*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
+		// (*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
 		return ;
 	}
 
@@ -3588,165 +3603,89 @@ bool checkOccupancyHead(std::array <int,3>* loc, std::vector <Polymer>* PVec, in
 //
 // THE CODE: 
 
-void OrientationFlip (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region) {
+void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight){
 
-	// pick a random point on the lattice 
-	std::array <int,3> rpoint = {rng_uniform(0,x-1), rng_uniform(0,y-1), rng_uniform (0,z-1)}; 
-	std::array <int,3> loc; 
-
-	for (int i{0}; i < size_of_region; ++i){
-		for (int j{0}; j < size_of_region; ++j){
-			for (int k{0}; k < size_of_region; ++k){
-
-				// std::cout << "i = " << i << ", j = " << j << ", k = " << k <<"." << std::endl;
-
-				loc[0] = (rpoint[0]+i)%x;
-				loc[1] = (rpoint[1]+j)%y;
-				loc[2] = (rpoint[2]+k)%z;
-
-				for (Particle& p: (*SolvVect)){
-
-					if (p.coords == loc){
-						p.orientation = rng_uniform(0,5); 
-						break;
-					}
-				}
-			}
-		}
-	}
-	return; 
-}
-
-
-void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight){
-
-	// obtain the list of solvent particles neighboring the polymer 
-	std::vector <int> solvent_indices;
-    int NSolvent = static_cast<int> ((*Solvent).size() ); 
-    int Nmer     = x*y*z - NSolvent; 
-    solvent_indices.reserve(NSolvent); 
-      
-	for (const Polymer& pmer: (*Polymers)) {
-		for (const Particle& p: pmer.chain) {
-
-			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
-            for (const std::array <int,3>& n: ne_list){ 
-                
-                for (int j{0}; j<NSolvent; ++j){
-                    if (n == (*Solvent)[j].coords){
-                        solvent_indices.push_back(j); 
-                        break; 
-                    }
-                }                
-            }	
-		}
-	}
-
-	// get rid of repeated indices
-	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
-	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
-    
     // number of surrounding solvent molecules 
-    int Nsurr = static_cast<int>( solvent_indices.size() ); 
-	
-    // number of solvent molecules to flip 
-    int stopping_idx = rng_uniform(0, static_cast<int>(Nsurr - 1) ); 
+    int Nsolv = static_cast<int>( (*Solvent).size() ); 
+	int Nmer  = static_cast<int>( (*Polymers)[0].chain.size() ); 
+
+    int to_flip = rng_uniform(1, Nsolv ); 
     
     *rweight = 1; 
-    for (int i {0}; i < stopping_idx; ++i){
-        *rweight = (*rweight) * (Nsurr-i)/(Nmer+Nsurr-i); 
-    }
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	
-	int counter = 0; 
-	for (int idx: solvent_indices){
+	std::vector <int> rvec (to_flip);
+	std::iota ( std::begin(rvec), std::end(rvec), 0);
 
-		if (counter == stopping_idx){
-			break;
-		}
-		(*Solvent)[idx].orientation = rng_uniform (0, 5); 
-		++counter; 
+	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
+
+	int j = 0;
+	for (int i: rvec ){
+		(*Solvent)[i].orientation = rng_uniform (0, 5);  
+		*rweight = (*rweight) * (Nsolv-j)/(Nmer+Nsolv-j); 
+		j = j + 1; 
 	}
-
+	
 	return; 
 
 }
-///////////////////////////////////////////////////////////////////////////
-//
-//
-//
-///////////////////////////////////////////////////////////////////////////
 
-void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight){
 
-	// obtain the list of solvent particles neighboring the polymer 
-	std::vector <int> solvent_indices;
-    int NSolvent = static_cast<int> ((*Solvent).size() ); 
-    int Nmer     = x*y*z - NSolvent; 
-    solvent_indices.reserve(NSolvent); 
-      
-	for (const Polymer& pmer: (*Polymers)) {
-		for (const Particle& p: pmer.chain) {
+void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight){
 
-			std::array <std::array <int,3>, 6> ne_list = obtain_ne_list (p.coords, x, y, z); 
-            for (const std::array <int,3>& n: ne_list){ 
-                
-                for (int j{0}; j<NSolvent; ++j){
-                    if (n == (*Solvent)[j].coords){
-                        solvent_indices.push_back(j); 
-                        break; 
-                    }
-                }                
-            }	
-		}
-	}
+	// number of surrounding solvent molecules 
+    int Nsolv = static_cast<int>( (*Solvent).size() ); 
+	int Nmer  = static_cast<int>( (*Polymers)[0].chain.size() ); 
 
-	// get rid of repeated indices
-	std::sort ( solvent_indices.begin(), solvent_indices.end() ); 
-	solvent_indices.erase ( std::unique ( solvent_indices.begin(), solvent_indices.end() ), solvent_indices.end() );
-    
-    // number of surrounding solvent molecules 
-    int Nsurr = static_cast<int>( solvent_indices.size() ); 
-	
-    *rweight = 1; 
-    *rweight = (*rweight)*static_cast<double>(Nsurr)/static_cast<double>(Nmer+Nsurr); 
-    // std::cout << "rweight is " << *rweight << std::endl;	
-	int idx = solvent_indices [ rng_uniform(0, Nsurr-1) ]; 
-    (*Solvent)[idx].orientation = rng_uniform (0, 5); 
+    *rweight = static_cast<double>(Nsolv)/static_cast<double>(Nmer+Nsolv); 
+
+	int ridx = rng_uniform (0, Nsolv-1);
+
+	(*Solvent)[ridx].orientation = rng_uniform (0, 5);  
 
 	return; 
 }
 
 
 ///////////////////////////////////////////////////////////////////////////
-void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight, int Nsurr ){
+void PolymerFlip ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight){
     
-    int NSolvent = static_cast<int> ((*Solvent).size() ); 
-    int Nmer     = x*y*z - NSolvent; 
-      
-    int i = 0;
+    int Nsolv = static_cast<int> ( (*Solvent).size() ); 
+    int Nmer  = static_cast<int> ( (*Polymers)[0].chain.size()  ) ; 
+    
+    int to_flip = rng_uniform (1, Nmer );
+
     *rweight = 1; 
-    for (Polymer& pmer: (*Polymers) ){
-        for (Particle& p: pmer.chain){
-            p.orientation = rng_uniform(0,5); 
-            *rweight = (*rweight) * static_cast<double>(Nmer-i)/static_cast<double>(Nsurr+Nmer-i) ; 
-            i=i+1;
-        }
-    }
+
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	
+	std::vector <int> rvec (to_flip);
+	std::iota ( std::begin(rvec), std::end(rvec), 0);
+
+	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
+
+	int j = 0;
+	for (int i: rvec) {
+		(*Polymers)[0].chain[i].orientation = rng_uniform (0, 5); 
+		*rweight = (*rweight) * static_cast<double>(Nmer-j)/static_cast<double>(Nmer+Nsolv-j);
+		j = j+1; 
+	}
     
     return; 
 }
 
-void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int p_idx, int x, int y, int z, double* rweight, int Nsurr ){
+void PolymerFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight){
     
     // obtain the list of solvent particles neighboring the polymer 
-    int NSolvent = static_cast<int> ((*Solvent).size() ); 
-    int Nmer     = x*y*z - NSolvent; 
-      
+    int Nsolv    = static_cast <int> ((*Solvent).size()  ); 
+    int Nmer     = static_cast <int> ((*Polymers)[0].chain.size() );
     
     // index of monomer unit 
-    int idx = rng_uniform   ( 0, static_cast<int> ((*Polymers)[p_idx].chain.size()-1) ) ;
-    (*Polymers)[p_idx].chain[idx].orientation = rng_uniform(0,5); 
-    *rweight = static_cast<double>(Nmer)/static_cast<double>(Nmer+Nsurr); 
+    int idx = rng_uniform   ( 0, static_cast<int> ((*Polymers)[0].chain.size()-1) ) ;
+
+    (*Polymers)[0].chain[idx].orientation = rng_uniform(0,5); 
+    *rweight = static_cast<double>(Nmer)/static_cast<double>(Nmer+Nsolv); 
     
     return; 
 }
@@ -3756,7 +3695,7 @@ void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>*
 void MoveChooser (std::vector <Polymer>* Polymers_c, std::vector <Particle>* Solvent_c, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers_c).size())-1); 
-    int r = 5; // rng_uniform(1, 4);
+    int r = rng_uniform(1, 9);
     switch (r) {
         case (1):
             if (v){
@@ -3803,47 +3742,42 @@ void MoveChooser (std::vector <Polymer>* Polymers_c, std::vector <Particle>* Sol
             *move_number = 5; 
             (*attempts)[4] += 1;
         	break;
-        /*
+        
         case (6): 
         	if (v){
         		printf("Performing solvent orientation flips. \n");
         	}
-        	SolventFlip (Polymers, Solvent, x, y, z, rweight); 
+        	SolventFlip (Polymers_c, Solvent_c, rweight); 
             *move_number = 6; 
             (*attempts)[5] += 1;
-        	return (*Polymers); 
         	break; 
-
+        
         case (7):
             if (v) {
                 printf("Performing single solvent orientation flip. \n");
             }
-            SolventFlipSingular (Polymers, Solvent, x, y, z, rweight); 
+            SolventFlipSingular (Polymers_c, Solvent_c, rweight); 
             *move_number = 7; 
             (*attempts)[6] += 1;
-            return (*Polymers); 
             break;
         
         case (8):
         	if (v){
         		printf("Performing polymer orientation flips. \n");
         	}
-        	NewPol = *Polymers; 
-        	PolymerFlip ( &NewPol, Solvent, x, y, z, rweight, Nsurr );
+        	PolymerFlip ( Polymers_c, Solvent_c, rweight );
             *move_number = 8; 
             (*attempts)[7] += 1;
         	break;
-
+        
         case (9):
             if (v) {
                 printf("Performing local polymer orientation flips. \n");
             }
-            NewPol = *Polymers; 
-            PolymerFlipLocal (&NewPol, Solvent, index, x, y, z, rweight, Nsurr); 
+            PolymerFlipSingular ( Polymers_c, Solvent_c, rweight); 
             *move_number = 9; 
             (*attempts)[8] += 1;
             break;
-        */
     }
     return;
 }
@@ -4283,7 +4217,7 @@ std::vector <Polymer> Translation(std::vector <Polymer>* PolymerVector, std::vec
 	// NewPol[index].printChainCoords();
 
 
-	NewPol[index].ChainToConnectivityMap(); 
+	// NewPol[index].ChainToConnectivityMap(); 
 	*IMP_BOOL = true; 
 
 	return NewPol;

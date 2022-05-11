@@ -100,6 +100,7 @@ void Polymer::printOrientation(){
 //
 // THE CODE: 
 
+/*
 void Polymer::ChainToConnectivityMap(){
 
     const int chainLength = this->chain.size(); 
@@ -122,7 +123,7 @@ void Polymer::ChainToConnectivityMap(){
 
     return; 
 }
-
+*/
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

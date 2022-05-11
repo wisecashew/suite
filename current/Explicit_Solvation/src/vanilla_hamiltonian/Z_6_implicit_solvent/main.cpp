@@ -154,13 +154,20 @@ int main(int argc, char** argv) {
     std::array <int,9> attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9> acceptances = {0,0,0,0,0,0,0,0,0}; 
 
-    std::cout << "Number of polymers is " << N << ".\n";
-    std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ", T = " << T << ".\n"; 
-    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems_a = "<< Ems_a << ", Ems_n = " << Ems_n <<".\n";  
+    std::cout << std::endl;
+    std::cout << "Preparing for take-off...\n\n" ; 
+    std::cout << "Chemical information: " << std::endl;
+    std::cout << "Number of polymers is " << N << ".\n\n";
+    std::cout << "Geometric information about simulation cell: " << std::endl;
+    std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ".\n" << std::endl;
+    std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
+    std::cout << "Temperature = " << T << "." << std::endl; 
+    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems_a = "<< Ems_a << ", Ems_n = " << Ems_n <<".\n \n";  
 
-    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~" << std::endl;
-    std::cout << "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~\n" << std::endl;
+    std::cout << "Off to a good start. \n\n";
+    std::cout << "--------------------------------------------------------------------\n" << std::endl;
 
+    std::cout << "Running some more checks on input... \n\n" ; 
 
     // THIS MIGHT NEED TO CHANGE 
     
@@ -206,7 +213,7 @@ int main(int argc, char** argv) {
     
     // defined single orientation solvents and polymers 
 
-    std::cout << "Energy of system is " << sysEnergy << std::endl;
+    std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
     bool IMP_BOOL = true; 
     bool metropolis = false;
@@ -217,7 +224,7 @@ int main(int argc, char** argv) {
     double rweight =  0; 
     int move_number = 0; 
 
-    printf("Simulation will output information every %d configuration.\n", dfreq); 
+    printf("Aaaand we are off. The engine will output information every %d configuration.\n", dfreq); 
     
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
@@ -304,10 +311,8 @@ int main(int argc, char** argv) {
         
         if ( ( i % dfreq == 0) ){
            
-            dumpMoveStatistics      (&attempts, &acceptances, i, stats_file);  
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
-            dumpPositionOfSolvent   (&Solvent, max_iter, solvent_file);
-            dumpOrientation         (&Polymers, &Solvent, i, mfile, x, y, z); 
+            // dumpOrientation         (&Polymers, &Solvent, i, mfile, x, y, z); 
             
             if ( metropolis ){
                 dumpEnergy (sysEnergy, i, mm_aligned, mm_naligned, ms_aligned, ms_naligned, efile);
@@ -320,13 +325,15 @@ int main(int argc, char** argv) {
         IMP_BOOL = true; 
            
     }
-    
-    // dumpPositionOfSolvent(&Solvent, max_iter, solvent_file);
+    dumpMoveStatistics      (&attempts, &acceptances, max_iter, stats_file);  
+    dumpPositionOfSolvent   (&Solvent, max_iter, solvent_file);
     
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
+    std::cout << "That is all she wrote. Hope it worked." << std::endl;
+    std::cout << "--------------------------------------------------------------------\n\n";
 
     return 0;
 

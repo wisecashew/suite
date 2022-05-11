@@ -160,10 +160,10 @@ void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,
 // Polymer moves
 
 std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-void                  OrientationFlip      (std::vector <Particle>* SolvVect, int x, int y, int z, int size_of_region);
-void                  SolventFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, double* rweight);
-void                  PolymerFlipLocal     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, double* rweight); 
+void                  SolventFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight);
+void                  SolventFlipSingular  (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight);
+void                  PolymerFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight);
+void                  PolymerFlipSingular  (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight); 
 
 // methods relevant to chain regrowth 
 bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* Polymers);

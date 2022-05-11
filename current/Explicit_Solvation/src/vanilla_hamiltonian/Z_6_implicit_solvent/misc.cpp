@@ -258,6 +258,14 @@ void print( std::array <std::array<int,3>,6> aa ){
 
 }
 
+void print ( std::vector <std::array<int,3>> aa ){
+
+	for ( std::array <int,3>& a: aa){
+		print (a);
+	}
+
+}
+
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -1648,8 +1656,8 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     
 
     dump_file << "End rotations                    - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << ".\n"; 
-    dump_file << "Crank shaft rotations            - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n"; 
-    dump_file << "Kink jumps                       - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n"; 
+    dump_file << "Kink jumps                       - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n"; 
+    dump_file << "Crank shafts                     - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n"; 
     dump_file << "Reptation                        - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << ".\n"; 
     dump_file << "Chain regrowth                   - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << ".\n"; 
     dump_file << "Solvent orientation flips        - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n"; 
@@ -1832,9 +1840,7 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 		else {
 			// if it is a solvent particle AND is a neighbor of a monomer in the new structure, IT MUST BE PRESENT in *Solvent. 
 			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
-			if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
-				solvent_to_add.push_back (ne); 
-			}
+			solvent_to_add.push_back (ne); 
 		}
 	}
 
@@ -1965,7 +1971,7 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 	// keeping in mind initial monomer position and perturbed monomer position can never be neighbors.
 
 	std::array <std::array <int,3>, 6> ne_before = obtain_ne_list ( loc_0, x, y, z); 										 // neighborlist of the monomer before perturbation 
-	std::array <std::array <int,3>, 6> ne_after = obtain_ne_list (idx_v[r], x, y, z); // neighborlist of the monomer after perturbation
+	std::array <std::array <int,3>, 6> ne_after = obtain_ne_list (idx_v[r], x, y, z); 										// neighborlist of the monomer after perturbation
 
 	std::vector <std::array <int,3> > solvent_to_delete, solvent_to_add; 
 	solvent_to_delete.reserve(5); solvent_to_add.reserve(5); 
@@ -2011,9 +2017,7 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 		else {
 			// if it is a solvent particle AND is a neighbor of a monomer in the new structure, IT MUST BE PRESENT in *Solvent. 
 			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
-			if (MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
-				solvent_to_add.push_back (ne); 
-			}
+			solvent_to_add.push_back (ne); 
 		}
 	}
 
@@ -2244,9 +2248,8 @@ void KinkJump (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent,
 		else {
 			// if it is a solvent particle AND is a neighbor of a monomer in the new structure, IT MUST BE PRESENT in *Solvent. 
 			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
-			if (MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
-				solvent_to_add.push_back (ne); 
-			}
+			solvent_to_add.push_back (ne); 
+			
 		}
 	}
 
@@ -2452,11 +2455,8 @@ void CrankShaft (std::vector <Polymer>* Polymers, std::vector <Particle>* Solven
 		}
 
 		else {
-			if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
-				solvent_to_add.push_back( ne ); 
-				continue;
-			}
-
+			solvent_to_add.push_back( ne ); 
+			continue;
 		}
 
 	}
@@ -2496,11 +2496,8 @@ void CrankShaft (std::vector <Polymer>* Polymers, std::vector <Particle>* Solven
 		}
 
 		else {
-			if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
 				solvent_to_add.push_back( ne ); 
 				continue;
-			}
-
 		}
 
 	}
@@ -2581,12 +2578,14 @@ void CrankShaft (std::vector <Polymer>* Polymers, std::vector <Particle>* Solven
 // THE CODE: 
 ////////////////////////////////////////////////////////////
 
-void ForwardReptation_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
+void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
 
     int deg_poly = (*Polymers)[index].deg_poly; 
-
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( (*Polymers)[index].chain[deg_poly-1].coords, x, y, z ); 
+    std::array <int,3> loc0 = (*Polymers)[index].chain[0].coords; 
+    std::array <int,3> locf = (*Polymers)[index].chain[deg_poly-1].coords;
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( locf, x, y, z ); 
     std::vector <std::array<int,3>> idx_v; 
+    idx_v.reserve(6); 
 
     (*rweight) = 0; 
 
@@ -2608,36 +2607,141 @@ void ForwardReptation_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <P
 
 	if ( (*rweight) == 0){
 		*IMP_BOOL = false;
+		return;
+	}
+
+
+	int r = rng_uniform( 0, idx_v.size()-1 );
+	// if everything checks out, do the deed - make it slither forward 
+	// std::cout << "In acceptance land." << std::endl; 
+	// std::cout << "location of new spot is "; print(idx_v[r]); 
+	
+	for (int i{0}; i<deg_poly; ++i){
+
+		if ( i != deg_poly-1 ){
+			(*Polymers)[index].chain[i].coords = (*Polymers)[index].chain[i+1].coords ; 
+		}
+		else {
+			(*Polymers)[index].chain[i].coords = idx_v[r]; 
+		}
+	}
+	
+	if ( loc0 != idx_v[r]){
+		for (Particle& p: (*Solvent)){
+			if (p.coords == idx_v[r]){
+				p.coords = loc0; 
+				break;
+			}
+		}
+		(*Polymers)[index].ChainToConnectivityMap();
+		(*rweight) = (*rweight)/6; 
 	}
 
 	else {
-		int r = rng_uniform( 0, idx_v.size()-1 );
-		// if everything checks out, do the deed - make it slither forward 
-		// std::cout << "In acceptance land." << std::endl; 
-		// std::cout << "location of new spot is "; print(idx_v[r]); 
-		std::array <int,3> loc0 = (*Polymers)[index].chain[0].coords; 
-		for (int i{0}; i<deg_poly; ++i){
-
-			if ( i != deg_poly-1 ){
-				(*Polymers)[index].chain[i].coords = (*Polymers)[index].chain[i+1].coords ; 
-			}
-			else {
-				(*Polymers)[index].chain[i].coords = idx_v[r]; 
-			}
-		}
-		
-		if ( loc0 != idx_v[r]){
-			for (Particle& p: (*Solvent)){
-				if (p.coords == idx_v[r]){
-					p.coords = loc0; 
-					break;
-				}
-			}	
-		}
-
 		(*Polymers)[index].ChainToConnectivityMap();
 		(*rweight) = (*rweight)/6; 
+		return; 
+	}
+
 	
+	// MOVE UPDATING POLYMER SKELETON HAS BEEN PERFORMED. 
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// now to perform the *Solvent update. 
+
+	// I have to make sure I am updating Solvent such that the Solvent is still surrounding polymer
+	// find all neighbors of the new structure, keeping in mind only one monomer segment was moved.
+
+	// (1) From the initial monomer position, find all the neighbors of the monomer that were solvent. 
+	// the first and final indexed monomers are the only ones who have done any moving. 
+	// their initial and changed environments need most consideration. 
+
+	std::array < std::array <int,3>, 6> ne_before_id0 = obtain_ne_list ( loc0, x, y, z );
+	std::array < std::array <int,3>, 6> ne_after_idf  = obtain_ne_list ( (*Polymers)[index].chain[deg_poly-1].coords, x, y, z);
+	std::vector < std::array <int,3> > solvent_to_delete, solvent_to_add; 
+	solvent_to_delete.reserve(5); solvent_to_add.reserve(5); 
+
+	// checking particles around old position of index0
+	for ( std::array <int,3>& ne: ne_before_id0 ) {
+		// obviously the current zeroth index position has a monomer on it right now 
+		if ( ne == (*Polymers)[index].chain[0].coords ){
+			continue; 
+		}
+
+		else if ( MonomerReporter (Polymers, &ne) ){
+			// if ne is a location occupied by a monomer, move on
+			continue;
+		}
+
+		else {
+			// if it is a neighbor of another monomer, then it won't be deleted
+			if (MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
+				continue;
+			}
+			else {
+				// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
+				// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
+				solvent_to_delete.push_back(ne);
+			}
+		}
+	}
+
+	// checking particles around new position of indexf
+	for ( std::array <int,3>& ne: ne_after_idf ){
+		// obviously the (f-1)th index monomer is on the old position of the current fth index 
+		if ( ne == (*Polymers)[index].chain[deg_poly-2].coords ){
+			continue;
+		}
+
+		else if ( MonomerReporter (Polymers, &ne) ){
+			// if ne is a location occupied by a monomer, move on
+			continue;
+		}
+
+		else {
+			// if it is currently a neighbor of another monomer in the present state, IT MUST BE PRESENT in *Solvent.
+			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
+			solvent_to_add.push_back(ne); 
+		}
+	}
+
+	// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
+	// deleting elements that MUST NOT be in *Solvent... 
+
+	int s_idx = 0; 
+	for ( const std::array<int,3>& s_loc: solvent_to_delete ) {
+		s_idx = 0; 
+		for ( Particle& p: *Solvent ){
+			
+			if ( p.coords == s_loc ){
+				(*Solvent).erase ( (*Solvent).begin() + s_idx ); 
+				break; 
+			}
+			s_idx += 1; 
+		}
+	}
+
+
+	// (3) now that *Solvent has been cleaned out, time to add new things to it 
+	bool present = false; 
+	for ( const std::array <int,3>& s_loc: solvent_to_add ){
+		present = false; 
+		for ( Particle& p: *Solvent ){
+			// if it is already present in *Solvent, breakout and continue to next location
+			if ( p.coords == s_loc ){
+				present = true;
+				break; 
+			}
+		}
+
+		if ( present ){
+			continue; 
+		}
+
+		else {
+			Particle temp ( s_loc, "solvent", 0 );
+			(*Solvent).push_back( temp ); 
+		}
+
 	}
 
     return ; 
@@ -2681,11 +2785,13 @@ void ForwardReptation_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <P
 /////////////////////////////////////////////////////////////
 
 
-void BackwardReptation_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
+void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
 
     int deg_poly = (*Polymers)[index].deg_poly; 
+    std::array <int,3> loc0 = (*Polymers)[index].chain[deg_poly-1].coords; 
+    std::array <int,3> locf = (*Polymers)[index].chain[0].coords;
 
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( (*Polymers) [index].chain[0].coords, x, y, z ); 
+    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( locf, x, y, z ); 
     std::vector <std::array <int,3>> idx_v; 
 
     (*rweight) = 0.0; 
@@ -2710,37 +2816,140 @@ void BackwardReptation_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <
 
     if ( (*rweight) == 0 ){
     	*IMP_BOOL = false; 
+    	return;
     }
 
-    else {
+	int r = rng_uniform( 0, idx_v.size()-1 );
 
-    	int r = rng_uniform( 0, idx_v.size()-1 );
+	for (int i{0}; i <deg_poly; ++i){
+		if ( i != deg_poly-1 ){
+			(*Polymers) [index].chain[deg_poly-1-i].coords = (*Polymers)[index].chain[deg_poly-2-i].coords;
+		}
+		else {
+			(*Polymers) [index].chain[deg_poly-1-i].coords = idx_v[r]; 
+		}
+	}
 
-    	std::array <int,3> loc0 = (*Polymers)[index].chain[deg_poly-1].coords; 
+	if ( loc0 != idx_v[r] ){
+		for (Particle& p: (*Solvent)) {
+			if (p.coords == idx_v[r]){
+				p.coords = loc0; //(*Polymers)[index].chain[deg_poly-1].coords;
+				// print(loc0);
+				break;
+			}
+		}
+		(*Polymers)[index].ChainToConnectivityMap(); 
+		(*rweight) = (*rweight)/6; 
+	}
 
-    	for (int i{0}; i <deg_poly; ++i){
-    		if ( i != deg_poly-1 ){
-    			(*Polymers) [index].chain[deg_poly-1-i].coords = (*Polymers)[index].chain[deg_poly-2-i].coords;
-    		}
-    		else {
-    			(*Polymers) [index].chain[deg_poly-1-i].coords = idx_v[r]; 
-    		}
-    	}
+	else {
+		(*Polymers)[index].ChainToConnectivityMap(); 
+		(*rweight) = (*rweight)/6; 
+		return; 
+	}
 
-    	if ( loc0 != idx_v[r] ){
+	// MOVE UPDATING POLYMER SKELETON HAS BEEN PERFORMED. 
+	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+	// now to perform the *Solvent update. 
 
-    		for (Particle& p: (*Solvent)) {
-    			if (p.coords == idx_v[r]){
-    				p.coords = (*Polymers)[index].chain[deg_poly-1].coords;
-    				break;
-    			}
-    		}
-    	}
+	// I have to make sure I am updating Solvent such that the Solvent is still surrounding polymer
+	// find all neighbors of the new structure, keeping in mind only one monomer segment was moved.
 
-    	(*Polymers)[index].ChainToConnectivityMap(); 
-    	(*rweight) = (*rweight)/6; 
+	// (1) From the initial monomer position, find all the neighbors of the monomer that were solvent. 
+	// the first and final indexed monomers are the only ones who have done any moving. 
+	// their initial and changed environments need most consideration. 
 
-    }
+	std::array < std::array <int,3>, 6> ne_before_idf = obtain_ne_list ( loc0, x, y, z );
+	std::array < std::array <int,3>, 6> ne_after_id0  = obtain_ne_list ( (*Polymers)[index].chain[0].coords, x, y, z);
+	std::vector < std::array <int,3> > solvent_to_delete, solvent_to_add; 
+	solvent_to_delete.reserve(5); solvent_to_add.reserve(5); 
+
+	// checking particles around old position of index0
+	for ( std::array <int,3>& ne: ne_before_idf ) {
+		// obviously the current final-th index position has a monomer on it right now 
+		if ( ne == (*Polymers)[index].chain[deg_poly-1].coords ){
+			continue; 
+		}
+
+		else if ( MonomerReporter (Polymers, &ne) ){
+			// if ne is a location occupied by a monomer, move on
+			continue;
+		}
+
+		else {
+			// if it is a neighbor of another monomer, then it won't be deleted
+			if (MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
+				continue;
+			}
+			else {
+				// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
+				// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
+				solvent_to_delete.push_back(ne);
+			}
+		}
+	}
+
+	// checking particles around new position of indexf
+	for ( std::array <int,3>& ne: ne_after_id0 ){
+		// obviously the (f-1)th index monomer is on the old position of the current fth index 
+		if ( ne == (*Polymers)[index].chain[1].coords ){
+			continue;
+		}
+
+		else if ( MonomerReporter (Polymers, &ne) ){
+			// if ne is a location occupied by a monomer, move on
+			continue;
+		}
+
+		else {
+			// if it is currently a neighbor of another monomer in the present state, IT MUST BE PRESENT in *Solvent.
+			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
+			solvent_to_add.push_back(ne); 
+		}
+	}
+
+	
+	// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
+	// deleting elements that MUST NOT be in *Solvent... 
+
+	int s_idx = 0; 
+	for ( const std::array<int,3>& s_loc: solvent_to_delete ) {
+		s_idx = 0; 
+		for ( Particle& p: *Solvent ){
+			
+			if ( p.coords == s_loc ){
+				(*Solvent).erase ( (*Solvent).begin() + s_idx ); 
+				break; 
+			}
+			s_idx += 1; 
+		}
+	}
+
+
+
+	// (3) now that *Solvent has been cleaned out, time to add new things to it 
+	bool present = false; 
+	for ( const std::array <int,3>& s_loc: solvent_to_add ){
+		present = false; 
+		for ( Particle& p: *Solvent ){
+			// if it is already present in *Solvent, breakout and continue to next location
+			if ( p.coords == s_loc ){
+				present = true;
+				break; 
+			}
+		}
+
+		if ( present ){
+			continue; 
+		}
+
+		else {
+			Particle temp ( s_loc, "solvent", 0 );
+			(*Solvent).push_back( temp ); 
+		}
+
+	}
+
 
     return ; 
 
@@ -2778,21 +2987,21 @@ void BackwardReptation_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <
 //
 // THE CODE: 
 
-void Reptation_Rosenbluth(std::vector<Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
+void Reptation (std::vector<Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
     std::uniform_int_distribution<int> distribution (0,1); 
-    int num = distribution(generator); 
+    int num = 1; // distribution(generator); 
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         // std::cout << "Zero index rotation!" << std::endl;
-        BackwardReptation_Rosenbluth(Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
+        BackwardReptation (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
         return; 
     }
     else {
         // std::cout << "Final index rotation!" << std::endl;
-        ForwardReptation_Rosenbluth(Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
+        ForwardReptation (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
         return; 
     }
     
@@ -2822,11 +3031,7 @@ void Reptation_Rosenbluth(std::vector<Polymer>* Polymers, std::vector <Particle>
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void ChainRegrowth_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL, double* rweight){
-
-	std::vector <std::array<int,3>> old_p;
-
-	std::vector <Particle> Solvent_c = (*Solvent);
+void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL, double* rweight){
 
 	int deg_of_poly = (*Polymers)[index_of_polymer].deg_poly; 
 	int index_monomer = rng_uniform (2, deg_of_poly-3); // (1, deg_of_poly-2); 
@@ -2838,13 +3043,46 @@ void ChainRegrowth_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <Part
 
 	int back_or_front = 0; //rng_uniform(0, 1); 
 
+	std::vector <std::array<int,3>> old_p;
+
 	if (back_or_front == 0){
 		old_p = extract_positions_tail ( &((*Polymers)[index_of_polymer].chain), index_monomer );
-		// std::cout << "Index of monomer is " << index_monomer << std::endl; 
-		// std::cout << "Pivot position is "; 
-		// print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
-        // std::cout << "Tail spin being performed..." << std::endl;
-		TailSpin_Rosenbluth(Polymers, index_of_polymer, index_monomer, x, y, z, IMP_BOOL, &first_entry_bool, rweight);  
+		std::cout << "Index of monomer is " << index_monomer << std::endl; 
+		std::cout << "Pivot position is "; 
+		print((*Polymers)[index_of_polymer].chain[index_monomer].coords); 
+        std::cout << "Tail spin being performed..." << std::endl;
+		TailSpin (Polymers, index_of_polymer, index_monomer, x, y, z, IMP_BOOL, &first_entry_bool, rweight);  
+		(*Polymers)[0].printChainCoords();
+		std::cout << "old tail is: " << std::endl;
+		print(old_p);
+		
+		// get rid of all the intersections between new tail and old tail
+
+		std::vector <std::array <int,3>> new_p;
+		for ( int i{0}; i < index_monomer; ++i ){
+			new_p.push_back ( (*Polymers)[index_of_polymer].chain[i].coords );
+		}
+		std::cout << "new tail is: " << std::endl;
+		print(new_p);
+
+		std::vector <std::array <int,3>> intersection; 
+
+		for ( int i{0}; i < index_monomer; ++i){
+			for ( int j{0}; j <index_monomer; ++j){
+				if ( old_p[j] == new_p [i] ){
+					intersection.push_back(old_p[j]);
+					break;
+				}
+			}				
+		}
+
+		for (std::array <int,3>& a: intersection){
+			old_p.erase ( std::remove (old_p.begin(), old_p.end(), a), old_p.end() );
+		}
+
+		std::cout << "Cleaned out old_p is: " << std::endl;
+		print (old_p);
+
 	}
 
 	else {
@@ -2853,15 +3091,200 @@ void ChainRegrowth_Rosenbluth(std::vector <Polymer>* Polymers, std::vector <Part
 		// std::cout << "Pivot position is "; 
 		// print((*PolymerVector)[index_of_polymer].chain[index_monomer].coords); 
         // std::cout << "Head spin being performed..." << std::endl;
-		HeadSpin_Rosenbluth(Polymers, index_of_polymer, index_monomer, deg_of_poly, x, y, z, IMP_BOOL, &first_entry_bool, rweight); 
+		HeadSpin (Polymers, index_of_polymer, index_monomer, deg_of_poly, x, y, z, IMP_BOOL, &first_entry_bool, rweight); 
 	}
 
-	if (*IMP_BOOL){
+	if (*IMP_BOOL) {
+		// initialize some data stores
+		std::array <std::array <int,3>, 6> ne_before;
+		std::array <std::array <int,3>, 6> ne_after;
+		// find neighbors from the old tail to delete 
+		std::vector <std::array <int,3>> solvent_to_delete; 
+		std::vector <std::array <int,3>> solvent_to_add; 
+		solvent_to_delete.reserve (old_p.size()*6); solvent_to_add.reserve (old_p.size()*6); 
+
+		if (back_or_front == 0){
+			// ################### begin tail corrections... ############################
+
+			// start populating solvent_to_delete with solvent neighbors from old_p
+			for ( std::array <int,3>& loc: old_p ){
+				ne_before = obtain_ne_list (loc, x, y, z);
+
+				// make sure there is no monomer in ne_list...
+				for ( std::array <int,3>& ne: ne_before ){
+
+					if ( MonomerReporter  (Polymers, &ne) ){
+						// if ne is a location of a monomer, continue
+						continue;
+					}
+					else {
+						// if it is a neighbor of another monomer, this will be kept in solvent
+						if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ) {
+							continue;
+						}
+						else {
+							// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
+							// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
+							solvent_to_delete.push_back ( ne ); 
+						}
+					}
+				}
+			}
+
+			// repopulate *Solvent with old_p to account for all the solvent that went through monomerreporter and monomerneighbor reporter
+
+			for ( std::array<int,3>& loc: old_p ) {
+				Particle temp ( loc, "solvent", 0 );
+				(*Solvent).push_back ( temp );
+			}
+
+			std::cout << "solvent to delete are: " << std::endl;
+			print ( solvent_to_delete );
+
+			for ( int i{0}; i < index_monomer; ++i){
+				ne_after = obtain_ne_list ( (*Polymers)[index_of_polymer].chain[i].coords, x, y, z);
+				for ( std::array <int,3>& ne: ne_after ){
+
+					// make sure there is no monomer at the location 
+					if ( MonomerReporter (Polymers, &ne) ){
+						continue;
+					}
+					else {
+						// if it doesnt have a monomer, it by definition is besides the monomer of interest
+						solvent_to_add.push_back (ne);
+					}
+				}
+			}
+
+			std::cout << "solvent to add are: " << std::endl;
+			print ( solvent_to_add );
+
+			// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
+			// deleting elements that MUST NOT be in *Solvent... 
+
+			int s_idx = 0; 
+			for ( const std::array<int,3>& s_loc: solvent_to_delete ) {
+				s_idx = 0; 
+				for ( Particle& p: *Solvent ){
+			
+					if ( p.coords == s_loc ){
+						(*Solvent).erase ( (*Solvent).begin() + s_idx ); 
+						break; 
+					}
+					s_idx += 1; 
+				}
+			}
+
+			// (3) now that *Solvent has been cleaned out, time to add new things to it 
+			bool present = false; 
+			for ( const std::array <int,3>& s_loc: solvent_to_add ){
+				present = false; 
+				for ( Particle& p: *Solvent ){
+					// if it is already present in *Solvent, breakout and continue to next location
+					if ( p.coords == s_loc ){
+						present = true;
+						break; 
+					}
+				}
+				if ( present ){
+					continue; 
+				}
+				else {
+					Particle temp ( s_loc, "solvent", 0 );
+					(*Solvent).push_back( temp ); 
+				}
+			}
+			std::cout << "solvent coords are: " << std::endl;
+			for (auto s: *Solvent ){
+				print(s.coords);
+			}
+
+			// ################### end tail corrections... ############################
+		}
+
+		else {
+			// ################### begin head corrections... ############################
+
+			// start populating solvent_to_delete with solvent neighbors from old_p
+			for ( std::array <int,3>& loc: old_p ){
+				ne_before = obtain_ne_list (loc, x, y, z);
+
+				// make sure there is no monomer in ne_list... 
+				for ( std::array <int,3>& ne: ne_before ){
+
+					if ( MonomerReporter ( Polymers, &ne) ){
+						// if ne is a location of a monomer, continue 
+						continue; 
+					}
+					else {
+						// if it is a neighbor of another monomer, this will be kept in solvent 
+						if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ) {
+							continue;
+						}
+						else {
+							// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
+							// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
+							solvent_to_delete.push_back ( ne );
+						}
+					}
+				}
+			}
+
+			for ( int i{index_monomer+1}; i<deg_of_poly; ++i ){
+				ne_after = obtain_ne_list ( (*Polymers)[index_of_polymer].chain[i].coords, x, y, z );
+				for ( std::array <int,3>& ne: ne_after ){
+
+					// make sure there is no monomer at the location 
+					if ( MonomerReporter (Polymers, &ne) ) {
+						continue;
+					}
+					else {
+						// if it doesnt have a monomer, it by definition is besides the monomer of interest
+						solvent_to_add.push_back (ne); 
+					}
+				}
+			}
+
+			// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
+			// deleting elements that MUST NOT be in *Solvent... 
+
+			int s_idx = 0; 
+			for ( const std::array<int,3>& s_loc: solvent_to_delete ){
+				s_idx = 0;
+				for ( Particle& p: *Solvent ){
+					if (p.coords == s_loc){
+						(*Solvent).erase ( (*Solvent).begin() + s_idx );
+						break;
+					}
+					s_idx += 1;
+				}
+			}
+
+			// (3) now that *Solvent has been cleaned out, time to add new things to it 
+			bool present = false; 
+			for ( const std::array <int,3>& s_loc: solvent_to_add ){
+				present = false; 
+				for ( Particle& p: *Solvent ){
+					// if it is already present in *Solvent, breakout and continue to next location
+					if ( p.coords == s_loc ){
+						present = true;
+						break; 
+					}
+				}
+				if ( present ){
+					continue; 
+				}
+				else {
+					Particle temp ( s_loc, "solvent", 0 );
+					(*Solvent).push_back( temp ); 
+				}
+			}
+			// ################### end head corrections... ############################
+		}
 
 	}
 
 	return; 
-
 }
 
 
@@ -2915,7 +3338,7 @@ std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle>*
 // THE CODE: 
 //////////////////////////////////////////////////////////////
 
-void TailSpin_Rosenbluth(std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
+void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
 
 	// std::cout << "index of monomer is " << index_of_monomer << std::endl;
     
@@ -2962,7 +3385,7 @@ void TailSpin_Rosenbluth(std::vector <Polymer>* Polymers, int index_of_polymer, 
 	else{
 		(*Polymers)[index_of_polymer].chain[index_of_monomer-1].coords = ind_v[ rng_uniform(0, rw_tmp-1) ]; 
 		(*rweight) = (*rweight) * rw_tmp/6; 
-		TailSpin_Rosenbluth (Polymers, index_of_polymer, index_of_monomer-1, x, y, z, IMP_BOOL, first_entry_bool, rweight); 
+		TailSpin (Polymers, index_of_polymer, index_of_monomer-1, x, y, z, IMP_BOOL, first_entry_bool, rweight); 
 	}
 
 	return; 
@@ -2995,7 +3418,7 @@ void TailSpin_Rosenbluth(std::vector <Polymer>* Polymers, int index_of_polymer, 
 // THE CODE: 
 //////////////////////////////////////////////////////////////
 
-void HeadSpin_Rosenbluth(std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
+void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
     
      if (*first_entry_bool){
      	(*rweight) = 1; 
@@ -3043,7 +3466,7 @@ void HeadSpin_Rosenbluth(std::vector <Polymer>* Polymers, int index_of_polymer, 
 		
 		(*Polymers)[index_of_polymer].chain[index_of_monomer+1].coords = ind_v[ rng_uniform(0, rw_tmp-1) ]; 
 		(*rweight) = (*rweight) * rw_tmp/6; 
-		HeadSpin_Rosenbluth (Polymers, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, IMP_BOOL, first_entry_bool, rweight);
+		HeadSpin (Polymers, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, IMP_BOOL, first_entry_bool, rweight);
 
 		}
 
@@ -3333,7 +3756,7 @@ void PolymerFlipLocal ( std::vector <Polymer>* Polymers, std::vector <Particle>*
 void MoveChooser (std::vector <Polymer>* Polymers_c, std::vector <Particle>* Solvent_c, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers_c).size())-1); 
-    int r = rng_uniform(1, 3);
+    int r = 5; // rng_uniform(1, 4);
     switch (r) {
         case (1):
             if (v){
@@ -3349,8 +3772,8 @@ void MoveChooser (std::vector <Polymer>* Polymers_c, std::vector <Particle>* Sol
                printf("Performing kink jump.\n"); 
             }
             KinkJump		(Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight);
-            *move_number = 4; 
-            (*attempts)[3] += 1;
+            *move_number = 2; 
+            (*attempts)[1] += 1;
             break;   
         
         case (3):
@@ -3358,39 +3781,29 @@ void MoveChooser (std::vector <Polymer>* Polymers_c, std::vector <Particle>* Sol
                printf("Performing crank shaft.\n"); 
             }
             CrankShaft		(Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight);
-            *move_number = 2; 
-            (*attempts)[1] += 1;
-            break; 
-        /*
-        case (3):
-            if (v){
-               printf("Performing reptation.\n"); 
-            }
-            NewPol = Reptation_Rosenbluth (Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight); 
             *move_number = 3; 
             (*attempts)[2] += 1;
             break; 
-
+        
         case (4):
             if (v){
-               printf("Performing kink jump.\n"); 
+               printf("Performing reptation.\n"); 
             }
-            NewPol = KinkJump_Rosenbluth (Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight);
+            Reptation 		(Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight); 
             *move_number = 4; 
             (*attempts)[3] += 1;
             break; 
-
+        
         case (5):
         	if (v) {
         		printf("Performing configuration sampling. \n"); 
         		std::cout << "index of polymer is " << index << std::endl;
-        	}
-        	NewPol = *Polymers; 
-        	ChainRegrowth_Rosenbluth (&NewPol, Solvent_c, index, x, y, z, IMP_BOOL, rweight ); 
+        	} 
+        	ChainRegrowth 	(Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight ); 
             *move_number = 5; 
             (*attempts)[4] += 1;
         	break;
-
+        /*
         case (6): 
         	if (v){
         		printf("Performing solvent orientation flips. \n");

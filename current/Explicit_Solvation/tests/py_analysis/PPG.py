@@ -7,6 +7,9 @@
 import numpy as np 
 import argparse 
 import copy 
+import sys 
+
+sys.setrecursionlimit(100000)
 
 # use argparse to set up the options 
 

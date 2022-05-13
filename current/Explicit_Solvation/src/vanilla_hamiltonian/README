@@ -1,0 +1,7 @@
+Z_6 is a version of the lattice simulation with Z=6. Not the fastest implementation. 
+
+Z_26 is my version of the lattice simulation with Z=26. Again, not the fastest implementation. 
+
+Z_6_impl is my vesion of the lattice simulation with Z=6, with only the solvation shell for solvent. It is FAST, but... it is not the right ensemble. 
+
+Z_6_ufe_ps stands for Z_6_ultra-fucking-efficient_physically-sound. This is my latest implementation. Hope it fucking works.

@@ -781,10 +781,10 @@ bool isSymmetric(std::vector <std::vector <double>> mat){
 // ===============================================================
 
 
-Polymer makePolymer(std::vector <std::array <int,3> > locations, std::string type_m){
+Polymer makePolymer(std::vector <std::array <int,3> > locations, char type_m){
 	std::vector <int> pmer_spins; 
     int size_ = locations.size(); 
-    for (int i=0; i<static_cast<int>(size_); i++){
+    for (int i=0; i<size_; i++){
         unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
         std::mt19937 generator(seed); 
         std::uniform_int_distribution<int> distribution (0,1); 
@@ -793,7 +793,7 @@ Polymer makePolymer(std::vector <std::array <int,3> > locations, std::string typ
 
     std::vector <Particle> ptc_vec; 
 
-    for (int i=0;i<static_cast<int>( size_ ); i++ ){
+    for (int i=0;i< size_ ; i++ ){
         Particle p (locations.at(i), type_m, pmer_spins.at(i)); 
         ptc_vec.push_back(p); 
     }
@@ -1338,14 +1338,14 @@ Particle ParticleReporter (std::vector <Polymer>* Polymers, std::vector <Particl
 }
 
 
-void ParticleReporter (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, std::pair <std::string, int>* properties, std::array <int,3>* to_check){
+void ParticleReporter (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, std::pair <char, int>* properties, std::array <int,3>* to_check){
 
 
 	for ( const Polymer& pmer: (*Polymers)) {
 		for ( const Particle& p: pmer.chain) {
 
 			if ((*to_check) == p.coords){
-				(*properties).first  = "monomer"; 
+				(*properties).first  = 'm'; 
 				(*properties).second = p.orientation; 
 				return;
 			}
@@ -1355,7 +1355,7 @@ void ParticleReporter (std::vector <Polymer>* Polymers, std::vector <Particle>* 
 	for (const Particle& p: *Solvent){
 
 		if ( (*to_check) == p.coords){
-			(*properties).first  = "solvent"; 
+			(*properties).first  = 's'; 
 			(*properties).second = p.orientation; 
 			return;
 		}
@@ -1472,7 +1472,7 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle>* 
     (*ms_naligned) = 0;
     // polymer-polymer interaction energies 
     
-    std::pair <std::string, int> properties ( " ", -1 );
+    std::pair <char, int> properties ( ' ' , -1 );
 
     for (const Polymer& pmer: (*Polymers)) {
         for (const Particle& p: pmer.chain){
@@ -1482,7 +1482,7 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle>* 
             	
             	ParticleReporter (Polymers, Solvent, &properties, &loc);
 
-            	if ( properties.first == "monomer"){
+            	if ( properties.first == 'm'){
                     
             		if ( properties.second == p.orientation ){
                         (*mm_aligned) += 0.5; 
@@ -1688,7 +1688,7 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle>* S
     // std::cout<< "just inside dumpO..."<<std::endl; 
     std::ofstream dump_file (filename, std::ios::app); 
     dump_file << "START for Step " << step << ".\n";
-    std::pair <std::string, int> properties (" ", -1); 
+    std::pair <char, int> properties (' ' , -1); 
     for ( const Polymer& pmer: (*Polymers) ) {
         for ( const Particle& p: pmer.chain ) {
             // std::cout << "particle is at "; print(p.coords);  
@@ -1701,7 +1701,7 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle>* S
                 // print (ne) ;
                 ParticleReporter (Polymers, Solvent, &properties, &ne);
                 // std::cout << "Reported~\n"; 
-                if (properties.first == "solvent"){
+                if (properties.first == 's'){
                     dump_file << properties.second << " | ";  
                 } 
             }
@@ -1880,7 +1880,7 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 		}
 
 		else {
-			Particle temp ( s_loc, "solvent", 0 );
+			Particle temp ( s_loc, 's', 0 );
 			(*Solvent).push_back( temp ); 
 		}
 
@@ -2056,7 +2056,7 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 		}
 
 		else {
-			Particle temp ( s_loc, "solvent", 0 );
+			Particle temp ( s_loc, 's', 0 );
 			(*Solvent).push_back ( temp ); 
 		}
 
@@ -2286,7 +2286,7 @@ void KinkJump (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent,
 		}
 
 		else {
-			Particle temp ( s_loc, "solvent", 0 );
+			Particle temp ( s_loc, 's', 0 );
 			(*Solvent).push_back( temp ); 
 		}
 
@@ -2537,7 +2537,7 @@ void CrankShaft (std::vector <Polymer>* Polymers, std::vector <Particle>* Solven
 		}
 
 		else {
-			Particle temp ( s_loc, "solvent", 0 );
+			Particle temp ( s_loc, 's', 0 );
 			(*Solvent).push_back( temp ); 
 		}
 
@@ -2738,7 +2738,7 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle>* 
 		}
 
 		else {
-			Particle temp ( s_loc, "solvent", 0 );
+			Particle temp ( s_loc, 's', 0 );
 			(*Solvent).push_back( temp ); 
 		}
 
@@ -2944,7 +2944,7 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle>*
 		}
 
 		else {
-			Particle temp ( s_loc, "solvent", 0 );
+			Particle temp ( s_loc, 's', 0 );
 			(*Solvent).push_back( temp ); 
 		}
 
@@ -3147,7 +3147,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 
 			// tack on molecules to Solvent that must be in Solvent so that they get appropriately eliminated or not 
 			for ( std::array<int,3>& loc: old_cut ) {
-				Particle temp ( loc, "solvent", 0 );
+				Particle temp ( loc, 's', 0 );
 				(*Solvent).push_back ( temp );
 			}
 
@@ -3197,7 +3197,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 					continue; 
 				}
 				else {
-					Particle temp ( s_loc, "solvent", 0 );
+					Particle temp ( s_loc, 's', 0 );
 					(*Solvent).push_back( temp ); 
 				}
 			}
@@ -3241,7 +3241,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 
 			// tack on molecules to Solvent that must be in Solvent so that they get appropriately eliminated or not 
 			for ( std::array<int,3>& loc: old_cut ) {
-				Particle temp ( loc, "solvent", 0 );
+				Particle temp ( loc, 's', 0 );
 				(*Solvent).push_back ( temp );
 			}			
 
@@ -3290,7 +3290,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 					continue; 
 				}
 				else {
-					Particle temp ( s_loc, "solvent", 0 );
+					Particle temp ( s_loc, 's', 0 );
 					(*Solvent).push_back( temp ); 
 				}
 			}
@@ -3692,7 +3692,7 @@ void PolymerFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 
 //////////////////////////////////////////////////////////////
 
-void MoveChooser (std::vector <Polymer>* Polymers_c, std::vector <Particle>* Solvent_c, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number){
+void PerturbSystem (std::vector <Polymer>* Polymers_c, std::vector <Particle>* Solvent_c, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers_c).size())-1); 
     int r = rng_uniform(1, 9);
@@ -4067,7 +4067,7 @@ std::vector <Particle> CreateSolventVector(int x, int y, int z, std::vector <Pol
 					continue; 
 				}
 				else {
-					Particle p = Particle (ne, "solvent", 0);
+					Particle p = Particle (ne, 's', 0);
 					p_locations.push_back (p.coords);
 					Solvent.push_back(p);
 				}

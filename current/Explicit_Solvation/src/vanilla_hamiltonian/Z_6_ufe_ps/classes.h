@@ -15,8 +15,8 @@
 class Particle{
 public: 
     std::array <int,3> coords;                                        // the coordinates of the particles
-    std::string ptype; 
-    int orientation;
+    short int orientation;
+    char ptype; 
 
     bool operator<(const Particle& rhs)const{
         return (this->coords) < (rhs.coords); 
@@ -30,9 +30,7 @@ public:
     // constructor 
     Particle(){};  // default constructor
 
-    Particle (std::array <int, 3> crds, std::string type_, int orientation_): coords (crds), ptype (type_), orientation (orientation_){
-
-    }
+    Particle (std::array <int, 3> crds, char type_, int orientation_): coords (crds), orientation (orientation_), ptype (type_) { };
 
     // destructor 
     ~Particle(){
@@ -62,14 +60,16 @@ public:
 
 
 class Polymer{
-public: 
-    int deg_poly; 
-    std::vector <Particle> chain;                                               // all the particles in the polymer chain
-    // std::map <Particle, std::vector <Particle> > ConnectivityMap;               // the particles one particular polymer bead is connected to 
+public:
+    short deg_poly; 
+    std::vector <Particle*> chain;                                               // all the particles in the polymer chain 
+
+    
+    std::map <Particle*, std::vector <Particle*> > ConnectivityMap;               // the particles one particular polymer bead is connected to 
 
 
     // constructor 
-    Polymer (int deg_poly_, std::vector <Particle> particleChain): deg_poly (deg_poly_), chain (particleChain) {
+    Polymer (short deg_poly_, std::vector <Particle*> particleChain):  deg_poly (deg_poly_), chain (particleChain) {
         // this->ChainToConnectivityMap(); 
         this->chain.reserve(deg_poly_); 
     }

@@ -906,12 +906,12 @@ bool MetropolisAcceptance(double E1, double E2, double kT, double rweight){
 	double dE = E2-E1; 
 	double prob = std::exp(-1/kT*dE) * rweight; 
 	double r = rng_uniform(0.0, 1.0); 
-	// std::cout << "Probability is " << prob <<"." << std::endl;
+	std::cout << "Probability is " << prob <<"." << std::endl;
     // std::cout << "rweight is " << rweight << "." << std::endl;
 	// std::cout << "E1 is " << E1 << std::endl;
 	// std::cout << "E2 is " << E2 << std::endl;
 	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
-	// std::cout << "RNG is " << r << "." << std::endl;
+	std::cout << "RNG is " << r << "." << std::endl;
 	if (r < prob){
 		return true; 
 	}
@@ -1128,7 +1128,7 @@ bool checkForSolventMonomerOverlap(std::vector <Polymer>* Polymers, std::map<std
         	}
 
         	else if ( (it->second)->ptype == 's' ){
-        		std::cerr << "there is some kind of bad overlap that has taken a place. A monomer is being represented by a solvent. Something's fucked." << std::endl;
+        		std::cerr << "Some kind of bad overlap that has taken a place. A monomer is being represented by a solvent. Something's fucked." << std::endl;
         		exit (EXIT_FAILURE); 
         	}
 
@@ -1199,8 +1199,38 @@ bool checkConnectivity(std::vector <Polymer> Polymers, int x, int y, int z) {
 //             End of checkConnectivity. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: checkPointersOnLattice
+//
+// PARAMETERS: LATTICE
+// 
+// WHAT THE FUNCTION DOES: It looks at each point on the lattice and makes sure that every lattice point has 
+// a pointer with the same location as the lattice site
+// 
+// DEPENDENCIES: 
+//
+// THE CODE: 
 
+bool checkPointersOnLattice (std::map <std::array <int,3>, Particle*>* LATTICE){
+	std::map<std::array<int,3>, Particle*>::iterator it; 
+	for ( it = LATTICE->begin(); it != LATTICE->end(); it++ ) {
 
+		if ( (it->first) == (it->second)->coords ) {
+			continue;
+		}
+		else {
+			std::cerr << "Something is fucked. Pointer does not correspond to position. " << std::endl;
+			exit (EXIT_FAILURE);
+			return false;
+		}
+
+	}
+
+	return true;
+
+}
 
 
 
@@ -1718,7 +1748,9 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::map <std::array <int
 //
 // THE CODE: 
 
-void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
+void TailRotation (std::vector <Polymer>* Polymers, std::map <std::array <int,3>, Particle*>* LATTICE, \
+	int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, \
+	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory){
 
     // get the neighborlist of particle at index 1 
     std::array <int,3> loc_0 = (*Polymers)[index].chain[0]->coords; 
@@ -1756,120 +1788,26 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 
 	int r = rng_uniform(0, static_cast<int> (idx_v.size() - 1) ); 
 
-	for (Particle& p: (*Solvent)){
-		if (p.coords == idx_v[ r ]){
-			p.coords = loc_0; 
-			(*Polymers)[index].chain[0]->coords = idx_v[ r ];  
-			break;
-		}
-	}
+	// made the change to the polymer
+	(*Polymers)[index].chain[0]->coords = idx_v[r]; 
 
-	// (*Polymers)[index].ChainToConnectivityMap(); 
+
+	// make the change on the lattice 
+	// make the change only to the SOLVENT site... 
+	(*LATTICE)[idx_v[r]]->coords = loc_0; 
+
+	// do the switch 
+	// take the pointer of the solvent, and put it where the monomer was on the lattice 
+	(*LATTICE)[loc_0]    = (*LATTICE)[idx_v[r]]; 
+	(*LATTICE)[idx_v[r]] = (*Polymers)[index].chain[0]; 
+
+	// update memory 
+	(*memory).first.push_back ( loc_0 ); 		// initial location of monomer
+	(*memory).second.push_back ( idx_v[r] );	// final location of monomer 
+
+	// update connmap 
+	(*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/6.0; 
-
-
-	// MOVE UPDATING POLYMER SKELETON HAS BEEN PERFORMED. 
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	// now to perform the *Solvent update. 
-
-	// I have to make sure I am updating Solvent such that the Solvent is still surrounding polymer
-	// find all neighbors of the new structure, keeping in mind only one monomer segment was moved.
-
-	// (1) From the initial monomer position, find all the neighbors of the monomer that were solvent. Do the same for the perturbed monomer. 
-	// keeping in mind initial monomer position and perturbed monomer position can never be neighbors.
-
-	std::array  <std::array<int,3>, 6> ne_before = obtain_ne_list ( loc_0, x, y, z );                    					  // neighborlist of the monomer before perturbation 
-	std::array  <std::array<int,3>, 6> ne_after = obtain_ne_list (idx_v[r], x, y, z);  // neighborlist of the monomer after perturbation 
-	std::vector <std::array <int,3>  > solvent_to_delete, solvent_to_add; 
-	solvent_to_delete.reserve(5); solvent_to_add.reserve(5); 
-
-	// make sure there is no monomer location in ne_list... 
-	for (std::array <int,3>& ne: ne_before) {
-
-		if ( ne == (*Polymers)[index].chain[1]->coords ){
-			continue;
-		}
-
-		else if ( MonomerReporter (Polymers, &ne) ){
-			// if ne is a location of a monomer, continue 
-			continue;
-		}
-
-		else {
-			// if it is a neighbor of another monomer, this will be kept in solvent. 
-			if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
-				continue; 
-			}
-			else {
-				// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
-				// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
-				solvent_to_delete.push_back( ne );
-			}
-		}
-	}
-
-
-
-	// make sure there is no monomer location in ne_list_new... 
-	for (std::array <int,3>& ne: ne_after) {
-
-		if ( ne == (*Polymers)[index].chain[1]->coords ){
-			continue;
-		}
-
-		else if ( MonomerReporter (Polymers, &ne) ){
-			// if ne is a location of a monomer, continue 
-			continue;
-		}
-
-		else {
-			// if it is a solvent particle AND is a neighbor of a monomer in the new structure, IT MUST BE PRESENT in *Solvent. 
-			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
-			solvent_to_add.push_back (ne); 
-		}
-	}
-
-
-	// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
-	// deleting elements that MUST NOT be in *Solvent... 
-
-	
-	int s_idx = 0; 
-	for ( const std::array<int,3>& s_loc: solvent_to_delete ) {
-		s_idx = 0; 
-		for ( Particle& p: *Solvent ){
-			
-			if ( p.coords == s_loc ){
-				(*Solvent).erase ( (*Solvent).begin() + s_idx ); 
-				break; 
-			}
-			s_idx += 1; 
-
-		}
-
-	}
-
-	// (3) now that *Solvent has been cleaned out, time to add new things to it 
-	bool present = false; 
-	for ( const std::array <int,3>& s_loc: solvent_to_add ){
-		present = false; 
-		for ( Particle& p: *Solvent ){
-			if ( p.coords == s_loc ){
-				present = true;
-				break; 
-			}
-		}
-
-		if ( present ){
-			continue; 
-		}
-
-		else {
-			Particle temp ( s_loc, 's', 0 );
-			(*Solvent).push_back( temp ); 
-		}
-
-	}
 	
 	return; 
 }
@@ -1893,7 +1831,8 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 //
 // THE CODE: 
 
-void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
+void HeadRotation (std::vector <Polymer>* Polymers, std::map <std::array <int,3>, Particle*>* LATTICE, \
+	int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
 
     // get the neighborlist of particle at index 1 
     int dop = (*Polymers)[index].deg_poly; 
@@ -1932,121 +1871,25 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 
 	int r = rng_uniform(0, static_cast<int> (idx_v.size() - 1) ); 
 	
-	// std::cout << "Suggested rot position is "; print (idx_v [r]); 
-	for (Particle& p: (*Solvent)){
-		if (p.coords == idx_v[ r ]){
-			p.coords = loc_0;
-			(*Polymers)[index].chain[dop-1]->coords = idx_v[ r ]; 
-			break; 
-		}
-	}
+	// make the change to the polymer 
+	(*Polymers)[index].chain[dop-1]->coords = idx_v[r];
 
-	// (*Polymers)[index].ChainToConnectivityMap(); 
+	// make the change on the lattice 
+	// make the change only to the SOLVENT site...
+	(*LATTICE)[idx_v[r]]->coords = loc_0; 
+
+	// do the switch 
+	// take the pointer of the solvent, and put it where the monomer was on the lattice 
+	(*LATTICE)[loc_0]    = (*LATTICE)[idx_v[r]]; 
+	(*LATTICE)[idx_v[r]] = (*Polymers)[index].chain[dop-1]; 
+
+	// update memory 
+	(*memory).first.push_back  ( loc_0 ); 
+	(*memory).second.push_back ( idx_v[r] );
+
+	// update connmap 
+	(*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/6.0; 
-
-
-    // MOVE UPDATING POLYMER SKELETON HAS BEEN PERFORMED. 
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	// now to perform the *Solvent update. 
-
-	// I have to make sure I am updating Solvent such that the Solvent is still surrounding polymer
-	// find all neighbors of the new structure, keeping in mind only one monomer segment was moved.
-
-	// (1) From the initial monomer position, find all the neighbors of the monomer that were solvent. Do the same for the perturbed monomer. 
-	// keeping in mind initial monomer position and perturbed monomer position can never be neighbors.
-
-	std::array <std::array <int,3>, 6> ne_before = obtain_ne_list ( loc_0, x, y, z); 										 // neighborlist of the monomer before perturbation 
-	std::array <std::array <int,3>, 6> ne_after = obtain_ne_list (idx_v[r], x, y, z); 										// neighborlist of the monomer after perturbation
-
-	std::vector <std::array <int,3> > solvent_to_delete, solvent_to_add; 
-	solvent_to_delete.reserve(5); solvent_to_add.reserve(5); 
-
-	// make there is no monomer location in ne_list...
-	for ( std::array <int,3>& ne: ne_before){
-
-		if ( ne == (*Polymers)[index].chain[dop-2]->coords ){
-			continue;
-		}
-
-		else if ( MonomerReporter (Polymers, &ne) ){
-			// if ne is a location of a monomer, continue 
-			continue; 
-		}
-
-		else {
-			// if it is a neighbor of another monomer, this will be kepy in solvent. 
-			if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
-				continue; 
-			} 
-			else {
-				// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
-				// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
-				solvent_to_delete.push_back( ne );
-			}
-		}
-	}
-
-
-	// make sure there is no monomer location in this... 
-	for ( std::array <int,3>& ne: ne_after ) {
-
-		if ( ne == (*Polymers)[index].chain[dop-2]->coords ){
-			continue;
-		}
-
-		else if (MonomerReporter (Polymers, &ne) ){
-			// if ne is alocation of a monomer, continue
-			continue;
-		}
-
-		else {
-			// if it is a solvent particle AND is a neighbor of a monomer in the new structure, IT MUST BE PRESENT in *Solvent. 
-			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
-			solvent_to_add.push_back (ne); 
-		}
-	}
-
-	// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
-	// deleting elements that MUST NOT be in *Solvent... 
-
-	int s_idx = 0; 
-	for ( const std::array <int,3> s_loc: solvent_to_delete ) {
-		s_idx = 0; 
-		for ( Particle& p: *Solvent ){
-			if ( p.coords == s_loc ){
-				(*Solvent).erase ( (*Solvent).begin() + s_idx );
-				break;
-			}
-			
-			s_idx += 1; 
-
-		}
-
-	}
-
-	// (3) now that *Solvent has been cleaned out, time to add new things to it 
-	bool present = false; 
-	for ( const std::array <int,3>& s_loc: solvent_to_add ){
-		present = false;
-		for ( Particle& p: *Solvent ){
-			if ( p.coords == s_loc ){
-				present = true; 
-				break; 
-			}
-		}
-
-		if ( present ) {
-			// if it is already there in solvent, dont do anything. move to the next position. 
-			continue; 
-		}
-
-		else {
-			Particle temp ( s_loc, 's', 0 );
-			(*Solvent).push_back ( temp ); 
-		}
-
-	}
-
 
 	return; 
 }
@@ -2070,7 +1913,8 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solv
 //
 // THE CODE: 
 
-void EndRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight){
+void EndRotation (std::vector <Polymer>* Polymers, std::map <std::array <int,3>, Particle*>* LATTICE, \
+	int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
@@ -2079,12 +1923,12 @@ void EndRotation (std::vector <Polymer>* Polymers, std::vector <Particle>* Solve
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         // std::cout << "Zero index rotation!" << std::endl;
-        TailRotation (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
+        TailRotation (Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory); 
         return; 
     }
     else {
         // std::cout << "Final index rotation!" << std::endl;
-        HeadRotation (Polymers, Solvent, index, x, y, z, IMP_BOOL, rweight); 
+        HeadRotation (Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory); 
         return; 
     }
     
@@ -2174,108 +2018,6 @@ void KinkJump (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent,
 
 	// (*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/( k_idx.size() ); 
-
-
-	// MOVE UPDATING POLYMER SKELETON HAS BEEN PERFORMED. 
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-	// now to perform the *Solvent update. 
-
-	// I have to make sure I am updating Solvent such that the Solvent is still surrounding polymer
-	// find all neighbors of the new structure, keeping in mind only one monomer segment was moved.
-
-	// (1) From the initial monomer position, find all the neighbors of the monomer that were solvent. Do the same for the perturbed monomer. 
-	// keeping in mind initial monomer position and perturbed monomer position can never be neighbors.
-
-	std::array < std::array <int,3>, 6> ne_before     = obtain_ne_list ( loc_0, x, y, z );                    	// neighborlist of the monomer before perturbation
-	std::array < std::array <int,3>, 6> ne_after 	  = obtain_ne_list ( pos_v[r], x, y, z); 						// neighborlist of the monomer after perturbation
-	std::vector <std::array <int,3> > solvent_to_delete, solvent_to_add; 
-	solvent_to_delete.reserve(4); solvent_to_add.reserve(4); 
-
-	// make sure there is no monomer location in ne_list... 
-	for (std::array <int,3>& ne: ne_before) {
-
-		if ( ne == (*Polymers)[index].chain[idx_v[r]]->coords || ne == (*Polymers)[index].chain[idx_v[r]+2]->coords ){
-			continue;
-		}
-
-		else if ( MonomerReporter (Polymers, &ne) ){
-			// if ne is a location of a monomer, continue 
-			continue;
-		}
-
-		else {
-			// if it is a neighbor of another monomer, this will be kept in solvent. 
-			if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ){
-				continue; 
-			}
-			else {
-				// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
-				// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
-				solvent_to_delete.push_back( ne );
-			}
-		}
-	}
-
-	// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-	// make sure there is no monomer location in ne_list_new... 
-	for (std::array <int,3>& ne: ne_after) {
-
-		if ( ne == (*Polymers)[index].chain[idx_v[r]]->coords || ne == (*Polymers)[index].chain[idx_v[r]+2]->coords ){
-			continue;
-		}
-
-		else if (MonomerReporter (Polymers, &ne) ){
-			// if ne is a location of a monomer, continue 
-			continue;
-		}
-
-		else {
-			// if it is a solvent particle AND is a neighbor of a monomer in the new structure, IT MUST BE PRESENT in *Solvent. 
-			// that is the purpose of solvent_ne_new!!! Figuring out all the elements that NEED TO BE ADDED to *Solvent, in case they are not already there.   
-			solvent_to_add.push_back (ne); 
-			
-		}
-	}
-
-	// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
-	// deleting elements that MUST NOT be in *Solvent... 
-
-	int s_idx = 0; 
-	for ( const std::array<int,3>& s_loc: solvent_to_delete ) {
-		s_idx = 0; 
-		for ( Particle& p: *Solvent ){
-			
-			if ( p.coords == s_loc ){
-				(*Solvent).erase ( (*Solvent).begin() + s_idx ); 
-				break; 
-			}
-			s_idx += 1; 
-		}
-	}
-
-	// (3) now that *Solvent has been cleaned out, time to add new things to it 
-	bool present = false; 
-	for ( const std::array <int,3>& s_loc: solvent_to_add ){
-		present = false; 
-		for ( Particle& p: *Solvent ){
-			// if it is already present in *Solvent, breakout and continue to next location
-			if ( p.coords == s_loc ){
-				present = true;
-				break; 
-			}
-		}
-
-		if ( present ){
-			continue; 
-		}
-
-		else {
-			Particle temp ( s_loc, 's', 0 );
-			(*Solvent).push_back( temp ); 
-		}
-
-	}
 
     return; 
 
@@ -3677,21 +3419,26 @@ void PolymerFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 
 //////////////////////////////////////////////////////////////
 
-void PerturbSystem (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number){
+void PerturbSystem (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,Particle*>* LATTICE, \
+	int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, \
+	std::array <int,9>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = -1; // rng_uniform(1, 9);
-    /*
+    int r = 1; // rng_uniform(1, 9);
+ 	std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
+ 	LATTICE->begin();
+
+    
     switch (r) {
         case (1):
             if (v){
                printf("Performing end rotations.\n"); 
             }
-            EndRotation		(Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight);
+            EndRotation		(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory);
             *move_number = 1;
             (*attempts)[0] += 1;
             break;  
-
+    	/*
         case (2):
             if (v){
                printf("Performing kink jump.\n"); 
@@ -3764,8 +3511,9 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,
             *move_number = 9; 
             (*attempts)[8] += 1;
             break;
+        */
     }
-    */
+    
     return;
 }
 
@@ -3773,11 +3521,36 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of MoveChooser. 
+//             End of PerturbSystem
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+void ReversePerturbation (std::map<std::array<int,3>,Particle*>* LATTICE, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
 
+	switch (move_number){
+		case (1):
+			if (v) {
+				printf("Reversing end rotations...\n");
+			}
+
+			// swap pointers 
+			// take the pointer from memory.first on lattice (which is a solvent) replace it with 
+			Particle* tmp = (*LATTICE)[(*memory).second[0]]; 
+
+			(*LATTICE)[(*memory).second[0]] = (*LATTICE)[(*memory).first[0]];
+			(*LATTICE)[(*memory).second[0]]->coords = (*memory).second[0]; 
+
+			(*LATTICE)[(*memory).first[0]]  = tmp;  
+			(*LATTICE)[(*memory).first[0]]->coords  = (*memory).first[0]; 
+
+			// print ( )
+			break;
+
+	}
+
+
+	return; 
+}
 
 //============================================================
 //============================================================

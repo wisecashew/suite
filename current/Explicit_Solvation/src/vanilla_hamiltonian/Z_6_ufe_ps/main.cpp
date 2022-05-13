@@ -44,8 +44,8 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "\nWelcome to my Monte Carlo simulation engine (v0.1) for polymers in a simple cubic box (Z=6). \nThis is a quasi-implicit solvent simulation engine which incorporates directional bonding between monomer and solvent." <<
-		        "\nLast updated: May 10, 2022, 07:42 PM. \nAuthor: satyend@princeton.edu\n" <<
+                "\nWelcome to my Monte Carlo simulation engine (v0.1) for polymers in a simple cubic box (Z=6). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent." <<
+		        "\nLast updated: May 12, 2022, 11:02 PM. \nAuthor: satyend@princeton.edu\n" <<
                 "\n----------------------------------------------------------------------------------------------------------------------------------\n" << 
                 "These are all the inputs the engine accepts for a single run, as of right now:\n\n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
@@ -245,6 +245,7 @@ int main(int argc, char** argv) {
     
     double rweight =  0; 
     int move_number = 0; 
+    std::pair < std::vector<std::array<int,3>>, std::vector<std::array<int,3>> > memory; 
 
     printf("Initiation complete. We are ready to go. The engine will output information every %d configuration.\n", dfreq); 
     
@@ -266,14 +267,10 @@ int main(int argc, char** argv) {
             // Nsurr = ms_aligned + ms_naligned;
             metropolis = false; 
         }
-        
-        // make a copy of the polymer+solvation shell 
-        // Solvent_c  = Solvent; 
-        // Polymers_c = Polymers;
 
         // choose a move... 
         // i think movechooser gotta be void... 
-        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number); 
+        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory); 
 
         if (IMP_BOOL){ 
             sysEnergy_ = CalculateEnergy (&Polymers, &LATTICE, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &mm_aligned, &mm_naligned, &ms_aligned, &ms_naligned); 
@@ -302,7 +299,7 @@ int main(int argc, char** argv) {
                 }
 
                 printf("checkConnectivity says: %d\n", checkConnectivity(Polymers, x, y, z)); 
-                if (! checkConnectivity(Polymers, x, y, z) ){
+                if (!checkConnectivity(Polymers, x, y, z) ){
                     printf("Something is fucked up connectivity-wise. \n");
                     exit(EXIT_FAILURE);
                 }
@@ -310,18 +307,68 @@ int main(int argc, char** argv) {
                 printf("Energy of the system is %.2f.\n", sysEnergy_);
                 printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
 
+                if (checkPointersOnLattice (&LATTICE) ){
+                    printf("We good. LATTICE is in good shape. \n\n\n"); 
+                }
 
             }
 
-            // std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
-            
-            // Polymers = std::move(Polymers_c);
-            // Solvent = std::move(Solvent_c); 
             sysEnergy = sysEnergy_; 
         }
 
 
         else {
+
+            std::cout << "printing out memory."<<std::endl;
+            std::cout << "First element: " << std::endl;
+            
+            for (auto v: memory.first){
+                print(v);
+            }
+
+            std::cout << "second element: " << std::endl;
+            // print(memory.second);
+            for (auto v: memory.second){
+                print(v);
+            }
+
+            ReversePerturbation (&LATTICE, v, move_number, &memory );
+            std::cout << "After reversing perturbation..." << std::endl;
+
+
+
+            if ( v ){
+                printf("Checking validity of coords...");
+                printf("checkForOverlaps says: %d.\n", checkForOverlaps(Polymers)); 
+                if (!checkForOverlaps(Polymers)){
+                    printf("Something is fucked up overlaps-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+
+                if (!checkForSolventMonomerOverlap (&Polymers, &LATTICE) ){
+                    printf("Something is fucked up solvent-monomer overlaps-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+
+                printf("checkConnectivity says: %d\n", checkConnectivity(Polymers, x, y, z)); 
+                if (!checkConnectivity(Polymers, x, y, z) ){
+                    printf("Something is fucked up connectivity-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+                printf("Reversed successfully!!\n");
+                printf("Energy of the system is %.2f.\n", sysEnergy_);
+                printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
+
+                if (checkPointersOnLattice (&LATTICE) ){
+                    printf("We good. LATTICE is in good shape. \n"); 
+                }
+
+            }
+
+
+
+
+
             if ( v && (i%dfreq==0) ){
                 printf ("Not accepted.\n");
                 printf ("Energy of the suggested system is %.2f, while energy of the initial system is %.2f.\n", sysEnergy_, sysEnergy);
@@ -346,6 +393,7 @@ int main(int argc, char** argv) {
         }
         
         IMP_BOOL = true; 
+        reset (memory);
            
     }
     dumpMoveStatistics      (&attempts, &acceptances, max_iter, stats_file);  

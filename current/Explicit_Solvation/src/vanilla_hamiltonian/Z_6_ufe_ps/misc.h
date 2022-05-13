@@ -124,6 +124,7 @@ bool checkValidityOfCoords                (std::array <int,3> v, int x, int y, i
 bool checkForOverlaps                     (std::vector <Polymer> Polymers);
 bool checkConnectivity                    (std::vector <Polymer> Polymers, int x, int y, int z); 
 bool checkForSolventMonomerOverlap        (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,Particle*>* LATTICE); 
+bool checkPointersOnLattice               (std::map <std::array <int,3>, Particle*>* LATTICE);
 int  IsSolvent                            (std::vector <Polymer>* Polymers, std::array <int,3>* to_check);
 int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std::array <int,3>* to_check);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -182,10 +183,9 @@ std::array <std::array <int,3>,3> HingeSwingDirections (std::array <int,3>* Hing
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Polymer moves with Rosenbluth sampling methods 
-
-void                  TailRotation                 (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-void                  HeadRotation                 (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
-void                  EndRotation                  (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
+void                  TailRotation 				   (std::vector <Polymer>* Polymers, std::map <std::array <int,3>, Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
+void                  HeadRotation                 (std::vector <Polymer>* Polymers, std::map <std::array <int,3>, Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
+void                  EndRotation                  (std::vector <Polymer>* Polymers, std::map <std::array <int,3>, Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 void                  KinkJump                     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
 void                  CrankShaft                   (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
 void                  ForwardReptation 			   (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight);
@@ -194,8 +194,14 @@ void                  Reptation  			       (std::vector <Polymer>* Polymers, std
 void                  ChainRegrowth			       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL); 
 void                  TailSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
 void                  HeadSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number);
+void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, std::pair < std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory);
+void                  ReversePerturbation          (std::map<std::array<int,3>,Particle*>* LATTICE, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+template <typename T>
+void reset(T &x){
+    x = T();
+}
 
 
 // !~!~!~!!~!!~!~!~!!~~!!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~

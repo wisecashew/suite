@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
 
     
 
-
+    /*
     // ExtractTopologyFromFile extracts all the topology from the input file 
     std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
 
@@ -169,37 +169,37 @@ int main(int argc, char** argv) {
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
 
     std::cout << "Running some more checks on input... \n\n" ; 
-
+    */
     // THIS MIGHT NEED TO CHANGE 
     
 
-    int step_number = 0;
+    // int step_number = 0;
     // double sysEnergy {0}; 
-    std::vector <Polymer> Polymers; 
+    // std::vector <Polymer> Polymers; 
     
-    Polymers.reserve(N); 
+    // Polymers.reserve(N); 
 
-    Polymers = ExtractPolymersFromFile(positions, x, y, z); 
+    // Polymers = ExtractPolymersFromFile(positions, x, y, z); 
         
     // double sysEnergy_ {0};
 
-    std::vector <Particle> Solvent = CreateSolventVector(x, y, z, &Polymers);
+    // std::vector <Particle> Solvent = CreateSolventVector(x, y, z, &Polymers);
     
     /////////////////////////////////////////////////
     
-    for (Polymer& pmer:Polymers){
-        for (Particle& p: pmer.chain){
-            p.orientation = 0; 
-        }
-    }
+    // for (Polymer& pmer:Polymers){
+    //    for (Particle& p: pmer.chain){
+    //        p.orientation = 0; 
+    //    }
+    // }
 
     /////////////////////////////////////////////////
 
-    dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
+    // dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
 
-    Polymer Pol (8, Polymers[0].chain);
-    Particle part (Polymers[0].chain[0].coords, Polymers[0].chain[0].ptype, Polymers[0].chain[0].orientation); 
-    std::tuple <short,char,std::array<int,3>> particle_c (0, 's', {0,0,0});
+    // Polymer Pol (8, Polymers[0].chain);
+    // Particle part (Polymers[0].chain[0]->coords, Polymers[0].chain[0]->ptype, Polymers[0].chain[0]->orientation); 
+    // std::tuple <short,char,std::array<int,3>> particle_c (0, 's', {0,0,0});
 
     std::cout << "Printing out sizes..." << std::endl; 
 
@@ -213,25 +213,25 @@ int main(int argc, char** argv) {
     std::cout << "Size of std::string is " << sizeof(std::string) << std::endl;
     std::cout << "Size of class Polymer is " << sizeof(Polymer) << std::endl; 
     std::cout << "Size of class Particle is " << sizeof(Particle) << std::endl; 
-    std::cout << "Size of std::vector<Particle> is " << sizeof(std::vector <Particle>) << std::endl;
+    std::cout << "Size of std::vector<Particle*> is " << sizeof(std::vector <Particle*>) << std::endl;
     std::cout << "Size of std::vector<std::tuple> is " << sizeof(std::vector <std::tuple <short,char,std::array<int,3>>>) << std::endl;
     std::cout << "Size of std::tuple <std::array<int,3>, Particle*> is " << sizeof( std::tuple <std::array<int,3>, Particle*> ) << std::endl;
     std::cout << "Size of std::set <std::tuple <std::array<int,3>, Particle*>> is " << sizeof(std::set <std::tuple <std::array<int,3>, Particle*>>) << std::endl;
     std::cout << "Size of std::map <std::array<int,3, Particle*> is " << sizeof(std::map <std::array<int,3>, Particle*>) << std::endl;
 
-    std::cout << "Size of instance of tuple is " << sizeof(particle_c) << std::endl;
-    std::cout << "Size of instance of class Polymer is " << sizeof(Pol) << std::endl; 
-    std::cout << "Size of instance of class* Polymer is " << sizeof(&Pol) << std::endl; 
-    std::cout << "Size of instance of class Particle is " << sizeof(part) << std::endl;
-    std::cout << "Size of instance of class* Particle is " << sizeof(&part) << std::endl;
+    // std::cout << "Size of instance of tuple is " << sizeof(particle_c) << std::endl;
+    // std::cout << "Size of instance of class Polymer is " << sizeof(Pol) << std::endl; 
+    // std::cout << "Size of instance of class* Polymer is " << sizeof(&Pol) << std::endl; 
+    // std::cout << "Size of instance of class Particle is " << sizeof(part) << std::endl;
+    // std::cout << "Size of instance of class* Particle is " << sizeof(&part) << std::endl;
     
     std::cout << "Creating the solvated box. This takes time..." << std::endl;
 
-    std::vector <std::array <int,3>> the_lattice = create_lattice_pts (100, 100, 100);
-    std::vector <Particle> Solvent_vec; 
-    std::map <std::array <int,3>, Particle*> Solvent_map; 
+    // std::vector <std::array <int,3>> the_lattice = create_lattice_pts (100, 100, 100);
+    // std::vector <Particle> Solvent_vec; 
+    // std::map <std::array <int,3>, Particle*> Solvent_map; 
     
-
+    /*
     Solvent_vec.reserve (100*100*100); 
     for (const std::array<int,3>& loc: the_lattice ){
         Solvent_vec.push_back ( Particle (loc, 's', 0) );
@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
 
     std::cout << "Size of pointer to std::map <std::array<int,3, Particle*> is " << sizeof( &Solvent_map) << std::endl;
 
-
+    */
 
     /*
     std::set < std::pair<std::array<int,3>, Particle*>, decltype(cmp)* >  Solvent_set(cmp);

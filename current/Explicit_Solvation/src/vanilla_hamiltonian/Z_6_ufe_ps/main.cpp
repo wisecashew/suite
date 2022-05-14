@@ -270,7 +270,13 @@ int main(int argc, char** argv) {
 
         // choose a move... 
         // i think movechooser gotta be void... 
+        std::cout << "Polymer coordinates before perturbation are: " << std::endl;
+        Polymers[0].printChainCoords();
+
         PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory); 
+
+        std::cout << "Polymer coordinates after perturbation are: " << std::endl;
+        Polymers[0].printChainCoords();
 
         std::cout << "Memory check, first element: " << std::endl;
         for (auto v: memory.first){
@@ -347,7 +353,13 @@ int main(int argc, char** argv) {
                     print(v);
                 }
                 std::cout << "move_number is " << move_number << "." << std::endl;
+
                 ReversePerturbation (&LATTICE, v, move_number, &memory );
+
+                std::cout << "Polymer coordinates after reversal are: " << std::endl;
+                Polymers[0].printChainCoords();
+
+
                 std::cout << "After reversing perturbation..." << std::endl;
 
                 if ( v ){

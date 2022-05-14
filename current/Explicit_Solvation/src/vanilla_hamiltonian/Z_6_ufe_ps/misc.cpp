@@ -985,7 +985,7 @@ void InputParser(int dfreq, int max_iter, std::string solvent_file,
 
     if ( positions== "blank" || topology == "blank" || dfile== "blank" || efile == "blank" || mfile == "blank" || stats_file == "blank" || solvent_file == "blank" ){
         std::cerr << "polymer coords file is " << positions <<",\n topology is " << topology <<",\n polymer coordinate dump file is " << dfile << ",\n energy dump file is " \
-        << efile << ",\n orientation file is " << mfile << ",\n move statistics file is " << stats_file << ",\n solvent coords file is " << stats_file << "." << std::endl;
+        << efile << ",\n orientation file is " << mfile << ",\n move statistics file is " << stats_file << ",\n solvent coords file is " << solvent_file << "." << std::endl;
         std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
         "for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
         "for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
@@ -2213,13 +2213,7 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::map <std::array <in
 
 	int r = rng_uniform( 0, idx_v.size()-1 );
 	// if everything checks out, do the deed - make it slither forward 
-	
-	// make the change to solvent site 
-	(*LATTICE)[idx_v[r]]->coords = loc0; 
-
-	// switch up pointers 
-	(*LATTICE)[loc0] = (*LATTICE)[idx_v[r]];  
-
+	std::cout<<"new location is: "; print(idx_v[r]); 
 	// change the coordinates in (*Polymers)
 	for (int i{0}; i<deg_poly; ++i){
 
@@ -2234,6 +2228,12 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::map <std::array <in
 		else {
 
 			(*memory).first.push_back  ( (*Polymers)[index].chain[i]->coords );
+
+			// do the solvent switch 
+			(*LATTICE)[ loc0 ] = (*LATTICE) [ idx_v[r] ]; 
+			(*LATTICE)[ loc0 ]->coords = loc0;
+
+			// update polymer 
 			(*Polymers)[index].chain[i]->coords = idx_v[r]; 
 			(*LATTICE)[ (*Polymers)[index].chain[i]->coords ] = (*Polymers)[index].chain[i];	
 			(*memory).second.push_back ( (*Polymers)[index].chain[i]->coords );			
@@ -2322,14 +2322,13 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::map <std::array <i
     }
 
 	int r = rng_uniform( 0, idx_v.size()-1 );
-	// if everything checks out, do the deed - make it slither backwards
-
-
+	std::cout<<"new location is: "; print(idx_v[r]); 
 	for (int i{0}; i <deg_poly; ++i){
+		
 		if ( i != deg_poly-1 ){
 
 			(*memory).first.push_back ( (*Polymers)[index].chain[deg_poly-1-i]->coords );
-			(*Polymers) [index].chain[deg_poly-1-i]->coords = (*Polymers)[index].chain[deg_poly-2-i]->coords;		// transfer coordinates
+			(*Polymers) [index].chain[deg_poly-1-i]->coords = (*Polymers)[index].chain[deg_poly-2-i]->coords;
 			(*LATTICE)[ (*Polymers)[index].chain[deg_poly-1-i]->coords ] = (*Polymers)[index].chain[deg_poly-1-i];	// transfer remaining information 
 			(*memory).second.push_back ( (*Polymers)[index].chain[deg_poly-1-i]->coords ); 
 
@@ -2349,7 +2348,7 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::map <std::array <i
 
 		}
 	}
-
+	
 	(*rweight) = (*rweight)/6; 
 
     return ; 
@@ -2395,7 +2394,7 @@ void Reptation (std::vector<Polymer>* Polymers, std::map <std::array <int,3>, Pa
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
     std::uniform_int_distribution<int> distribution (0,1); 
-    int num = 0; // distribution(generator); 
+    int num = distribution(generator); 
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         std::cout << "Backward reptation only!" << std::endl;
@@ -2403,7 +2402,7 @@ void Reptation (std::vector<Polymer>* Polymers, std::map <std::array <int,3>, Pa
         return; 
     }
     else {
-        // std::cout << "Final index rotation!" << std::endl;
+        std::cout << "Forward reptation!" << std::endl;
         ForwardReptation (Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory); 
         return; 
     }
@@ -3100,7 +3099,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::map<std::array<int,3>,
 	std::array <int,9>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = 4; // rng_uniform(1, 3);
+    int r = rng_uniform(1, 3);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 

@@ -1,0 +1,10 @@
+For step 10000.
+End rotations                    - attempts: 3384, acceptances: 13, acceptance fraction: 0.00384161.
+Kink jumps                       - attempts: 3330, acceptances: 145, acceptance fraction: 0.0435435.
+Crank shafts                     - attempts: 3286, acceptances: 189, acceptance fraction: 0.0575167.
+Reptation                        - attempts: 0, acceptances: 0, acceptance fraction: nan.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: nan.
+Single solvent orientation flips - attempts: 0, acceptances: 0, acceptance fraction: nan.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: nan.
+Local polymer orientation flips  - attempts: 0, acceptances: 0, acceptance fraction: nan.

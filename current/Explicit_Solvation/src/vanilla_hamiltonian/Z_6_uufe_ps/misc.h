@@ -108,6 +108,8 @@ void print ( std::map<std::array<int,3>,Particle*> LATTICE );
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // moves to check locations in *Polymers and *Solvent 
 bool MonomerReporter         (std::vector <Polymer>* Polymers, std::array <int,3>* to_check);
+bool MonomerReporter         (std::vector <Particle*>* LATTICE, std::array<int,3>* to_check, int y, int z);
+bool MonomerReporter         (std::vector <Particle*>* Polymers, std::array <int,3>* to_check_1, std::array <int,3>* to_check_2, int y, int z);
 bool MonomerReporter         (std::vector <Polymer>* Polymers, std::array <int,3>* to_check_1, std::array <int,3>* to_check_2);
 bool MonomerNeighborReporter (std::vector <Polymer>* Polymers, std::array <int,3>* to_check, int x, int y, int z);
 

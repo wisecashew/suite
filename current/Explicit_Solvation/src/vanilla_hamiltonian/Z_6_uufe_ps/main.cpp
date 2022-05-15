@@ -184,13 +184,15 @@ int main(int argc, char** argv) {
     LATTICE.reserve (x*y*z); 
 
     auto start = std::chrono::high_resolution_clock::now(); 
-    std::cout << "Solvating the simulation cell... This can take some time. \n";
+    // std::cout << "Solvating the simulation cell... This can take some time. \n";
 
     AddSolvent (x, y, z, &LATTICE);
     
     // populate the lattice 
     for (Polymer& pmer: Polymers){
         for (Particle*& p: pmer.chain ){
+            // std::cout << "location is "; print (p->coords);
+            // std::cout << "lattice index is " << lattice_index (p->coords, y, z) << std::endl;
             LATTICE [ lattice_index (p->coords, y, z) ] = p; 
         }
     }
@@ -405,6 +407,13 @@ int main(int argc, char** argv) {
             }
 
         }
+
+        else {
+            if (v){
+                printf("IMP_BOOL is zero. Nothing will be done.");
+            }
+        }
+
         if ( ( i % dfreq == 0) ){
            
             dumpPositionsOfPolymers (&Polymers, i, dfile); 

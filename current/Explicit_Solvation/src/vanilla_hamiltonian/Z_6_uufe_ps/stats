@@ -1,8 +1,8 @@
 For step 10000.
-End rotations                    - attempts: 3384, acceptances: 13, acceptance fraction: 0.00384161.
-Kink jumps                       - attempts: 3330, acceptances: 145, acceptance fraction: 0.0435435.
-Crank shafts                     - attempts: 3286, acceptances: 189, acceptance fraction: 0.0575167.
-Reptation                        - attempts: 0, acceptances: 0, acceptance fraction: nan.
+End rotations                    - attempts: 2506, acceptances: 10, acceptance fraction: 0.00399042.
+Kink jumps                       - attempts: 2479, acceptances: 2, acceptance fraction: 0.000806777.
+Crank shafts                     - attempts: 2452, acceptances: 19, acceptance fraction: 0.00774878.
+Reptation                        - attempts: 2563, acceptances: 9, acceptance fraction: 0.00351151.
 Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: nan.
 Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: nan.
 Single solvent orientation flips - attempts: 0, acceptances: 0, acceptance fraction: nan.

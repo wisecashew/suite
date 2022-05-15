@@ -102,6 +102,7 @@ void print (std::array <std::array<int,3>,6> aa );
 // print out a list of vectors
 void print (std::vector <std::vector <int>> v); 
 void print (std::vector <std::vector <double>> v); 
+void print (std::vector <std::vector <std::array<int,3>>> v);
 void print (std::vector <Particle> pvec);
 void print ( std::map<std::array<int,3>,Particle*> LATTICE );
 
@@ -179,6 +180,7 @@ bool checkOccupancyTail                                 (std::array <int,3>* loc
 bool checkOccupancyHead                                 (std::array <int,3>* loc, std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer);
 std::vector <std::array <int,3>> extract_positions_tail (std::vector <Particle*>* chain, int pivot_idx);
 std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle*>* chain, int pivot_idx);
+void                             create_linked_list     (std::vector<std::array<int,3>>* v1, std::vector<std::array<int,3>>* v2, std::vector <std::array<int,3>>* link, std::vector <std::vector <std::array<int,3>>>* master_linked_list, int beginning);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Important auxiliary function 
@@ -196,11 +198,11 @@ void                  CrankShaft                   (std::vector <Polymer>* Polym
 void                  ForwardReptation 			   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 void                  BackwardReptation 		   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 void                  Reptation  			       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
-void                  ChainRegrowth			       (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL); 
+void                  ChainRegrowth			       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, int* monomer_index, int* back_or_front); 
 void                  TailSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
 void                  HeadSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, std::pair < std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory);
-void                  ReversePerturbation          (std::vector <Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
+void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, std::pair < std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory, int* monomer_index, int* back_or_front);
+void                  ReversePerturbation          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, int monomer_index, int back_or_front);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 template <typename T>

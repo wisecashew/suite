@@ -247,6 +247,8 @@ int main(int argc, char** argv) {
     
     double rweight =  0; 
     int move_number = 0; 
+    int monomer_index = -1; 
+    int back_or_front = -1; 
     std::pair < std::vector<std::array<int,3>>, std::vector<std::array<int,3>> > memory; 
 
     printf("Initiation complete. We are ready to go. The engine will output information every %d configuration.\n", dfreq); 
@@ -274,7 +276,7 @@ int main(int argc, char** argv) {
         std::cout << "Polymer coordinates before perturbation are: " << std::endl;
         Polymers[0].printChainCoords();
 
-        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory); 
+        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory, &monomer_index, &back_or_front); 
 
         std::cout << "Polymer coordinates after perturbation are: " << std::endl;
         Polymers[0].printChainCoords();
@@ -355,11 +357,10 @@ int main(int argc, char** argv) {
                 }
                 std::cout << "move_number is " << move_number << "." << std::endl;
 
-                ReversePerturbation (&LATTICE, y, z, v, move_number, &memory );
+                ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory, monomer_index, back_or_front );
 
                 std::cout << "Polymer coordinates after reversal are: " << std::endl;
                 Polymers[0].printChainCoords();
-
 
                 std::cout << "After reversing perturbation..." << std::endl;
 

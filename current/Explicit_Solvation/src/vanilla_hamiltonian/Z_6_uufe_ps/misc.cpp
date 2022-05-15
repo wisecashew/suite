@@ -291,6 +291,16 @@ void print ( std::vector <Particle*>* LATTICE ){
 	}
 }
 
+void print ( std::vector <std::vector <std::array<int,3>>> V){
+
+	for ( std::vector <std::array<int,3>>& v: V){
+		for (std::array<int,3>& a: v){
+			print (a); 
+		}
+	}
+	return;
+}
+
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -1139,8 +1149,12 @@ bool checkForSolventMonomerOverlap(std::vector <Polymer>* Polymers, std::vector 
 
         	if ( (*LATTICE)[ lattice_index (p->coords, y, z)]->coords == p->coords ) {
 
-        		if ( (*LATTICE)[ lattice_index(p->coords, y, z)]->ptype =='s' ){
+        		if ( (*LATTICE)[ lattice_index(p->coords, y, z)]->ptype == 's' ){
         			std::cerr << "Some kind of bad solvent-monomer overlap that has taken a place. A monomer is being represented by a solvent. Something's fucked." << std::endl;
+        			std::cerr << "Location is: "; print (p->coords); 
+        			std::cerr << "Type is: " << ((*LATTICE)[ lattice_index (p->coords, y, z)]->ptype) << std::endl; 
+        			std::cerr << "Type is: " << p->ptype << std::endl; 
+        			std::cerr << "Location on lattice is: "; print ((*LATTICE)[ lattice_index (p->coords, y, z)]->coords); 
         			exit (EXIT_FAILURE); 
         		}
     			else {
@@ -2143,7 +2157,6 @@ void CrankShaft (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTI
     	// std::cout << "Uncrankable." << std::endl;
     	return;
     }
-
   	
 
 	int r = rng_uniform( 0, pos_v1.size() - 1 ); 
@@ -2518,273 +2531,105 @@ void Reptation (std::vector<Polymer>* Polymers, std::vector <Particle*>* LATTICE
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL, double* rweight){
+void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	int index_of_polymer, int x, int y, int z, bool* IMP_BOOL, double* rweight, \
+	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, \
+	int* index_monomer, int* back_or_front ){
 
 	int deg_of_poly = (*Polymers)[index_of_polymer].deg_poly; 
-	int index_monomer = rng_uniform (1, deg_of_poly-2); // (1, deg_of_poly-2); 
-
-	// std::cout << "Index of monomer is " << index_monomer << std::endl;
+	*index_monomer = rng_uniform (1, deg_of_poly-2); // (1, deg_of_poly-2); 
 
 	// decide which end of the polymer do i want to move around 
     bool first_entry_bool = true; 
 
-	int back_or_front = rng_uniform(0, 1); 
+	*back_or_front = 0; // rng_uniform(0, 1); 
 
 	std::vector <std::array<int,3>> old_cut;
 	std::vector <std::array <int,3>> new_cut;	
-	old_cut.reserve (index_monomer*6);
-	new_cut.reserve (index_monomer*6);
 	
 
-	if (back_or_front == 0){
+	if (*back_or_front == 0){
 		
-		old_cut = extract_positions_tail ( &((*Polymers)[index_of_polymer].chain), index_monomer );
+		old_cut.reserve (*index_monomer);
+		new_cut.reserve (*index_monomer);
 
-		TailSpin (Polymers, index_of_polymer, index_monomer, x, y, z, IMP_BOOL, &first_entry_bool, rweight);  
+		old_cut = extract_positions_tail ( &((*Polymers)[index_of_polymer].chain), *index_monomer );
+
+		TailSpin (Polymers, index_of_polymer, *index_monomer, x, y, z, IMP_BOOL, &first_entry_bool, rweight);  
 		
-		for ( int i{0}; i < index_monomer; ++i ){
+		for ( int i{0}; i < *index_monomer; ++i ){
 			new_cut.push_back ( (*Polymers)[index_of_polymer].chain[i]->coords );
 		}
 
-		std::vector <std::array <int,3>> intersection; 
+		// perform the lattice move 
+		for ( int i{0}; i<static_cast<int>(old_cut.size() ); ++i ){
 
-		for ( int i{0}; i < index_monomer; ++i){
-			for ( int j{0}; j <index_monomer; ++j){
-				if ( old_cut[j] == new_cut [i] ){
-					intersection.push_back(old_cut[j]);
-					break;
-				}
-			}				
-		}
+			// update memory 
+			(*memory).first.push_back  ( old_cut[i] );
+			(*memory).second.push_back ( new_cut[i] );
+			
+			// consider the old position, then send it to the new position
+			// assume it is only solvent-monomer exchanges 
+			
+			if ( (*LATTICE)[ lattice_index (new_cut[i], y, z) ]->ptype == 's' ) {
 
-		for (std::array <int,3>& a: intersection){
-			old_cut.erase ( std::remove (old_cut.begin(), old_cut.end(), a), old_cut.end() );
+				Particle* tmp =  (*LATTICE)[ lattice_index (new_cut[i], y, z) ]; 
+				(*Polymers)[index_of_polymer].chain[i]->coords = new_cut[i]; 
+				(*LATTICE) [ lattice_index(new_cut[i], y, z) ] = (*Polymers)[index_of_polymer].chain[i]; 
+				(*LATTICE) [ lattice_index(old_cut[i], y, z) ] = tmp; 
+				(*LATTICE) [ lattice_index(old_cut[i], y, z) ]->coords = old_cut[i];	
+			}
+			else {
+
+				(*Polymers)[index_of_polymer].chain[i]->coords = new_cut[i];
+				(*LATTICE) [ lattice_index(new_cut[i], y, z) ] = (*Polymers)[index_of_polymer].chain[i]; 
+
+			}
+			
 		}
 
 	}
 
 	else {
 
-		old_cut = extract_positions_head ( &((*Polymers)[index_of_polymer].chain), index_monomer );
-		HeadSpin (Polymers, index_of_polymer, index_monomer, deg_of_poly, x, y, z, IMP_BOOL, &first_entry_bool, rweight); 
+		old_cut.reserve (deg_of_poly- (*index_monomer));
+		new_cut.reserve (deg_of_poly- (*index_monomer));
 
-		for (int i{index_monomer+1}; i<deg_of_poly; ++i ){
+		old_cut = extract_positions_head ( &((*Polymers)[index_of_polymer].chain), *index_monomer );
+		HeadSpin (Polymers, index_of_polymer, *index_monomer, deg_of_poly, x, y, z, IMP_BOOL, &first_entry_bool, rweight); 
+
+		for (int i{(*index_monomer)+1}; i<deg_of_poly; ++i ){
 			new_cut.push_back ( (*Polymers)[index_of_polymer].chain[i]->coords );
 		}
 
-		std::vector <std::array <int,3>> intersection; 
+		for ( int i{0}; i<static_cast<int>(old_cut.size() ); ++i ){
 
-		for ( int i{index_monomer+1}; i < deg_of_poly; ++i){
-			for ( int j{index_monomer+1}; j <deg_of_poly; ++j){
-				if ( old_cut[j - (index_monomer+1) ] == new_cut [i - (index_monomer+1) ] ){
-					intersection.push_back(old_cut[ j - (index_monomer+1) ]);
-					break;
-				}
-			}				
-		}
-
-		for (std::array <int,3>& a: intersection){
-			old_cut.erase ( std::remove (old_cut.begin(), old_cut.end(), a), old_cut.end() );
-		}
-
-
-	}
-
-	if (*IMP_BOOL) {
-		// initialize some data stores
-		std::array <std::array <int,3>, 6> ne_before;
-		std::array <std::array <int,3>, 6> ne_after;
-		// find neighbors from the old tail to delete 
-		std::vector <std::array <int,3>> solvent_to_delete; 
-		std::vector <std::array <int,3>> solvent_to_add; 
-		solvent_to_delete.reserve (old_cut.size()*6); solvent_to_add.reserve (old_cut.size()*6); 
-
-		if (back_or_front == 0){
-			// ################### begin tail corrections... ############################
-
-			// start populating solvent_to_delete with solvent neighbors from old_p
-			for ( std::array <int,3>& loc: old_cut ){
-				ne_before = obtain_ne_list (loc, x, y, z);
-
-				// make sure there is no monomer in ne_list...
-				for ( std::array <int,3>& ne: ne_before ){
-
-					if ( MonomerReporter  (Polymers, &ne) ){
-						// if ne is a location of a monomer, continue
-						continue;
-					}
-					else {
-						// if it is a neighbor of another monomer, this will be kept in solvent
-						if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ) {
-							continue;
-						}
-						else {
-							// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
-							// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
-							solvent_to_delete.push_back ( ne ); 
-						}
-					}
-				}
-			}
-
-			// add on molecules from new_cut to solvent_to_delete
-			for ( std::array <int,3>& to_del: new_cut ){
-				solvent_to_delete.push_back( to_del );
-			}
-
-			// tack on molecules to Solvent that must be in Solvent so that they get appropriately eliminated or not 
-			for ( std::array<int,3>& loc: old_cut ) {
-				Particle temp ( loc, 's', 0 );
-				(*Solvent).push_back ( temp );
-			}
-
-			for ( int i{0}; i < index_monomer; ++i){
-				ne_after = obtain_ne_list ( (*Polymers)[index_of_polymer].chain[i]->coords, x, y, z);
-				for ( std::array <int,3>& ne: ne_after ){
-
-					// make sure there is no monomer at the location 
-					if ( MonomerReporter (Polymers, &ne) ){
-						continue;
-					}
-					else {
-						// if it doesnt have a monomer, it by definition is besides the monomer of interest
-						solvent_to_add.push_back (ne);
-					}
-				}
-			}
-
-			// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
-			// deleting elements that MUST NOT be in *Solvent... 
-
-			int s_idx = 0; 
-			for ( const std::array<int,3>& s_loc: solvent_to_delete ) {
-				s_idx = 0; 
-				for ( Particle& p: *Solvent ){
+			// update memory 
+			(*memory).first.push_back  ( old_cut[i] );
+			(*memory).second.push_back ( new_cut[i] );
 			
-					if ( p.coords == s_loc ){
-						(*Solvent).erase ( (*Solvent).begin() + s_idx ); 
-						break; 
-					}
-					s_idx += 1; 
-				}
+			// consider the old position, then send it to the new position
+			// assume it is only solvent-monomer exchanges 
+			
+			if ( (*LATTICE)[ lattice_index(new_cut[i], y, z) ]->ptype == 's' ) {
+				Particle* tmp =  (*LATTICE)[ lattice_index (new_cut[i], y, z) ]; 
+				(*Polymers)[index_of_polymer].chain[i]->coords = new_cut[i]; 
+				(*LATTICE) [ lattice_index(new_cut[i], y, z) ] = (*Polymers)[index_of_polymer].chain[i]; 
+				(*LATTICE) [ lattice_index(old_cut[i], y, z) ] = tmp; 
+				(*LATTICE) [ lattice_index(old_cut[i], y, z) ]->coords = old_cut[i];	
+
 			}
+			else {
 
-			// (3) now that *Solvent has been cleaned out, time to add new things to it 
-			bool present = false; 
-			for ( const std::array <int,3>& s_loc: solvent_to_add ){
-				present = false; 
-				for ( Particle& p: *Solvent ){
-					// if it is already present in *Solvent, breakout and continue to next location
-					if ( p.coords == s_loc ){
-						present = true;
-						break; 
-					}
-				}
-				if ( present ){
-					continue; 
-				}
-				else {
-					Particle temp ( s_loc, 's', 0 );
-					(*Solvent).push_back( temp ); 
-				}
-			}
+				(*Polymers)[index_of_polymer].chain[i]->coords = new_cut[i];
+				(*LATTICE) [ lattice_index(new_cut[i], y, z) ] = (*Polymers)[index_of_polymer].chain[i]; 
 
-			// ################### end tail corrections... ############################
-
+			}	
 		}
-
-		else {
-			// ################### begin head corrections... ############################
-
-			// start populating solvent_to_delete with solvent neighbors from old_p
-			for ( std::array <int,3>& loc: old_cut ){
-				ne_before = obtain_ne_list (loc, x, y, z);
-
-				// make sure there is no monomer in ne_list... 
-				for ( std::array <int,3>& ne: ne_before ){
-
-					if ( MonomerReporter ( Polymers, &ne) ){
-						// if ne is a location of a monomer, continue 
-						continue; 
-					}
-					else {
-						// if it is a neighbor of another monomer, this will be kept in solvent 
-						if ( MonomerNeighborReporter (Polymers, &ne, x, y, z) ) {
-							continue;
-						}
-						else {
-							// if it is a solvent particle but not neighboring any solvent in the new structure, it must NOT BE PRESENT in *Solvent.
-							// that is the purpose of solvent_ne!!! Figuring out all the elements that must be cut out from *Solvent. 
-							solvent_to_delete.push_back ( ne );
-						}
-					}
-				}
-			}
-
-			// add on molecules from new_cut to solvent_to_delete
-			for ( std::array <int,3>& to_del: new_cut ){
-				solvent_to_delete.push_back( to_del );
-			}
-
-			// tack on molecules to Solvent that must be in Solvent so that they get appropriately eliminated or not 
-			for ( std::array<int,3>& loc: old_cut ) {
-				Particle temp ( loc, 's', 0 );
-				(*Solvent).push_back ( temp );
-			}			
-
-			for ( int i{index_monomer+1}; i<deg_of_poly; ++i ){
-				ne_after = obtain_ne_list ( (*Polymers)[index_of_polymer].chain[i]->coords, x, y, z );
-				for ( std::array <int,3>& ne: ne_after ){
-
-					// make sure there is no monomer at the location 
-					if ( MonomerReporter (Polymers, &ne) ) {
-						continue;
-					}
-					else {
-						// if it doesnt have a monomer, it by definition is besides the monomer of interest
-						solvent_to_add.push_back (ne); 
-					}
-				}
-			}
-
-			// (2) now that i know which solvent molecules need to be eliminated from *Solvent, and which need to be added, let's do the deed. 
-			// deleting elements that MUST NOT be in *Solvent... 
-
-			int s_idx = 0; 
-			for ( const std::array<int,3>& s_loc: solvent_to_delete ){
-				s_idx = 0;
-				for ( Particle& p: *Solvent ){
-					if (p.coords == s_loc){
-						(*Solvent).erase ( (*Solvent).begin() + s_idx );
-						break;
-					}
-					s_idx += 1;
-				}
-			}
-
-			// (3) now that *Solvent has been cleaned out, time to add new things to it 
-			bool present = false; 
-			for ( const std::array <int,3>& s_loc: solvent_to_add ){
-				present = false; 
-				for ( Particle& p: *Solvent ){
-					// if it is already present in *Solvent, breakout and continue to next location
-					if ( p.coords == s_loc ){
-						present = true;
-						break; 
-					}
-				}
-				if ( present ){
-					continue; 
-				}
-				else {
-					Particle temp ( s_loc, 's', 0 );
-					(*Solvent).push_back( temp ); 
-				}
-			}
-			// ################### end head corrections... ############################
-		}
-
 	}
+
+	// update connmap 
+	// (*Polymers) [0].ChainToConnectivityMap();
 
 	return; 
 }
@@ -2792,6 +2637,11 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle>* Sol
 
 
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//             End of ChainRegrowth. 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2820,7 +2670,7 @@ std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle*>
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of ChainRegrowth
+//             End of end extractions. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -2855,7 +2705,7 @@ void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 	if (index_of_monomer == 0){
 		// std::cout << "You have reached the final spot via tail spin!" << std::endl;
 		*IMP_BOOL = true; 
-		// (*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
+		(*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
 		return ; 
 	}
 
@@ -2932,7 +2782,7 @@ void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 	if (index_of_monomer == deg_poly-1){
 		// std::cout << "You have reached the final spot of head spin!" << std::endl;
 		*IMP_BOOL = true;
-		// (*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
+		(*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
 		return ;
 	}
 
@@ -3181,10 +3031,11 @@ void PolymerFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 
 void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, \
-	std::array <int,9>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
+	std::array <int,9>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, \
+	int* monomer_index, int* back_or_front ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = rng_uniform(1, 4);
+    int r = 5; rng_uniform(1, 4);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 
@@ -3225,17 +3076,18 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             *move_number = 4; 
             (*attempts)[3] += 1;
             break; 
-        /*
+        
         case (5):
         	if (v) {
         		printf("Performing configuration sampling. \n"); 
-        		std::cout << "index of polymer is " << index << std::endl;
+        		// std::cout << "index of polymer is " << index << std::endl;
         	} 
-        	ChainRegrowth 	(Polymers_c, Solvent_c, index, x, y, z, IMP_BOOL, rweight ); 
+        	ChainRegrowth 	(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory, monomer_index, back_or_front ); 
             *move_number = 5; 
             (*attempts)[4] += 1;
         	break;
         
+        /*
         case (6): 
         	if (v){
         		printf("Performing solvent orientation flips. \n");
@@ -3285,7 +3137,8 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void ReversePerturbation (std::vector<Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
+void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int y, int z, bool v, int move_number, \
+	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, int monomer_index, int back_or_front ){
 
 	switch (move_number){
 		case (1):
@@ -3357,8 +3210,6 @@ void ReversePerturbation (std::vector<Particle*>* LATTICE, int y, int z, bool v,
 			{	
 				int deg_poly = static_cast<int>((*memory).first.size());
 				if ( (*memory).first[0] != (*memory).second[deg_poly-1]){
-					
-					Particle* tmp = (*LATTICE)[ lattice_index((*memory).second[deg_poly-1], y, z)]; // this is the monomer at the tail after perturbation 
 
 					// switch up the solvent molecule
 					(*LATTICE)[ lattice_index((*memory).second[deg_poly-1], y, z)] = (*LATTICE)[ lattice_index((*memory).first[0], y, z) ];
@@ -3370,6 +3221,7 @@ void ReversePerturbation (std::vector<Particle*>* LATTICE, int y, int z, bool v,
 							(*LATTICE)[ lattice_index((*memory).first[i], y, z) ]->coords = (*memory).first[i]; 
 						}
 						else {
+							Particle* tmp = (*LATTICE)[ lattice_index((*memory).second[deg_poly-1], y, z)]; // this is the monomer at the tail after perturbation 
 							(*LATTICE)[ lattice_index((*memory).first[i], y, z) ] = tmp;
 							(*LATTICE)[ lattice_index((*memory).first[i], y, z) ]->coords = (*memory).first[i]; 
 						}
@@ -3378,13 +3230,14 @@ void ReversePerturbation (std::vector<Particle*>* LATTICE, int y, int z, bool v,
 
 				else {
 
-					Particle* tmp = (*LATTICE)[ lattice_index((*memory).second[deg_poly-1], y, z)]; // this is the monomer at the tail after perturbation 
+					
 					for (int i{0}; i<deg_poly; ++i){
 						if ( i != deg_poly-1 ){
 							(*LATTICE)[ lattice_index((*memory).first[i], y, z) ] = (*LATTICE)[ lattice_index((*memory).second[i], y, z) ];
 							(*LATTICE)[ lattice_index((*memory).first[i], y, z) ]->coords = (*memory).first[i];
 						}
 						else {
+							Particle* tmp = (*LATTICE)[ lattice_index((*memory).second[deg_poly-1], y, z)]; // this is the monomer at the tail after perturbation 
 							(*LATTICE)[ lattice_index((*memory).first[i], y, z) ] = tmp; 
 							(*LATTICE)[ lattice_index((*memory).first[i], y, z) ]->coords = (*memory).first[i]; 
 						}
@@ -3393,7 +3246,75 @@ void ReversePerturbation (std::vector<Particle*>* LATTICE, int y, int z, bool v,
 			}
 			break;
 
+		case (5):
+			if (v) {
+				printf ("Reversing chain regrowth...\n");
+			}
+			{
+
+				// create a linked list 
+				// this will need to be done recursively
+
+				if (back_or_front){
+				/*
+				
+					std::vector <std::array <int,3>> intersection; 
+					for ( int i{0}; i < (monomer_index); ++i){
+						for ( int i{0}; i < index_monomer; ++i){
+							for ( int j{0}; j <index_monomer; ++j){
+								if ( memory.first[j] == memory.second[i] ){
+									intersection.push_back(memory.second[j]);
+									break;
+								}
+							}
+						}
+					}
+
+				// Particle* tmp = (*LATTICE)[ lattice_index ((*memory).first[i], y, z) ];
+				if ( std::find ( intersection.begin(), intersection.end(), (*memory).second[i]) != intersection.end() ){
+					(*Polymers)[0].chain[i]->coords = (*memory).first[i]; 
+					(*LATTICE)[ lattice_index ((*memory).first [i], y, z) ] = (*Polymers)[0].chain[i]; 
+					// (*LATTICE)[ lattice_index ((*memory).second[i], y, z) ]->coords = (*memory).second[i]; 
+				} 
+				else {
+
+					(*Polymers)[0].chain[i]->coords = (*memory).first[i]; 
+					(*LATTICE)[ lattice_index ((*memory).first[i], y, z ) ] = (*Polymers)[0].chain[i]; 
+
+				}
+
+				std::cout << "type of monomer post perturbation at index i is " << (*LATTICE)[ lattice_index((*Polymers)[0].chain[i]->coords, y, z) ]->ptype << std::endl;
+				std::cout << "Coordinates of polymer are: "; print ((*LATTICE)[ lattice_index((*Polymers)[0].chain[i]->coords, y, z) ]->coords ); 
+				*/
+				}
+				
+				else {
+					int deg_poly = static_cast<int>((*Polymers)[0].chain.size()); 
+					for ( int i{(monomer_index)+1}; i<deg_poly; ++i ){
+						if ( (*LATTICE)[ lattice_index ((*memory).first[i], y, z) ]->ptype == 's' ) {
+
+							Particle* tmp = (*LATTICE)[ lattice_index ((*memory).first[i], y, z) ];
+							(*Polymers)[0].chain[i]->coords = (*memory).first[i]; 
+							(*LATTICE)[ lattice_index ((*memory).first [i], y, z) ] = (*Polymers)[0].chain[i]; 
+							(*LATTICE)[ lattice_index ((*memory).second[i], y, z) ] = tmp; 
+							(*LATTICE)[ lattice_index ((*memory).second[i], y, z) ]->coords = (*memory).second[i]; 
+
+						}
+						else {
+
+							(*Polymers)[0].chain[i]->coords = (*memory).first[i]; 
+							(*LATTICE) [ lattice_index ((*memory).first[i], y, z ) ] = (*Polymers)[0].chain[i];
+
+						}
+
+					}
+
+				}
+			}
+			break;
 	}
+
+	(*Polymers)[0].ChainToConnectivityMap (); 
 
 	return; 
 }
@@ -3829,5 +3750,54 @@ std::vector <Polymer> Translation(std::vector <Polymer>* PolymerVector, std::vec
 //             End of Translation
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void create_linked_list ( std::vector<std::array<int,3>>* v1, std::vector<std::array<int,3>>* v2, std::vector <std::array<int,3>>* link, std::vector <std::vector <std::array<int,3>>>* master_linked_list, int beginning){
+
+
+	if ((*v1).size() == 0 ){
+			return; 
+	}
+
+	if (beginning){
+
+		(*link) = { (*v1)[0], (*v2)[0]}; 
+		(*v1).erase ((*v1).begin()); 
+		(*v2).erase ((*v2).begin()); 
+		print(*v1); 
+		print(*v2);
+		beginning = 0; 
+	}
+
+	std::vector<std::array<int,3>>::iterator it = std::find ( (*v1).begin(), (*v1).end(), (*link)[ link->size()-1 ] );
+
+	if ( it != (*v1).end() ){
+
+		int idx = it - (*v1).begin(); 
+
+		link->push_back ( (*v1)[idx] );
+		link->push_back ( (*v2)[idx] );
+
+		
+
+		(*v1).erase ((*v1).begin()+idx  );
+		(*v2).erase ((*v2).begin()+idx );
+
+
+		create_linked_list (v1, v2, link, master_linked_list, beginning); 
+
+	}
+
+	else {
+		
+		beginning = 1; 
+		(*master_linked_list).push_back ( *link );
+		(*link).clear(); 
+		create_linked_list (v1, v2, link, master_linked_list, beginning); 
+
+	}
+
+	return; 
+
+}
 
 

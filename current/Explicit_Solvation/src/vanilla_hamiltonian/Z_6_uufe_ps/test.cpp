@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // parse inputs 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser (dfreq, max_iter, solvent_file, positions, topology, dfile, efile, mfile, stats_file); 
+    // InputParser (dfreq, max_iter, solvent_file, positions, topology, dfile, efile, mfile, stats_file); 
 
     // driver 
 
@@ -227,77 +227,26 @@ int main(int argc, char** argv) {
     
     std::cout << "Creating the solvated box. This takes time..." << std::endl;
 
-    // std::vector <std::array <int,3>> the_lattice = create_lattice_pts (100, 100, 100);
-    // std::vector <Particle> Solvent_vec; 
-    // std::map <std::array <int,3>, Particle*> Solvent_map; 
-    
-    /*
-    Solvent_vec.reserve (100*100*100); 
-    for (const std::array<int,3>& loc: the_lattice ){
-        Solvent_vec.push_back ( Particle (loc, 's', 0) );
+    std::vector <std::vector <std::array<int,3>>> master; 
+    std::vector <std::array<int,3>> v1 = {{1,0,0},{3,0,0},{2,0,0},{6,0,0},{8,0,0},{7,0,0},{5,0,0}}; 
+    std::vector <std::array<int,3>> v2 = {{2,0,0},{4,0,0},{5,0,0},{7,0,0},{9,0,0},{11,0,0},{12,0,0}}; 
+    std::vector <std::array<int,3>> link; 
+
+    create_linked_list (&v1, &v2, &link, &master, 1); 
+
+    for (auto elem: master){
+
+        for ( auto e2: elem){
+            for ( auto e3: e2 ){
+                std::cout << e3 << " ";
+            }
+            std::cout << " -> ";
+        }
+        std::cout <<std::endl;
+
     }
 
-    for (const std::array<int,3>& loc: the_lattice ){
-        Particle* p_pointer = new Particle (loc, 's', 0); 
-        Solvent_map.insert( {loc, p_pointer} );
-    }
 
-    Particle test_p ( {400,118,427}, 's', 0 );
-
-    auto start = std::chrono::high_resolution_clock::now(); 
-    // do a find on the vector 
-    if ( std::find (Solvent_vec.begin(), Solvent_vec.end(), test_p) != Solvent_vec.end() ){
-        std::cout <<"Found in vec!" << std::endl;
-    }
-    else {
-        std::cout << "Not found in vec." << std::endl;
-    }
-
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-    std::cout << "\n\nTime taken for vec find: " << duration.count() << " microseconds." << std::endl;
-
-    start = std::chrono::high_resolution_clock::now(); 
-    // do a find on the map
-    if ( Solvent_map.find(test_p.coords) != Solvent_map.end() ){
-        std::cout << "Found in map!" << std::endl;
-    }
-    else {
-        std::cout << "Not found in map." << std::endl;
-    }
-
-    stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-    std::cout << "\n\nTime taken for map find: " << duration.count() << " microseconds." << std::endl;
-
-    std::cout << "Size of pointer to std::map <std::array<int,3, Particle*> is " << sizeof( &Solvent_map) << std::endl;
-
-    */
-
-    /*
-    std::set < std::pair<std::array<int,3>, Particle*>, decltype(cmp)* >  Solvent_set(cmp);
-
-
-    for (const std::array<int,3>& loc: the_lattice ){
-        Particle* p_pointer = new Particle (loc, 's', 0); 
-        std::pair < std::array<int,3>, Particle* > set_elem = std::make_pair( loc, p_pointer );
-        Solvent_set.insert( set_elem  );
-    }
-
-    auto start = std::chrono::high_resolution_clock::now(); 
-
-
-    if ( Solvent_set.find ( test_p ) != Solvent_set.end() ){
-         std::cout << "Found it!" << std::endl;
-    }
-     else {
-        std::cout << "not present in Solvent_set." << std::endl;
-    }
-
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-    std::cout << "\n\nTime taken for set find: " << duration.count() << " milliseconds.\n"; 
-    */
 
     std::cout << "--------------------------------------------------------------------\n\n";
 

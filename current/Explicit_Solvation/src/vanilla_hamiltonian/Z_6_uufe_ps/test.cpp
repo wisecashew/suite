@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
     std::vector <std::array<int,3>> v2 = {{2,0,0},{4,0,0},{5,0,0},{7,0,0},{9,0,0},{11,0,0},{12,0,0}}; 
     std::vector <std::array<int,3>> link; 
 
-    create_linked_list (&v1, &v2, &link, &master, 1); 
+    create_linked_list (v1, v2, link, &master, 1); 
 
     for (auto elem: master){
 

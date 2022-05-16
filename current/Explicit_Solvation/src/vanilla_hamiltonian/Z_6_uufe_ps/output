@@ -20,7 +20,6 @@ Running some more checks on input...
 
 Input file has no overlaps!
 Input polymers are well-connected!
-Solvating the simulation cell... This can take some time. 
 Solvation took 0 milliseconds.
 Cell has been solvated! 
 
@@ -28,123 +27,15 @@ Cell has been solvated!
 Calculating energy...
 Energy of system is -8.
 
-Initiation complete. We are ready to go. The engine will output information every 1 configuration.
-Move number 1.
-Performing kink jump.
+Initiation complete. We are ready to go. The engine will output information every 1 configuration(s).
+Step number: 2.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 2.27e-05.
-RNG is 0.181745.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-4 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 2.
-Performing kink jump.
-Executing...
-Probability is 2.27e-05.
-RNG is 0.068913.
-printing out memory.
-First element: 
-2 | 0 | 0 | 
-second element: 
-1 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 3.
-Performing kink jump.
-Executing...
-Probability is 2.27e-05.
-RNG is 0.894913.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-4 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 4.
-Performing kink jump.
-Executing...
-Probability is 2.27e-05.
-RNG is 0.210719.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-4 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 5.
-Performing end rotations.
-Executing...
-Probability is 0.666667.
-RNG is 0.332595.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
@@ -155,41 +46,14 @@ This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 6.
-Performing kink jump.
+Step number: 3.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 2.724e-05.
-RNG is 0.845345.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-4 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 7.
-Performing end rotations.
-Executing...
-Probability is 0.666667.
-RNG is 0.368519.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
@@ -200,176 +64,36 @@ This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 8.
-Performing kink jump.
+Step number: 4.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 3.02666e-05.
-RNG is 0.483906.
-printing out memory.
-First element: 
-2 | 0 | 0 | 
-second element: 
-1 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 9.
-Performing kink jump.
-Executing...
-Probability is 3.02666e-05.
-RNG is 0.582378.
-printing out memory.
-First element: 
-2 | 0 | 0 | 
-second element: 
-1 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 10.
-Performing end rotations.
-Executing...
-Probability is 0.666667.
-RNG is 0.425753.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Accepted!!
-Energy of the system is -8.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-
-
-Move number 11.
-Performing kink jump.
-Executing...
-Probability is 0.666667.
-RNG is 0.163705.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Accepted!!
-Energy of the system is -8.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-
-
-Move number 12.
-Performing kink jump.
-Executing...
-Probability is 0.5.
-RNG is 0.00708011.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Accepted!!
-Energy of the system is -8.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-
-
-Move number 13.
-Performing end rotations.
-Executing...
-Probability is 0.666667.
-RNG is 0.948927.
-printing out memory.
-First element: 
-1 | 9 | 0 | 
-second element: 
-1 | 0 | 9 | 
-Reversing end rotations...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
 Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 Not accepted.
 Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
-Move number 14.
-Performing kink jump.
+
+
+Step number: 5.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 3.02666e-05.
-RNG is 0.237853.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-4 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 15.
-Performing kink jump.
-Executing...
-Probability is 0.666667.
-RNG is 0.122007.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
@@ -380,14 +104,14 @@ This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 16.
-Performing end rotations.
+Step number: 6.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 0.666667.
-RNG is 0.475576.
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
@@ -398,95 +122,14 @@ This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 17.
-Performing kink jump.
+Step number: 7.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 2.724e-05.
-RNG is 0.995736.
-printing out memory.
-First element: 
-2 | 0 | 0 | 
-second element: 
-1 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 18.
-Performing kink jump.
-Executing...
-Probability is 2.724e-05.
-RNG is 0.199629.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-3 | 1 | 1 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 19.
-Performing kink jump.
-Executing...
-Probability is 2.724e-05.
-RNG is 0.913718.
-printing out memory.
-First element: 
-2 | 0 | 0 | 
-second element: 
-1 | 1 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -7.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -7.00, while energy of the initial system is -8.00.
-Move number 20.
-Performing end rotations.
-Executing...
-Probability is 0.666667.
-RNG is 0.522385.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
@@ -497,360 +140,1797 @@ This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 21.
-Performing end rotations.
+Step number: 8.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 14684.3.
-RNG is 0.321506.
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Accepted!!
-Energy of the system is -9.00.
+Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 22.
-Performing kink jump.
+Step number: 9.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 0.333333.
-RNG is 0.249913.
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Accepted!!
-Energy of the system is -9.00.
+Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 23.
-Performing kink jump.
+Step number: 10.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 0.166667.
-RNG is 0.00825524.
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Accepted!!
-Energy of the system is -9.00.
+Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 24.
-Performing kink jump.
+Step number: 11.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 0.333333.
-RNG is 0.661176.
-printing out memory.
-First element: 
-3 | 0 | 1 | 
-second element: 
-3 | 9 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 12.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Reversed successfully!!
-
-
-Energy of the system is -9.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -9.00, while energy of the initial system is -9.00.
-Move number 25.
-Performing end rotations.
-Executing...
-Probability is 0.666667.
-RNG is 0.419518.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Accepted!!
-Energy of the system is -9.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-
-
-Move number 26.
-Performing kink jump.
-Executing...
-Probability is 1.51333e-05.
-RNG is 0.922763.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-3 | 1 | 1 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
 Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 Not accepted.
-Energy of the suggested system is -8.00, while energy of the initial system is -9.00.
-Move number 27.
-Performing kink jump.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 13.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 1.51333e-05.
-RNG is 0.1913.
-printing out memory.
-First element: 
-3 | 0 | 0 | 
-second element: 
-3 | 1 | 1 | 
-Reversing kink jump...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -8.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -8.00, while energy of the initial system is -9.00.
-Move number 28.
-Performing end rotations.
-Executing...
-Probability is 3.02666e-05.
-RNG is 0.289772.
-printing out memory.
-First element: 
-1 | 1 | 0 | 
-second element: 
-1 | 0 | 9 | 
-Reversing end rotations...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -8.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -8.00, while energy of the initial system is -9.00.
-Move number 29.
-Performing kink jump.
-Executing...
-Probability is 0.333333.
-RNG is 0.878049.
-printing out memory.
-First element: 
-3 | 0 | 1 | 
-second element: 
-4 | 0 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -9.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -9.00, while energy of the initial system is -9.00.
-Move number 30.
-Performing end rotations.
-Executing...
-Probability is 0.666667.
-RNG is 0.381294.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Accepted!!
-Energy of the system is -9.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-
-
-Move number 31.
-Performing end rotations.
-Executing...
-Probability is 3.02666e-05.
-RNG is 0.649831.
-printing out memory.
-First element: 
-1 | 1 | 0 | 
-second element: 
-1 | 0 | 1 | 
-Reversing end rotations...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
 Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -8.00, while energy of the initial system is -9.00.
-Move number 32.
-Performing kink jump.
+
+
+Step number: 14.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 0.333333.
-RNG is 0.918368.
-printing out memory.
-First element: 
-3 | 0 | 1 | 
-second element: 
-3 | 9 | 0 | 
-Reversing kink jump...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -9.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -9.00, while energy of the initial system is -9.00.
-Move number 33.
-Performing end rotations.
-Executing...
-Probability is 3.02666e-05.
-RNG is 0.673235.
-printing out memory.
-First element: 
-1 | 1 | 0 | 
-second element: 
-1 | 9 | 0 | 
-Reversing end rotations...
-After reversing perturbation...
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
-Input file has no overlap between and internally amongst solvent and monomers!
-Input polymers are well-connected!
-checkConnectivity says: 1
-Input polymers are well-connected!
-Reversed successfully!!
-
-
-Energy of the system is -8.00.
-This should be 1 as IMP_BOOL must be true on acceptance: 1
-We good. LATTICE is in good shape. 
-Not accepted.
-Energy of the suggested system is -8.00, while energy of the initial system is -9.00.
-Move number 34.
-Performing end rotations.
-Executing...
-Probability is 14684.3.
-RNG is 0.111837.
-Checking validity of coords...Input file has no overlaps!
-checkForOverlaps says: 1.
-Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Accepted!!
-Energy of the system is -10.00.
+Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 
 
-Move number 35.
-Performing end rotations.
+Step number: 15.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-Probability is 3.02666e-05.
-RNG is 0.679725.
-printing out memory.
-First element: 
-3 | 1 | 1 | 
-second element: 
-4 | 0 | 1 | 
-Reversing end rotations...
-After reversing perturbation...
 Checking validity of coords...Input file has no overlaps!
 checkForOverlaps says: 1.
 Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 16.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
 Input file has no overlap between and internally amongst solvent and monomers!
 Input polymers are well-connected!
 checkConnectivity says: 1
 Input polymers are well-connected!
 Reversed successfully!!
-
-
-Energy of the system is -9.00.
+Energy of the system is -8.00.
 This should be 1 as IMP_BOOL must be true on acceptance: 1
 We good. LATTICE is in good shape. 
 Not accepted.
-Energy of the suggested system is -9.00, while energy of the initial system is -10.00.
-Move number 36.
-Performing kink jump.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 17.
+Performing solvent orientation flips. 
+Got solvent indices.
 Executing...
-printing out memory.
-First element: 
-second element: 
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 18.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 19.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 20.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 21.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 22.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 23.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 24.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 25.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 26.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 27.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 28.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 29.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 30.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 31.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 32.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 33.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 34.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 35.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 36.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 37.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 38.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 39.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 40.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 41.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 42.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 43.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 44.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 45.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 46.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 47.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 48.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 49.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 50.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 51.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 52.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 53.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 54.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 55.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 56.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 57.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 58.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 59.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 60.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 61.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 62.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 63.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 64.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 65.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 66.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 67.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 68.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 69.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 70.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 71.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 72.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 73.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 74.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 75.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 76.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 77.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 78.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 79.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 80.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 81.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 82.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 83.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 84.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 85.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 86.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 87.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 88.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 89.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 90.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 91.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 92.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 93.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 94.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 95.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 96.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 97.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 98.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 99.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Performing a singular solvent flip...Rejected. Reversal in progress...
+move_number is 6.
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Reversed successfully!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+Not accepted.
+Energy of the suggested system is -8.00, while energy of the initial system is -8.00.
+
+
+Step number: 100.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+Step number: 101.
+Performing solvent orientation flips. 
+Got solvent indices.
+Executing...
+Checking validity of coords...Input file has no overlaps!
+checkForOverlaps says: 1.
+Input file has no overlaps!
+No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+Input polymers are well-connected!
+checkConnectivity says: 1
+Input polymers are well-connected!
+Accepted!!
+Energy of the system is -8.00.
+This should be 1 as IMP_BOOL must be true on acceptance: 1
+We good. LATTICE is in good shape. 
+
+
+
+
+Time taken for simulation: 24 milliseconds.
+That is all she wrote. Hope it worked.
+--------------------------------------------------------------------
+

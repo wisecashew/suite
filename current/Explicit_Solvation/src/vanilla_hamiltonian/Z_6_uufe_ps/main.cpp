@@ -218,7 +218,7 @@ int main(int argc, char** argv) {
         }
     }
     /////////////////////////////////////////////////
-   
+    // print ((LATTICE)[lattice_index ( Polymers[0].chain[0]->coords, y, z )]->coords);
     
     
     dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
@@ -249,10 +249,12 @@ int main(int argc, char** argv) {
     int move_number = 0; 
     int monomer_index = -1; 
     int back_or_front = -1; 
-    std::pair < std::vector<std::array<int,3>>, std::vector<std::array<int,3>> > memory; 
+    std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>> memory3; 
+    std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>> memory2;
 
-    printf("Initiation complete. We are ready to go. The engine will output information every %d configuration.\n", dfreq); 
+    printf("Initiation complete. We are ready to go. The engine will output information every %d configuration(s).\n", dfreq); 
     
+    int Nsurr = ms_aligned + ms_naligned; 
     
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
@@ -261,36 +263,19 @@ int main(int argc, char** argv) {
         }
 
         if ( !(metropolis) ){
-            // m_neighbors = m_neicopy; a_contacts = a_contcopy; n_contacts = n_contcopy;
+            
             mm_aligned = mm_aligned_copy; mm_naligned = mm_naligned_copy; ms_aligned = ms_aligned_copy; ms_naligned = ms_naligned_copy;
-            // Nsurr = ms_aligned + ms_naligned;
+            Nsurr = ms_aligned + ms_naligned;
         }
         else {
-            // m_neicopy = m_neighbors; a_contcopy = a_contacts; n_contcopy = n_contacts; 
             mm_aligned_copy = mm_aligned; mm_naligned_copy = mm_naligned; ms_aligned_copy = ms_aligned; ms_naligned_copy = ms_naligned;
-            // Nsurr = ms_aligned + ms_naligned;
+            Nsurr = ms_aligned + ms_naligned;
             metropolis = false; 
         }
 
         // choose a move... 
-        std::cout << "Polymer coordinates before perturbation are: " << std::endl;
-        Polymers[0].printChainCoords();
 
-        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory, &monomer_index, &back_or_front); 
-
-        std::cout << "Polymer coordinates after perturbation are: " << std::endl;
-        Polymers[0].printChainCoords();
-
-        std::cout << "Memory check, first element: " << std::endl;
-        for (auto v: memory.first){
-            print(v);
-        }
-
-        std::cout << "second element: " << std::endl;
-        // print(memory.second);
-        for (auto v: memory.second){
-            print(v);
-        }
+        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory3, &memory2, &monomer_index, &back_or_front, Nsurr); 
 
 
         if (IMP_BOOL){ 
@@ -314,6 +299,12 @@ int main(int argc, char** argv) {
                         printf("Something is fucked up overlaps-wise. \n");
                         exit(EXIT_FAILURE);
                     }
+
+                    if (! checkForOverlaps (&Polymers, &LATTICE)){
+                        printf("Random monomer floating!!");
+                        exit (EXIT_FAILURE);
+                    }
+                    std::cout << "No random monomers floating around!!" << std::endl;
 
                     if (!checkForSolventMonomerOverlap (&Polymers, &LATTICE, y, z) ){
                         printf("Something is fucked up solvent-monomer overlaps-wise. \n");
@@ -343,34 +334,43 @@ int main(int argc, char** argv) {
             }
 
             else {
-                std::cout << "Rejected. Reversal in progress..." << std::endl;
-                std::cout << "printing out memory."<<std::endl;
-                std::cout << "First element: " << std::endl;
-                for (auto v: memory.first){
-                    print(v);
-                }
+                
+                // std::cout << "printing out memory."<<std::endl;
+                // std::cout << "First element: " << std::endl;
+                // for (auto v: memory.first){
+                //    print(v);
+                //}
 
-                std::cout << "second element: " << std::endl;
+                // std::cout << "second element: " << std::endl;
                 // print(memory.second);
-                for (auto v: memory.second){
-                    print(v);
-                }
-                std::cout << "move_number is " << move_number << "." << std::endl;
+                // for (auto v: memory.second){
+                //    print(v);
+                // }
+                
 
-                ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory, monomer_index, back_or_front );
+                ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory3, &memory2, monomer_index, back_or_front, Nsurr );
 
-                std::cout << "Polymer coordinates after reversal are: " << std::endl;
-                Polymers[0].printChainCoords();
+                // std::cout << "Polymer coordinates after reversal are: " << std::endl;
+                // Polymers[0].printChainCoords();
 
-                std::cout << "After reversing perturbation..." << std::endl;
+                // std::cout << "After reversing perturbation..." << std::endl;
 
                 if ( v ){
+                    std::cout << "Rejected. Reversal in progress..." << std::endl;
+                    std::cout << "move_number is " << move_number << "." << std::endl;
                     printf("Checking validity of coords...");
                     printf("checkForOverlaps says: %d.\n", checkForOverlaps(Polymers)); 
                     if (!checkForOverlaps(Polymers)){
                         printf("Something is fucked up overlaps-wise. \n");
                         exit(EXIT_FAILURE);
                     }
+
+                    if (! checkForOverlaps (&Polymers, &LATTICE)){
+                        printf("Random monomer floating!!");
+                        exit (EXIT_FAILURE);
+                    }
+
+                    std::cout << "No random monomers floating around!!" << std::endl;
 
                     if (!checkForSolventMonomerOverlap (&Polymers, &LATTICE, y, z) ){
                         printf("Something is fucked up solvent-monomer overlaps-wise. \n");
@@ -382,7 +382,7 @@ int main(int argc, char** argv) {
                         printf("Something is fucked up connectivity-wise. \n");
                         exit(EXIT_FAILURE);
                     }
-                    printf("Reversed successfully!!");
+                    printf("Reversed successfully!!\n");
                     printf("Energy of the system is %.2f.\n", sysEnergy_);
                     printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
 
@@ -411,13 +411,49 @@ int main(int argc, char** argv) {
 
         else {
             if (v){
-                printf("IMP_BOOL is zero. Nothing will be done.");
+                printf("IMP_BOOL is zero. Nothing will be done.\n\n\n");
+
+                if (!checkForOverlaps(Polymers)){
+                        printf("Something is fucked up overlaps-wise. \n");
+                        exit(EXIT_FAILURE);
+                    }
+
+                if (! checkForOverlaps (&Polymers, &LATTICE)){
+                    printf("Random monomer floating!!");
+                    exit (EXIT_FAILURE);
+                }
+
+                std::cout << "No random monomers floating around!!" << std::endl;
+
+                if (!checkForSolventMonomerOverlap (&Polymers, &LATTICE, y, z) ){
+                    printf("Something is fucked up solvent-monomer overlaps-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+
+                printf("checkConnectivity says: %d\n", checkConnectivity(Polymers, x, y, z)); 
+                if (!checkConnectivity(Polymers, x, y, z) ){
+                    printf("Something is fucked up connectivity-wise. \n");
+                    exit(EXIT_FAILURE);
+                }
+                printf("Reversed successfully!!\n");
+                printf("Energy of the system is %.2f.\n", sysEnergy_);
+                printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
+
+                if (checkPointersOnLattice (&LATTICE, x, y, z) ){
+                    printf("We good. LATTICE is in good shape. \n"); 
+                }
+                else {
+                    std::cerr <<"Something is fucked with pointers on LATTICE." << std::endl; 
+                    exit (EXIT_FAILURE);
+                }
             }
         }
 
         if ( ( i % dfreq == 0) ){
            
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
+            dumpPositionOfSolvent   (&LATTICE , i, solvent_file);
+    
             // dumpOrientation         (&Polymers, &Solvent, i, mfile, x, y, z); 
             
             if ( metropolis ){
@@ -429,12 +465,12 @@ int main(int argc, char** argv) {
         }
 
         // reset the memory carrier, and IMP_BOOL
-        reset (memory);
+        reset (memory3);
+        reset (memory2);
         IMP_BOOL = true; 
            
     }
     dumpMoveStatistics      (&attempts, &acceptances, max_iter, stats_file);  
-    // dumpPositionOfSolvent   (&Solvent, max_iter, solvent_file);
     
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 

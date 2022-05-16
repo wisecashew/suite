@@ -108,11 +108,11 @@ void print ( std::map<std::array<int,3>,Particle*> LATTICE );
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // moves to check locations in *Polymers and *Solvent 
-bool MonomerReporter         (std::vector <Polymer>* Polymers, std::array <int,3>* to_check);
-bool MonomerReporter         (std::vector <Particle*>* LATTICE, std::array<int,3>* to_check, int y, int z);
+bool MonomerReporter         (std::vector <Polymer>* Polymers  , std::array <int,3>* to_check);
+bool MonomerReporter         (std::vector <Particle*>* LATTICE , std::array<int,3>* to_check   , int y, int z);
 bool MonomerReporter         (std::vector <Particle*>* Polymers, std::array <int,3>* to_check_1, std::array <int,3>* to_check_2, int y, int z);
-bool MonomerReporter         (std::vector <Polymer>* Polymers, std::array <int,3>* to_check_1, std::array <int,3>* to_check_2);
-bool MonomerNeighborReporter (std::vector <Polymer>* Polymers, std::array <int,3>* to_check, int x, int y, int z);
+bool MonomerReporter         (std::vector <Particle*>* LATTICE , std::array <int,3>* to_check_1, std::array <int,3>* to_check_2, int y, int z);
+bool MonomerNeighborReporter (std::vector <Polymer>* Polymers  , std::array <int,3>* to_check  , int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // creation methods 
@@ -128,6 +128,7 @@ std::vector <std::array <int,3>> create_lattice_pts  (int x_len, int y_len, int 
 // validity checks 
 bool checkValidityOfCoords                (std::array <int,3> v, int x, int y, int z); 
 bool checkForOverlaps                     (std::vector <Polymer> Polymers);
+bool checkForOverlaps                     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE);
 bool checkConnectivity                    (std::vector <Polymer> Polymers, int x, int y, int z); 
 bool checkForSolventMonomerOverlap        (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int y, int z); 
 bool checkPointersOnLattice               (std::vector <Particle*>* LATTICE, int x, int y, int z);
@@ -159,7 +160,7 @@ bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight);
 // dump methods 
 void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, std::string filename);
 void dumpEnergy              (double sysEnergy, int step, double mm_aligned, double mm_naligned, int ms_aligned, int ms_naligned, std::string filename);
-void dumpPositionOfSolvent   (std::vector <Particle>* Solvent, int step, std::string filename);
+void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
 void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,9>* acceptances, int step, std::string stats_file); 
 
@@ -169,10 +170,10 @@ void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,
 // Polymer moves
 
 std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-void                  SolventFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight);
-void                  SolventFlipSingular  (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight);
-void                  PolymerFlip          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight);
-void                  PolymerFlipSingular  (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, double* rweight); 
+void                  SolventFlip          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
+void                  SolventFlipSingular  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory );
+void                  PolymerFlip          (std::vector <Polymer>* Polymers, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
+void                  PolymerFlipSingular  (std::vector <Polymer>* Polymers, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
 
 // methods relevant to chain regrowth 
 bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* Polymers);
@@ -180,8 +181,7 @@ bool checkOccupancyTail                                 (std::array <int,3>* loc
 bool checkOccupancyHead                                 (std::array <int,3>* loc, std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer);
 std::vector <std::array <int,3>> extract_positions_tail (std::vector <Particle*>* chain, int pivot_idx);
 std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle*>* chain, int pivot_idx);
-void                             create_linked_list     (std::vector<std::array<int,3>>* v1, std::vector<std::array<int,3>>* v2, std::vector <std::array<int,3>>* link, std::vector <std::vector <std::array<int,3>>>* master_linked_list, int beginning);
-
+void                             create_linked_list     (std::vector<std::array<int,3>> v1, std::vector<std::array<int,3>> v2, std::vector <std::array<int,3>> link, std::vector <std::vector <std::array<int,3>>>* master_linked_list, int beginning);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Important auxiliary function 
 Particle                          ParticleReporter     (std::vector <Polymer>* Polymers, std::vector <Particle>* SolvVect, std::array <int,3> to_check);
@@ -201,8 +201,8 @@ void                  Reptation  			       (std::vector <Polymer>* Polymers, std
 void                  ChainRegrowth			       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, int* monomer_index, int* back_or_front); 
 void                  TailSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
 void                  HeadSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, std::pair < std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory, int* monomer_index, int* back_or_front);
-void                  ReversePerturbation          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, int monomer_index, int back_or_front);
+void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, int* monomer_index, int* back_or_front, int Nsurr);
+void                  ReversePerturbation          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, int monomer_index, int back_or_front, int Nsurr);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 template <typename T>

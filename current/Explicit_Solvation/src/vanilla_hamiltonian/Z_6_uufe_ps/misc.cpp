@@ -3043,12 +3043,13 @@ void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	
-	std::vector <int> rvec (to_flip);
+	std::vector <int> rvec (Nsurr);
 	std::iota ( std::begin(rvec), std::end(rvec), 0);
 
 	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
+	rvec = std::vector<int>(rvec.begin(), rvec.begin()+to_flip); 
 
-	// std::cout << "rvec = "; print(rvec); 
+	print(rvec);
 
 	int j = 0;
 	for (int i: rvec ){
@@ -3141,11 +3142,14 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
 
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	
-	std::vector <int> rvec (to_flip);
-	std::iota ( std::begin(rvec), std::end(rvec), 0);
+	std::vector <int> rvec (Nmer);
+	std::iota ( std::begin(rvec), std::end(rvec), 0); // this is a vector that goes from 0 to 
 	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
 	// std::cout << "rvec is ";
 	// print(rvec); 
+	rvec = std::vector<int>(rvec.begin(), rvec.begin()+to_flip); 
+
+	print(rvec);
 
 	int j = 0;
 	for (int i: rvec) {
@@ -4080,5 +4084,7 @@ void create_linked_list ( std::vector<std::array<int,3>> v1, std::vector<std::ar
 	return; 
 
 }
+
+
 
 

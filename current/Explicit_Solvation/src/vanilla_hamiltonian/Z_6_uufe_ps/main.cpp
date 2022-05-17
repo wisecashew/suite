@@ -172,8 +172,8 @@ int main(int argc, char** argv) {
     // THIS MIGHT NEED TO CHANGE 
     
 
-    int step_number = 0; step_number++;
-    double sysEnergy {0}; sysEnergy++;
+    int step_number = 0; // step_number++;
+    double sysEnergy {0}; // sysEnergy++;
     
     std::vector <Polymer> Polymers; 
     
@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
         for (Particle*& p: pmer.chain ){
             // std::cout << "location is "; print (p->coords);
             // std::cout << "lattice index is " << lattice_index (p->coords, y, z) << std::endl;
-            LATTICE [ lattice_index (p->coords, y, z) ] = p; 
+            LATTICE .at(lattice_index (p->coords, y, z) ) = p; 
         }
     }
 
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 
     // now that i have my polymer coordinates, i can create the grand lattice map
         
-    double sysEnergy_ {0}; sysEnergy_++;
+    double sysEnergy_ {0}; // sysEnergy_++;
     
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
@@ -348,7 +348,7 @@ int main(int argc, char** argv) {
                 // }
                 
 
-                ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory3, &memory2, monomer_index, back_or_front, Nsurr );
+                ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory3, &memory2, monomer_index, back_or_front);
 
                 // std::cout << "Polymer coordinates after reversal are: " << std::endl;
                 // Polymers[0].printChainCoords();
@@ -452,8 +452,6 @@ int main(int argc, char** argv) {
         if ( ( i % dfreq == 0) ){
            
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
-            dumpPositionOfSolvent   (&LATTICE , i, solvent_file);
-    
             // dumpOrientation         (&Polymers, &Solvent, i, mfile, x, y, z); 
             
             if ( metropolis ){
@@ -471,7 +469,8 @@ int main(int argc, char** argv) {
            
     }
     dumpMoveStatistics      (&attempts, &acceptances, max_iter, stats_file);  
-    
+    dumpPositionOfSolvent   (&LATTICE , max_iter, solvent_file);
+
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	

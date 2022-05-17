@@ -1699,7 +1699,7 @@ void dumpPositionOfSolvent(std::vector <Particle*>* LATTICE, int step, std::stri
     dump_file<<"START" << "\n";
     
     for (Particle*& p: *LATTICE){
-    	std::cout << "ptype is " << (*p).ptype << std::endl;
+    	// std::cout << "ptype is " << (*p).ptype << std::endl;
     	if (p->ptype == 's'){
     		dump_file<<"Orientation: " << p->orientation <<", ";
         	for (int i: p->coords){
@@ -1767,15 +1767,15 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "For step " << step << ".\n";
     
 
-    dump_file << "End rotations                    - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << ".\n"; 
-    dump_file << "Kink jumps                       - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n"; 
-    dump_file << "Crank shafts                     - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n"; 
-    dump_file << "Reptation                        - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << ".\n"; 
-    dump_file << "Chain regrowth                   - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << ".\n"; 
-    dump_file << "Solvent orientation flips        - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n"; 
-    dump_file << "Single solvent orientation flips - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << ".\n"; 
-    dump_file << "Polymer orientation flips        - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
-    dump_file << "Local polymer orientation flips  - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n"; 
+    dump_file << "End rotations                      - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << ".\n"; 
+    dump_file << "Kink jumps                         - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n"; 
+    dump_file << "Crank shafts                       - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n"; 
+    dump_file << "Reptation                          - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << ".\n"; 
+    dump_file << "Chain regrowth                     - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << ".\n"; 
+    dump_file << "Single solvent orientation flips   - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n"; 
+    dump_file << "Single monomer orientation flips   - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << ".\n"; 
+    dump_file << "Multiple solvent orientation flips - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
+    dump_file << "Multiple monomer orientation flips - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n"; 
 
 }
 
@@ -3048,6 +3048,8 @@ void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
 
+	// std::cout << "rvec = "; print(rvec); 
+
 	int j = 0;
 	for (int i: rvec ){
 
@@ -3057,6 +3059,10 @@ void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 		(*rweight) = (*rweight) * static_cast<double>(Nsurr-j)/static_cast<double>(Nmer+Nsurr-j); 
 		j = j + 1; 
 	}
+
+	// for ( std::array<int,2>& a: (*memory).second){
+	// std::cout << "solvent_idx = " << a[0] << ", orientation = " << a[1] << std::endl;
+	// }
 	
 	return; 
 
@@ -3103,7 +3109,7 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 	}
 	solvent_indices.assign ( solvent_indices.begin(), solvent_indices.end() ); 
 
-	std::cout << "Got solvent indices." << std::endl;
+	// std::cout << "Got solvent indices." << std::endl;
 
 	int Nmer  = static_cast<int>( (*Polymers)[0].chain.size() ); 
 	
@@ -3138,6 +3144,8 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
 	std::vector <int> rvec (to_flip);
 	std::iota ( std::begin(rvec), std::end(rvec), 0);
 	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
+	// std::cout << "rvec is ";
+	// print(rvec); 
 
 	int j = 0;
 	for (int i: rvec) {
@@ -3146,7 +3154,9 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
 		*rweight = (*rweight) * static_cast<double>(Nmer-j)/static_cast<double>(Nmer+Nsurr-j);
 		(*memory).second.push_back( { i, (*Polymers)[0].chain.at(i)->orientation } );
 		j = j+1; 
-	}
+		// std::cout << "index of monomer is " << i << ", initially orientation is " << (*memory).first[j-1][1] << std::endl;
+		// std::cout << "index of monomer is " << i << ", finally orientation is "   << (*memory).second[j-1][1] << std::endl;
+	}	
     
     return; 
 }
@@ -3158,7 +3168,7 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
 ///////////////////////////////////////////////////////////////////////////
 
 
-void PolymerFlipSingular ( std::vector <Polymer>* Polymers, \
+void PolymerFlipSingular ( std::vector <Polymer>* Polymers,\
 	double* rweight, int Nsurr, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ){
     
@@ -3167,10 +3177,14 @@ void PolymerFlipSingular ( std::vector <Polymer>* Polymers, \
     *rweight = static_cast<double>(Nmer)/static_cast<double>(Nmer+Nsurr); 
 
 	int ridx = rng_uniform (0, Nmer-1);
-	(*memory).first.push_back( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );
+
+	// std::cout << "ridx = " << ridx << std::endl;
+	// std::cout << "Initial orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
+	(*memory).first.push_back ( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );
 	(*Polymers)[0].chain.at(ridx)->orientation = rng_uniform (0, 5);  
 	(*memory).second.push_back( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );	
-
+	// std::cout << "Final orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
+	// std::cout << "memory first[0][1] is " << (*memory).first[0][1] << std::endl;
 	return; 
 }
 
@@ -3187,11 +3201,10 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	int* monomer_index, int* back_or_front, int Nsurr ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = 6; // rng_uniform(1, 5);
+    int r = rng_uniform(1, 9);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 
-    
     switch (r) {
         case (1):
             if (v){
@@ -3242,18 +3255,18 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         
         case (6): 
         	if (v){
-        		printf("Performing solvent orientation flips. \n");
+        		printf("Performing single solvent orientation flips. \n");
         	}
         	SolventFlipSingular (Polymers, LATTICE, x, y, z, rweight, Nsurr, memory2); 
             *move_number = 6; 
             (*attempts)[5] += 1;
         	break; 
-        /*
+        
         case (7):
             if (v) {
-                printf("Performing single solvent orientation flip. \n");
+                printf("Performing single monomer orientation flip. \n");
             }
-            SolventFlipSingular (Polymers_c, Solvent_c, rweight); 
+            PolymerFlipSingular (Polymers, rweight, Nsurr, memory2); 
             *move_number = 7; 
             (*attempts)[6] += 1;
             break;
@@ -3262,7 +3275,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         	if (v){
         		printf("Performing polymer orientation flips. \n");
         	}
-        	PolymerFlip ( Polymers_c, Solvent_c, rweight );
+        	SolventFlip ( Polymers, LATTICE, x, y, z, rweight, Nsurr, memory2);
             *move_number = 8; 
             (*attempts)[7] += 1;
         	break;
@@ -3271,11 +3284,11 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             if (v) {
                 printf("Performing local polymer orientation flips. \n");
             }
-            PolymerFlipSingular ( Polymers_c, Solvent_c, rweight); 
+            PolymerFlip ( Polymers, rweight, Nsurr, memory2); 
             *move_number = 9; 
             (*attempts)[8] += 1;
             break;
-        */
+        
     }
     
     return;
@@ -3292,7 +3305,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int y, int z, bool v, int move_number, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
-	int monomer_index, int back_or_front, int Nsurr ){
+	int monomer_index, int back_or_front){
 
 	switch (move_number){
 		case (1):
@@ -3539,12 +3552,35 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 
 		case (6):
 			if (v) {
-				printf("Performing a singular solvent flip...");
+				printf("Reversing a singular solvent flip...");
 			}
 			(*LATTICE)[ (*memory2).first[0][0] ]->orientation = (*memory2).first[0][1]; 
-			Nsurr++;
 			break; 
 
+		case (7):
+			if (v) {
+				printf("Reversing a singular monomer flip...");
+			}
+			(*LATTICE)[ lattice_index((*Polymers)[0].chain[ (*memory2).first[0][0]]->coords, y, z) ]->orientation = (*memory2).first[0][1]; 
+			break;
+
+		case (8):
+			if (v) {
+				printf("Reversing multiple solvent flips...");
+			}
+			for ( std::array<int,2>& a: (*memory2).first) {
+				(*LATTICE)[ a[0] ]->orientation = a[1]; 
+			}
+			break; 
+
+		case (9):
+			if (v) {
+				printf("Reversing multiple monomer flips...");
+			}
+			for ( std::array<int,2>& a: (*memory2).first ){
+				(*LATTICE)[ lattice_index((*Polymers)[0].chain[ a[0] ]->coords, y, z) ]->orientation = a[1];
+			}
+			break; 
 
 	}
 
@@ -3811,18 +3847,27 @@ void AddSolvent (int x, int y, int z, std::vector <Particle*>* LATTICE){
 
 	// std::vector <std::array<int,3>> lattice_points = create_lattice_pts (x, y, z); 
 	// int count = 0;
+	int c_idx {-1};
 	std::array <int,3> loc = {0,0,0}; 
 	for (int k{0}; k<z; ++k){
 		for (int j{0}; j<y; ++j){
 			for (int i{0}; i<x; ++i){
-
+				
 				loc = {i, j, k};
+
+				if (lattice_index(loc,y,z)-c_idx != 1){
+					std::cerr << "Something is fucked in LATTICE creation." << std::endl;
+					exit (EXIT_FAILURE);
+				}
+				c_idx = lattice_index (loc,y,z); 
+
 				Particle* p_ptr = new Particle (loc, 's', 0); 
 
 				// std::cout << "loc is "; print(loc);
 				// std::cout << "index in lattice is " << lattice_index (loc, y, z) << std::endl;
 
-				(*LATTICE)[ lattice_index(loc, y, z) ] = p_ptr;
+				(*LATTICE).insert( (*LATTICE).begin() + lattice_index(loc, y, z), p_ptr) ;
+				
 
 			}
 		}

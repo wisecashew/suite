@@ -1901,7 +1901,7 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	(*memory).second.push_back ( idx_v[r] );	// final location of monomer 
 
 	// update connmap 
-	// (*Polymers)[index].ChainToConnectivityMap(); 
+	(*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/6.0; 
 	
 	return; 
@@ -1984,7 +1984,7 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	(*memory).second.push_back ( idx_v[r] );
 
 	// update connmap 
-	// (*Polymers)[index].ChainToConnectivityMap(); 
+	(*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/6.0; 
 
 	return; 
@@ -2122,7 +2122,7 @@ void KinkJump (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE
 	(*memory).second.push_back ( pos_v[r] );	// final location of monomer
 
 	// update connmap
-	// (*Polymers)[index].ChainToConnectivityMap(); 
+	(*Polymers)[index].ChainToConnectivityMap(); 
 	(*rweight) = (*rweight)/( k_idx.size() ); 
 
     return; 
@@ -2234,7 +2234,7 @@ void CrankShaft (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTI
 	(*memory).second.push_back ( pos_v2[r] );
 
 	// update connmap 
-	// (*Polymers) [index].ChainToConnectivityMap();
+	(*Polymers) [index].ChainToConnectivityMap();
 	(*rweight) = (*rweight)/3.0 ; 
   		
     return ;
@@ -2612,7 +2612,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 			}
 
-		// (*Polymers) [0].ChainToConnectivityMap();
+		(*Polymers) [0].ChainToConnectivityMap();
 		return; 
 
 		}
@@ -2661,7 +2661,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 				(*Polymers)[0].chain.at(i)->coords = old_cut[i-(*index_monomer+1)]; 
 			}
 
-		// (*Polymers) [0].ChainToConnectivityMap();
+		(*Polymers) [0].ChainToConnectivityMap();
 		return; 
 
 		}
@@ -2774,7 +2774,7 @@ void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 	if (index_of_monomer == 0){
 		// std::cout << "You have reached the final spot via tail spin!" << std::endl;
 		*IMP_BOOL = true; 
-		// (*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
+		(*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
 		return ; 
 	}
 
@@ -2851,7 +2851,7 @@ void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 	if (index_of_monomer == deg_poly-1){
 		// std::cout << "You have reached the final spot of head spin!" << std::endl;
 		*IMP_BOOL = true;
-		// (*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
+		(*Polymers)[index_of_polymer].ChainToConnectivityMap(); 
 		return ;
 	}
 
@@ -3049,7 +3049,7 @@ void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
 	rvec = std::vector<int>(rvec.begin(), rvec.begin()+to_flip); 
 
-	// print(rvec);
+	print(rvec);
 
 	int j = 0;
 	for (int i: rvec ){
@@ -3143,9 +3143,13 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
     unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	
 	std::vector <int> rvec (Nmer);
-	std::iota ( std::begin(rvec), std::end(rvec), 0); // this is a vector that goes from 0 to Nmer 
+	std::iota ( std::begin(rvec), std::end(rvec), 0); // this is a vector that goes from 0 to 
 	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
+	// std::cout << "rvec is ";
+	// print(rvec); 
 	rvec = std::vector<int>(rvec.begin(), rvec.begin()+to_flip); 
+
+	print(rvec);
 
 	int j = 0;
 	for (int i: rvec) {
@@ -3584,7 +3588,7 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 
 	}
 
-	// (*Polymers)[0].ChainToConnectivityMap (); 
+	(*Polymers)[0].ChainToConnectivityMap (); 
 
 	return; 
 }

@@ -8,6 +8,7 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
 import pandas as pd
 import os
+import multiprocess as mp
 import aux 
 
 '''
@@ -21,17 +22,19 @@ parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store',
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this index.', default=100)
 parser.add_argument('--excl-vol', dest='ev', action='store_true', help='Flag to include excluded volume forcefield.', default=False) 
 parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
-parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include to see plot.') 
+parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to show plot.', default=False)
 args = parser.parse_args() 
 
 if __name__ == "__main__":
     
     U_list = aux.dir2U ( os.listdir (".") )
+    # U_list       = ["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"]
     dop          = args.dop
         
     if args.ev:
         U_list.append("Uexcl")
 
+    print (aux.edge_length(args.dop))
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(axis='x', labelsize=16)
@@ -39,17 +42,15 @@ if __name__ == "__main__":
     i = 0 
     Tmax = []  
     for U in U_list:
-        print ("U is " + U) 
         rg_mean = np.array([]) 
         rg_std  = np.array([])      
         temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
         Tmax.append ( np.max(temperatures) )
         
         for T in temperatures:
-            print( "\tTemperatures is " + str(T) )
             filename = U +"/DOP_"+str(dop)+"/"+str(T)+"/"+args.c
 
-            master_dict = aux.get_pdict (filename, args.s, aux.edge_length(dop), aux.edge_length(dop), aux.edge_length(dop)) 
+            master_dict = aux.get_pdict (filename, aux.edge_length(dop), aux.edge_length(dop), aux.edge_length(dop)) 
             
             tot_step = len(master_dict) 
 
@@ -76,5 +77,5 @@ if __name__ == "__main__":
     ax.set_xticks ( np.arange(0, np.max(Tmax)+1, 1 ) )
     plt.savefig   ( "DOP_"+str(args.dop)+"_rg.png", dpi=1200)
     if args.sp:
-        plt.show()
+        plt.show() 
         

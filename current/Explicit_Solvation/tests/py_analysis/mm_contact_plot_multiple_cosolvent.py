@@ -7,6 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm
 import argparse 
+import aux
 import os 
 
 parser = argparse.ArgumentParser(description="Get the contacts for simulation for every energy surface, provided you give the volume fraction.")
@@ -16,31 +17,7 @@ parser.add_argument('--excl_vol', dest='ev', action='store', type=int, help='fla
 
 args = parser.parse_args()  
 
-
-def dir2float (list_of_dirs):
-    l = [] 
-    for dir_name in list_of_dirs:
-        try:
-            l.append(float(dir_name)) 
-        except ValueError:
-            continue
-    
-    l.sort() 
-    return l 
-
-def dir2U (list_of_dirs):
-    l = [] 
-    for dir_name in list_of_dirs:
-        if (re.match("U\d+", dir_name)):
-            l.append(dir_name)
-    
-    l.sort()  
-    l = sorted(l, key=lambda x: int(x[1:]) )
-    return l
-
-
-# temperatures = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0] 
-U_list = dir2U (os.listdir ('.') )# ["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"]
+U_list = aux.dir2U (os.listdir ('.') )# ["U1", "U2", "U3", "U4", "U5", "U6", "U7", "U8", "U9"]
 print("Ulist is: ", end=' ')
 print(U_list)
 
@@ -56,7 +33,7 @@ for U in U_list:
     energy_list = []
     mm_list = []
     mm_err = []  
-    temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
+    temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
     Tmax.append ( np.max(temperatures) )
     for temp in temperatures: 
         # print(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/energydump.txt")

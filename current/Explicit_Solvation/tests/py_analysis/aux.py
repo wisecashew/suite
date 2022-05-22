@@ -24,6 +24,29 @@ def modified_modulo(divident, divisor):
 #############################################################################
 #############################################################################
 
+def edge_length(N):
+    
+    adj = np.ceil(5*(N**(0.6)))
+    if adj>N+2:
+        return N+2
+    else:
+        return adj
+
+#############################################################################
+#############################################################################
+
+def dir2nsim (list_of_dirs):
+    l = [] 
+    for dir_name in list_of_dirs:
+        r = re.findall ("_[0-9]+$", dir_name) 
+        if ( r ):
+            l.append ( int (r[0][1:] ) )
+    l.sort() 
+    return l
+
+############################################################################
+#############################################################################
+
 def unfuck_polymer(polymer, x, y, z): 
     unfucked_polymer = np.asarray([polymer[0,:]])
     
@@ -49,6 +72,19 @@ def dir2float (list_of_dirs):
             continue
     l.sort()
     return l 
+
+#############################################################################
+#############################################################################
+
+def dir2U (list_of_dirs):
+    l = [] 
+    for dir_name in list_of_dirs:
+        if (re.match("U\d+", dir_name)):
+            l.append(dir_name)
+    
+    l.sort()  
+    l = sorted(l, key=lambda x: int(x[1:]) )
+    return l
 
 #############################################################################
 #############################################################################
@@ -99,7 +135,7 @@ def get_Rh(master_dict, xlen, ylen, zlen, ignore_until):
 #############################################################################
 #############################################################################
 
-def get_pdict(filename, x, y, z):
+def get_pdict(filename, starting_step, x, y, z):
     f = open(filename, 'r')
     coord_file = f.readlines() 
     
@@ -108,7 +144,8 @@ def get_pdict(filename, x, y, z):
     start_str = "START"
     end_str_1 = "END" 
     end_str_2 = "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n" 
-
+    
+    starting_bool = False 
     # master_dict will be the dictionary which will contain polymer coordinates at each step     
     master_dict = {} 
     xlen, ylen, zlen = x, y, z
@@ -122,8 +159,16 @@ def get_pdict(filename, x, y, z):
     # and put them in a numpy array 
     
     for line in coord_file:
-        if ( re.search(st_b_str, line)):
+        if ( re.search(st_b_str, line) ):
+            
             step_num = int ( ( extract_loc_from_string ( line.replace('.', ' ') ) ) )
+            
+            if ( step_num == starting_step ) or starting_bool :
+                starting_bool = True
+            else: 
+                continue 
+            # print ("in first if step_num is " + str(step_num) )
+            
             master_dict [step_num] = {}
             
             step_flag     = 1
@@ -131,24 +176,26 @@ def get_pdict(filename, x, y, z):
             end_step_flag = 0
             continue 
 
-        elif ( re.search(start_str, line) ):
+        elif ( re.search(start_str, line) ) and starting_bool:
+            # print ("inside elif1, step_num is " + str(step_num) )
             continue
 
-        elif ( re.search(pmer_num_str, line) ):
+        elif ( re.search(pmer_num_str, line) ) and starting_bool:
             pmer_flag += 1
             master_dict[step_num][pmer_flag] = np.empty ( (0,3) ) 
             continue 
 
-        elif ( re.search(end_str_1, line) ): 
+        elif ( re.search(end_str_1, line) ) and starting_bool: 
             end_step_flag = 1
             step_flag     = 0
             pmer_flag     = -1 
             continue 
 
-        elif ( re.search(end_str_2, line) ):
+        elif ( re.search(end_str_2, line) ) and starting_bool:
             continue 
 
-        else:
+        elif ( starting_bool ):
+            # print ( "step_num is " + str(step_num) )
             monomer_coords                   = extract_loc_from_string ( line ) 
             master_dict[step_num][pmer_flag] = np.vstack ( (master_dict[step_num][pmer_flag], monomer_coords[0:-1] ) ) 
             continue

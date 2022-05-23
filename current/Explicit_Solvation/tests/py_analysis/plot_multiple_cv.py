@@ -9,6 +9,13 @@ import argparse
 import os 
 import aux 
 
+
+''' 
+shebang for cluster: #!/usr/licensed/anaconda3/2020.7/bin/python
+shebang for homemachine: #!/usr/bin/env python3
+'''
+
+
 parser = argparse.ArgumentParser(description="Get the heat capacity for simulation for every energy surface, provided you give the volume fraction.")
 parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide degree of polymerization.') 
 parser.add_argument('-s', dest='s', action='store', type=int, help='Provide a starting point for plotting.', default=100)

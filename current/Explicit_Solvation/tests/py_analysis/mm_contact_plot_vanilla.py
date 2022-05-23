@@ -10,6 +10,12 @@ import argparse
 import os 
 import aux 
 
+
+''' 
+shebang for cluster: #!/usr/licensed/anaconda3/2020.7/bin/python
+shebang for homemachine: #!/usr/bin/env python3
+'''
+
 parser = argparse.ArgumentParser(description="Get the contacts for simulation for every energy surface, provided you give the volume fraction.")
 parser.add_argument('-U', dest='U', action='store', type=str, help='Provide potential energy surface.')
 parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide degree of polymerization.') 
@@ -48,7 +54,7 @@ for U in U_list:
     if U == "Uexcl":
         plt.errorbar(temperatures, np.asarray(mm_mean), yerr=np.asarray(mm_err), elinewidth=1, capsize=0, linewidth=3) # , linewidth=3) 
     else:
-        plt.errorbar(temperatures, np.asarray(mm_mean), yerr=np.asarray(mm_err), linestyle='-.', elinewidth=1, capsize=0, color=cm.copper(i/9) )   
+        plt.errorbar(temperatures, np.asarray(mm_mean), yerr=np.asarray(mm_err), linestyle='-.', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_' )   
     i += 1
     # print(mm_list)
 # datafile.close() 

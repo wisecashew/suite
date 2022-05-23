@@ -1,4 +1,4 @@
-#!/usr/licensed/anaconda3/2020.7/bin/python
+#!/usr/bin/env python3
 
 import pandas as pd 
 import numpy as np 
@@ -9,6 +9,11 @@ import matplotlib.cm as cm
 import argparse 
 import aux
 import os 
+
+''' 
+shebang for cluster: #!/usr/licensed/anaconda3/2020.7/bin/python
+shebang for homemachine: #!/usr/bin/env python3
+'''
 
 parser = argparse.ArgumentParser(description="Get the contacts for simulation for every energy surface, provided you give the volume fraction.")
 parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide degree of polymerization.') 

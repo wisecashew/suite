@@ -3,6 +3,7 @@
 import pandas as pd 
 import numpy as np 
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm
 import argparse 
@@ -39,7 +40,7 @@ plt.figure(1)
 i=1
 for U in U_list:
     
-    print ("Currently plotting out stuff in U = " + str(U) + "...", end =' ' )
+    print ("Currently plotting out stuff in U = " + str(U) + "...", end =' ', flush=True )
     energy_list = np.asarray([])
     cv_list = np.asarray([])
     cv_err  = np.asarray([])
@@ -69,7 +70,7 @@ for U in U_list:
         plt.errorbar ( temperatures, np.asarray ( cv_mean ), yerr = np.asarray (cv_err), fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_' ) 
 
     i += 1
-    print ("done!") 
+    print ("done!", flush=True) 
 
 
 my_cmp = cm.copper 

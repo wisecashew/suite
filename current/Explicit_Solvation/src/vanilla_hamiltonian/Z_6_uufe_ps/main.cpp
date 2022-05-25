@@ -20,23 +20,15 @@ int main(int argc, char** argv) {
     int opt; 
     int dfreq {-1}, max_iter{-1};
     std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, mfile {"blank"}, stats_file {"blank"}, solvent_file {"blank"};  
-    bool v = false;
+    bool v = false, r = false;
 
-    while ( (opt = getopt(argc, argv, ":s:S:f:M:o:u:p:t:e:vh")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:r:S:f:M:o:u:p:t:e:vh")) != -1 )
     {
         switch (opt) 
         {
             case 'f':
-                // std::cout << "Option dreq was called with argument " << optarg << std::endl; 
                 dfreq = atoi(optarg); 
                 break;
-
-
-
-            // case 'N':
-                // std::cout << "Option Nmov was called with argument " << optarg << std::endl; 
-                // Nacc = atoi(optarg); 
-                // break; 
 
             case 'M':
                 max_iter = atoi(optarg); 
@@ -50,6 +42,7 @@ int main(int argc, char** argv) {
                 "These are all the inputs the engine accepts for a single run, as of right now:\n\n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
+                "restart                  [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of maximum moves  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
                 // "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
@@ -78,10 +71,6 @@ int main(int argc, char** argv) {
                 dfile = optarg;
                 break;
 
-            //case 'T':
-            //    restart_traj = optarg;
-            //   break;
-
             case 'u':
                 efile = optarg;
                 break;
@@ -94,6 +83,11 @@ int main(int argc, char** argv) {
                 solvent_file = optarg; 
                 break;
 
+            case 'r':
+                std::cout << "Simulation will be restarted from the end of previous simulation." 
+                r = true;
+                break;
+
             case '?':
                 std::cout << "ERROR: Unknown option " << static_cast<char>(optopt) << " was provided." << std::endl;
                 exit(EXIT_FAILURE); 
@@ -104,16 +98,6 @@ int main(int argc, char** argv) {
                 v = true;
                 break;
 
-            // case 'a':
-            //    std::cout <<"Only accepted structures will be outputted." << std::endl;
-            //    a = true; 
-            //    break; 
-
-            // case 'r':
-            //    std::cout <<"Will attempt to restart simulation by taking coordinates from a previous trajectory file." << std::endl;
-            //    r = true; 
-            //    break; 
-            
             case 'e':
                 mfile=optarg;
                 break; 
@@ -131,9 +115,6 @@ int main(int argc, char** argv) {
     InputParser (dfreq, max_iter, solvent_file, positions, topology, dfile, efile, mfile, stats_file); 
 
     // driver 
-
-    
-
 
     // ExtractTopologyFromFile extracts all the topology from the input file 
     std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 

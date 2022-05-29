@@ -493,8 +493,8 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 
 }
 
-std::array <std::array <int,3>, 6> obtain_ne_list(std::array <int,3> loc, int x_len, int y_len, int z_len){
-	std::array <std::array <int,3>, 6> nl;
+std::array <std::array <int,3>, 26> obtain_ne_list(std::array <int,3> loc, int x_len, int y_len, int z_len){
+	std::array <std::array <int,3>,2 6> nl;
 	int i {0}; 
 	for (std::array <int,3> d: adrns) {
 		std::array <int,3>  a = add_arrays(&loc, &d); 
@@ -1591,11 +1591,9 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
 
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
-            std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
+            std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
             
             for ( std::array <int, 3>& loc: ne_list){
-            	
-            	
 
             	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == 'm'){
                     
@@ -1857,7 +1855,7 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     std::array <int,3> loc_1 = (*Polymers)[index].chain[1]->coords;
     // std::vector <Polymer> NewPol {*Polymers};
     
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
 
 	(*rweight) = 0.0; 
 
@@ -1908,7 +1906,7 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 	// update connmap 
 	// (*Polymers)[index].ChainToConnectivityMap(); 
-	(*rweight) = (*rweight)/6.0; 
+	(*rweight) = (*rweight)/26.0; 
 	
 	return; 
 }
@@ -1940,7 +1938,7 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     std::array <int,3> loc_0 = (*Polymers)[index].chain[dop-1]->coords; 
     std::array <int,3> loc_1 = (*Polymers)[index].chain[dop-2]->coords;
     
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
 
     (*rweight) = 0.0; 
 	
@@ -1991,7 +1989,7 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 	// update connmap 
 	// (*Polymers)[index].ChainToConnectivityMap(); 
-	(*rweight) = (*rweight)/6.0; 
+	(*rweight) = (*rweight)/26.0; 
 
 	return; 
 }
@@ -2142,7 +2140,93 @@ void KinkJump (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+//============================================================
+//============================================================
+// 
+// NAME OF FUNCTION: BondVibration
+//
+// PARAMETERS: 
+// 
+// WHAT THE FUNCTION DOES: Given a Grid, it will perform a kink jump when it finds a kink. 
+// The kinks are shuffled before any is chosen. 
+//
+// DEPENDENCIES: findKinks, ChainToConnectivityMap, add_vectors, subtract_vectors
+// as with every MC move, OccupancyMap, ConnectivityMaps need to be updated very very carefully. 
+//
+// THE CODE: 
 
+void BondVibration ( std::vector <Polymer>* Polymers, std::vector <Particle*> LATTICE, \
+	int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, \
+	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory ){
+
+	// choose a site to vibrate 
+	int m_idx = rng_uniform ( 1, static_cast<int>((*Polymers)[index].chain.size())-2 );
+	*rweight = 0; 
+
+	// find d1 
+	std::array <int,3> d1 = subtract_arrays ( &((*Polymers)[index].chain[m_idx]->coords)  , &((*Polymers)[index].chain[m_idx-1]->coords) );
+
+	// find d2 
+	std::array <int,3> d2 = subtract_arrays ( &((*Polymers)[index].chain[m_idx+1]->coords), &((*Polymers)[index].chain[m_idx]->coords  ) );   
+
+	modified_direction (&d1, x, y, z); 
+	modified_direction (&d2, x, y, z); 
+
+	// m_idx-1 is at p, m_idx is at p+d1, m_idx+1 is at p+d1+d2 
+	// let p+d1 be displaced in direction dx -> p+d1+dx 
+	// so difference between p and p+d1+dx is d1+dx, difference between p+d1+dx and p+d1+d2 is d2-dx
+	// so for a valid position d1+dx and d2-dx needs to be in adrns 
+	
+	std::array <int,26> good_dx = {}; 
+	int count = 0, d_idx = 0; 
+
+	for ( std::array<int,3>& dx: adrns ){
+		// impose important condition on dx 
+		if ( ( std::find ( adrns.begin(), adrns.end(), add_arrays (&d1, &dx) ) != adrns.end() ) \ 
+			&& ( std::find ( adrns.begin(), adrns.end(), subtract_arrays (&d2, &dx) ) != adrns.end() )  ){
+
+			std::array <int,3> temp = add_arrays ( & ( (*Polymers)[index].chain[m_idx]->coords), &dx );
+			impose_pbc ( &temp, x, y, z); 
+
+			if ( ! (MonomerReporter (LATTICE, & (temp) ) ) ){
+				good_dx [count] = d_idx;
+				count += 1; 
+			}
+		}
+		d_idx += 1; 
+	}
+	// found all the directions where monomer can be vibrated ...
+	// if there are none, 
+	if ( count == 0 ){
+		*IMP_BOOL = false; 
+		return; 
+	}
+
+	// if there are some, choose a direction 
+	int d_rng = rng_uniform (0 ,count-1); 
+	std::array <int,3> new_loc = add_arrays ( & ( (*Polymers)[index].chain[m_idx]->coords), & (adrns[good_dx[d_rng]] ) );
+	impose_pbc ( &new_loc, x, y, z); 
+
+	// make the change to the polymer 
+	std::array <int,3> loc0 = (*Polymers)[index].chain[m_idx]->coords; 
+	(*Polymers)[index].chain[m_idx]->coords = new_loc; 
+
+	// make the change on the lattice
+	// make the change only to the solvent site... 
+
+	(*LATTICE) [ lattice_index (new_loc, y, z)]->coords = loc0; 
+	(*LATTICE) [ lattice_index (loc0, y, z) ] = (*LATTICE)[ lattice_index (new_loc, y, z)];
+	(*LATTICE) [ lattice_index (new_loc, y, z)] = (*Polymers)[index].chain[m_idx]; 
+	
+	// update memory 
+	(*memory).first.push_back  ( loc0 ); 
+	(*memory).second.push_back ( new_loc ); 
+
+	(*rweight) = (*rweight)/26;
+
+	return; 
+
+}
 
 //============================================================
 //============================================================

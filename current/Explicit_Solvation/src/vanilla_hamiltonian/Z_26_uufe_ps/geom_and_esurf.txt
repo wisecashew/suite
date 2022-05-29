@@ -1,0 +1,9 @@
+x = 212
+y = 212
+z = 212
+kT = 0.1  
+Emm_a = -0
+Emm_n = -0 
+Ems_a = -1
+Ems_n = -1
+END OF FILE

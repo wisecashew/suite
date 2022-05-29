@@ -36,8 +36,8 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "\nWelcome to my Monte Carlo simulation engine (v0.2) for polymers in a simple cubic box (Z=6). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
-		        "\nLast updated: May 19, 2022, 10:29 PM. \nAuthor: satyend@princeton.edu\n" <<
+                "\nWelcome to my Monte Carlo simulation engine (v0.3) for polymers in a simple cubic box (Z=26). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
+		        "\nLast updated: May 29, 2022, 12:20 PM. \nAuthor: satyend@princeton.edu\n" <<
                 "\n----------------------------------------------------------------------------------------------------------------------------------\n" << 
                 "These are all the inputs the engine accepts for a single run, as of right now:\n\n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
@@ -316,18 +316,18 @@ int main(int argc, char** argv) {
 
             else {
                 
-                // std::cout << "printing out memory."<<std::endl;
-                // std::cout << "First element: " << std::endl;
-                // for (auto v: memory.first){
-                //    print(v);
-                //}
+                /*
+                std::cout << "printing out memory."<<std::endl;
+                std::cout << "First element: " << std::endl;
+                for (auto v: memory3.first){
+                   print(v);
+                }
 
-                // std::cout << "second element: " << std::endl;
-                // print(memory.second);
-                // for (auto v: memory.second){
-                //    print(v);
-                // }
-                
+                std::cout << "second element: " << std::endl;
+                for (auto v: memory3.second){
+                    print(v);
+                }
+                */ 
 
                 ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory3, &memory2, monomer_index, back_or_front);
 

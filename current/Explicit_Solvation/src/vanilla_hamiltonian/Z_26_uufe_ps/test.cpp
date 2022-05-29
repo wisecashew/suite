@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
     // std::cout << "Size of instance of class Particle is " << sizeof(part) << std::endl;
     // std::cout << "Size of instance of class* Particle is " << sizeof(&part) << std::endl;
     
-    std::cout << "Creating the solvated box. This takes time..." << std::endl;
+    /*std::cout << "Creating the solvated box. This takes time..." << std::endl;
 
     std::vector <std::vector <std::array<int,3>>> master; 
     std::vector <std::array<int,3>> v1 = {{1,0,0},{3,0,0},{2,0,0},{6,0,0},{8,0,0},{7,0,0},{5,0,0}}; 
@@ -245,9 +245,29 @@ int main(int argc, char** argv) {
         std::cout <<std::endl;
 
     }
+    */
 
+    std::array <int,3> a1 = {1,0,0}, a2 = {2,0,0}, a3 = {3,0,0}, a4 = {-1,0,0}, a5 = {4,5,6};
+    std::array <std::array<int,3>, 5> a = {a1, a2, a3, a4, a5};
+    std::sort ( a.begin(), a.end());
 
+    // for ( auto i: a){
+    //     print(i);
+    // }
 
+    /*
+    std::array <int,3> ax     = {1,0,0}, ay     = {0,1,0} , az     = {0,0,1} , nx     = {-1,0,0} ,  ny     = {0,-1,0}, nz     =  {0,0,-1} ; 
+    std::array <int,3> axay   = {1,1,0}, axaz   = {1,0,1} , axny   = {1,-1,0}, axnz   = {1,0,-1} , nxay    = {-1,1,0}, nxaz   =  {-1,0,1} , nxny = {-1,-1,0} , nxnz = {-1,0,-1}; 
+    std::array <int,3> ayaz   = {0,1,1}, aynz   = {0,1,-1}, nyaz   = {0,-1,1}, nynz   = {0,-1,-1};  
+    std::array <int,3> axayaz = {1,1,1}, axaynz = {1,1,-1}, axnyaz = {1,-1,1}, axnynz = {1,-1,-1},  nxayaz = {-1,1,1}, nxaynz = {-1,1,-1}, nxnyaz = {-1,-1,1}, nxnynz = {-1,-1,-1}; 
+    std::array <std::array <int,3>, 26> adrns = { ax, ay, az, nx, ny, nz, axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
+
+    std::sort ( adrns.begin(), adrns.end());
+
+    for ( auto i: adrns){
+        print(i);
+    }
+    */
     std::cout << "--------------------------------------------------------------------\n\n";
 
     return 0;

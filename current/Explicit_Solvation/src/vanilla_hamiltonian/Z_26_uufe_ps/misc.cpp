@@ -15,6 +15,7 @@
 #include <iterator>
 #include <utility>
 #include <unordered_set>
+#include <algorithm>
 
 /* ==================================================
 These are some objects I have defined which I tend to use often. 
@@ -24,13 +25,11 @@ Helpful definitions which are employed often in the context of the z=6 lattice I
 const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
 const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  							// vector of unit directions 
 
-std::array <int,3> ax     {1,0,0}, ay     {0,1,0} , az     {0,0,1} , nx     {-1,0,0} ,  ny     {0,-1,0}, nz     {0,0,-1} ; 
-std::array <int,3> axay   {1,1,0}, axaz   {1,0,1} , axny   {1,-1,0},  axnz   {1,0,-1}, nxay   {-1,1,0} , nxaz   {-1,0,1} , nxny   {-1,-1,0} , nxnz{-1,0,-1}; 
-std::array <int,3> ayaz   {0,1,1}, aynz   {0,1,-1}, nyaz   {0,-1,1}, nynz   {0,-1,-1};  
-std::array <int,3> axayaz {1,1,1}, axaynz {1,1,-1}, axnyaz {1,-1,1}, axnynz {1,-1,-1},  nxayaz {-1,1,1}, nxaynz {-1,1,-1}, nxnyaz {-1,-1,1}, nxnynz {-1,-1,-1}; 
-std::array <std::array <int,3> ,26> adrns = { ax, ay, az, nx, ny, nz, \
-        axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, \
-                axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
+std::array <int,3> ax     = {1,0,0}, ay     = {0,1,0} , az     = {0,0,1} , nx     = {-1,0,0} ,  ny     = {0,-1,0}, nz     =  {0,0,-1} ; 
+std::array <int,3> axay   = {1,1,0}, axaz   = {1,0,1} , axny   = {1,-1,0}, axnz   = {1,0,-1} , nxay    = {-1,1,0}, nxaz   =  {-1,0,1} , nxny = {-1,-1,0} , nxnz = {-1,0,-1}; 
+std::array <int,3> ayaz   = {0,1,1}, aynz   = {0,1,-1}, nyaz   = {0,-1,1}, nynz   = {0,-1,-1};  
+std::array <int,3> axayaz = {1,1,1}, axaynz = {1,1,-1}, axnyaz = {1,-1,1}, axnynz = {1,-1,-1},  nxayaz = {-1,1,1}, nxaynz = {-1,1,-1}, nxnyaz = {-1,-1,1}, nxnynz = {-1,-1,-1}; 
+std::array <std::array <int,3>, 26> adrns = { ax, ay, az, nx, ny, nz, axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
 
 
 //=====================================================
@@ -494,7 +493,7 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 }
 
 std::array <std::array <int,3>, 26> obtain_ne_list(std::array <int,3> loc, int x_len, int y_len, int z_len){
-	std::array <std::array <int,3>,2 6> nl;
+	std::array <std::array <int,3>,26> nl;
 	int i {0}; 
 	for (std::array <int,3> d: adrns) {
 		std::array <int,3>  a = add_arrays(&loc, &d); 
@@ -1245,23 +1244,23 @@ bool checkForSolventMonomerOverlap(std::vector <Polymer>* Polymers, std::vector 
 // THE CODE: 
 
 bool checkConnectivity(std::vector <Polymer> Polymers, int x, int y, int z) {
-    std::array <int,3> d1 = {0, 0, 1}; 
-    std::array <int,3> dx = {0, 0, x-1}; 
-    std::array <int,3> dy = {0, 0, y-1}; 
-    std::array <int,3> dz = {0, 0, z-1}; 
+    
     for (Polymer& pmer: Polymers){
         size_t length = pmer.chain.size(); 
-        std::array <int,3> connection; 
+        std::array <int,3> connection = {0,0,0}; 
+        std::sort (adrns.begin(), adrns.end() ); 
+
         for (int i{1}; i<static_cast<int>(length); ++i){
             
             connection = subtract_arrays(&(pmer.chain[i]->coords), &(pmer.chain[i-1]->coords));
             impose_pbc(&connection, x, y, z);
-            std::sort(connection.begin(), connection.end()); 
-            if (connection == d1 || connection == dx || connection == dy || connection == dz){
-                continue; 
+            modified_direction ( &connection, x, y, z); 
+
+            if ( binary_search ( adrns.begin(), adrns.end(), connection) ) {
+            	break;
             }
             else {
-                std::cerr << "Shit, you have bad connectivity inside one (or maybe more) polymers. Check input file." << std::endl;
+            	std::cerr << "Shit, you have bad connectivity inside one (or maybe more) polymers. Check input file." << std::endl;
                 return false; 
             }
 
@@ -1772,14 +1771,14 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     
 
     dump_file << "End rotations                      - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << ".\n"; 
-    dump_file << "Kink jumps                         - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n"; 
-    dump_file << "Crank shafts                       - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n"; 
+    // dump_file << "Bond vibrations                    - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n"; 
+    // dump_file << "Crank shafts                       - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n"; 
     dump_file << "Reptation                          - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << ".\n"; 
     dump_file << "Chain regrowth                     - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << ".\n"; 
     dump_file << "Single solvent orientation flips   - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n"; 
     dump_file << "Single monomer orientation flips   - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << ".\n"; 
-    dump_file << "Multiple solvent orientation flips - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
-    dump_file << "Multiple monomer orientation flips - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n"; 
+    // dump_file << "Multiple solvent orientation flips - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
+    // dump_file << "Multiple monomer orientation flips - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n"; 
 
 }
 
@@ -1809,7 +1808,7 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* 
         for ( Particle*& p: pmer.chain ) {
             
             dump_file << p->orientation << " | ";
-            std::array <std::array<int,3> ,6> ne_list = obtain_ne_list (p->coords, x, y, z) ;
+            std::array <std::array<int,3>, 26> ne_list = obtain_ne_list (p->coords, x, y, z) ;
             
             for ( std::array <int,3>& ne: ne_list) {
                 
@@ -2155,7 +2154,7 @@ void KinkJump (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE
 //
 // THE CODE: 
 
-void BondVibration ( std::vector <Polymer>* Polymers, std::vector <Particle*> LATTICE, \
+void BondVibration ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory ){
 
@@ -2180,15 +2179,16 @@ void BondVibration ( std::vector <Polymer>* Polymers, std::vector <Particle*> LA
 	std::array <int,26> good_dx = {}; 
 	int count = 0, d_idx = 0; 
 
+	std::sort ( adrns.begin(), adrns.end() ); 
+
 	for ( std::array<int,3>& dx: adrns ){
 		// impose important condition on dx 
-		if ( ( std::find ( adrns.begin(), adrns.end(), add_arrays (&d1, &dx) ) != adrns.end() ) \ 
-			&& ( std::find ( adrns.begin(), adrns.end(), subtract_arrays (&d2, &dx) ) != adrns.end() )  ){
+		if ( ( std::binary_search (adrns.begin(), adrns.end(), add_arrays (&d1, &dx) ) ) && ( std::binary_search ( adrns.begin(), adrns.end(), subtract_arrays (&d2, &dx) ) ) ){
 
 			std::array <int,3> temp = add_arrays ( & ( (*Polymers)[index].chain[m_idx]->coords), &dx );
 			impose_pbc ( &temp, x, y, z); 
 
-			if ( ! (MonomerReporter (LATTICE, & (temp) ) ) ){
+			if ( ! (MonomerReporter (LATTICE, &(temp), y, z ) ) ) {
 				good_dx [count] = d_idx;
 				count += 1; 
 			}
@@ -2369,9 +2369,9 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>*
     int deg_poly = (*Polymers)[index].deg_poly; 
     std::array <int,3> loc0 = (*Polymers)[index].chain[0]->coords; 
     std::array <int,3> locf = (*Polymers)[index].chain[deg_poly-1]->coords;
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( locf, x, y, z ); 
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( locf, x, y, z ); 
     std::vector <std::array<int,3>> idx_v; 
-    idx_v.reserve(6); 
+    idx_v.reserve(26); 
 
     (*rweight) = 0; 
 
@@ -2385,7 +2385,6 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>*
             idx_v.push_back(to_check); 
         }
 
-		// else if ( ! ( MonomerReporter(Polymers, &to_check) )){
         else if ( ! (MonomerReporter (LATTICE, &to_check, y, z ) ) ){
 			(*rweight) += 1; 
 			idx_v.push_back(to_check);
@@ -2397,11 +2396,10 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>*
 		return;
 	}
 
-
 	int r = rng_uniform( 0, idx_v.size()-1 );
 	// if everything checks out, do the deed - make it slither forward 
-	// std::cout<<"new location is: "; print(idx_v[r]); 
-	// change the coordinates in (*Polymers)
+	
+
 	for (int i{0}; i<deg_poly; ++i){
 
 		if ( (*LATTICE)[ lattice_index (idx_v[r], y, z)]->ptype == 's' ){
@@ -2452,7 +2450,7 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>*
 
 
 
-	(*rweight) = (*rweight)/6; 
+	(*rweight) = (*rweight)/26; 
 
     return ; 
 
@@ -2502,9 +2500,9 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>
     int deg_poly = (*Polymers)[index].deg_poly; 
     std::array <int,3> loc0 = (*Polymers)[index].chain[deg_poly-1]->coords; 
     std::array <int,3> locf = (*Polymers)[index].chain[0]->coords;
-    std::array <std::array <int,3>, 6> ne_list = obtain_ne_list( locf, x, y, z ); 
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( locf, x, y, z ); 
     std::vector <std::array <int,3>> idx_v; 
-    idx_v.reserve(6);
+    idx_v.reserve(26);
 
     (*rweight) = 0.0; 
      
@@ -2519,7 +2517,6 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>
             idx_v.push_back(to_check); 
         }
 
-    	// else if ( ! (MonomerReporter(Polymers, &to_check) ) ){
         else if ( ! (MonomerReporter (LATTICE, &to_check, y, z) ) ){
     		(*rweight) += 1; 
     		idx_v.push_back(to_check); 
@@ -2582,7 +2579,7 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>
 		}
 	}
 	
-	(*rweight) = (*rweight)/6; 
+	(*rweight) = (*rweight)/26; 
 
     return ; 
 
@@ -2895,7 +2892,7 @@ void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 
 	else{
 		(*Polymers)[index_of_polymer].chain[index_of_monomer-1]->coords = ind_v[rng_uniform(0, rw_tmp-1)]; 
-		(*rweight) = (*rweight) * rw_tmp/6; 
+		(*rweight) = (*rweight) * rw_tmp/26; 
 		TailSpin (Polymers, index_of_polymer, index_of_monomer-1, x, y, z, IMP_BOOL, first_entry_bool, rweight); 
 	}
 
@@ -2946,10 +2943,7 @@ void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 		return ;
 	}
 
-	// unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-  	// std::shuffle (adrns.begin(), adrns.end(), std::default_random_engine(seed));
-    
-    // std::cout << "Current pivot point is "; print(  (*PVec) [index_of_polymer].chain[index_of_monomer].coords );
+	
 	int rw_tmp = 0; 
 	std::vector <std::array <int,3>> ind_v; 
 
@@ -2977,7 +2971,7 @@ void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 	else {
 		
 		(*Polymers)[index_of_polymer].chain[index_of_monomer+1]->coords = ind_v[rng_uniform(0, rw_tmp-1)]; 
-		(*rweight) = (*rweight) * rw_tmp/6; 
+		(*rweight) = (*rweight) * rw_tmp/26; 
 		HeadSpin (Polymers, index_of_polymer, index_of_monomer+1, deg_poly, x, y, z, IMP_BOOL, first_entry_bool, rweight);
 
 		}
@@ -3103,7 +3097,7 @@ void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	int x, int y, int z, double* rweight, int Nsurr, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ){
 
-	std::array <std::array<int,3>,6> ne_list; 
+	std::array <std::array<int,3>, 26> ne_list; 
 	std::vector <int> solvent_indices; 
 	// number of surrounding solvent molecules 
 	for ( Polymer& pmer: (*Polymers) ){
@@ -3172,7 +3166,7 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 	
 	// std::cout << "Size of Lattice is " << (*LATTICE).size() << std::endl;
 
-	std::array <std::array<int,3>,6> ne_list; 
+	std::array <std::array<int,3>, 26> ne_list; 
 	std::vector <int> solvent_indices; 
 	// number of surrounding solvent molecules 
 	for ( Polymer& pmer: (*Polymers) ){
@@ -3291,50 +3285,50 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	int* monomer_index, int* back_or_front, int Nsurr ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = rng_uniform(4, 7);
+    int r = rng_uniform (1, 5);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 
     switch (r) {
         case (1):
             if (v){
-               printf("Performing end rotations.\n"); 
+               printf("Performing end rotations...\n"); 
             }
             EndRotation		(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
             *move_number = 1;
             (*attempts)[0] += 1;
             break;  
-    	
+    	/*
         case (2):
             if (v){
-               printf("Performing kink jump.\n"); 
+               printf("Performing bond vibration...\n"); 
             }
-            KinkJump		(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
+            BondVibration	(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
             *move_number = 2; 
             (*attempts)[1] += 1;
             break;   
         
         case (3):
             if (v){
-               printf("Performing crank shaft.\n"); 
+               printf("Performing crank shaft...\n"); 
             }
             CrankShaft		(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
             *move_number = 3; 
             (*attempts)[2] += 1;
             break; 
-        
-        case (4):
+        */
+        case (2):
             if (v){
-               printf("Performing reptation.\n"); 
+               printf("Performing reptation...\n"); 
             }
             Reptation 		(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3); 
             *move_number = 4; 
             (*attempts)[3] += 1;
             break; 
         
-        case (5):
+        case (3):
         	if (v) {
-        		printf("Performing configuration sampling. \n"); 
+        		printf("Performing configuration sampling... \n"); 
         		// std::cout << "index of polymer is " << index << std::endl;
         	} 
         	ChainRegrowth 	(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3, monomer_index, back_or_front ); 
@@ -3343,18 +3337,18 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         	break;
         
         
-        case (6): 
+        case (4): 
         	if (v){
-        		printf("Performing single solvent orientation flips. \n");
+        		printf("Performing single solvent orientation flips... \n");
         	}
         	SolventFlipSingular (Polymers, LATTICE, x, y, z, rweight, Nsurr, memory2); 
             *move_number = 6; 
             (*attempts)[5] += 1;
         	break; 
         
-        case (7):
+        case (5):
             if (v) {
-                printf("Performing single monomer orientation flip. \n");
+                printf("Performing single monomer orientation flip... \n");
             }
             PolymerFlipSingular (Polymers, rweight, Nsurr, memory2); 
             *move_number = 7; 
@@ -3363,7 +3357,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         
         case (8):
         	if (v){
-        		printf("Performing polymer orientation flips. \n");
+        		printf("Performing polymer orientation flips... \n");
         	}
         	SolventFlip ( Polymers, LATTICE, x, y, z, rweight, Nsurr, memory2);
             *move_number = 8; 
@@ -3372,7 +3366,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         
         case (9):
             if (v) {
-                printf("Performing local polymer orientation flips. \n");
+                printf("Performing local polymer orientation flips... \n");
             }
             PolymerFlip ( Polymers, rweight, Nsurr, memory2); 
             *move_number = 9; 
@@ -3418,7 +3412,7 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 
 		case (2):
 			if (v) {
-				printf("Reversing kink jump...\n");
+				printf("Reversing bond vibration...\n");
 			}
 
 			// swap pointers 

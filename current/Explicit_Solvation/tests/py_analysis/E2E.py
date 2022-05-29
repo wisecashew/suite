@@ -14,55 +14,6 @@ parser.add_argument('-i', metavar=': input coordinate file from which Rg is calc
 parser.add_argument('-e', metavar=': edge length of the box in which the simulation was conducted', type=int, dest='e', action='store', help='enter the edge length of the cubic simulation box')
 args = parser.parse_args() 
 
-def extract_loc_from_string(a_string):
-    loc = [int(word) for word in a_string.split() if word.isdigit()]
-    
-    return np.asarray(loc) 
-
-def modified_modulo(divident, divisor):
-    midway = divisor/2
-    if (divident%divisor > midway):
-        result = (divident%divisor)-divisor 
-        return result
-    else:
-        return divident%divisor         
-
-
-def unfuck_polymer(polymer, x, y, z): 
-    unfucked_polymer = np.asarray([polymer[0,:]])
-    
-    for i in range ( polymer.shape[0]-1 ) :
-        diff = polymer[i+1,:] - polymer[i,:]
-        
-        for j in range(3):
-            diff[j] = modified_modulo(diff[j], x)
-        
-        unfucked_polymer = np.vstack( (unfucked_polymer, unfucked_polymer[i]+diff ) )
-    
-    return unfucked_polymer         
-
-
-def get_Rg(coord_arr, xlen, ylen, zlen):
-    
-    coord_arr = unfuck_polymer(coord_arr, xlen, ylen, zlen)
-    
-    # for i in range(coord_arr.shape[0]):
-    #     for j in range(coord_arr.shape[1]): 
-    #        coord_arr[i,j] = modified_modulo(coord_arr[i,j], xlen) 
-    
-    r_com = np.mean(coord_arr, axis=0) 
-    N = coord_arr.shape[0]
-    rsum = 0
-    
-    # sc_coords = np.zeros((1,3))
-    
-    for i in range(N): 
-        rsum += np.linalg.norm( coord_arr[i,:]- r_com ) 
-    
-    rsum = rsum/N 
-    
-    return rsum 
-
 def get_e2e(coord_arr, xlen, ylen, zlen): 
     coord_arr = unfuck_polymer(coord_arr, xlen, ylen, zlen) 
     

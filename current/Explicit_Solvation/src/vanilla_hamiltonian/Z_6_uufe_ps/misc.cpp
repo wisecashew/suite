@@ -1763,7 +1763,7 @@ void dumpEnergy (double sysEnergy, int step, double mm_aligned, double mm_nalign
 
 void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* acceptances, int step, std::string stats_file){
     
-    std::ofstream dump_file (stats_file, std::ios::app); 
+    std::ofstream dump_file (stats_file, std::ios::out); 
     dump_file << "For step " << step << ".\n";
     
 
@@ -2441,7 +2441,7 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>
     	return;
     }
 
-	int r = rng_uniform( 0, idx_v.size()-1 );
+	int r = rng_uniform ( 0, idx_v.size()-1 );
 	// std::cout<<"new location is: "; print(idx_v[r]); 
 	for (int i{0}; i <deg_poly; ++i){
 
@@ -2538,7 +2538,7 @@ void Reptation (std::vector<Polymer>* Polymers, std::vector <Particle*>* LATTICE
     std::mt19937 generator(seed); 
     std::uniform_int_distribution<int> distribution (0,1); 
     int num = distribution(generator); 
-    // std::cout << "rng is " << num << std::endl;
+
     if (num==0){
         // std::cout << "Backward reptation only!" << std::endl;
         BackwardReptation (Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory); 
@@ -2587,14 +2587,14 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	// decide which end of the polymer do i want to move around 
     bool first_entry_bool = true; 
 
-	*back_or_front = 1; // rng_uniform(0, 1); 
+	*back_or_front = rng_uniform(0, 1); 
 
 	std::vector <std::array<int,3>> old_cut;
 	std::vector <std::array <int,3>> new_cut;	
 	
 
-	if (*back_or_front == 0){
-		
+	if ( *back_or_front == 0 ) {
+	    // std::cout << "Performing tailspin.\n";	
 		old_cut.reserve (*index_monomer);
 		new_cut.reserve (*index_monomer);
 
@@ -2605,17 +2605,16 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 		if ( !(*IMP_BOOL) ){
 
-			std::cout << "TailSpin was terminated early because there was no way to go forward. " << std::endl;
+			// std::cout << "TailSpin was terminated early because there was no way to go forward. " << std::endl;
 			for (int i{0}; i<*index_monomer; ++i){
 
 				(*Polymers)[0].chain.at(i)->coords = old_cut.at(i); 
 
 			}
 
-		// (*Polymers) [0].ChainToConnectivityMap();
 		return; 
-
-		}
+		
+        }
 
 		for ( int i{0}; i < *index_monomer; ++i ){
 			new_cut.push_back ( (*Polymers)[index_of_polymer].chain[i]->coords );
@@ -2629,7 +2628,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 		create_linked_list ( (*memory).first, (*memory).second, link, &master_linked_list, 1); 
 
-		for ( std::vector <std::array<int,3>>& linked_list: master_linked_list){
+		for ( std::vector <std::array<int,3>>& linked_list: master_linked_list ){
 			
 			if ( (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype == 's' ){
 				
@@ -2648,7 +2647,8 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	}
 
 	else {
-
+        
+        // std::cout << "Performing headspin.\n"; 
 		old_cut.reserve (deg_of_poly-(*index_monomer));
 		new_cut.reserve (deg_of_poly-(*index_monomer));
 
@@ -2661,7 +2661,6 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 				(*Polymers)[0].chain.at(i)->coords = old_cut[i-(*index_monomer+1)]; 
 			}
 
-		// (*Polymers) [0].ChainToConnectivityMap();
 		return; 
 
 		}
@@ -2759,7 +2758,8 @@ std::vector <std::array <int,3>> extract_positions_head (std::vector <Particle*>
 // THE CODE: 
 //////////////////////////////////////////////////////////////
 
-void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
+void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, \
+                int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
 
 	// std::cout << "index of monomer is " << index_of_monomer << std::endl;
     
@@ -2839,7 +2839,8 @@ void TailSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 // THE CODE: 
 //////////////////////////////////////////////////////////////
 
-void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
+void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, \
+                int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight){
     
      if (*first_entry_bool){
      	(*rweight) = 1; 
@@ -2902,7 +2903,6 @@ void HeadSpin (std::vector <Polymer>* Polymers, int index_of_polymer, int index_
 //             End of TailSpin
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
 
 
 bool checkOccupancyTail(std::array <int,3>* loc, std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer){
@@ -3201,7 +3201,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	int* monomer_index, int* back_or_front, int Nsurr ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = rng_uniform(1, 7);
+    int r = rng_uniform(4, 7);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 

@@ -1,4 +1,4 @@
-#!/usr/licensed/anaconda3/2020.7/bin/python
+#!/home/satyend/.conda/envs/data_analysis/bin/python
 
 import pandas as pd 
 import numpy as np 
@@ -13,6 +13,9 @@ import matplotlib.pyplot as plt
 import multiprocessing 
 import itertools 
 import sys 
+import copy
+import time
+import scipy.spatial.distance as ssd
 
 sys.stdout.flush() 
 
@@ -23,14 +26,23 @@ shebang for homemachine: #!/usr/bin/env python3
 
 ###########################################################################
 ###########################################################################
+# Description: Looks at a string of form: "a | b | c | d"
+# gets rid of the whitespace, and looks at all the other elements. 
+# If it is an int, it holds it in loc 
 
 def extract_loc_from_string(a_string):
     loc = [int(word) for word in a_string.split() if word.isdigit()]
     
     return np.asarray(loc)     
 
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ###########################################################################
 ###########################################################################
+# Description: Looks at a divident and divisor. It is a play on the original modulo function. 
+# The regular % n return numbers from 0 to n-1.
+# modified_modulo returns numbers from -n/2+1 to n/2
 
 def modified_modulo(divident, divisor):
     midway = divisor/2
@@ -40,8 +52,14 @@ def modified_modulo(divident, divisor):
     else:
         return divident%divisor         
 
+# End of function 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #############################################################################
 #############################################################################
+# Description: Custom function for my particular set of simulations. 
+# it will give edge length of a simulation cell based of N i.e. the degree of 
+# polymerization. 
 
 def edge_length(N):
     
@@ -51,8 +69,13 @@ def edge_length(N):
     else:
         return adj
 
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #############################################################################
 #############################################################################
+# Description: When inside a directory, this function will figure out how many simulations
+# were run. 
 
 def dir2nsim (list_of_dirs):
     l = [] 
@@ -63,8 +86,30 @@ def dir2nsim (list_of_dirs):
     l.sort() 
     return l
 
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 ############################################################################
-#############################################################################
+############################################################################
+# Description: When inside a directory, this function will find all the RG_DATA files
+# and sort them according to degree of polymerization 
+
+def dir2RGDATA (list_of_dirs):
+    l = [] 
+    for dir_name in list_of_dirs:
+        r = re.findall ("^RG_DATA_", dir_name)
+        if (r):
+            l.append ( int(dir_name[8:] ) )
+    l.sort()
+    return l
+
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+############################################################################
+############################################################################
+# Description: When inside a directory, this function will figure out how
+# many temperatures were sampled. 
 
 def dir2temp (list_of_dirs):
     l = [] 
@@ -75,24 +120,34 @@ def dir2temp (list_of_dirs):
     l.sort() 
     return l
 
-############################################################################
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #############################################################################
+#############################################################################
+# Description: The polymer in the coordinate file is subjected to periodic boundary conditions
+# so the coordinates cannot be processed directly. They need to be "unfucked" (unwrapped).
 
 def unfuck_polymer(polymer, x, y, z): 
-    unfucked_polymer = np.asarray([polymer[0,:]])
-    
+    unfucked_polymer = copy.copy(polymer) # np.asarray([polymer[0,:]])
+     
     for i in range ( polymer.shape[0]-1 ) :
         diff = polymer[i+1,:] - polymer[i,:]
         
         for j in range(3):
-            diff[j] = modified_modulo(diff[j], x)
+            diff[j] = diff[j] if np.abs(diff[j])==1 else -1*np.sign(diff[j])
         
-        unfucked_polymer = np.vstack( (unfucked_polymer, unfucked_polymer[i]+diff ) )
+        unfucked_polymer[i+1] = unfucked_polymer[i]+diff # np.vstack( (unfucked_polymer, unfucked_polymer[i]+diff ) )
     
     return unfucked_polymer         
 
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #############################################################################
 #############################################################################
+# Description: If the directory names are all floats, this function will get a list of floats from it.
+# primarily used to get the range of temperatures. 
 
 def dir2float (list_of_dirs):
     l = [] 
@@ -104,8 +159,13 @@ def dir2float (list_of_dirs):
     l.sort()
     return l 
 
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 #############################################################################
 #############################################################################
+# Description: Given a directory with files labelled UX, I want to get a list of all of these U files
+# and then have them sorted. 
 
 def dir2U (list_of_dirs):
     l = [] 
@@ -117,53 +177,80 @@ def dir2U (list_of_dirs):
     l = sorted(l, key=lambda x: int(x[1:]) )
     return l
 
-#############################################################################
-#############################################################################
-
-def get_Rg(coord_arr, xlen, ylen, zlen):
-    
-    coord_arr = unfuck_polymer(coord_arr, xlen, ylen, zlen)
-    
-    r_com = np.mean(coord_arr, axis=0) 
-    N = coord_arr.shape[0]
-    rsum = 0
-    
-    for i in range(N): 
-        rsum += np.linalg.norm( coord_arr[i,:]- r_com )**2 
-    
-    rsum = np.sqrt(rsum/N)
-    
-    return rsum
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #############################################################################
 #############################################################################
+# Description: Given the dictionary which contains the coordinates of a polymer at all time points 
+# in a trajectory, this function gives me the MEAN radius of gyration FOR THAT TRAJECTORY. 
+
+def get_Rg(master_dict, xlen, ylen, zlen):
+    
+    N = master_dict [ next(iter(master_dict)) ][0].shape[0] 
+    
+    count = 0
+    rg    = 0
+
+    for key in master_dict: 
+        coord_arr = unfuck_polymer ( master_dict[key][0], xlen, ylen, zlen )
+        r_com = np.mean( coord_arr, axis=0) # get center of mass 
+        offset = coord_arr - r_com 
+        rg += np.sqrt ( np.sum ( np.square (offset) )/ N )
+        count += 1
+        
+    return rg/count
+
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+def get_Rg_list(master_dict, xlen, ylen, zlen):
+    
+    N = master_dict [ next(iter(master_dict)) ][0].shape[0] 
+    
+    rg_list    = []
+
+    for key in master_dict: 
+        coord_arr = unfuck_polymer ( master_dict[key][0], xlen, ylen, zlen )
+        r_com = np.mean( coord_arr, axis=0) # get center of mass 
+        offset = coord_arr - r_com 
+        rg_list.append( np.sqrt ( np.sum ( np.square (offset) )/ N ) )
+        
+    return rg_list
+
+
+
+
+#############################################################################
+#############################################################################
+# Description: Given the dictionary which contains the coordinates of a polymer at all time points
+# in a trajectory, this function gives me the hydrodynamic radius of that polymer FOR THAT TRAJECTORY. 
 
 def get_Rh(master_dict, xlen, ylen, zlen):
+    
     N = master_dict[ next(iter(master_dict)) ][0].shape[0]
     
-    inverse_distance = np.zeros(int(N*(N-1)/2)) 
-    # tot_steps = len(master_dict) 
     count = 0
+    Rh    = 0 
     for key in master_dict: 
         coord_arr = unfuck_polymer(master_dict[key][0], xlen, ylen, zlen)
-        # print(coord_arr)
-        k = 0
         count += 1 
-        for i in range(N-1):
-            for j in range(i+1,N):
-                inverse_distance[k] += 1/(np.linalg.norm( coord_arr[i] - coord_arr[j], 2 ) ) 
-                k += 1
-    ens_average = np.sum(inverse_distance)/count  
-    hydrodynamic_radius = 1/ ( ens_average/N**2 )  
+        Rh += np.sum( 1 / ssd.pdist ( coord_arr, 'euclidean' ) )
+    
+    ens_average = Rh/count  
+    avg_hydrodynamic_radius = 1/( ens_average/N**2 )  
 
-    return hydrodynamic_radius 
+    return avg_hydrodynamic_radius 
+
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #############################################################################
 #############################################################################
+# Description: Given a trajectory, grab the coordinates of the polymer and load them into a dictionary. 
+# this will allow easy access to these coordinates. 
 
-def get_pdict(filename, starting_step, x, y, z):
-    f = open(filename, 'r')
-    coord_file = f.readlines() 
+def get_pdict(filename, starting_step, dop, x, y, z):
     
     st_b_str = "Dumping coordinates at step" 
     pmer_num_str = "Dumping coordinates of Polymer"
@@ -183,8 +270,9 @@ def get_pdict(filename, starting_step, x, y, z):
 
     # given a string, it will extract all numbers out in chronological order 
     # and put them in a numpy array 
-    
-    for line in coord_file:
+    m_index = 0 
+    f = open (filename, 'r')
+    for line in f:
         if ( re.search(st_b_str, line) ):
             
             step_num = int ( ( extract_loc_from_string ( line.replace('.', ' ') ) ) )
@@ -208,7 +296,7 @@ def get_pdict(filename, starting_step, x, y, z):
 
         elif ( re.search(pmer_num_str, line) ) and starting_bool:
             pmer_flag += 1
-            master_dict[step_num][pmer_flag] = np.empty ( (0,3) ) 
+            master_dict[step_num][pmer_flag] = np.empty ( (dop,3) ) 
             continue 
 
         elif ( re.search(end_str_1, line) ) and starting_bool: 
@@ -218,343 +306,74 @@ def get_pdict(filename, starting_step, x, y, z):
             continue 
 
         elif ( re.search(end_str_2, line) ) and starting_bool:
+            m_index = 0 
+            # print ("index completed: ", step_num)
             continue 
 
         elif ( starting_bool ):
             # print ( "step_num is " + str(step_num) )
             monomer_coords                   = extract_loc_from_string ( line ) 
-            master_dict[step_num][pmer_flag] = np.vstack ( (master_dict[step_num][pmer_flag], monomer_coords[0:-1] ) ) 
+            master_dict[step_num][pmer_flag][m_index] = monomer_coords[0:-1] 
+            m_index += 1
             continue
     
+    f.close() 
     return master_dict
+
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #############################################################################
 #############################################################################
+# Description: This function is meant for the parallelism of plot_rg_parallel. 
+# Given a potential energy surface, temperature, degree of polymerization, name of coordinates file 
+# and the starting index, this function will go in and get the mean RADIUS OF GYRATION for THAT trajectory. 
 
 def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
     filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num) 
-    # print (filename, flush=True)
     edge = edge_length (dop)
-    master_dict = get_pdict (filename, starting_index, edge, edge, edge)
+    master_dict = get_pdict (filename, starting_index, dop, edge, edge, edge)
 
-    rg = np.asarray([]) 
+    # for key in master_dict:
+    #    print ("key is ", key)
+    #    print ("coordinates are: \n", master_dict[key][0] )
 
-    for key in master_dict: 
-        rg = np.hstack ( (rg, get_Rg(master_dict[key][0], edge, edge, edge) ) )
+    rg = get_Rg(master_dict, edge, edge, edge) 
     
-    # print ("Is this happening?" + str(U) + str(T), flush=True)
     return rg 
 
+# End of function.
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+# def infilitrate_coords_get_rg_tensor ( U, T, num, dop, coord_files, starting_index):
+
+
 
 
 #############################################################################
 #############################################################################
-
+# Description: This function is meant for the parallelism of plot_rh_parallel. 
+# Given a potential energy surface, temperature, degree of polymerization, name of coordinates file
+# and the starting index, this function will go in and get the HYDRODYNAMIC RADIUS for THAT trajectory. 
 
 def infiltrate_coords_get_rh ( U, T, num, dop, coords_files, starting_index ):
 
     filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num) 
-    print (filename, flush=True)
+    # print (filename, flush=True)
     edge = edge_length (dop)
-    master_dict = get_pdict (filename, starting_index, edge, edge, edge)
-
-    rh = np.asarray([]) 
-
-    # for key in master_dict: 
-    rh = np.hstack ( (rh, get_Rh(master_dict, edge, edge, edge) ) )
+    master_dict = get_pdict (filename, starting_index, dop, edge, edge, edge) 
+    rh = get_Rh(master_dict, edge, edge, edge) 
 
     return rh 
 
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 #############################################################################
 #############################################################################
-
-
-def plot_rg ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
-
-    U_list = dir2U ( os.listdir (".") )
-    # dop          = args.dop
-        
-    if excl_vol_bool:
-        U_list.append("Uexcl")
-
-    # print (edge_length(dop))
-    fig = plt.figure( figsize=(8,6) )
-    ax  = plt.axes() 
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
-    i = 0 
-    Tmax = []  
-    for U in U_list:
-        rg_mean = np.array([]) 
-        rg_std  = np.array([])      
-        temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
-        Tmax.append ( np.max(temperatures) )
-        
-        for T in temperatures:
-            
-            num_list = np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) )
-
-            pool = multiprocessing.Pool (processes=len(num_list)) 
-
-            print("coords_files = " + coords_files, flush=True)
-
-            with pool as p:
-                results = p.starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), \
-                    itertools.repeat(T), num_list, itertools.repeat(dop), itertools.repeat(coords_files), \
-                    itertools.repeat(starting_index) ) )
-            print(len(results), flush=True)
-            # close the pool 
-            pool.close() 
-            pool.join() 
-            
-            rg = np.array([]) 
-            for r in results:
-                rg = np.hstack ( (rg, r) )
-            rg_mean = np.hstack ( ( rg_mean, np.mean(rg) ) )         
-            rg_std  = np.hstack ( ( rg_std , np.std(rg)/np.sqrt( len(num_list) ) ) ) 
-            
-        
-        if (U == "Uexcl"):
-            ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, linewidth=3 )
-        else:
-            ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
-        i+=1 
-    
-    ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
-    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$R_g ^2$", fontsize=18)     
-    ax.set_xticks ( np.arange(0, np.max(Tmax)+1, 1 ) )
-    plt.savefig   ( "DOP_"+str(dop)+"_rg.png", dpi=1200)
-    if show_plot_bool:
-        plt.show() 
-
-
-#############################################################################
-#############################################################################
-
-
-def plot_rg_multi ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
-
-    U_list = dir2U ( os.listdir (".") )
-    # dop          = args.dop
-        
-    if excl_vol_bool:
-        U_list.append("Uexcl")
-
-    # print (edge_length(dop))
-    fig = plt.figure( figsize=(8,6) )
-    ax  = plt.axes() 
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
-    i = 0 
-    Tmax = []  
-    for U in U_list:
-        rg_mean = np.array([]) 
-        rg_std  = np.array([])      
-        temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
-        Tmax.append ( np.max(temperatures) )
-        
-        # get num_list for each temperature 
-        master_temp_list = [] 
-        master_num_list = [] 
-        rg_dict    = {}
-        ntraj_dict = {}
-        for T in temperatures: 
-            num_list = np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) )
-            master_num_list.extend (list( num_list ) )
-            master_temp_list.extend ( [T]*len( num_list ) )
-            ntraj_dict[T] = len ( num_list )
-            rg_dict[T] = np.asarray([]) 
-
-
-        # start multiprocessing... 
-
-        pool = multiprocessing.Pool ( processes=len(master_temp_list) ) # len(num_list)) 
-        with pool as p:
-            results = p.starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_temp_list, master_num_list, itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index) ) )
-
-        # print (len(results))
-        pool.close()
-        pool.join() 
-
-        print ("Pool has been closed. This pool has {} threads.".format (len(results) ) )     
-
-        for k in range(len(master_temp_list)):
-            rg_dict[master_temp_list[k]] = np.hstack ( (rg_dict[master_temp_list[k]], results[k]) )
-        
-        rg_mean = np.asarray([])
-        rg_std  = np.asarray([])  
-        for T in temperatures:
-            rg_mean = np.hstack ( (rg_mean, np.mean ( rg_dict[T] ) ) )
-            rg_std  = np.hstack ( (rg_std , np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) )
-
-        if (U == "Uexcl"):
-            ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, linewidth=3 )
-        else:
-            ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
-        i+=1 
-    
-    my_cmap = cm.copper 
-    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
-    
-    cbar = plt.colorbar(sm, orientation='vertical') 
-    cbar.set_ticks ( [0, 1] )
-    cbar.set_ticklabels( ["Poor solvent", "Good solvent"] ) 
-    cbar.ax.set_ylabel ("Solvent quality", fontsize=18, rotation=270)
-    ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
-    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\langle R_g \\rangle$", fontsize=18)     
-    ax.set_xticks ( np.arange(0, np.max(Tmax)+1, 1 ) )
-    plt.savefig   ( "DOP_"+str(dop)+"_rg.png", dpi=1200)
-    if show_plot_bool:
-        plt.show() 
-
-
-
-#############################################################################
-#############################################################################
-
-
-def plot_rh ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
-
-    U_list = dir2U ( os.listdir (".") )
-    # dop          = args.dop
-        
-    if excl_vol_bool:
-        U_list.append("Uexcl")
-
-    # print (edge_length(dop))
-    fig = plt.figure( figsize=(8,6) )
-    ax  = plt.axes() 
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
-    i = 0 
-    Tmax = []  
-    for U in U_list:
-        rh_mean = np.array([]) 
-        rh_std  = np.array([])      
-        temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
-        Tmax.append ( np.max(temperatures) )
-        
-        for T in temperatures:
-            
-            num_list = np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) )
-
-            pool = multiprocessing.Pool (processes=len(num_list)) 
-
-            print("coords_files = " + coords_files, flush=True)
-
-            with pool as p:
-                results = p.starmap ( infiltrate_coords_get_rh, zip( itertools.repeat(U), \
-                    itertools.repeat(T), num_list, itertools.repeat(dop), itertools.repeat(coords_files), \
-                    itertools.repeat(starting_index) ) )
-            print(len(results), flush=True)
-            
-            # close the pool 
-            pool.close() 
-            pool.join() 
-            
-            rh = np.array([]) 
-            for r in results:
-                rh = np.hstack ( (rh, r) )
-            rh_mean = np.hstack ( ( rh_mean, np.mean(rh) ) )         
-            rh_std  = np.hstack ( ( rh_std , np.std(rh)/np.sqrt( len(num_list) ) ) ) 
-            
-        
-        if (U == "Uexcl"):
-            ax.errorbar   ( temperatures, rh_mean, yerr=rh_std, linewidth=3, elinewidth=1, capsize=0 )
-        else:
-            ax.errorbar   ( temperatures, rh_mean, yerr=rh_std, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
-        i+=1 
-    
-    ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
-    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$R_h$", fontsize=18)     
-    ax.set_xticks ( np.arange(0, np.max(Tmax)+1, 1 ) )
-    plt.savefig   ( "DOP_"+str(dop)+"_rg.png", dpi=1200)
-    if show_plot_bool:
-        plt.show() 
-
-
-#############################################################################
-#############################################################################
-
-
-def plot_rh_multi ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
-
-    U_list = dir2U ( os.listdir (".") )
-        
-    if excl_vol_bool:
-        U_list.append("Uexcl")
-
-    # print (edge_length(dop))
-    fig = plt.figure( figsize=(8,6) )
-    ax  = plt.axes() 
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
-    i = 0 
-    Tmax = []  
-    for U in U_list:
-        rh_mean = np.array([]) 
-        rh_std  = np.array([])      
-        temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
-        Tmax.append ( np.max(temperatures) )
-        
-        # get num_list for each temperature 
-        master_temp_list = [] 
-        master_num_list = [] 
-        rh_dict    = {}
-        ntraj_dict = {}
-        for T in temperatures: 
-            num_list = np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) )
-            master_num_list.extend (list( num_list ) )
-            master_temp_list.extend ( [T]*len( num_list ) )
-            ntraj_dict[T] = len ( num_list )
-            rh_dict[T] = np.asarray([]) 
-
-
-        # start multiprocessing... 
-
-        pool = multiprocessing.Pool ( processes=len(master_temp_list) ) # len(num_list)) 
-        with pool as p:
-            results = p.starmap ( infiltrate_coords_get_rh, zip( itertools.repeat(U), master_temp_list, \
-                master_num_list, itertools.repeat(dop), itertools.repeat(coords_files), \
-                itertools.repeat(starting_index) ) )
-
-        # print (len(results))
-        pool.close()
-        pool.join() 
-
-         
-
-        for i in range(len(master_temp_list)):
-            rh_dict[master_temp_list[i]] = np.hstack ( (rh_dict[master_temp_list[i]], results[i]) )
-        
-        rh_mean = np.asarray([])
-        rh_std  = np.asarray([])  
-        for T in temperatures:
-            rh_mean = np.hstack ( (rh_mean, np.mean ( rh_dict[T] ) ) )
-            rh_std  = np.hstack ( (rh_std , np.std  ( rh_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) )
-
-        if (U == "Uexcl"):
-            ax.errorbar   ( temperatures, rh_mean, yerr=rh_std, linewidth=3 )
-        else:
-            ax.errorbar   ( temperatures, rh_mean, yerr=rh_std, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
-        i+=1 
-    
-    ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
-    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$R_g ^2$", fontsize=18)     
-    ax.set_xticks ( np.arange(0, np.max(Tmax)+1, 1 ) )
-    plt.savefig   ( "DOP_"+str(dop)+"_rg.png", dpi=1200)
-    if show_plot_bool:
-        plt.show() 
-
-
-#############################################################################
-#############################################################################
+# ALL GET FLORY FUNCTIONS NEED TO BE TESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# DATE: MAY 26, 2022
 
 def get_flory(U, T, dop_list):
     
@@ -578,9 +397,11 @@ def get_flory(U, T, dop_list):
     
     return L[0]/2
 
+# NOT YET TESTED@!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #############################################################################
 #############################################################################
-
+# ALL GET FLORY FUNCTIONS NEED TO BE TESTED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# DATE: MAY 26, 2022
 
 def plot_flory_multi ( U, T, starting_index, coords_files, show_plot_bool ):
 
@@ -616,18 +437,79 @@ def plot_flory_multi ( U, T, starting_index, coords_files, show_plot_bool ):
 
     return L[0]/2 
 
+# NOT YET TESTED@!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ##########################################################################
 ##########################################################################
+# Description: This function is meant for plotting RADIUS OF GYRATION over
+# a. a single U values 
+# b. a single T value 
+# c. In a single plot 
+# d. For a given degree of polymerization 
+# MEANT FOR TESTING, primarily. Need to check if things are working as expected 
+# at a smaller, more testable scale. 
+# This function has been parallelized to improve wall-clock time!
 
-def plot_rg_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
+def plot_rg_parallelized_single ( U, T, dop, starting_index, traj_num, coords_file ): 
+    
+    fig = plt.figure( figsize=(8,6) )
+    ax = plt.axes() 
+    ax.tick_params(axis='x', labelsize=16)
+    ax.tick_params(axis='y', labelsize=16) 
 
+    i    = 0
+    
+    edge = edge_length(dop)
+
+    print ("Inside U = " + str(U) + ", and N = " + str(dop), flush=True) 
+    filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(traj_num)  
+    master_dict = get_pdict ( filename, starting_index, dop, edge, edge, edge )
+
+    rg_mean = get_Rg_list ( master_dict, edge, edge, edge )
+
+    # for testing purposes: 
+    
+    ax.plot ( range(0, len(rg_mean)), rg_mean, marker='o', markeredgecolor='k', \
+            markeredgewidth=0.5, linestyle='-', linewidth=0.5, label='_no_lengend') 
+    ax.set_xscale('log')
+    plt.savefig( "DOP_"+str(dop)+U+"_rg.png", dpi=800 ) 
+    plt.show() 
+
+    return None
+
+
+##########################################################################
+##########################################################################
+# Description: This function is meant for plotting RADIUS OF GYRATION over 
+# a. Multiple U values 
+# b. Multiple T values 
+# c. In a single plot
+# d. For a given degree of polymerization values
+# Important and relatively involved/complex. 
+# This function has been parallelized to improve wall-clock time! 
+
+def plot_rg_parallelized ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
+    
     U_list = dir2U ( os.listdir (".") )
-    # dop          = args.dop
         
     if excl_vol_bool:
         U_list.append("Uexcl")
 
-    # print (edge_length(dop))
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(axis='x', labelsize=16)
@@ -647,8 +529,8 @@ def plot_rg_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
     for U in U_list:
         f.write ( "U = " + str(U) + ":\n" )
         print("Inside U = " + U + ", and N = " + str(dop), flush=True )
-        rg_mean = np.array([]) 
-        rg_std  = np.array([]) 
+        rg_mean = [] 
+        rg_std  = [] 
         temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
         Tmax.append ( np.max(temperatures) )
         
@@ -659,11 +541,11 @@ def plot_rg_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
         ntraj_dict = {}
         for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
-            num_list = np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) )
-            master_num_list.extend (list( num_list ) )
+            num_list = list(np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
+            master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )
-            rg_dict[T] = np.asarray([]) 
+            rg_dict[T] = []
 
 
         # start multiprocessing... keeping in mind that each node only has 96 cores 
@@ -678,9 +560,6 @@ def plot_rg_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
         mnum_list_p3  = master_num_list[100:105] 
         mnum_list     = [mnum_list_p1, mnum_list_p2, mnum_list_p3] 
 
-        rg_mean = np.asarray([])
-        rg_std  = np.asarray([]) 
-        
         # it is a shitty dict 
         shitty_dict = {0:0, 1:0, 2:1 }
 
@@ -698,17 +577,17 @@ def plot_rg_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
             print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )     
 
             for k in range(len(mtemp_list[uidx])):
-                rg_dict[mtemp_list[uidx][k]] = np.hstack ( (rg_dict[mtemp_list[uidx][k]], results[k]) )
+                rg_dict[mtemp_list[uidx][k]].append( results[k] )
         
             for T in np.unique (mtemp_list[uidx]):
-                rg_mean = np.hstack ( (rg_mean, np.mean ( rg_dict[T] ) ) )
-                rg_std  = np.hstack ( (rg_std , np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) )
+                rg_mean.append( np.mean ( rg_dict[T] ) ) 
+                rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) 
         
         
         if (U == "Uexcl"):
             ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, linewidth=3 )
         else:
-            ax.errorbar   ( temperatures, rg_mean, yerr=rg_std, fmt='o', markeredgecolor='k', \
+            ax.errorbar   ( temperatures, rg_mean/np.sqrt(dop), yerr=rg_std/np.sqrt(dop), fmt='o', markeredgecolor='k', \
                     linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
         
         f.write("Rg: ") 
@@ -741,25 +620,36 @@ def plot_rg_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
     cbar.set_ticks ( [0, 1] )
     cbar.set_ticklabels( ["Poor solvent", "Good solvent"] ) 
     cbar.ax.set_ylabel ("Solvent quality", fontsize=18, rotation=270)
+    ax.set_xscale('log')
     ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\langle R_g \\rangle$", fontsize=18)     
-    ax.set_xticks ( np.arange(0, np.max(Tmax)+1, 1 ) )
-    plt.savefig   ( "DOP_"+str(dop)+"_rg.png", dpi=1200)
+    ax.set_ylabel ( "$\\langle R_g \\rangle/\sqrt{N}$", fontsize=18)     
+    ax.set_xticks ( np.arange(np.min(Tmax), np.max(Tmax)+1, 1 ) )
+    plt.savefig   ( "DOP_"+str(dop)+"_rg.png", dpi=800)
+    
     if show_plot_bool:
         plt.show() 
 
+    return None
 
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #############################################################################
-#############################################################################
+############################################################################
 
 ##########################################################################
 ##########################################################################
+# Description: This function is meant for plotting HYDRODYNAMIC RADIUS over 
+# a. Multiple U values 
+# b. Multiple T values 
+# c. In a single plot
+# d. For a given degree of polymerization values
+# Important and relatively involved/complex. 
+# This function has been parallelized to improve wall-clock time! 
 
-def plot_rh_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
+def plot_rh_parallelized ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
 
     U_list = dir2U ( os.listdir (".") )
-    # dop          = args.dop
         
     if excl_vol_bool:
         U_list.append("Uexcl")
@@ -772,19 +662,19 @@ def plot_rh_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
     i = 0 
     Tmax = [] 
 
-
     # instantiating pool
     pool1 = multiprocessing.Pool ( processes=50 )# len(num_list)) 
     pool2 = multiprocessing.Pool ( processes=5 )
     
     pool_list = [pool1, pool2]
-    print("dop is " + str(dop)) 
+    
     f = open("RH_DATA_"+str(dop), "w") 
 
     for U in U_list:
-        print("Inside U = " + U + ", and N = " + str(dop), flush=True )
-        rh_mean = np.array([]) 
-        rh_std  = np.array([]) 
+        f.write("U = " + U + ":\n")
+        # print("Inside U = " + U + ", and N = " + str(dop), flush=True )
+        rh_mean = [] 
+        rh_std  = [] 
         temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
         Tmax.append ( np.max(temperatures) )
         
@@ -795,11 +685,11 @@ def plot_rh_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
         ntraj_dict = {}
         for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
-            num_list = np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) )
-            master_num_list.extend (list( num_list ) )
+            num_list = list( np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) )  ) )
+            master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )
-            rh_dict[T] = np.asarray([]) 
+            rh_dict[T] = []
 
 
         # start multiprocessing... keeping in mind that each node only has 96 cores 
@@ -814,34 +704,31 @@ def plot_rh_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
         mnum_list_p3  = master_num_list[100:105] 
         mnum_list     = [mnum_list_p1, mnum_list_p2, mnum_list_p3] 
 
-        rh_mean = np.asarray([])
-        rh_std  = np.asarray([]) 
-        
         # it is a shitty dict 
-        shitty_dict = {0:0, 1:0, 2:1 }
+        shitty_dict = {0:0, 1:0, 2:1}
 
         for uidx in range(3):
             
-            results = pool_list[ shitty_dict[uidx] ] .starmap ( infiltrate_coords_get_rh, zip( itertools.repeat(U), mtemp_list[uidx],\
-                     mnum_list[uidx], itertools.repeat(dop), \
+            results = pool_list[ shitty_dict[uidx] ] .starmap ( \
+                    infiltrate_coords_get_rh, zip( itertools.repeat(U), mtemp_list[uidx],\
+                    mnum_list[uidx], itertools.repeat(dop), \
                     itertools.repeat(coords_files), itertools.repeat(starting_index) ) )
 
             print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )     
 
             for k in range(len(mtemp_list[uidx])):
-                rh_dict[mtemp_list[uidx][k]] = np.hstack ( (rh_dict[mtemp_list[uidx][k]], results[k]) )
+                rh_dict[mtemp_list[uidx][k]].append(results[k]) 
         
             for T in np.unique (mtemp_list[uidx]):
-                rh_mean = np.hstack ( (rh_mean, np.mean ( rh_dict[T] ) ) )
-                rh_std  = np.hstack ( (rh_std , np.std  ( rh_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) )
-        print (rh_mean, flush=True) 
-        print (rh_std , flush=True) 
+                rh_mean.append( np.mean ( rh_dict[T] ) ) 
+                rh_std.append ( np.std  ( rh_dict[T] ) / np.sqrt( ntraj_dict[T] ) ) 
 
         if (U == "Uexcl"):
             ax.errorbar   ( temperatures, rh_mean, yerr=rh_std, linewidth=3 )
         else:
             ax.errorbar   ( temperatures, rh_mean, yerr=rh_std, fmt='o', markeredgecolor='k', \
-                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
+                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, \
+                    color=cm.copper(i/9), label='_nolegend_' ) 
         
         f.write("Rh: ") 
         for elem in rh_mean:
@@ -856,7 +743,6 @@ def plot_rh_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
             f.write( "{:.2f} ".format(elem) ) 
         f.write("\n") 
         f.flush() 
-        # os.fsync()
         i+=1 
     
 
@@ -879,11 +765,130 @@ def plot_rh_multi__ ( dop, starting_index, excl_vol_bool, coords_files, show_plo
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
     ax.set_ylabel ( "$\\langle R_h \\rangle$", fontsize=18)     
     ax.set_xticks ( np.arange(0, np.max(Tmax)+1, 1 ) )
-    plt.savefig   ( "DOP_"+str(dop)+"_rh.png", dpi=1200)
+    plt.savefig   ( "DOP_"+str(dop)+"_rh.png", dpi=800)
     if show_plot_bool:
         plt.show() 
-
+    
+    return None
 
 #############################################################################
 #############################################################################
 
+
+##########################################################################
+##########################################################################
+# Description: This function is meant for plotting RADIUS OF GYRATION given 
+# a. a certain U value 
+# b. a certain T value 
+# c. in a single plot
+# d. for a given degree of polymerization values
+# e. for a given trajectory
+# # Information obtained from trajectory 
+
+def print_rg_singletraj ( U, T, dop, traj_num, starting_index, coords_files ):
+
+    rg = infiltrate_coords_get_rg ( U, T, traj_num, dop, coords_files, starting_index)
+    
+    print ("File name provided is: " + U + "/DOP_" + str(dop) + "/" + str(T) + "/" + coords_files + "_" + str(traj_num) ) 
+    print ("Starting index is ", starting_index)
+    print ("Mean radius of gyration is: ", rg)
+
+    return None 
+    
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+##########################################################################
+##########################################################################
+# Description: This function is meant for plotting shape factor 
+# a. given a certain U value 
+# b. given a certain T value 
+# c. given a certain N values 
+# d. given a traj file 
+# e. given a traj number
+# print out the shape factor 
+
+def shape_factor ( U, T, num, dop, coords_file, starting_index ):
+    
+    filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(num)
+    edge     = edge_length (dop)
+    master_dict  = get_pdict( filename, starting_index, dop, edge, edge, edge) 
+    count = 0 
+    shape_term = 0
+    for key in master_dict:
+        coord_arr = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
+        r_com = np.mean ( coord_arr, axis=0 )
+        offset = coord_arr - r_com 
+        rgx = np.sqrt ( np.sum( np.square (offset)[:,0]   )/dop )
+        rgy = np.sqrt ( np.sum( np.square (offset)[:,1]   )/dop ) 
+        rgz = np.sqrt ( np.sum( np.square (offset)[:,2]   )/dop ) 
+        shape_term += ( (rgx**2)*(rgy**2) + (rgy**2)*(rgz**2) + (rgx**2)*(rgz**2) )/( (rgx**2) + (rgy**2) + (rgz**2) )**2 
+        count += 1 
+
+    delta = 1 - 3*shape_term/count 
+
+    return delta 
+    
+
+##########################################################################
+##########################################################################
+
+def get_e2e(coord_arr, xlen, ylen, zlen): 
+    coord_arr = unfuck_polymer(coord_arr, xlen, ylen, zlen) 
+    
+    e2e = coord_arr[-1] - coord_arr[0] 
+    return e2e 
+
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#############################################################################
+
+def get_e2e_data ( U, T, dop, traj_num, starting_index, coords_files, show_plot ): 
+
+    import tidynamics 
+    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + coords_files + "_" + str(traj_num)
+    xlen = edge_length(dop)
+    ylen = edge_length(dop)
+    zlen = edge_length(dop)
+    
+    start = time.time() 
+    print ("Making the dict...", flush=True)  
+    master_dict = get_pdict ( filename, starting_index, dop, xlen, ylen, zlen )  
+    print ("Made the dict!", flush=True) 
+    end = time.time() 
+    print ("Time to make dict = {:.2f}".format(end-start) )
+    e2e = [] 
+    print ("Making e2e array...", flush=True)
+    for key in master_dict: 
+        e2e.append ( get_e2e (master_dict[key][0], xlen, ylen, zlen ) )
+    
+    print ("Made the array!", flush=True) 
+    end2 = time.time() 
+    print ("Time to make e2e array = {:.2f}".format(end2-end) )
+    # auto_corr = [] 
+    
+    print ("Making the auto_correlation function...", flush=True)
+    auto_corr = tidynamics.acf ( e2e ) 
+    print ("Made the acf!", flush=True)
+    end3 = time.time()
+    print ("Time to make acf = {:.2f}".format(end3-end2) )
+    auto_corr = auto_corr/auto_corr[0] 
+    
+    print ("auto_corr length is: ", len(auto_corr))
+
+    delays = np.arange ( 0, int(len(auto_corr)/2))*1000
+    plt.plot   ( delays, auto_corr[0:int(len(auto_corr)/2)], marker='o', markeredgecolor='k', markerfacecolor='darkgreen', linestyle='-' ) 
+    plt.xlabel ( "$\delta$" ) 
+    plt.ylabel ( "$ \\frac { \\langle R(\delta) R(0) \\rangle } { \\langle R(0) \\cdot R(0) \\rangle }$" ) 
+    plt.savefig ( U+"T_"+str(T)+"DOP_"+str(dop) + ".png", dpi=1000) 
+     
+    if show_plot:
+         plt.show() 
+    
+    return None 
+
+
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#############################################################################

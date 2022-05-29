@@ -43,9 +43,9 @@ if __name__ == "__main__":
 
     start = time.time() 
 
-    aux.plot_rg_multi ( args.dop, args.s, args.ev, args.c, args.sp )
+    aux.plot_rg_parallelized ( args.dop, args.s, args.ev, args.c, args.sp )
 
     stop = time.time() 
 
-    print ("Run time = " + str (stop-start) + " seconds.", flush=True)
+    print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)
         

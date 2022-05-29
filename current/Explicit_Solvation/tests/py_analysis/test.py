@@ -1,12 +1,11 @@
-import aux 
 import numpy as np
+import tidynamics as ti 
 
-master_dict = {} 
+v = [[1,0,0],[2,0,0],[3,0,0],[4,0,0],[5,0,0],[6,0,0]]
 
-v = np.asarray( [ [0, 1, 2], [0, 2, 2], [0, 2, 1], [0, 1, 1], [9, 1, 1], [9, 1, 2], [9, 2, 2], [9, 2, 1] ]  )
-v = aux.unfuck_polymer (v, 10, 10,10)
-master_dict[0] = [ v ]
+v_acf = ti.acf(v) 
 
-hydr = aux.get_Rh ( master_dict, 10, 10, 10)
+print (v_acf)
+print (len(v_acf))
 
-print ( "hydrodynamic radius is {:.2f}".format(hydr))
+

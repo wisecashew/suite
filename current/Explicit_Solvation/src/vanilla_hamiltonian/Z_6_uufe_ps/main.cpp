@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
     int opt; 
     int dfreq {-1}, max_iter{-1};
     std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, mfile {"blank"}, stats_file {"blank"}, solvent_file {"blank"};  
-    bool v = false, r = false;
+    bool v = false; // r = false;
 
     while ( (opt = getopt(argc, argv, ":s:r:S:f:M:o:u:p:t:e:vh")) != -1 )
     {
@@ -83,10 +83,10 @@ int main(int argc, char** argv) {
                 solvent_file = optarg; 
                 break;
 
-            case 'r':
-                std::cout << "Simulation will be restarted from the end of previous simulation." 
-                r = true;
-                break;
+            // case 'r':
+            //     std::cout << "Simulation will be restarted from the end of previous simulation." 
+            //     r = true;
+            //     break;
 
             case '?':
                 std::cout << "ERROR: Unknown option " << static_cast<char>(optopt) << " was provided." << std::endl;

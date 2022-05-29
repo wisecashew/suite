@@ -67,6 +67,7 @@ ytick_list = np.unique( np.linspace (0, np.max(mm_mean)+1, 20, dtype=int) )
 plt.yticks( np.arange(0, ytick_list[-1], int(ytick_list[1]-ytick_list[0])+1 ) )
 plt.xticks(fontsize=12) 
 plt.yticks(fontsize=12)
+plt.xscale('log')
 plt.savefig("DOP_"+str(args.dop)+"_mmcorr.png", dpi=1200)
 plt.show()
 

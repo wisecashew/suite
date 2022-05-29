@@ -9,7 +9,7 @@ import argparse
 import os 
 import aux 
 
-parser = argparse.ArgumentParser(description="Get the heat capacity for simulation for every energy surface, provided you give the volume fraction.")
+parser = argparse.ArgumentParser(description="Get the heat capacity for simulation for a particular energy surface, over all temperatures.")
 parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide degree of polymerization.') 
 parser.add_argument('-s', dest='s', action='store', type=int, help='Provide a starting point for plotting.', default=100)
 parser.add_argument('-U', dest='U', action='store', type=str, help='Provide a potential energy surface.', default=100)
@@ -54,15 +54,13 @@ for U in U_list:
             cv_list = np.hstack ( (cv_list, cv ) ) 
             
 
-        # print (cv_mean)
-        # print (cv_err)
         cv_mean = np.hstack ( ( cv_mean, np.mean ( cv_list ) ) ) 
         cv_err  = np.hstack ( ( cv_err , np.std ( cv_list )/np.sqrt(5) ) ) 
             
     if U == "Uexcl":
         plt.errorbar ( temperatures, np.asarray ( cv_mean ), yerr = np.asarray(cv_err), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=3) 
     else:
-        plt.errorbar ( temperatures, np.asarray ( cv_mean ), yerr = np.asarray (cv_err), fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_' ) 
+        plt.errorbar ( temperatures, np.asarray ( cv_mean )/args.dop, yerr = np.asarray (cv_err)/args.dop, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_' ) 
     print (cv_mean) 
     print (cv_err)
     i += 1
@@ -80,10 +78,10 @@ plt.legend(["Athermal solvent"])
 plt.ylabel("$C_v/N$", fontsize=18)
 plt.xlabel("Temperature (reduced)", fontsize=18)
 plt.xticks(np.arange(0,11,1))
+plt.xscale('log')
 plt.savefig ( "DOP_"+str(args.dop)+"_CV.png", dpi=1200)
 
 if args.sp:
     plt.show()
-
 
 

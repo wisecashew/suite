@@ -42,8 +42,8 @@ args = parser.parse_args()
 if __name__ == "__main__":    
 
     start = time.time() 
-
-    aux.plot_rg_parallelized ( args.dop, args.s, args.ev, args.c, args.sp )
+    
+    aux.plot_entropy_rg_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
 
     stop = time.time() 
 

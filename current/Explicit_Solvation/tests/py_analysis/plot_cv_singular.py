@@ -48,8 +48,8 @@ for U in U_list:
         for num in num_list:
             df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/"+str(temp)+"/"+args.e+"_"+str(num), sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot","ms_aligned", "ms_naligned", "time_step"], engine='python')
             energy_list = df["energy"].values[args.s:] 
-            print ("number is " + str(num)) 
-            print ("stddev is " + str (np.std (energy_list) ) )
+            # print ("number is " + str(num)) 
+            # print ("stddev is " + str (np.std (energy_list) ) )
             cv = (np.mean( (energy_list) ** 2 ) - np.mean ( energy_list )**2)/((temp**2)*args.dop) 
             cv_list = np.hstack ( (cv_list, cv ) ) 
             
@@ -60,26 +60,19 @@ for U in U_list:
     if U == "Uexcl":
         plt.errorbar ( temperatures, np.asarray ( cv_mean ), yerr = np.asarray(cv_err), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=3) 
     else:
-        plt.errorbar ( temperatures, np.asarray ( cv_mean )/args.dop, yerr = np.asarray (cv_err)/args.dop, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_' ) 
+        plt.errorbar ( temperatures, np.asarray ( cv_mean )/args.dop, yerr = np.asarray (cv_err)/args.dop, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color='darkgreen', label='_nolegend_' ) 
     print (cv_mean) 
     print (cv_err)
     i += 1
     print ("done!") 
 
 
-my_cmp = cm.copper 
-sm = plt.cm.ScalarMappable (cmap=my_cmp, norm=plt.Normalize(vmin=0, vmax=1))
-
-cbar = plt.colorbar ( sm, orientation='vertical' )
-cbar.set_ticks ( [0, 1] ) 
-cbar.set_ticklabels ( ["Poor solvent", "Good solvent"] ) 
-cbar.ax.set_ylabel ( "Solvent quality", fontsize=18, rotation=270 ) 
 plt.legend(["Athermal solvent"])
 plt.ylabel("$C_v/N$", fontsize=18)
 plt.xlabel("Temperature (reduced)", fontsize=18)
 plt.xticks(np.arange(0,11,1))
 plt.xscale('log')
-plt.savefig ( "DOP_"+str(args.dop)+"_CV.png", dpi=1200)
+plt.savefig ( "DOP_"+str(args.dop)+"_singular_CV.png", dpi=1200)
 
 if args.sp:
     plt.show()

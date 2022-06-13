@@ -41,7 +41,7 @@ if __name__=="__main__":
     e_str  = "Error:"
     T_str  = "T:"
     rg_master_list = [] 
-    for N in N_list[0:7]:
+    for N in N_list[0:9]:
         match_flag=False
         f = open (args.e+"_"+str(N), 'r') 
         for line in f:
@@ -71,12 +71,12 @@ if __name__=="__main__":
         rg_master_list.append (rg_list[idx]) 
 
     # outside of N loop 
-    z = np.polyfit ( list(np.log (N_list[:6])), list(np.log(rg_master_list[0:6])), 1 ) 
+    z = np.polyfit ( list(np.log (N_list[:9])), list(np.log(rg_master_list[0:9])), 1 ) 
     plt.figure(figsize=(8,6))
     plt.xscale('log')
     
-    plt.plot (N_list[0:6], rg_master_list[0:6], marker='o', markeredgecolor='k')
-    plt.plot (N_list[0:6], np.exp( z[0]*np.log(N_list[0:6]) + z[1]), marker='^', markeredgecolor='k', alpha=0.5)
+    plt.plot (N_list[0:9], rg_master_list[0:9], marker='o', markeredgecolor='k')
+    plt.plot (N_list[0:9], np.exp( z[0]*np.log(N_list[0:9]) + z[1]), marker='^', markeredgecolor='k', alpha=0.5)
     
     print ("Flory exponent is {}.".format(z[0]))
 

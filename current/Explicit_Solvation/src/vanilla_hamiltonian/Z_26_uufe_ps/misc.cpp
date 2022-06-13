@@ -843,6 +843,22 @@ Polymer makePolymer(std::vector <std::array <int,3> > locations, char type_m){
     return pmer; 
 }
 
+Polymer makePolymer(std::vector <std::array <int,3> > locations, std::vector<int> pmer_spins, char type_m){
+
+    std::vector <Particle*> ptc_vec; 
+    short size_ = locations.size(); 
+
+    for (int i=0; i < size_ ; i++ ){
+        Particle* p = new Particle (locations.at(i), type_m, pmer_spins.at(i)); 
+        ptc_vec.push_back(p); 
+    }
+
+    Polymer pmer (size_, ptc_vec);
+
+    return pmer; 
+}
+
+
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -979,65 +995,64 @@ void StringToFile(std::string filename, std::string to_send){
 // ===============================================================
 // ===============================================================
 
-void InputParser(int dfreq, int max_iter, std::string solvent_file,
+void InputParser(int dfreq, int max_iter, bool r,
 	std::string positions, std::string topology, std::string dfile, 
-	std::string efile, std::string mfile, std::string stats_file){
+	std::string efile, std::string mfile, std::string stats_file, \
+	std::string lattice_file_read){
 
-	// if acceptance criterion is NOT CALLED 
+	
+	if (!r) {
 
+	    if (dfreq == -1 || max_iter == -1) {
+	        std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+	        exit (EXIT_FAILURE);
+	    }
+	    
+	    if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
+	    	mfile == "__blank__" || stats_file == "__blank__" ){
+	        std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
+	        << efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << "." << std::endl;
+	        std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
+	        "for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
+	        "for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+	        exit (EXIT_FAILURE);    
+	    }
+	    
+	    // set up these files 
+	    std::ofstream polymer_dump_file (dfile);
+	    std::ofstream energy_dump_file (efile);
+	    std::ofstream orientation_dump_file (mfile); 
+	    std::ofstream statistics_dump_file (stats_file); 
 
-    if (dfreq == -1 || max_iter == -1){
-        std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-        exit (EXIT_FAILURE);
-    }
+	    if ( lattice_file_read != "__blank__" ){
+	    	std::cerr << "Restart has not been requested. Do not provide a restart file to read. Exiting..." << std::endl;
+	    	exit (EXIT_FAILURE);
+	    } 
+	    
 
-	// if restart is NOT CALLED
-	// if (!r){
-	//	if (restart_traj != "blank"){
-    //        std::cerr << "ERROR: You cannot ask for a trajectory coordinate file with -T without the -r flag. Safeguard against uncontrolled behavior. Exiting..." << std::endl;
-    //        exit (EXIT_FAILURE); 
-    //    }
-    //    if (dfreq == -1 || max_iter == -1 ){
-    //        std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-    //       exit (EXIT_FAILURE);
-    //    }
-    // }
-    
-    
-    if (dfreq == -1 || max_iter == -1 ){
-        std::cerr << "ERROR: No value for option N (number of accepted MC moves to have) and/or for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-        exit (EXIT_FAILURE);
-    }
-    // else if (restart_traj == "blank"){
-    //        std::cerr << "ERROR: Need a trajectory file -T if -r option is being called. Exiting..." << std::endl;
-    //        exit(EXIT_FAILURE); 
-    // }
+	}     
 
-	// simulation requires an initial "positions" file, a topology file, a coordinate dump, and an energydump file 
+	else {
 
-    if ( positions== "blank" || topology == "blank" || dfile== "blank" || efile == "blank" || mfile == "blank" || stats_file == "blank" || solvent_file == "blank" ){
-        std::cerr << "polymer coords file is " << positions <<",\n topology is " << topology <<",\n polymer coordinate dump file is " << dfile << ",\n energy dump file is " \
-        << efile << ",\n orientation file is " << mfile << ",\n move statistics file is " << stats_file << ",\n solvent coords file is " << solvent_file << "." << std::endl;
-        std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
-        "for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
-        "for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
-        exit (EXIT_FAILURE);    
-    }
+		if ( dfreq == -1 || max_iter == -1 ){
+			std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+	        exit (EXIT_FAILURE);	
+		}
 
-    // set up outputs 
+		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
+			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
+			std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
+	        << efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << ", " << \
+	        "\nlattice file to read is " << lattice_file_read << "." << std::endl;
+	        std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\n" << 
+	        "for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
+	        "for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+	        exit (EXIT_FAILURE);    
 
-    // if (r){
-    //    std::ofstream dump_file(dfile, std::ios::app); 
-    //    std::ofstream energy_dump_file (efile, std::ios::app); 
-    // }
+		}
 
-    
-    std::ofstream polymer_dump_file (dfile);
-    std::ofstream energy_dump_file (efile);
-    std::ofstream orientation_dump_file (mfile); 
-    std::ofstream statistics_dump_file (stats_file); 
-    std::ofstream solvent_dump_file (solvent_file); 
-    
+	}
+
 
 	return; 
 
@@ -1430,45 +1445,7 @@ std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y,
 //
 // THE CODE: 
 /*
-void ParticleReporter (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, std::pair <char, int>* properties, std::array <int,3>* to_check){
 
-	for ( const Polymer& pmer: (*Polymers)) {
-		for ( const Particle& p: pmer.chain) {
-
-			if ((*to_check) == p.coords){
-				(*properties).first  = 'm'; 
-				(*properties).second = p.orientation; 
-				return;
-			}
-		}
-	}
-
-	for (const Particle& p: *Solvent){
-
-		if ( (*to_check) == p.coords){
-			(*properties).first  = 's'; 
-			(*properties).second = p.orientation; 
-			return;
-		}
-
-	} 
-    // (*PolymerVector)[0].printChainCoords();     
-    // (*PolymerVector)[1].printChainCoords(); 
-    // std::cout << "Coords of solvent: \n";    
-
-	std::cout << "location being checked is: "; print(*to_check);
-	std::cout << "printing out solvent locations: " << std::endl;
-    for ( const Particle& p: *Solvent ){
-
-        print(p.coords); 
-    }
-    
-	std::cout << "Something is profoundly fucked - reporting from void ParticleReporter." << std::endl;
-    exit(EXIT_FAILURE);
-	return ; 
-
-
-}
 */
 
 //============================================================
@@ -1827,6 +1804,19 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* 
 
 }
 
+
+void dumpLATTICE ( std::vector <Particle*> *LATTICE, int step, int y, int z, std::string filename ){
+
+	std::ofstream dump_file ( filename, std::ios::out ); 
+	dump_file << "FINAL STEP: " << step << ".\n"; 
+	for ( Particle*& p: (*LATTICE) ){
+		dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
+	}
+
+	dump_file << "END. \n";
+	return; 
+
+}
 
 //============================================================
 //============================================================
@@ -3688,7 +3678,78 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 // THE CODE: 
 
 
-std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::string position, int x, int y, int z){
+std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step_num, int x, int y, int z ){
+
+	std::vector <Particle*> LATTICE; 
+	LATTICE.reserve (x*y*z);
+
+	std::vector <std::string> contents = ExtractContentFromFile ( rfile );
+
+	std::regex start ("FINAL STEP: "), end ("END"); 
+	std::regex numbers ("[0-9]+"); 
+	std::regex characters ("[a-z]");
+
+	int orientation = -1; 
+	char ptype = 'x'; 
+	int index = -1; 
+	std::smatch match; 
+
+
+	for ( std::string& s: contents) {
+
+		// send content into stringstream 
+
+		if ( std::regex_search (s, start) ) {
+			std::regex_search ( s, match, numbers ); 
+			// std::cout << "match for step number is " << match[0] << std::endl;
+			*step_num = std::stoi(match[0].str()); 
+		}
+
+		else if ( std::regex_search (s, end) ){
+			break; 
+		}
+
+		else { 
+			
+			std::regex_search ( s, match, numbers );
+			std::regex_token_iterator<std::string::iterator> rend; 
+			std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
+
+			for ( int i=0; i<2; ++i ){
+				if ( i == 0 ){
+					// std::cout << "match for orientation is " << *a << std::endl;
+					orientation = std::stoi ( *a );
+					// std::cout << "match for orientation is " << *a << std::endl;
+					*a++;  
+				}
+				else {
+					// std::cout << "match for index is " << *a << std::endl;
+					index = std::stoi ( *a );
+					// std::cout << "match for index is " << *a << std::endl;
+				}
+			}
+ 
+
+			std::regex_search ( s, match, characters );
+			ptype = match[0].str()[0]; 
+
+			// std::cout << "ptype is " << ptype << std::endl; 
+
+			Particle* p_ptr = new Particle (location(index, x, y, z), ptype, orientation); 
+
+			LATTICE.insert ( LATTICE.begin() + index, p_ptr); 
+
+		}
+
+	}
+
+	std::cout << "Created lattice from file!" << std::endl;
+	return LATTICE; 
+
+}
+
+
+std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::string position, int final_step_num, int x, int y, int z){
 
     int NumberOfPolymers = ExtractNumberOfPolymers(position); 
 
@@ -3696,96 +3757,126 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
     PolymerVector.reserve(NumberOfPolymers);
 
     std::vector <std::array <int,3>> locations; 
+    std::vector <int> spins; 
 
     std::vector <std::string> contents = ExtractContentFromFile(trajectory); // this extracts every line of the file
 
     // std::vector <int> step_num_store; 
     std::vector <int> index_store; // need this guy to hold the index of the final set of coordinates. 
 
-    //////////////////////////////////////////////////////////////////////
-    // extract the final coordinates from the traj file
-    std::regex stepnum ("Dumping coordinates at step"); 
-    // int step_num = 0; 
-    int j {0}; 
-    for (std::string& s: contents){
-
-        std::stringstream ss(s);
-        std::string temp; 
-        int found; 
-        // std::stringstream int_ss; 
-
-        if (std::regex_search(s, stepnum)){
-            while(!ss.eof()){
-                ss >> temp;
-                if (std::stringstream(temp) >> found){
-                    // step_num_store.push_back(found);
-                    index_store.push_back(j);
-                } 
-            }
-        } 
-        ++j; 
-    }
-
-    contents.erase(contents.begin(), contents.begin() + (index_store[index_store.size()-1] ) ); 
-
-    //////////////////////////////////////////////////////////////////
+    // std::cout << "Is content being extracted?" << std::endl;
 
     
-    bool start_bool {false}, end_bool {false}; 
-    std::regex start ("START"), end ("END"), reg_poly ("Dumping coordinates of Polymer"); 
-    
+    bool step_bool {false}, start_bool {false}, end_bool {false}; 
+
+    std::regex start ("START"), end ("END"), step ("step " + std::to_string(final_step_num) );
+    std::regex step_generic ("step"); 
+    std::regex reg_poly ("Dumping coordinates of Polymer"); 
+    std::regex numbers ("[0-9]+"); 
+
     int startCount{0}, endCount{0}; 
-    
+    std::array <int,3> loc;
+    // std::stringstream ss; 
+    std::smatch match; 
+
+    // std::cout << "final step number is " << final_step_num << std::endl;
+
     for (std::string& s: contents){
-         
-        std::stringstream ss(s); 
-        if (std::regex_search(s, start) ){
-            ++startCount;
-            start_bool = true; 
-            end_bool = false; 
-            continue; 
-        }
+    	
+    	if ( std::regex_search (s, step_generic) ){
 
-        else if (std::regex_search(s, end) ) {
-            ++endCount;
-            start_bool = false; 
-            end_bool = false; 
+    		std::regex_search ( s, match, numbers ); 
+			std::regex_token_iterator<std::string::iterator> rend; 
+			std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
 
-            Polymer pmer = makePolymer(locations);
-            PolymerVector.push_back(pmer);
-            
-            locations.clear();
-            continue; 
-            
-        }
+			// std::cout << "*a is " << std::stoi(*a) << std::endl;
 
-        else if (start_bool == end_bool){
-            continue;
-        }
+			if ( std::stoi(*a) > final_step_num ){
+				// std::cout << "*a is " << std::stoi(*a) << std::endl;
+				// std::cout << "final_step_num = " << final_step_num << std::endl;				
+				std::cerr << "\n\nYou coordinates file and restart file are not in sync. \nIt is probably because the restart file you chose is not for that simulation.\nPlease check them out. Exiting..." << std::endl;
+				exit (EXIT_FAILURE);
+			}
 
-        else{
-            std::array <int,3> loc;
-            std::string strr; // temp string 
-            int k;            // temp int container 
-            
-            int j{0};
-            while (!ss.eof() ){
-                ss >> strr; 
-                if (std::stringstream(strr) >> k){
-                    loc[j] = k;
-                    ++j;
-                }
-            }  
+    	}
 
-            if (!checkValidityOfCoords(loc, x, y, z)){
-            std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
-            exit(EXIT_FAILURE); 
-            }
-        
-            locations.push_back(loc); 
-            
-        
-        }
+    	if ( std::regex_search ( s, step) ) {
+    		// std::cout << s << std::endl;
+    		step_bool = true; 
+    		continue; 
+    	}
+
+        // sending to the stringstream
+        // ss (s); 
+
+        if ( step_bool ){
+
+	        if ( std::regex_search(s, start) ){
+	            ++startCount;
+	            start_bool = true; 
+	            end_bool   = false; 
+	            continue; 
+	        }
+
+	        else if (std::regex_search(s, end) ) {
+	            ++endCount;
+	            start_bool = false; 
+	            end_bool   = false; 
+	            step_bool  = false; 
+
+	            Polymer pmer = makePolymer(locations, spins);
+	            PolymerVector.push_back(pmer);
+	            
+	            locations.clear();
+	            // break;
+	            continue; 
+	            
+	        }
+
+	        else if (start_bool == end_bool){
+	            continue;
+	        }
+
+	        else{
+	        	// std::cout << s << std::endl;
+	            std::regex_search ( s, match, numbers ); 
+				std::regex_token_iterator<std::string::iterator> rend; 
+				std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
+
+
+
+				for ( int i=0; i<4; ++i ){
+					if ( i ==0 ) {
+						// std::cout << "x-coords is " << *a << std::endl; 
+						loc[i] = std::stoi ( *a );
+						*a++; 
+					}
+					else if ( i==1 ){
+						// std::cout << "y-coord is " << *a << std::endl; 
+						loc[i] = std::stoi ( *a );
+						*a++; 
+					}
+					else if ( i==2 ){
+						// std::cout << "z-coord is " << *a << std::endl; 
+						loc[i] = std::stoi ( *a );
+						*a++;
+					}
+					else if ( i==3 ){
+						spins.push_back ( std::stoi(*a) ); 
+					}
+				}  
+				
+				// std::cout << "Location is "; print (loc);
+	            
+	            if (!checkValidityOfCoords(loc, x, y, z)){
+	            	std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
+	            	exit(EXIT_FAILURE); 
+	            }
+	        
+	            locations.push_back(loc); 
+	            
+	        }
+    	}
     }
     
     

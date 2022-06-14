@@ -699,70 +699,82 @@ std::array <double,11> ExtractTopologyFromFile(std::string filename){
             Emm_a ("Emm_a"), Emm_n ("Emm_n"), Ems1_a ("Ems1_a"), \
             Ems1_n ("Ems1_n"), Ems2_a ("Ems2_a"), Ems2_n ("Ems2_n"), eof ("END OF FILE"); 
 
+    int hit = 0; 
     for (std::string s: contents){
 
     	if (std::regex_search(s, x)){
     		info = NumberExtractor(s); 
     		info_vec[0]=info; 
+    		hit+=1;
     		continue; 
     	}
 
     	else if (std::regex_search(s, y)){
     		double info = NumberExtractor(s); 
     		info_vec[1] = info; 
+    		hit+=1;
     		continue; 
     	}
 
     	else if (std::regex_search(s, z)){
     		double info = NumberExtractor(s); 
     		info_vec[2] = info; 
+    		hit+=1;
     		continue; 
     	}
 
 		else if (std::regex_search(s, kT)){
     		double info = NumberExtractor(s); 
     		info_vec[3] = info ; 
+    		hit+=1; 
     		continue; 
     	}
         
         else if (std::regex_search (s, frac)){
             double info = NumberExtractor(s); 
+            hit+=1; 
             info_vec[4] = info; 
         }
         
     	else if (std::regex_search (s, Emm_a)){
     		double info = NumberExtractor(s); 
     		info_vec[5] = info; 
+    		hit+=1;
     		continue; 
     	}
 
     	else if (std::regex_search (s, Emm_n)){
     		double info = NumberExtractor(s); 
     		info_vec[6] = info; 
+    		hit+=1;
     		continue; 
     	}
 
     	else if (std::regex_search (s, Ems1_a)){
     		double info = NumberExtractor(s); 
     		info_vec[7] = info; 
+    		hit+=1;
     		continue; 
     	}
 
     	else if (std::regex_search (s, Ems1_n)){
     		double info = NumberExtractor(s);
     		info_vec[8] = info; 
+    		hit+=1;
     		continue;
     	}
 
         else if ( std::regex_search (s, Ems2_a)) {
             double info = NumberExtractor (s); 
             info_vec[9] = info; 
+            hit+=1;
             continue;
         }
 
         else if ( std::regex_search (s, Ems2_n)) {
             double info  = NumberExtractor (s); 
             info_vec[10] = info;     
+            hit+=1;
             continue; 
         }
     	else if (std::regex_search(s, eof)){
@@ -778,6 +790,10 @@ std::array <double,11> ExtractTopologyFromFile(std::string filename){
 
     }
 
+    if ( hit != 11 ){
+    	std::cerr << "Your geometry and energy surface file is incomplete! Exiting..." << std::endl; 
+    	exit (EXIT_FAILURE); 
+    }
 
     return info_vec;
 
@@ -834,7 +850,7 @@ bool isSymmetric(std::vector <std::vector <double>> mat){
 // ===============================================================
 
 
-Polymer makePolymer(std::vector <std::array <int,3> > locations, char type_m){
+Polymer makePolymer(std::vector <std::array <int,3> > locations, std::string type_m){
 	std::vector <int> pmer_spins; 
     short size_ = locations.size(); 
     for (short i=0; i<size_; i++){
@@ -974,7 +990,7 @@ void StringToFile(std::string filename, std::string to_send){
 // ===============================================================
 // ===============================================================
 
-void InputParser(int dfreq, int max_iter, std::string solvent_file,
+void InputParser(int dfreq, int max_iter,
 	std::string positions, std::string topology, std::string dfile, 
 	std::string efile, std::string mfile, std::string stats_file){
 
@@ -1010,28 +1026,19 @@ void InputParser(int dfreq, int max_iter, std::string solvent_file,
 
 	// simulation requires an initial "positions" file, a topology file, a coordinate dump, and an energydump file 
 
-    if ( positions== "blank" || topology == "blank" || dfile== "blank" || efile == "blank" || mfile == "blank" || stats_file == "blank" || solvent_file == "blank" ){
-        std::cerr << "polymer coords file is " << positions <<",\n topology is " << topology <<",\n polymer coordinate dump file is " << dfile << ",\n energy dump file is " \
-        << efile << ",\n orientation file is " << mfile << ",\n move statistics file is " << stats_file << ",\n solvent coords file is " << solvent_file << "." << std::endl;
+    if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || mfile == "__blank__" || stats_file == "__blank__" ){
+        std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
+        << efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << "." << std::endl;
         std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
         "for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
         "for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
         exit (EXIT_FAILURE);    
     }
-
-    // set up outputs 
-
-    // if (r){
-    //    std::ofstream dump_file(dfile, std::ios::app); 
-    //    std::ofstream energy_dump_file (efile, std::ios::app); 
-    // }
-
     
     std::ofstream polymer_dump_file (dfile);
     std::ofstream energy_dump_file (efile);
     std::ofstream orientation_dump_file (mfile); 
     std::ofstream statistics_dump_file (stats_file); 
-    std::ofstream solvent_dump_file (solvent_file); 
     
 
 	return; 
@@ -1112,7 +1119,7 @@ bool checkForOverlaps ( std::vector <Polymer>* Polymers, std::vector <Particle*>
 		pmer_loop_flag = false; 
 		particle_found_flag = false; 
 
-		if ( (*LATTICE)[i]->ptype == 'm' ){
+		if ( (*LATTICE)[i]->ptype == "m" ){
 
 			for ( Polymer& pmer: (*Polymers) ){
 				for (Particle*& p: pmer.chain){
@@ -1187,7 +1194,7 @@ bool checkForSolventMonomerOverlap(std::vector <Polymer>* Polymers, std::vector 
 
         	if ( (*LATTICE)[ lattice_index (p->coords, y, z)]->coords == p->coords ) {
 
-        		if ( (*LATTICE)[ lattice_index(p->coords, y, z)]->ptype == 's' ){
+        		if ( (*LATTICE)[ lattice_index(p->coords, y, z)]->ptype[0] == 's' ){
         			std::cerr << "Some kind of bad solvent-monomer overlap that has taken a place. A monomer is being represented by a solvent. Something's fucked." << std::endl;
         			std::cerr << "Location is: "; print (p->coords); 
         			std::cerr << "Type is: " << ((*LATTICE)[ lattice_index (p->coords, y, z)]->ptype) << std::endl; 
@@ -1502,7 +1509,7 @@ bool MonomerReporter (std::vector <Polymer>* Polymers, std::array <int,3>* to_ch
 
 bool MonomerReporter (std::vector <Particle*>* LATTICE, std::array<int,3>* to_check, int y, int z){
 
-	if ( (*LATTICE)[ lattice_index((*to_check), y, z) ]->ptype == 'm' ){
+	if ( (*LATTICE)[ lattice_index((*to_check), y, z) ]->ptype == "m" ){
 		return true;
 	}
 	else {
@@ -1528,7 +1535,7 @@ bool MonomerReporter (std::vector <Polymer>* Polymers, std::array <int,3>* check
 
 bool MonomerReporter (std::vector <Particle*>* LATTICE, std::array <int,3>* check_1, std::array <int,3>* check_2, int y, int z){
 
-	if ( (*LATTICE)[lattice_index((*check_1), y, z)]->ptype == 'm' || (*LATTICE)[lattice_index((*check_2), y, z)]->ptype == 'm'){
+	if ( (*LATTICE)[lattice_index((*check_1), y, z)]->ptype == "m" || (*LATTICE)[lattice_index((*check_2), y, z)]->ptype == "m"){
 		return true;
 	}
 
@@ -1575,7 +1582,7 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 
 double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, std::array<double,6>* E, std::array<double,6>* contacts){
     double Energy {0.0};
-    (*contacts) = {0, 0, 0, 0, 0, 0} 
+    (*contacts) = {0, 0, 0, 0, 0, 0} ;
     // polymer-polymer interaction energies 
 
     for (Polymer& pmer: (*Polymers)) {
@@ -1612,7 +1619,7 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
                     
                     if ( (*LATTICE)[ lattice_index(loc, y, z) ]->orientation == p->orientation ) {
                         (*contacts)[4] += 1; 
-                        Energy += (*E)[4]                       
+                        Energy += (*E)[4];                       
                     }
                     else { 
                         (*contacts)[5] += 1; 
@@ -1709,7 +1716,7 @@ void dumpPositionOfSolvent(std::vector <Particle*>* LATTICE, int step, std::stri
     
     for (Particle*& p: *LATTICE){
     	// std::cout << "ptype is " << (*p).ptype << std::endl;
-    	if (p->ptype == 's'){
+    	if (p->ptype[0] == 's'){
     		dump_file<<"Orientation: " << p->orientation <<", ";
         	for (int i: p->coords){
             	dump_file << i << " | "; 
@@ -1769,7 +1776,7 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,6>* contacts, std
 //
 // THE CODE: 
 
-void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* acceptances, int step, std::string stats_file){
+void dumpMoveStatistics (std::array <int,10>* attempts, std::array <int,10>* acceptances, int step, std::string stats_file){
     
     std::ofstream dump_file (stats_file, std::ios::out); 
     dump_file << "For step " << step << ".\n";
@@ -1779,6 +1786,7 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "Chain regrowth                     - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << ".\n"; 
     dump_file << "Single solvent orientation flips   - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n"; 
     dump_file << "Single monomer orientation flips   - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << ".\n"; 
+    dump_file << "Single monomer orientation flips   - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
 
 }
 
@@ -1814,7 +1822,7 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* 
                 
                 // std::cout << "Reported~\n"; 
                 
-                if ( (*LATTICE)[ lattice_index(ne, y, z) ]->ptype == 's'){
+                if ( (*LATTICE)[ lattice_index(ne, y, z) ]->ptype[0] == 's'){
                     dump_file << ((*LATTICE)[ lattice_index(ne, y, z) ])->orientation << " | ";  
                 } 
             }
@@ -2402,7 +2410,7 @@ void ForwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>*
 
 	for (int i{0}; i<deg_poly; ++i){
 
-		if ( (*LATTICE)[ lattice_index (idx_v[r], y, z)]->ptype == 's' ){
+		if ( (*LATTICE)[ lattice_index (idx_v[r], y, z)]->ptype[0] == 's' ){
 			if ( i != deg_poly-1 ){
 				
 				(*memory).first.push_back  ( (*Polymers)[index].chain[i]->coords );
@@ -2532,7 +2540,7 @@ void BackwardReptation (std::vector <Polymer>* Polymers, std::vector <Particle*>
 	// std::cout<<"new location is: "; print(idx_v[r]); 
 	for (int i{0}; i <deg_poly; ++i){
 
-		if ((*LATTICE)[lattice_index (idx_v[r], y, z)]->ptype == 's'){
+		if ((*LATTICE)[lattice_index (idx_v[r], y, z)]->ptype[0] == 's'){
 
 			if ( i != deg_poly-1 ){
 
@@ -2717,7 +2725,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 		for ( std::vector <std::array<int,3>>& linked_list: master_linked_list ){
 			
-			if ( (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype == 's' ){
+			if ( (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype[0] == 's' ){
 				
 				(*LATTICE)[ lattice_index (linked_list[0], y, z) ] = (*LATTICE)[ lattice_index (linked_list.back(), y, z) ];
 				(*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords = linked_list[0]; 
@@ -2770,7 +2778,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 			// std::cout << "printing out linked list... " << std::endl;
 			// print (linked_list);
 			
-			if ( (*LATTICE)[ lattice_index(linked_list.back(), y, z) ]->ptype == 's' ) {
+			if ( (*LATTICE)[ lattice_index(linked_list.back(), y, z) ]->ptype[0] == 's' ) {
 				
 				(*LATTICE)[ lattice_index (linked_list[0], y, z) ] = (*LATTICE)[ lattice_index (linked_list.back(), y, z) ];
 				(*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords = linked_list[0]; 
@@ -3106,7 +3114,7 @@ void SolventFlip ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 			ne_list = obtain_ne_list ( p->coords, x, y, z );
 
 			for ( std::array<int,3>& ne: ne_list ){
-				if ( (*LATTICE).at(lattice_index (ne, y, z))->ptype =='s' ){
+				if ( (*LATTICE).at(lattice_index (ne, y, z))->ptype[0] =='s' ){
 					solvent_indices.push_back ( lattice_index(ne, y, z) ); 
 				}
 			}
@@ -3179,7 +3187,7 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 			for ( std::array<int,3>& ne: ne_list ){
 				// std::cout << "neighbor is: "; print(ne);
 				// std::cout << "lattice_index(ne , y, z) = " << lattice_index(ne, y, z) << std::endl;
-				if ( (*LATTICE)[lattice_index (ne, y, z)]->ptype =='s' ){
+				if ( (*LATTICE)[lattice_index (ne, y, z)]->ptype[0] =='s' ){
 					solvent_indices.push_back ( lattice_index(ne, y, z) ); 
 				}
 			}
@@ -3252,7 +3260,7 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
 ///////////////////////////////////////////////////////////////////////////
 
 
-void PolymerFlipSingular ( std::vector <Polymer>* Polymers,\
+void PolymerFlipSingular ( std::vector <Polymer>* Polymers, \
 	double* rweight, int Nsurr, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ){
     
@@ -3262,30 +3270,118 @@ void PolymerFlipSingular ( std::vector <Polymer>* Polymers,\
 
 	int ridx = rng_uniform (0, Nmer-1);
 
-	// std::cout << "ridx = " << ridx << std::endl;
-	// std::cout << "Initial orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
 	(*memory).first.push_back ( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );
 	(*Polymers)[0].chain.at(ridx)->orientation = rng_uniform (0, 5);  
 	(*memory).second.push_back( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );	
-	// std::cout << "Final orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
-	// std::cout << "memory first[0][1] is " << (*memory).first[0][1] << std::endl;
+	
 	return; 
 }
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+
+void SolventExchange ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	int x, int y, int z, bool* IMP_BOOL, double* rweight, \
+	std::vector <std::array <int,2>>* s_memory ){
+
+	// find indices of surrouding solvent molecules 
+	std::array < std::array<int,3>, 26> ne_list; 
+	std::vector <int> surr_solvent_indices; 
+	int nmonomer = (*Polymers)[0].chain.size(); 
+
+	// std::cout << "Finding solvent indices..." << std::endl;
+
+	// find number of surrounding solvent molecules 
+	for ( Polymer& pmer: (*Polymers) ){
+		for ( Particle*& p: pmer.chain ){
+
+			ne_list = obtain_ne_list ( p->coords, x, y, z); 
+			for ( std::array<int,3>& ne: ne_list ){
+				if ( (*LATTICE).at(lattice_index (ne, y, z))->ptype[0] == 's' ) {
+					surr_solvent_indices.push_back ( lattice_index(ne, y, z) ); 
+					continue; 
+				}
+			}
+		}
+	}
+
+	// std::cout << "Is finding solvent indices was not an issue..." << std::endl;
+
+	// get rid of repeated indices, obtain indices of solvent molecules surrounding polymer 
+	std::sort ( surr_solvent_indices.begin(), surr_solvent_indices.end() ); 
+	surr_solvent_indices.erase ( std::unique ( surr_solvent_indices.begin(), surr_solvent_indices.end() ), surr_solvent_indices.end() );
+
+	// shuffle surr_solvent_indices 
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  	std::shuffle (std::begin(surr_solvent_indices), std::end(surr_solvent_indices), std::default_random_engine(seed));
+    
+
+  	int nsurr_solvent = static_cast<int>(surr_solvent_indices.size() );
+
+  	// std::cout << "Number of surrounding solvents is " << nsurr_solvent << std::endl;
+
+	int nexchange = rng_uniform (1, nsurr_solvent ); 
+	int test_idx  = -1; 
+	*rweight = 1; 
+
+	Particle* tmp; // = Particle ( {0,0,0}, "m", -1 );
+
+	for ( int j{0}; j < nexchange; ++j ){
+		
+		test_idx = rng_uniform (0, x*y*z-1); 
+		// std::cout << "test_idx = " << test_idx << "." << std::endl;
+		if ( (*LATTICE)[test_idx]->ptype != "m" ){
+
+			*IMP_BOOL = true; 
+
+			// std::cout << "surr_solvent_indices[j] = " << surr_solvent_indices[j] << std::endl;
+			// std::cout << "test_idx = " << test_idx << std::endl;
+
+			(*s_memory).push_back ( {surr_solvent_indices[j], test_idx } );
+
+			tmp     = (*LATTICE)[ test_idx ];  
+
+			// std::cout << "Made the temporary pointer..." << std::endl;
+
+			(*LATTICE)[ test_idx ]         = (*LATTICE)[ surr_solvent_indices[j] ]; 
+			(*LATTICE)[ test_idx ]->coords = location (test_idx, x, y, z); 
+			
+			// std::cout << "Transferred the surrounding solvent to another spot!" << std::endl;
+
+			// change the test_idx
+			(*LATTICE)[ surr_solvent_indices[j] ]              = tmp; 
+			(*LATTICE)[ surr_solvent_indices[j] ]->coords      = location ( surr_solvent_indices[j], x, y, z);
+			
+			// std::cout << "(*LATTICE)[ssi[j]]->coords = "; print ( (*LATTICE)[surr_solvent_indices[j]]->coords );
+
+			*rweight = (*rweight)*static_cast<double>(nsurr_solvent)/static_cast<double>(nsurr_solvent + nmonomer); 
+
+		}
+	}
+	std::cout << "ratio of solvent/solvent+monomer = " << static_cast<double>(nsurr_solvent)/static_cast<double>(nsurr_solvent + nmonomer) << std::endl; 
+	std::cout << "Total number of surr solv = " << nsurr_solvent << std::endl;
+	// std::cout << "Reached end of Solvent Exchange." << std::endl;
+
+	return; 
+}
+
+
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
 
 void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, \
-	std::array <int,9>* attempts, int* move_number, \
+	std::array <int,10>* attempts, int* move_number, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
+	std::vector <std::array<int,2>>* s_memory, \
 	int* monomer_index, int* back_or_front, int Nsurr ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = rng_uniform (1, 5);
+    int r = rng_uniform (1, 6);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 
@@ -3298,25 +3394,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             *move_number = 1;
             (*attempts)[0] += 1;
             break;  
-    	/*
-        case (2):
-            if (v){
-               printf("Performing bond vibration...\n"); 
-            }
-            BondVibration	(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
-            *move_number = 2; 
-            (*attempts)[1] += 1;
-            break;   
-        
-        case (3):
-            if (v){
-               printf("Performing crank shaft...\n"); 
-            }
-            CrankShaft		(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
-            *move_number = 3; 
-            (*attempts)[2] += 1;
-            break; 
-        */
+
         case (2):
             if (v){
                printf("Performing reptation...\n"); 
@@ -3354,24 +3432,16 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             *move_number = 7; 
             (*attempts)[6] += 1;
             break;
-        
-        case (8):
-        	if (v){
-        		printf("Performing polymer orientation flips... \n");
+
+        case (6):
+        	if (v) {
+        		printf("Performing a solvent exchange... \n"); 
         	}
-        	SolventFlip ( Polymers, LATTICE, x, y, z, rweight, Nsurr, memory2);
-            *move_number = 8; 
-            (*attempts)[7] += 1;
-        	break;
-        
-        case (9):
-            if (v) {
-                printf("Performing local polymer orientation flips... \n");
-            }
-            PolymerFlip ( Polymers, rweight, Nsurr, memory2); 
-            *move_number = 9; 
-            (*attempts)[8] += 1;
-            break;
+        	SolventExchange (Polymers, LATTICE, x, y, z, IMP_BOOL, rweight, s_memory);
+        	std::cout << "*rweight is " << *rweight << "." << std::endl;
+        	*move_number = 8; 
+        	(*attempts)[7] += 1; 
+        	break; 
         
     }
     
@@ -3386,9 +3456,10 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int y, int z, bool v, int move_number, \
+void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z, bool v, int move_number, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
+	std::vector <std::array<int,2>>* s_memory, \
 	int monomer_index, int back_or_front){
 
 	switch (move_number){
@@ -3540,12 +3611,9 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 						// std::cout << "printing out linked list... " << std::endl;
 						// print (linked_list);
 
-						if ( (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype == 's' ){
-							// std::cout << "linked_list.back() = "; print (linked_list.back() );
-							// std::cout << "ptype is " << (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype;
-							// std::cout << "this is a straight link." << std::endl;
-							// transfer the solvent molecule to an appropriate location 
-							// print ( (*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords );
+						if ( (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype[0] == 's' ){
+							
+
 							(*LATTICE)[ lattice_index (linked_list[0], y, z) ] = (*LATTICE)[ lattice_index (linked_list.back(), y, z) ];
 							(*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords = linked_list[0]; 
 
@@ -3603,7 +3671,7 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 						// std::cout << "printing out linked list... " << std::endl;
 						// print (linked_list);
 
-						if ((*LATTICE)[ lattice_index (linked_list.back(), y, z ) ]->ptype == 's' ){
+						if ((*LATTICE)[ lattice_index (linked_list.back(), y, z ) ]->ptype[0] == 's' ){
 
 							// std::cout << "linked_list.back() = "; print (linked_list.back() );
 							// std::cout << "ptype is " << (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype;
@@ -3650,10 +3718,20 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 
 		case (8):
 			if (v) {
-				printf("Reversing multiple solvent flips...");
+				printf("Reversing solvent exchange...");
 			}
-			for ( std::array<int,2>& a: (*memory2).first) {
-				(*LATTICE)[ a[0] ]->orientation = a[1]; 
+			for ( std::array<int,2>& a: (*s_memory) ) {
+				// std::cout << "First index is "  << a[0] << std::endl; 
+				// std::cout << "Second index is " << a[1] << std::endl;
+
+				Particle* tmp          = (*LATTICE)[ a[0] ]; 
+
+				(*LATTICE)[ a[0] ]         = (*LATTICE)[ a[1] ]; 
+				(*LATTICE)[ a[0] ]->coords = location ( a[0], x, y, z); 
+				
+				(*LATTICE)[ a[1] ]         = tmp; 
+				(*LATTICE)[ a[1] ]->coords = location ( a[1], x, y, z);    
+				
 			}
 			break; 
 
@@ -3945,13 +4023,9 @@ void AddSolvent1 (int x, int y, int z, std::vector <Particle*>* LATTICE){
 				}
 				c_idx = lattice_index (loc,y,z); 
 
-				Particle* p_ptr = new Particle (loc, 's', 0); 
+				Particle* p_ptr = new Particle (loc, "s1", 0); 
 
-				// std::cout << "loc is "; print(loc);
-				// std::cout << "index in lattice is " << lattice_index (loc, y, z) << std::endl;
-
-				(*LATTICE).insert( (*LATTICE).begin() + lattice_index(loc, y, z), p_ptr) ;
-				
+				(*LATTICE).insert( (*LATTICE).begin() + lattice_index(loc, y, z), p_ptr) ;				
 
 			}
 		}
@@ -3967,27 +4041,27 @@ void AddSolvent2 (int x, int y, int z, double frac, std::vector<int>* monomer_in
 
     // frac is particles of type 1
     // total number of particles is 
-    int nsolpart = x*y*z - static_cast<int>((*monomer_indices).size())
+    int nsolpart = x*y*z - static_cast<int>((*monomer_indices).size());
     
     // number of solvent particles of type 1:
     int nsol1    = static_cast<int> (nsolpart*frac); 
 
-    std::cout << "Number of particles of type 1 is " << nsol1 << "." << std::endl;
+    std::cout << "\nNumber of particles of type 1 is " << nsol1 << ".\n" << std::endl;
     
     // number of solvent particles of type 2: 
     int nsol2    = nsolpart - nsol1; 
     
-    std::sort ( monomer_indices.begin(), monomer_indices.end() ); 
+    std::sort ( monomer_indices->begin(), monomer_indices->end() ); 
 
     std::vector <int> lattice_indices (x*y*z); 
     std::iota ( lattice_indices.begin(), lattice_indices.end(), 0 ); 
     
-    int search_index {-1}; 
+    // int search_index {-1}; 
 
-    for ( int idx: monomer_indices ){
+    for ( int idx: *monomer_indices ){
         
-        std::vector<int>::iterator it = std::lower_bound ( lattice_indices.begin(), lattice_indices.end(), idx ) 
-        if ( idx == lattice_indices.end() ) {
+        std::vector<int>::iterator it = std::lower_bound ( lattice_indices.begin(), lattice_indices.end(), idx ); 
+        if ( it == lattice_indices.end() ) {
             std::cerr << "Something is profoundly fucked." << std::endl;
             exit (EXIT_FAILURE); 
         }
@@ -3995,12 +4069,12 @@ void AddSolvent2 (int x, int y, int z, double frac, std::vector<int>* monomer_in
         lattice_indices.erase ( lattice_indices.begin() + index ); 
     }
     
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().cound(); 
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); 
     std::shuffle ( lattice_indices.begin(), lattice_indices.end(), std::default_random_engine (seed) );
 
     // replace first nsol2 particles of lattice_indices
-    for ( int i: lattice_indices ) {
-        (*LATTICE)[i]->ptype = "s2";
+    for ( std::vector<int>::iterator it = lattice_indices.begin(); it != lattice_indices.begin()+nsol2; ++it ) {
+        (*LATTICE)[(*it)]->ptype = "s2"; 
     }
 
 

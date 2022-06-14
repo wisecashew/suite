@@ -30,7 +30,7 @@ public:
     // constructor 
     Particle(){};  // default constructor
 
-    Particle (std::array <int, 3> crds, char type_, int orientation_): coords (crds), orientation (orientation_), ptype (type_) { };
+    Particle (std::array <int, 3> crds, std::string type_, int orientation_): coords (crds), orientation (orientation_), ptype (type_) { };
 
     // destructor 
     ~Particle(){

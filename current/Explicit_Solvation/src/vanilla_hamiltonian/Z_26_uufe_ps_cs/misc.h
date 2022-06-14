@@ -3,9 +3,7 @@
 #include "classes.h"
 
 
-// this is a bunch of miscellaneous functions I use 
-// to manipulate std::vectors. Furthermore, this will be used 
-// as a skeleton for building functions for grids 
+// The collection of functions I use to perform the simulations. 
 
 
 // check if the new location added to random walk has been visited before 
@@ -25,7 +23,7 @@ std::vector <Particle> loc2part           (std::vector <std::vector <int>> loc_l
 std::vector <std::vector <int> > part2loc (std::vector <Particle> pVec); 
 
 // run an acceptance criterion for two polymers 
-bool acceptance(int dE, double kT); 
+bool acceptance            (int dE, double kT); 
 
 // calculate energy of polymer-solvent interaction only 
 int PolymerEnergySolvent   (std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy);
@@ -84,7 +82,7 @@ std::array  <int,3> subtract_arrays  (std::array <int,3>* a1, std::array <int,3>
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
-void InputParser (int dfreq, int max_iter, std::string positions, std::string topology, std::string dfile, std::string efile, std::string mfile, std::string stats_file, std::string solvent_file); 
+void InputParser (int dfreq, int max_iter, std::string positions, std::string topology, std::string dfile, std::string efile, std::string mfile, std::string stats_file); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -119,7 +117,7 @@ bool MonomerNeighborReporter (std::vector <Polymer>* Polymers  , std::array <int
 std::vector <Particle>           CreateSolventVector (int x, int y, int z, std::vector <Polymer>* Polymers); 
 void                             AddSolvent1         (int x, int y, int z, std::vector <Particle*>* LATTICE);
 void                             AddSolvent2         (int x, int y, int z, double frac, std::vector<int>* monomer_indices, std::vector <Particle*>* LATTICE);  
-Polymer                          makePolymer         (std::vector <std::array <int,3>> locations, char type_m='m');
+Polymer                          makePolymer         (std::vector <std::array <int,3>> locations, std::string type_m="m");
 // create a lattice 
 std::vector <std::array <int,3>> create_lattice_pts  (int x_len, int y_len, int z_len); 
 
@@ -163,7 +161,7 @@ void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, 
 void dumpEnergy              (double sysEnergy, int step, std::array<double,6>* contacts, std::string filename);
 void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
-void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,9>* acceptances, int step, std::string stats_file); 
+void dumpMoveStatistics      (std::array  <int,10>   * attempts, std::array <int,10>* acceptances, int step, std::string stats_file); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -191,6 +189,7 @@ std::array <std::array <int,3>,3> HingeSwingDirections (std::array <int,3>* Hing
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Polymer moves with Rosenbluth sampling methods 
+void                  SolventExchange              (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::vector <std::array <int,2>>* s_memory);
 void                  TailRotation 				   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 void                  HeadRotation                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 void                  EndRotation                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
@@ -203,8 +202,8 @@ void                  Reptation  			       (std::vector <Polymer>* Polymers, std
 void                  ChainRegrowth			       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory, int* monomer_index, int* back_or_front); 
 void                  TailSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight); 
 void                  HeadSpin			           (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* IMP_BOOL, bool* first_entry_bool, double* rweight);
-void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, int* monomer_index, int* back_or_front, int Nsurr);
-void                  ReversePerturbation          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, int monomer_index, int back_or_front);
+void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,10>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, std::vector <std::array<int,2>>* s_memory, int* monomer_index, int* back_or_front, int Nsurr);
+void                  ReversePerturbation          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, std::vector<std::array<int,2>>* s_memory, int monomer_index, int back_or_front);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 template <typename T>

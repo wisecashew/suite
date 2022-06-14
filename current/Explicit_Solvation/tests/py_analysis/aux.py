@@ -1032,7 +1032,7 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
         master_num_list = [] 
         rg_dict    = {}
         ntraj_dict = {}
-        for T in temperatures: 
+        for T in temperatures[0:7]: 
             # print ("T is " + str(T), flush=True) 
             num_list = list(np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
@@ -1077,7 +1077,7 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
                 rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) 
         
         
-        ax.errorbar   ( temperatures, np.asarray(rg_mean)/dop, yerr=np.asarray(rg_std)/dop, fmt='o', markeredgecolor='k', \
+        ax.errorbar   ( temperatures[0:7], np.asarray(rg_mean)/dop, yerr=np.asarray(rg_std)/dop, fmt='o', markeredgecolor='k', \
                     linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
         
         f.write("Rg^2: ") 

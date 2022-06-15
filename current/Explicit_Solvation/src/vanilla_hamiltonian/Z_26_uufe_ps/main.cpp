@@ -23,7 +23,7 @@ int main(int argc, char** argv) {
     lattice_file_write {"__blank__"}, lattice_file_read {"__blank__"};  
     bool v = false, r = false;
 
-    while ( (opt = getopt(argc, argv, ":s:L:R:S:f:M:o:u:p:t:e:vhr")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
     {
         switch (opt) 
         {
@@ -263,6 +263,9 @@ int main(int argc, char** argv) {
     
     sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &mm_aligned, &mm_naligned, &ms_aligned, &ms_naligned); 
 
+    std::cout <<"\nCalculating energy..." << std::endl;
+    std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
+    
     mm_aligned_copy   = mm_aligned ; 
     mm_naligned_copy  = mm_naligned; 
     ms_aligned_copy   = ms_aligned ;
@@ -278,9 +281,6 @@ int main(int argc, char** argv) {
         dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z);    
     }
     
-    // defined single orientation solvents and polymers 
-    std::cout <<"\nCalculating energy..." << std::endl;
-    std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
     bool IMP_BOOL = true; 
     bool metropolis = false;

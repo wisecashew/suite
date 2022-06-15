@@ -30,8 +30,6 @@ int main(int argc, char** argv) {
                 dfreq = atoi(optarg); 
                 break;
 
-
-
             // case 'N':
                 // std::cout << "Option Nmov was called with argument " << optarg << std::endl; 
                 // Nacc = atoi(optarg); 
@@ -195,8 +193,8 @@ int main(int argc, char** argv) {
     
     std::array <double,6> contacts_copy = contacts; 
 
-    dumpEnergy     (sysEnergy, step_number, contacts, efile);
-    dumpOrientation(&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
+    dumpEnergy      (sysEnergy, step_number, contacts, efile);
+    dumpOrientation (&PolymerVector, &SolventVector, step_number, mfile, x, y, z); 
     
     // defined single orientation solvents and polymers 
 

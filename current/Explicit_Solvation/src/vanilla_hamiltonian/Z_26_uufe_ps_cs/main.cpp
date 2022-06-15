@@ -19,10 +19,11 @@ int main(int argc, char** argv) {
     // set up 
     int opt; 
     int dfreq {-1}, max_iter{-1};
-    std::string positions {"__blank__"}, topology {"__blank__"}, dfile {"__blank__"}, efile{"__blank__"}, mfile {"__blank__"}, stats_file {"__blank__"};  
-    bool v = false; // r = false;
+    std::string positions {"__blank__"}, topology {"__blank__"}, dfile {"__blank__"}, efile{"__blank__"}, mfile {"__blank__"}, stats_file {"__blank__"}, \
+    lattice_file_write {"__blank__"}, lattice_file_read {"__blank__"};  
+    bool v = false, r = false;
 
-    while ( (opt = getopt(argc, argv, ":s:f:M:o:u:p:t:e:vh")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
     {
         switch (opt) 
         {
@@ -36,24 +37,25 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "\nWelcome to my Monte Carlo simulation engine (v0.3) for polymers in a simple cubic box (Z=26). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
-		        "\nLast updated: May 29, 2022, 12:20 PM. \nAuthor: satyend@princeton.edu\n" <<
+                "\nWelcome to my Monte Carlo simulation engine (v0.5) for polymers in a simple cubic box (Z=26). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
+                "\nThis system has cosolvent present. \n"
+                "\nLast updated: June 15, 2022, 12:39 PM. Added restarting capabilities. \nAuthor: satyend@princeton.edu\n" <<
                 "\n----------------------------------------------------------------------------------------------------------------------------------\n" << 
                 "These are all the inputs the engine accepts for a single run, as of right now:\n\n" <<
-                "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
-                "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
-                // "restart                  [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
-                "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
-                "Number of maximum moves  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
-                // "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
-                "Polymer coordinates      [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
-                "Energy and geometry      [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
-                // "Solvent coordinates      [-S]           (STRING ARGUMENT REQUIRED)     Name of output file with coordinates of solvent. \n" <<
-                "Energy of grid           [-u]           (STRING ARGUMENT REQUIRED)     Name of output file with energy of system at each step in a file.\n"<<
-                // "Previous trajectory file [-T]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
-                "Orientation file         [-e]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain orientation of ALL particles in system.\n" << 
-                "Move statistics file     [-s]           (STRING ARGUMENT REQUIRED)     Name of output file with move statistics. \n" <<
-                "Name of output file      [-o]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain coordinates of polymer.\n\n";  
+                "help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
+                "verbose flag              [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
+                "restart flag              [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
+                "Dump Frequency            [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
+                "Number of maximum moves   [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
+                "Polymer coordinates       [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
+                "Energy and geometry       [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
+                // "Solvent coordinates       [-S]           (STRING ARGUMENT REQUIRED)     Name of output file with coordinates of solvent. \n" <<
+                "Energy of grid            [-u]           (STRING ARGUMENT REQUIRED)     Name of output file with energy of system at each step in a file.\n"<<
+                "Lattice file to write to  [-L]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
+                "Lattice file to read from [-R]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
+                "Orientation file          [-e]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain orientation of ALL particles in system.\n" << 
+                "Move statistics file      [-s]           (STRING ARGUMENT REQUIRED)     Name of output file with move statistics. \n" <<
+                "Name of output file       [-o]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain coordinates of polymer.\n\n";  
                 exit(EXIT_SUCCESS);
                 break;
 
@@ -79,10 +81,10 @@ int main(int argc, char** argv) {
                 stats_file = optarg;
                 break;
 
-            // case 'r':
-            //     std::cout << "Simulation will be restarted from the end of previous simulation." 
-            //     r = true;
-            //     break;
+            case 'r':
+                std::cout << "Simulation will be restarted from the end of previous simulation."; 
+                r = true;
+                break;
 
             case '?':
                 std::cout << "ERROR: Unknown option " << static_cast<char>(optopt) << " was provided." << std::endl;
@@ -102,13 +104,27 @@ int main(int argc, char** argv) {
                 std::cout << "ERROR: Missing arg for " << static_cast <char> (optopt) << "." << std::endl;
                 exit(EXIT_FAILURE);           
                 break; 
+
+            case 'L': 
+                // std::cout << "Name of file to write lattice down at end of simulation." << std::endl;
+                lattice_file_write=optarg; 
+
+                break;
+
+            case 'R':
+                // std::cout << "Name of file to read lattice to restart simulation." << std::endl;
+                lattice_file_read=optarg; 
+                std::cout << "Name of file to write lattice down at end of simulation is " << lattice_file_read <<  "." << std::endl;
+                break;
         }
     }
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     // parse inputs 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser (dfreq, max_iter, positions, topology, dfile, efile, mfile, stats_file); 
+    InputParser (dfreq, max_iter, r, positions, \
+        topology, dfile, efile, mfile, stats_file, \
+        lattice_file_read ); 
 
     // driver 
 
@@ -151,74 +167,109 @@ int main(int argc, char** argv) {
     
 
     int step_number = 0; // step_number++;
-    double sysEnergy {0}; // sysEnergy++;
+    double sysEnergy {0}; 
+    double sysEnergy_ {0}; 
     
-    std::vector <Polymer> Polymers; 
-    
-    Polymers.reserve(N); 
-
-    Polymers = ExtractPolymersFromFile(positions, x, y, z); 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
+    
+    std::vector <Polymer> Polymers; 
+    Polymers.reserve(N); 
 
     auto start = std::chrono::high_resolution_clock::now(); 
-    std::cout << "Solvating the simulation cell... This can take some time. \n";
-
-    AddSolvent1 (x, y, z, &LATTICE);
-
-    std::vector <int> monomer_indices; 
-
-    // populate the lattice 
-    for (Polymer& pmer: Polymers){
-        for (Particle*& p: pmer.chain ){
-            
-            LATTICE.at(lattice_index (p->coords, y, z) ) = p; 
-            monomer_indices.push_back ( lattice_index (p->coords, y, z)); 
-        
-        }
-    }
-
-    AddSolvent2 (x, y, z, frac, &monomer_indices, &LATTICE); 
-
-    // for ( Particle*& p: LATTICE ){
-    //    std::cout << p->ptype << ", " << p->orientation << ", "; print (p->coords); 
-    // }
-
-    // std::cout << " ==================================================== " << std::endl;    
-    // std::cout << " ==================================================== " << std::endl;    
-
-    // now that i have my polymer coordinates, i can create the grand lattice map
-        
-    double sysEnergy_ {0}; // sysEnergy_++;
-    
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
-    std::cout << "Cell has been solvated! \n\n" ;
+    
+    // start creating LATTICE! 
+    // if i am not restarting, get stuff from 
+    // positions and set up LATTICE. 
 
-    
-    /////////////////////////////////////////////////
-    
-    for (Polymer& pmer:Polymers){
-        for (Particle*& p: pmer.chain){
-            p->orientation = 0; 
+    if ( !r ){
+        std::cout << "Revving up the system from scratch..." << std::endl;
+        Polymers = ExtractPolymersFromFile (positions, x, y, z); 
+
+        std::cout << "Solvating the simulation cell... This can take some time. \n";
+
+        AddSolvent1 (x, y, z, &LATTICE);
+
+        std::vector <int> monomer_indices; 
+
+        // populate the lattice 
+        for (Polymer& pmer: Polymers){
+            for (Particle*& p: pmer.chain ){
+                
+                LATTICE.at(lattice_index (p->coords, y, z) ) = p; 
+                monomer_indices.push_back ( lattice_index (p->coords, y, z)); 
+            
+            }
         }
-    }
-    /////////////////////////////////////////////////
+
+        AddSolvent2 (x, y, z, frac, &monomer_indices, &LATTICE); 
+        stop = std::chrono::high_resolution_clock::now(); 
+        duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+
+        std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
+        std::cout << "Cell has been solvated! \n\n" ;
+
+        for (Polymer& pmer:Polymers){
+            for (Particle*& p: pmer.chain){
+                p->orientation = 0; 
+            }
+        }
     
-    dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
+        dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
+
+    }
+
+    else {
+
+        std::cout << "Restarting from (some) previous simulation..." << std::endl;
+
+        LATTICE  = ExtractLatticeFromRestart ( lattice_file_read, &step_number, x, y, z );
+        Polymers = ExtractPolymersFromTraj   ( dfile, positions, step_number, x, y, z );  
+
+        for ( Polymer& pmer: Polymers) {
+            for ( Particle*& p: pmer.chain){
+
+                std::cout << "ptypes: " << LATTICE[lattice_index(p->coords, y, z) ]->ptype << ", " << p->ptype << std::endl;
+                std::cout << "orientation: " << LATTICE[lattice_index(p->coords, y, z) ]->orientation << ", " << p->orientation << std::endl;
+                std::cout << "locs: "; print(LATTICE[lattice_index(p->coords, y, z) ]->coords); print( p->coords );
+
+                if ( !( LATTICE [ lattice_index(p->coords, y, z) ]->ptype == p->ptype \
+                    && LATTICE [ lattice_index(p->coords, y, z) ]->coords == p->coords \
+                    && LATTICE [ lattice_index(p->coords, y, z) ]->orientation == p->orientation) ) {
+                    std::cerr << "There is a problem with extraction for restart..." << std::endl;
+                    exit (EXIT_FAILURE); 
+                } 
+                LATTICE [ lattice_index(p->coords, y, z) ] = p;
+            }
+        }
+
+        stop = std::chrono::high_resolution_clock::now(); 
+        duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+
+        std::cout << "System set-up took " << duration.count () << " milliseconds." << std::endl;
+        std::cout << "Simulation cell has been made! \n\n" ;
+
+    }
     
     std::array <double,6> contacts = {0, 0, 0, 0, 0, 0};
 
     sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, &E, &contacts); 
 
+    std::cout <<"\nCalculating energy..." << std::endl;
+    std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
+
     std::array <double,6> contacts_copy = contacts; 
 
-    dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
-    dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
-    
-    // defined single orientation solvents and polymers 
+    if ( !r ) {
+        dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
+        dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
+    }
+    if (r) {
+        dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
+    }
     
     std::cout <<"\nCalculating energy..." << std::endl;
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
@@ -440,7 +491,10 @@ int main(int argc, char** argv) {
            
     }
     dumpMoveStatistics      (&attempts, &acceptances, max_iter, stats_file);  
-    // dumpPositionOfSolvent   (&LATTICE , max_iter, solvent_file);
+    
+    if ( lattice_file_write != "__blank__" ){
+        dumpLATTICE ( &LATTICE, step_number+max_iter, y, z, lattice_file_write ); 
+    }
 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 

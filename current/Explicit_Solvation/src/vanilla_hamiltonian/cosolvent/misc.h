@@ -110,7 +110,7 @@ void print (std::vector <Particle> pvec);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // creation methods 
 std::vector <Particle>           CreateSolventVector (int x, int y, int z, std::vector <Polymer>* Polymers, double fraction); 
-Polymer                          makePolymer         (std::vector <std::array <int,3>> locations, std::string type_m="monomer");
+Polymer                          makePolymer         (std::vector <std::array <int,3>> locations, std::string type_m="m");
 // create a lattice 
 std::vector <std::array <int,3>> create_lattice_pts  (int x_len, int y_len, int z_len); 
 
@@ -126,14 +126,14 @@ int  IsSolvent                            (std::vector <Polymer>* Polymers, std:
 int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std::array <int,3>* to_check);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // extraction methods 
-std::vector <Polymer>  ExtractPolymersFromFile    (std::string filename, int x, int y, int z);
-std::vector <Polymer>  ExtractPolymersFromFile    (std::string filename);
-std::vector <Polymer>  ExtractPolymersFromTraj    (std::string trajectory, std::string position);
-int                    ExtractIndexOfFinalMove    (std::string trajectory);
-double                 ExtractEnergyOfFinalMove   (std::string energy_file); 
-int                    ExtractNumberOfPolymers    (std::string filename);
+std::vector <Polymer>   ExtractPolymersFromFile    (std::string filename, int x, int y, int z);
+std::vector <Polymer>   ExtractPolymersFromFile    (std::string filename);
+std::vector <Polymer>   ExtractPolymersFromTraj    (std::string trajectory, std::string position);
+int                     ExtractIndexOfFinalMove    (std::string trajectory);
+double                  ExtractEnergyOfFinalMove   (std::string energy_file); 
+int                     ExtractNumberOfPolymers    (std::string filename);
 std::array <double, 11> ExtractTopologyFromFile    (std::string filename);
-double                 NumberExtractor            (std::string s);
+double                  NumberExtractor            (std::string s);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 

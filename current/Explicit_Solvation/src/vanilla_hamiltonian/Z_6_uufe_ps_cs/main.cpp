@@ -20,23 +20,15 @@ int main(int argc, char** argv) {
     int opt; 
     int dfreq {-1}, max_iter{-1};
     std::string positions {"blank"}, topology {"blank"}, dfile {"blank"}, efile{"blank"}, mfile {"blank"}, stats_file {"blank"}, solvent_file {"blank"};  
-    bool v = false;
+    bool v = false; // r = false;
 
     while ( (opt = getopt(argc, argv, ":s:S:f:M:o:u:p:t:e:vh")) != -1 )
     {
         switch (opt) 
         {
             case 'f':
-                // std::cout << "Option dreq was called with argument " << optarg << std::endl; 
                 dfreq = atoi(optarg); 
                 break;
-
-
-
-            // case 'N':
-                // std::cout << "Option Nmov was called with argument " << optarg << std::endl; 
-                // Nacc = atoi(optarg); 
-                // break; 
 
             case 'M':
                 max_iter = atoi(optarg); 
@@ -45,11 +37,12 @@ int main(int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "\nWelcome to my Monte Carlo simulation engine (v0.2) for polymers in a simple cubic box (Z=6). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
-		        "\nLast updated: May 17, 2022, 01:00 AM. \nAuthor: satyend@princeton.edu\n" <<
+		        "\nLast updated: May 19, 2022, 10:29 PM. \nAuthor: satyend@princeton.edu\n" <<
                 "\n----------------------------------------------------------------------------------------------------------------------------------\n" << 
                 "These are all the inputs the engine accepts for a single run, as of right now:\n\n" <<
                 "help                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose                  [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
+                // "restart                  [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
                 "Dump Frequency           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of maximum moves  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
                 // "Required accepted moves  [-N]           (INTEGER ARGUMENT REQUIRED)    Number of accepted moves for a good simulation.\n" <<  
@@ -78,10 +71,6 @@ int main(int argc, char** argv) {
                 dfile = optarg;
                 break;
 
-            //case 'T':
-            //    restart_traj = optarg;
-            //   break;
-
             case 'u':
                 efile = optarg;
                 break;
@@ -104,16 +93,6 @@ int main(int argc, char** argv) {
                 v = true;
                 break;
 
-            // case 'a':
-            //    std::cout <<"Only accepted structures will be outputted." << std::endl;
-            //    a = true; 
-            //    break; 
-
-            // case 'r':
-            //    std::cout <<"Will attempt to restart simulation by taking coordinates from a previous trajectory file." << std::endl;
-            //    r = true; 
-            //    break; 
-            
             case 'e':
                 mfile=optarg;
                 break; 
@@ -132,11 +111,8 @@ int main(int argc, char** argv) {
 
     // driver 
 
-    
-
-
     // ExtractTopologyFromFile extracts all the topology from the input file 
-    std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
+    std::array <double,11> info_vec {ExtractTopologyFromFile(topology)}; 
 
     // ExtractNumberOfPolymers extracts the total number of chains in the input file 
     const int N = ExtractNumberOfPolymers(positions); 
@@ -146,13 +122,13 @@ int main(int argc, char** argv) {
     const int y = info_vec[1]; 
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
-    const double Emm_a = info_vec[4]; 
-    const double Emm_n = info_vec[5]; 
-    const double Ems_a = info_vec[6];
-    const double Ems_n = info_vec[7]; 
+    const double frac = info_vec[4]; 
     
-    std::array <int,9> attempts    = {0,0,0,0,0,0,0,0,0};
-    std::array <int,9> acceptances = {0,0,0,0,0,0,0,0,0}; 
+    // std::array <int,10> attempts    = {0,0,0,0,0,0,0,0,0,0};
+    // std::array <int,10> acceptances = {0,0,0,0,0,0,0,0,0,0}; 
+
+    std::array <double,6> E = {info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10]}; 
+
 
     std::cout << std::endl;
     std::cout << "Preparing for take-off...\n\n" ; 
@@ -162,7 +138,10 @@ int main(int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ".\n" << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems_a = "<< Ems_a << ", Ems_n = " << Ems_n <<".\n \n";  
+    std::cout << "Fraction of solvent  s2 is " << frac << ".\n" << std::endl; 
+    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] << \
+            ", Ems2_a = "<< E[4] << ", Ems2_n = " << E[5] << ".\n\n";  
+
 
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
@@ -186,22 +165,25 @@ int main(int argc, char** argv) {
     auto start = std::chrono::high_resolution_clock::now(); 
     // std::cout << "Solvating the simulation cell... This can take some time. \n";
 
-    AddSolvent (x, y, z, &LATTICE);
+    AddSolvent_S1 (x, y, z, &LATTICE);
     
     // populate the lattice 
+    int DOP = 0; 
     for (Polymer& pmer: Polymers){
         for (Particle*& p: pmer.chain ){
             // std::cout << "location is "; print (p->coords);
             // std::cout << "lattice index is " << lattice_index (p->coords, y, z) << std::endl;
             LATTICE .at(lattice_index (p->coords, y, z) ) = p; 
+            DOP += 1; 
         }
     }
 
-    
+    // add solvent S2 
+    AddSolvent_S2 (x, y, z, DOP, frac, &Polymers, &LATTICE);
 
     // now that i have my polymer coordinates, i can create the grand lattice map
         
-    double sysEnergy_ {0}; // sysEnergy_++;
+    // double sysEnergy_ {0}; // sysEnergy_++;
     
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
@@ -220,42 +202,36 @@ int main(int argc, char** argv) {
     /////////////////////////////////////////////////
     // print ((LATTICE)[lattice_index ( Polymers[0].chain[0]->coords, y, z )]->coords);
     
+    std::array <double,6> contacts = {0,0,0,0,0,0}; 
     
+
     dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     
-    double mm_aligned  = 0,  mm_aligned_copy  = 0; 
-    double mm_naligned = 0,  mm_naligned_copy = 0;
-    int ms_aligned     = 0,  ms_aligned_copy  = 0;
-    int ms_naligned    = 0,  ms_naligned_copy = 0; 
-    
-    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &mm_aligned, &mm_naligned, &ms_aligned, &ms_naligned); 
+    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, &E, &contacts); 
 
-    mm_aligned_copy   = mm_aligned ; 
-    mm_naligned_copy  = mm_naligned; 
-    ms_aligned_copy   = ms_aligned ;
-    ms_naligned_copy  = ms_naligned;
+    // std::array <double,6> contacts_copy = contacts; 
 
-    dumpEnergy      (sysEnergy, step_number, mm_aligned, mm_naligned, ms_aligned, ms_naligned, efile); 
+    dumpEnergy      (sysEnergy, step_number, contacts, efile); 
     dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
     
     // defined single orientation solvents and polymers 
     std::cout <<"\nCalculating energy..." << std::endl;
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
-    bool IMP_BOOL = true; 
-    bool metropolis = false;
+    // bool IMP_BOOL = true; 
+    // bool metropolis = false;
     
-    double rweight =  0; 
-    int move_number = 0; 
-    int monomer_index = -1; 
-    int back_or_front = -1; 
+    // double rweight =  0; 
+    // int move_number = 0; 
+    // int monomer_index = -1; 
+    // int back_or_front = -1; 
     std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>> memory3; 
     std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>> memory2;
 
     printf("Initiation complete. We are ready to go. The engine will output information every %d configuration(s).\n", dfreq); 
     
-    int Nsurr = ms_aligned + ms_naligned; 
-    
+    // int Nsurr       = contacts[2]+contacts[3]+contacts[4]+contacts[5]; 
+    /*
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
         if ( v && (i%dfreq==0) ){
@@ -470,7 +446,7 @@ int main(int argc, char** argv) {
     }
     dumpMoveStatistics      (&attempts, &acceptances, max_iter, stats_file);  
     // dumpPositionOfSolvent   (&LATTICE , max_iter, solvent_file);
-
+    */ 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	

@@ -1272,21 +1272,20 @@ bool checkConnectivity(std::vector <Polymer> Polymers, int x, int y, int z) {
         size_t length = pmer.chain.size(); 
         std::array <int,3> connection = {0,0,0}; 
         std::sort (adrns.begin(), adrns.end() ); 
-
+        std::cout << "length is " << length << std::endl;
         for (int i{1}; i<static_cast<int>(length); ++i){
             
             connection = subtract_arrays(&(pmer.chain[i]->coords), &(pmer.chain[i-1]->coords));
             impose_pbc(&connection, x, y, z);
             modified_direction ( &connection, x, y, z); 
-
+            // print ( connection ); 
             if ( binary_search ( adrns.begin(), adrns.end(), connection) ) {
-            	break;
+            	continue;
             }
             else {
             	std::cerr << "Shit, you have bad connectivity inside one (or maybe more) polymers. Check input file." << std::endl;
                 return false; 
             }
-
         }
     }
 
@@ -1429,8 +1428,6 @@ std::vector<Polymer> ExtractPolymersFromFile(std::string filename, int x, int y,
         exit(EXIT_FAILURE); 
     }
     
-    
-
     return PolymerVector; 
 }
 

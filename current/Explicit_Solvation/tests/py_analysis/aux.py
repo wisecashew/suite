@@ -236,7 +236,7 @@ def get_Rg_components ( coords_arr, xlen, ylen, zlen):
     # print ("rsumy = ", rsumy)
     # print ("rsumz = ", rsumz)
 
-    comp_delta = ((rsumx ** 2) * (rsumy ** 2) + (rsumy ** 2) * (rsumz **2 ) + (rsumx **2 ) * (rsumz ** 2))/(rsumx**2+rsumy**2+rsumz**2)**2
+    comp_delta = ((rsumx**2) * (rsumy**2) + (rsumy**2) * (rsumz**2) + (rsumx**2) * (rsumz**2))/(rsumx**2+rsumy**2+rsumz**2)**2
 
     # print(comp_delta) 
 
@@ -249,7 +249,6 @@ def get_shape_param ( master_dict, xlen, ylen, zlen ):
         rdelta.append ( get_Rg_components ( master_dict[key][0], xlen, ylen, zlen ) ) 
 
     avg_comp = np.mean ( rdelta ) 
-
     return 1-3*avg_comp 
 
 
@@ -1032,7 +1031,7 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
         master_num_list = [] 
         rg_dict    = {}
         ntraj_dict = {}
-        for T in temperatures[0:7]: 
+        for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
             num_list = list(np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
@@ -1077,7 +1076,7 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
                 rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) 
         
         
-        ax.errorbar   ( temperatures[0:7], np.asarray(rg_mean)/dop, yerr=np.asarray(rg_std)/dop, fmt='o', markeredgecolor='k', \
+        ax.errorbar   ( temperatures, np.asarray(rg_mean)/dop, yerr=np.asarray(rg_std)/dop, fmt='o', markeredgecolor='k', \
                     linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
         
         f.write("Rg^2: ") 

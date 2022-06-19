@@ -52,7 +52,7 @@ if __name__=="__main__":
 
                 ms_list = np.hstack ( ( ms_list, ( df["ms_tot"].values ) - (args.dop-1) ) )
         
-            ms_err  = np.hstack ( ( ms_err , np.std  ( ms_list ) / np.sqrt(40) ) ) 
+            ms_err  = np.hstack ( ( ms_err , np.std  ( ms_list ) / np.sqrt(100) ) ) 
             ms_mean = np.hstack ( ( ms_mean, np.mean ( ms_list ) ) )
 
         plt.errorbar(temperatures, np.asarray(ms_mean), yerr=np.asarray(ms_err), fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_')   

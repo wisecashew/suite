@@ -33,8 +33,8 @@ if __name__=="__main__":
     fig = plt.figure(1)
     ax  = plt.axes()
     
-    rg_str = "Rg:"
-    rh_str = "Rh:"
+    rg_str = "Rg\^2:"
+    rh_str = "invRh:"
     e_str  = "Error:"
     T_str  = "T:"
     
@@ -79,8 +79,6 @@ if __name__=="__main__":
         f = open (args.frh + "_" + str(N), 'r' )
         for line in f:
             if re.match ( U_str, line ):
-                # print ( "N is: " + str(N) ) 
-                # print (" line is \" " + line[:-1] + "\"")
                 match_flag = True 
                 continue 
             if re.match ( rh_str, line) and match_flag: 
@@ -103,7 +101,7 @@ if __name__=="__main__":
             quit()
         
         
-        plt.plot ( T_list, np.asarray(rg_list)/np.asarray(rh_list), marker='o', markeredgecolor='k', color=cm.copper(i/9), label="_nolegend_", linestyle='-' ) 
+        plt.plot ( T_list,np.sqrt(np.asarray(rg_list))*np.asarray(rh_list), marker='o', markeredgecolor='k', color=cm.copper(i/9), label="_nolegend_", linestyle='-' ) 
         i += 1
 
     

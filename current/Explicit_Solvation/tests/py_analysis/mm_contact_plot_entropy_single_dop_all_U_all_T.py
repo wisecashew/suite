@@ -52,7 +52,7 @@ if __name__=="__main__":
 
                 mm_list = np.hstack ( ( mm_list, ( df["mm_tot"].values ) - (args.dop-1) ) )
         
-            mm_err  = np.hstack ( ( mm_err , np.std  ( mm_list ) / np.sqrt(40) ) ) 
+            mm_err  = np.hstack ( ( mm_err , np.std  ( mm_list ) / np.sqrt(100) ) ) 
             mm_mean = np.hstack ( ( mm_mean, np.mean ( mm_list ) ) )
 
         plt.errorbar(temperatures, np.asarray(mm_mean), yerr=np.asarray(mm_err), fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_')   
@@ -66,7 +66,7 @@ if __name__=="__main__":
     if args.ev:
         df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e, sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python' )
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts 
-        plt.errorbar ( temperatures, contacts, yerr = np.std( df["mm_tot"].values)/np.sqrt(40), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0 ) 
+        plt.errorbar ( temperatures, contacts, yerr = np.std( df["mm_tot"].values)/np.sqrt(100), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0 ) 
         plt.legend ( ["Athermal solvent"] ) 
 
     my_cmap = cm.copper

@@ -141,8 +141,8 @@ int main(int argc, char** argv) {
     const double T = info_vec[3]; 
     const double frac  = info_vec[4]; // fraction of solvent 1
     
-    std::array <int,10> attempts    = {0,0,0,0,0,0,0,0,0,0}; 
-    std::array <int,10> acceptances = {0,0,0,0,0,0,0,0,0,0}; 
+    std::array <int,7> attempts    = {0,0,0,0,0,0,0}; 
+    std::array <int,7> acceptances = {0,0,0,0,0,0,0}; 
     
     std::array <double,6> E = { info_vec[5], info_vec[6], info_vec[7], \
             info_vec[8], info_vec[9], info_vec[10] };
@@ -271,9 +271,6 @@ int main(int argc, char** argv) {
         dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
     }
     
-    std::cout <<"\nCalculating energy..." << std::endl;
-    std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
-    
     bool IMP_BOOL = true; 
     bool metropolis = false;
     
@@ -285,6 +282,9 @@ int main(int argc, char** argv) {
     std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>> memory3; 
     std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>> memory2;
     std::vector <std::array<int,2>> s_memory; 
+    
+    std::ofstream lattice_file ( lattice_file_write, std::ios::out );  
+
 
     printf("Initiation complete. We are ready to go. The engine will output information every %d configuration(s).\n", dfreq); 
     
@@ -311,7 +311,7 @@ int main(int argc, char** argv) {
         // choose a move... 
 
         PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory3, &memory2, &s_memory, &monomer_index, &back_or_front, Nsurr); 
-
+        // std::cout << "Is this happening?" << std::endl;
 
         if (IMP_BOOL){ 
             sysEnergy_ = CalculateEnergy (&Polymers, &LATTICE, x, y, z, &E, &contacts); 
@@ -320,12 +320,12 @@ int main(int argc, char** argv) {
         if ( v && (i%dfreq==0) ){
             printf("Executing...\n");
         }
-        
+        // std::cout << "IMP_BOOL is " << IMP_BOOL << std::endl;
+        // std::cout << "rweight is " << rweight << std::endl; 
         if ( IMP_BOOL ) {
             if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T, rweight) ){
                 metropolis = true; 
-                acceptances[move_number-1]+=1;
-
+                acceptances[move_number]+=1;
                 if ( v ){
                     printf("Checking validity of coords...");
                     printf("checkForOverlaps says: %d.\n", checkForOverlaps(Polymers)); 
@@ -481,6 +481,11 @@ int main(int argc, char** argv) {
             else {
                 dumpEnergy (sysEnergy, i, &contacts_copy, efile);
             } 
+
+            // if ( lattice_file_write != "__blank__" ) {
+            //     dumpLATTICE ( &LATTICE, step_number+i, y, z, lattice_file_write ); 
+            // }
+
         }
 
         // reset the memory carrier, and IMP_BOOL

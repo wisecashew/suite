@@ -839,7 +839,7 @@ def plot_rg_parallelized_single_U_multiple_dop (U, starting_index, excl_vol_bool
 def plot_fh_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
     
     U_list = dir2U ( os.listdir (".") )
-
+    PLOT_DICT = {} 
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(axis='x', labelsize=16)
@@ -847,7 +847,7 @@ def plot_fh_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_v
     i = 0 
     Tmax = [] 
 
-
+    rg_max = 0 
     # instantiating pool
     pool1 = multiprocessing.Pool ( processes=50 )# len(num_list)) 
     pool2 = multiprocessing.Pool ( processes=5 )
@@ -867,7 +867,7 @@ def plot_fh_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_v
         # get num_list for each temperature 
         master_temp_list = [] 
         master_num_list = [] 
-        rg_dict    = {}
+        rg_dict    = {} 
         ntraj_dict = {}
         for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
@@ -914,9 +914,14 @@ def plot_fh_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_v
                 rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) 
         
         
-        ax.errorbar   ( temperatures, np.asarray(rg_mean)/dop, yerr=np.asarray(rg_std)/dop, fmt='o', markeredgecolor='k', \
-                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
+        # ax.errorbar   ( temperatures, np.asarray(rg_mean)/dop, yerr=np.asarray(rg_std)/dop, fmt='o', markeredgecolor='k', \
+        #             linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
         
+        PLOT_DICT[U] = (np.asarray(rg_mean), np.asarray(rg_std) ) 
+
+        if rg_max < np.max (rg_mean):
+            rg_max = np.max (rg_mean) 
+
         f.write("Rg^2: ") 
         for elem in rg_mean: 
             f.write ( "{:.2f} ".format(elem))
@@ -940,43 +945,68 @@ def plot_fh_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_v
 
     f.close() 
 
-    
+    i=0
+    for U in U_list:
+        ax.errorbar ( temperatures, PLOT_DICT[U][0]/rg_max, yerr=PLOT_DICT[U][1]/rg_max, fmt='o', markeredgecolor='k', \
+                linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
+        i+=1
+
     # plot Uexcl...
     if excl_vol_bool:
+        f = open ("RG_DATA_"+str(dop), 'a')
+        f.write ( "U = Uexcl:\n" ) 
+        print ("Inside U = Uexcl and N = " + str(dop), flush=True )
         temperatures_excl = dir2float ( os.listdir( "Uexcl" +"/DOP_"+str(dop) ) )
         edge = edge_length (dop) 
-        rg_mean = 0
-        rg_std  = 0 
+        rg_mean = []
+        rg_std  = []
         for T in temperatures_excl:
             rg_list = [] 
-            
             filename = "Uexcl/DOP_" + str(dop) + "/" + str(T) + "/" +coords_files 
             master_dict = get_pdict ( filename, 0, dop, edge, edge, edge ) 
             for key in master_dict:
                 coord_arr = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
                 r_com     = np.mean ( coord_arr, axis=0 ) 
                 offset    = coord_arr - r_com
-                rg_list.append ( np.sum ( np.square (offset) ) / dop  ) 
-            
-            rg_mean = np.mean (rg_list)/dop 
-            rg_std  = np.std  (rg_list)/dop 
-        
-        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean, yerr=np.ones(len(temperatures))*(rg_std)/np.sqrt(20), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
+                rg_list.append ( np.sum ( np.square (offset)/dop ) ) 
+           
+            # print( rg_list ) 
+            rg_mean.append( np.mean (rg_list) )
+            rg_std.append( np.std  (rg_list) ) 
+        # print ("rg_mean is ", rg_mean )
+        # print ("rg_max is ", rg_max )
+        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/rg_max, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
         ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
-
+        
+        f.write ("Rg^2: ")
+        for j in range (len(temperatures) ):
+            f.write ("{:.2f} ".format(rg_mean[0])) 
+        f.write("\n")
+        f.write("Error: ")
+        for j in range(len (temperatures) ):
+            f.write ( "{:.2f} ". format(0))
+        f.write("\n")
+        f.write("T: ") 
+        for elem in temperatures:
+            f.write( "{:.2f} ".format(elem) ) 
+        f.write("\n") 
+        f.flush()
+        f.close() 
     ########################################
 
     my_cmap = cm.copper 
     sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
     cbar = plt.colorbar(sm, orientation='vertical') 
     cbar.set_ticks ( [0, 1] )
-    cbar.set_ticklabels( ["Poorest", "Best"] ) 
+    cbar.set_ticklabels( ["Poorest", "Best"] )
+    cbar.ax.tick_params(labelsize=14)
     cbar.ax.set_ylabel ("Quality of solvent", fontsize=18, rotation=270)
     ax.set_xscale('log')
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\langle R_g ^2 \\rangle/N$", fontsize=18)     
+    ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)     
     ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
-    plt.savefig   ( "DOP_"+str(dop)+"_multiple_rg.png", dpi=800)
+    ax.set_yticks ( np.linspace(0,1,11) )
+    plt.savefig   ( "DOP_"+str(dop)+"_multiple_rg.png", dpi=1000)
     
     if show_plot_bool:
         plt.show() 
@@ -1001,7 +1031,7 @@ def plot_fh_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_v
 def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
     
     U_list = dir2U ( os.listdir (".") )
-
+    PLOT_DICT = {} 
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(axis='x', labelsize=16)
@@ -1009,7 +1039,7 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
     i = 0 
     Tmax = [] 
 
-
+    rg_max = 0 
     # instantiating pool
     pool1 = multiprocessing.Pool ( processes=50 )# len(num_list)) 
     pool2 = multiprocessing.Pool ( processes=5 )
@@ -1075,9 +1105,10 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
                 rg_mean.append( np.mean ( rg_dict[T] ) ) 
                 rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) 
         
-        
-        ax.errorbar   ( temperatures, np.asarray(rg_mean)/dop, yerr=np.asarray(rg_std)/dop, fmt='o', markeredgecolor='k', \
-                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
+        if rg_max < np.max (rg_mean):
+            rg_max = np.max(rg_mean) 
+
+        PLOT_DICT [U] = (np.asarray(rg_mean), np.asarray(rg_std))
         
         f.write("Rg^2: ") 
         for elem in rg_mean: 
@@ -1101,10 +1132,18 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
     pool2.join() 
 
     f.close() 
-
     
+    i=0
+    for U in U_list:
+        
+        ax.errorbar   ( temperatures, PLOT_DICT[U][0]/rg_max, yerr=PLOT_DICT[U][1]/rg_max, fmt='o', markeredgecolor='k', \
+                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
+        i += 1
+
     # plot Uexcl...
     if excl_vol_bool:
+        f = open ("RG_DATA_"+str(dop), 'a')
+        f.write ( "U = Uexcl:\n")
         temperatures_excl = dir2float ( os.listdir( "Uexcl" +"/DOP_"+str(dop) ) )
         edge = edge_length (dop) 
         rg_mean = []
@@ -1118,14 +1157,26 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
                 coord_arr = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
                 r_com     = np.mean ( coord_arr, axis=0 ) 
                 offset    = coord_arr - r_com
-                rg_list.append ( np.sum ( np.square (offset) ) / dop ) 
+                rg_list.append ( np.sum ( np.square (offset) ) ) 
             
-            rg_mean.append ( np.mean (rg_list)/dop ) 
-            rg_std.append  ( np.std  (rg_list)/dop ) 
+            rg_mean.append ( np.mean (rg_list) ) 
+            rg_std.append  ( np.std  (rg_list) ) 
         
-        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0], yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
+        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/rg_max, yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
         ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
-
+        f.write ("Rg^2: ")
+        for j in range (len (temperatures) ):
+            f.write ( "{:.2f} ".format (rg_mean[0] ) ) 
+        f.write("\n") 
+        f.write("Error: ") 
+        for j in range(len(temperatures) ):
+            f.write( "{:.2f} ".format(0) ) 
+        f.write ("\n") 
+        for elem in temperatures:
+            f.write ( "{:.2f} ".format(elem) ) 
+        f.write ("\n") 
+        f.flush()
+        f.close() 
     ########################################
 
     my_cmap = cm.copper 
@@ -1133,15 +1184,13 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
     cbar = plt.colorbar(sm, orientation='vertical') 
     cbar.set_ticks ( [0, 1] )
     cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
+    cbar.ax.tick_params(labelsize=14)
     cbar.ax.set_ylabel ("Strength of aligned \nmonomer-solvent interactions", fontsize=18, rotation=270)
     ax.set_xscale('log')
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\langle R_g^2 \\rangle/N$", fontsize=18)     
-    # ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(n=10) ) 
-    ymin, ymax = ax.get_ylim()
-    ax.set_yticks (np.linspace(ymin, ymax, 10))
-    # ax.yaxis.set_major_formatter(FormatStrFormatter('%g')) 
-    plt.savefig   ( "DOP_"+str(dop)+"_multiple_rg.png", dpi=800)
+    ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)     
+    ax.set_yticks (np.linspace(0, 1, 11)) 
+    plt.savefig   ( "DOP_"+str(dop)+"_multiple_rg.png", dpi=1000)
     
     if show_plot_bool:
         plt.show() 
@@ -1395,9 +1444,9 @@ def plot_rh_parallelized ( dop, starting_index, excl_vol_bool, coords_files, sho
                 rh_mean.append( np.mean ( rh_dict[T] ) ) 
                 rh_std.append ( np.std  ( rh_dict[T] ) / np.sqrt( ntraj_dict[T] ) ) 
 
-        ax.errorbar   ( temperatures, rh_mean*np.sqrt(dop), yerr=rh_std, fmt='o', markeredgecolor='k', \
-                linestyle='-', elinewidth=1, capsize=0, linewidth=1, \
-                color=cm.copper(i/9), label='_nolegend_' ) 
+        # ax.errorbar   ( temperatures, rh_mean*np.sqrt(dop), yerr=rh_std, fmt='o', markeredgecolor='k', \
+        #        linestyle='-', elinewidth=1, capsize=0, linewidth=1, \
+        #        color=cm.copper(i/9), label='_nolegend_' ) 
         
         f.write("invRh: ") 
         for elem in rh_mean:
@@ -1425,6 +1474,8 @@ def plot_rh_parallelized ( dop, starting_index, excl_vol_bool, coords_files, sho
     
     # plot Uexcl...
     if excl_vol_bool:
+        f = open ("INV_RH_DATA_"+str(dop), 'a')
+        f.write ("U = Uexcl:\n")
         temperatures_excl = dir2float ( os.listdir( "Uexcl/DOP_"+str(dop) ) )
         edge = edge_length (dop)
         rh_list = []
@@ -1444,7 +1495,21 @@ def plot_rh_parallelized ( dop, starting_index, excl_vol_bool, coords_files, sho
         ax.errorbar ( temperatures, np.ones (len(temperatures))*rh_mean*np.sqrt(dop), yerr=np.sqrt(dop)*np.ones (len(temperatures))*rh_std/np.sqrt(20), fmt='^', markeredgecolor='k', \
                 linestyle='-', elinewidth=1, capsize=0, linewidth=1 ) 
         plt.legend  ( ["Athermal solvent"], loc='best', fontsize=12 ) 
-
+        
+        f.write("invRh: ")
+        for j in range(len(temperatures)):
+            f.write ("{:.2f} ".format(rh_mean) ) 
+        f.write("\n")
+        f.write("Error :")
+        for j in range(len(temperatures)):
+            f.write ("{:.2f} ".format(0))
+        f.write("\n")
+        for elem in temperatures:
+            f.write( "{:.2f} ".format(elem)) 
+        f.write("\n")
+        f.flush()
+        f.close()
+####################################
     my_cmap = cm.copper 
     sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
 
@@ -1580,6 +1645,8 @@ def plot_entropy_rh_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
     
     # plot Uexcl...
     if excl_vol_bool:
+        f = open ("INV_RH_DATA_"+str(dop), 'a') 
+        f.write ("U = Uexcl:\n")
         temperatures_excl = dir2float ( os.listdir( "Uexcl/DOP_"+str(dop) ) )
         edge = edge_length (dop)
         rh_list = []
@@ -1600,12 +1667,29 @@ def plot_entropy_rh_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
                 linestyle='-', elinewidth=1, capsize=0, linewidth=1 ) 
         plt.legend  ( ["Athermal solvent"], loc='best', fontsize=12 ) 
 
+        f.write("invRh: ")
+        for j in range(len(temperatures)):
+            f.write("{:.2f} ".format(rh_mean) )
+        f.write("\n")
+        f.write("Error: ")
+        for j in range(len(temperatures)):
+            f.write  ("{:.2f} ".format(0)) 
+        f.write("T: ")
+        for elem in temperatures:
+            f.write ("{:.2f} ".format(elem))
+        f.write ("\n")
+        f.flush()
+        f.close()
+
+
+######################################
     my_cmap = cm.copper 
     sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
 
     cbar = plt.colorbar(sm, orientation='vertical') 
     cbar.set_ticks ( [0, 1] )
     cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
+    cbar.ax.tick_params (labelsize=14)
     cbar.ax.set_ylabel ("Strength of aligned \nmonomer-solvent interactions", fontsize=18, rotation=270)
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
     ax.set_ylabel ( "$\\left\\langle \\frac{1}{R_h} \\right\\rangle \cdot \sqrt{N}$", fontsize=18)     
@@ -1624,6 +1708,166 @@ def plot_entropy_rh_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
 
 
 
+def plot_fh_rh_parallelized_single_dop_all_U_all_T ( dop, starting_index, excl_vol_bool, coords_files, show_plot_bool ):
+
+    U_list = dir2U ( os.listdir (".") )
+        
+    # print (edge_length(dop))
+    fig = plt.figure( figsize=(8,6) )
+    ax  = plt.axes() 
+    ax.tick_params(axis='x', labelsize=16)
+    ax.tick_params(axis='y', labelsize=16)
+    i = 0 
+    Tmax = [] 
+
+    # instantiating pool
+    pool1 = multiprocessing.Pool ( processes=50 )# len(num_list)) 
+    pool2 = multiprocessing.Pool ( processes=5 )
+    
+    pool_list = [pool1, pool2]
+    
+    f = open("RH_DATA_"+str(dop), "w") 
+
+    for U in U_list:
+        f.write("U = " + U + ":\n")
+        print("Inside U = " + U + ", and N = " + str(dop), flush=True )
+        rh_mean = [] 
+        rh_std  = [] 
+        temperatures = dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
+        Tmax.append ( np.max(temperatures) )
+        
+        # get num_list for each temperature 
+        master_temp_list = [] 
+        master_num_list = [] 
+        rh_dict    = {}
+        ntraj_dict = {}
+        for T in temperatures: 
+            # print ("T is " + str(T), flush=True) 
+            num_list = list( np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) )  ) )
+            master_num_list.extend ( num_list )
+            master_temp_list.extend ( [T]*len( num_list ) )
+            ntraj_dict[T] = len ( num_list )
+            rh_dict[T] = []
+
+
+        # start multiprocessing... keeping in mind that each node only has 96 cores 
+        # start splitting up master_num_list and master_temp_list 
+        mtemp_list_p1 = master_temp_list[0:50] 
+        mtemp_list_p2 = master_temp_list[50:100]
+        mtemp_list_p3 = master_temp_list[100:105]
+        mtemp_list    = [mtemp_list_p1, mtemp_list_p2, mtemp_list_p3] 
+
+        mnum_list_p1  = master_num_list[0:50]
+        mnum_list_p2  = master_num_list[50:100]
+        mnum_list_p3  = master_num_list[100:105] 
+        mnum_list     = [mnum_list_p1, mnum_list_p2, mnum_list_p3] 
+
+        # it is a shitty dict 
+        shitty_dict = {0:0, 1:0, 2:1}
+
+        for uidx in range(3):
+            
+            results = pool_list[ shitty_dict[uidx] ] .starmap ( \
+                    infiltrate_coords_get_rh, zip( itertools.repeat(U), mtemp_list[uidx],\
+                    mnum_list[uidx], itertools.repeat(dop), \
+                    itertools.repeat(coords_files), itertools.repeat(starting_index) ) )
+
+            print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )     
+
+            for k in range(len(mtemp_list[uidx])):
+                rh_dict[mtemp_list[uidx][k]].append(results[k]) 
+        
+            for T in np.unique (mtemp_list[uidx]):
+                rh_mean.append( np.mean ( rh_dict[T] ) ) 
+                rh_std.append ( np.std  ( rh_dict[T] ) / np.sqrt( ntraj_dict[T] ) ) 
+
+        ax.errorbar   ( temperatures, np.asarray(rh_mean)*np.sqrt(dop), yerr=np.asarray(rh_std)*np.sqrt(dop), fmt='o', markeredgecolor='k', \
+                linestyle='-', elinewidth=1, capsize=0, linewidth=1, \
+                color=cm.copper(i/9), label='_nolegend_' ) 
+        
+        f.write("invRh: ") 
+        for elem in rh_mean:
+            f.write ("{:.2f} ".format(elem) ) 
+        f.write("\n") 
+        f.write("Error: ") 
+        for elem in rh_std:
+            f.write( "{:.2f} ".format(elem) ) 
+        f.write("\n") 
+        f.write("T: ") 
+        for elem in temperatures:
+            f.write( "{:.2f} ".format(elem) ) 
+        f.write("\n") 
+        f.flush() 
+        i+=1 
+    
+
+    pool1.close()
+    pool1.join()
+
+    pool2.close()
+    pool2.join() 
+
+    f.close() 
+    
+    # plot Uexcl...
+    if excl_vol_bool:
+        f = open("INV_RH_DATA_"+str(dop), 'a')
+        f.write ("U = Uexcl:\n")
+        temperatures_excl = dir2float ( os.listdir( "Uexcl/DOP_"+str(dop) ) )
+        edge = edge_length (dop)
+        rh_list = []
+        for T in temperatures_excl:
+            filename = "Uexcl/DOP_"+str(dop)+"/"+str(T)+"/"+coords_files
+            edge = edge_length (dop) 
+            master_dict = get_pdict ( filename, 0, dop, edge, edge, edge )
+            
+            count = 0 
+            for key in master_dict:
+                coord_arr = unfuck_polymer ( master_dict[key][0], edge, edge, edge)
+                rh_list.append (  np.sum ( 1/ ssd.pdist( coord_arr, 'euclidean' ) )/(dop*(dop-1)/2)  )
+            
+            rh_mean = np.mean (rh_list) 
+            rh_std  = np.std  (rh_list) 
+
+        ax.errorbar ( temperatures, np.ones (len(temperatures))*rh_mean*np.sqrt(dop), yerr=np.ones (len(temperatures))*rh_std/(np.sqrt(dop)*np.sqrt(20)), fmt='^', markeredgecolor='k', \
+                linestyle='-', elinewidth=1, capsize=0, linewidth=1 ) 
+        plt.legend  ( ["Athermal solvent"], loc='best', fontsize=12 ) 
+        
+        f.write("invRh: ")
+        for j in range(len(temperatures)):
+            f.write ("{:.2f} ".format(rh_mean) )
+        f.write("\n")
+        for j in range(len(temperatures)):
+            f.write ("{:.2f} ".format(0))
+        f.write ("\n") 
+        for elem in temperatures:
+            f.write ("{:.2f} ".format(elem))
+        f.write("\n")
+        f.flush()
+        f.close() 
+######################################
+    my_cmap = cm.copper 
+    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
+
+    cbar = plt.colorbar(sm, orientation='vertical') 
+    cbar.set_ticks ( [0, 1] )
+    cbar.set_ticklabels( ["Poorest", "Best"] ) 
+    cbar.ax.tick_params (labelsize=14)
+    cbar.ax.set_ylabel ("Quality of solvent", fontsize=18, rotation=270)
+    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
+    ax.set_ylabel ( "$\\left\\langle \\frac{1}{R_h} \\right\\rangle \cdot \sqrt{N}$", fontsize=18)     
+    ax.set_xscale ("log")
+    ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
+    # ax.yaxis.set_major_formatter(FormatStrFormatter('%1.2f'))
+    # ax.set_xticks ( temperatures )
+    plt.savefig   ( "DOP_"+str(dop)+"_rh.png", dpi=1000)
+    if show_plot_bool:
+        plt.show() 
+    
+    return None
+
+#############################################################################
+#############################################################################
 
 
 

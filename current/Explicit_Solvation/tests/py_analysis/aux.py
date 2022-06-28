@@ -1157,12 +1157,12 @@ def plot_entropy_rg_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
                 coord_arr = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
                 r_com     = np.mean ( coord_arr, axis=0 ) 
                 offset    = coord_arr - r_com
-                rg_list.append ( np.sum ( np.square (offset) ) ) 
+                rg_list.append ( np.sum ( np.square (offset)/dop ) ) 
             
             rg_mean.append ( np.mean (rg_list) ) 
             rg_std.append  ( np.std  (rg_list) ) 
         
-        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/rg_max, yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
+        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
         ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
         f.write ("Rg^2: ")
         for j in range (len (temperatures) ):
@@ -1560,7 +1560,7 @@ def plot_entropy_rh_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
     
     pool_list = [pool1, pool2]
     
-    f = open("RH_DATA_"+str(dop), "w") 
+    f = open("INV_RH_DATA_"+str(dop), "w") 
 
     for U in U_list:
         f.write("U = " + U + ":\n")
@@ -1674,6 +1674,7 @@ def plot_entropy_rh_parallelized_single_dop_all_U_all_T ( dop, starting_index, e
         f.write("Error: ")
         for j in range(len(temperatures)):
             f.write  ("{:.2f} ".format(0)) 
+        f.write("\n")
         f.write("T: ")
         for elem in temperatures:
             f.write ("{:.2f} ".format(elem))

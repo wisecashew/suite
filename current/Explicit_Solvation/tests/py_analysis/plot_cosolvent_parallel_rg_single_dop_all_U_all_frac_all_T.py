@@ -11,7 +11,7 @@ import os
 import aux 
 import time 
 import sys 
-import multiprocessing 
+import multiprocessing
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -44,12 +44,10 @@ if __name__ == "__main__":
 
     start = time.time() 
     
-    #########################
-    #aux.plot_entropy_rh_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
+    # aux.plot_entropy_rg_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
 
     U_list = aux.dir2U ( os.listdir (".") )
-        
-    # print (edge_length(dop))
+    PLOT_DICT = {} 
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(axis='x', labelsize=16)
@@ -57,34 +55,35 @@ if __name__ == "__main__":
     i = 0 
     Tmax = [] 
 
+    rg_max = 0 
     # instantiating pool
     pool1 = multiprocessing.Pool ( processes=50 )# len(num_list)) 
     pool2 = multiprocessing.Pool ( processes=5 )
     
     pool_list = [pool1, pool2]
     
-    f = open("INV_RH_DATA_"+str(dop), "w") 
+    f = open("RG_DATA_"+str(dop), "w") 
 
     for U in U_list:
-        f.write("U = " + U + ":\n")
+        f.write ( "U = " + str(U) + ":\n" )
         print("Inside U = " + U + ", and N = " + str(dop), flush=True )
-        rh_mean = [] 
-        rh_std  = [] 
+        rg_mean = [] 
+        rg_std  = [] 
         temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
         Tmax.append ( np.max(temperatures) )
         
         # get num_list for each temperature 
         master_temp_list = [] 
         master_num_list = [] 
-        rh_dict    = {}
+        rg_dict    = {}
         ntraj_dict = {}
         for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
-            num_list = list( np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) )  ) )
+            num_list = list(np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )
-            rh_dict[T] = []
+            rg_dict[T] = []
 
 
         # start multiprocessing... keeping in mind that each node only has 96 cores 
@@ -100,43 +99,47 @@ if __name__ == "__main__":
         mnum_list     = [mnum_list_p1, mnum_list_p2, mnum_list_p3] 
 
         # it is a shitty dict 
-        shitty_dict = {0:0, 1:0, 2:1}
+        shitty_dict = {0:0, 1:0, 2:1 }
 
         for uidx in range(3):
             
-            results = pool_list[ shitty_dict[uidx] ] .starmap ( \
-                    aux.infiltrate_coords_get_rh, zip( itertools.repeat(U), mtemp_list[uidx],\
-                    mnum_list[uidx], itertools.repeat(dop), \
+            # pool = multiprocessing.Pool ( processes=len(mtemp_list[uidx]) ) # len(num_list)) 
+            #with pool as p:
+            results = pool_list[ shitty_dict[uidx] ] .starmap ( aux.infiltrate_coords_get_rg, zip( itertools.repeat(U), mtemp_list[uidx],\
+                     mnum_list[uidx], itertools.repeat(dop), \
                     itertools.repeat(coords_files), itertools.repeat(starting_index) ) )
+
+            # print (len(results))
+            # pool.join() 
 
             print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )     
 
             for k in range(len(mtemp_list[uidx])):
-                rh_dict[mtemp_list[uidx][k]].append(results[k]) 
+                rg_dict[mtemp_list[uidx][k]].append( results[k] )
         
             for T in np.unique (mtemp_list[uidx]):
-                rh_mean.append( np.mean ( rh_dict[T] ) ) 
-                rh_std.append ( np.std  ( rh_dict[T] ) / np.sqrt( ntraj_dict[T] ) ) 
-
-        ax.errorbar   ( temperatures, np.asarray(rh_mean)*np.sqrt(dop), yerr=np.asarray(rh_std)*np.sqrt(dop), fmt='o', markeredgecolor='k', \
-                linestyle='-', elinewidth=1, capsize=0, linewidth=1, \
-                color=cm.copper(i/9), label='_nolegend_' ) 
+                rg_mean.append( np.mean ( rg_dict[T] ) ) 
+                rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) 
         
-        f.write("invRh: ") 
-        for elem in rh_mean:
-            f.write ("{:.2f} ".format(elem) ) 
-        f.write("\n") 
-        f.write("Error: ") 
-        for elem in rh_std:
-            f.write( "{:.2f} ".format(elem) ) 
+        if rg_max < np.max (rg_mean):
+            rg_max = np.max(rg_mean) 
+
+        PLOT_DICT [U] = (np.asarray(rg_mean), np.asarray(rg_std))
+        
+        f.write("Rg^2: ") 
+        for elem in rg_mean: 
+            f.write ( "{:.2f} ".format(elem))
+        f.write ("\n") 
+        f.write ("Error: ")
+        for elem in rg_std: 
+            f.write ( "{:.2f} ".format(elem) )
         f.write("\n") 
         f.write("T: ") 
-        for elem in temperatures:
-            f.write( "{:.2f} ".format(elem) ) 
+        for elem in temperatures: 
+            f.write ( "{:.2f} ".format(elem) ) 
         f.write("\n") 
-        f.flush() 
         i+=1 
-    
+        f.flush()  
 
     pool1.close()
     pool1.join()
@@ -146,66 +149,74 @@ if __name__ == "__main__":
 
     f.close() 
     
+    i=0
+    for U in U_list:
+        
+        ax.errorbar   ( temperatures, PLOT_DICT[U][0]/rg_max, yerr=PLOT_DICT[U][1]/rg_max, fmt='o', markeredgecolor='k', \
+                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
+        i += 1
+
     # plot Uexcl...
     if excl_vol_bool:
-        f = open ("INV_RH_DATA_"+str(dop), 'a') 
-        f.write ("U = Uexcl:\n")
-        temperatures_excl = aux.dir2float ( os.listdir( "Uexcl/DOP_"+str(dop) ) )
-        edge = aux.edge_length (dop)
-        rh_list = []
+        f = open ("RG_DATA_"+str(dop), 'a')
+        f.write ( "U = Uexcl:\n")
+        temperatures_excl = aux.dir2float ( os.listdir( "Uexcl" +"/DOP_"+str(dop) ) )
+        edge = edge_length (dop) 
+        rg_mean = []
+        rg_std  = [] 
         for T in temperatures_excl:
-            filename = "Uexcl/DOP_"+str(dop)+"/"+str(T)+"/"+coords_files
-            edge = aux.edge_length (dop) 
-            master_dict = aux.get_pdict ( filename, 0, dop, edge, edge, edge )
+            rg_list = [] 
             
-            count = 0 
+            filename = "Uexcl/DOP_" + str(dop) + "/" + str(T) + "/" +coords_files
+            master_dict = aux.get_pdict ( filename, 0, dop, edge, edge, edge ) 
             for key in master_dict:
-                coord_arr = aux.unfuck_polymer ( master_dict[key][0], edge, edge, edge)
-                rh_list.append (  np.sum ( 1/ ssd.pdist( coord_arr, 'euclidean' ) )/(dop*(dop-1)/2)  )
+                coord_arr = aux.unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
+                r_com     = np.mean ( coord_arr, axis=0 ) 
+                offset    = coord_arr - r_com
+                rg_list.append ( np.sum ( np.square (offset)/dop ) ) 
             
-            rh_mean = np.mean (rh_list) 
-            rh_std  = np.std  (rh_list) 
-
-        ax.errorbar ( temperatures, np.ones (len(temperatures))*rh_mean*np.sqrt(dop), yerr=np.ones (len(temperatures))*rh_std/(np.sqrt(dop)*np.sqrt(20)), fmt='^', markeredgecolor='k', \
-                linestyle='-', elinewidth=1, capsize=0, linewidth=1 ) 
+            rg_mean.append ( np.mean (rg_list) ) 
+            rg_std.append  ( np.std  (rg_list) ) 
+        
+        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
         ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
-
-        f.write("invRh: ")
-        for j in range(len(temperatures)):
-            f.write("{:.2f} ".format(rh_mean) )
-        f.write("\n")
-        f.write("Error: ")
-        for j in range(len(temperatures)):
-            f.write  ("{:.2f} ".format(0)) 
-        f.write("\n")
-        f.write("T: ")
+        # ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
+        f.write ("Rg^2: ")
+        for j in range (len (temperatures) ):
+            f.write ( "{:.2f} ".format (rg_mean[0] ) ) 
+        f.write("\n") 
+        f.write("Error: ") 
+        for j in range(len(temperatures) ):
+            f.write( "{:.2f} ".format(0) ) 
+        f.write ("\n") 
         for elem in temperatures:
-            f.write ("{:.2f} ".format(elem))
-        f.write ("\n")
+            f.write ( "{:.2f} ".format(elem) ) 
+        f.write ("\n") 
         f.flush()
-        f.close()
+        f.close() 
 
+    ########################################
 
-######################################
     my_cmap = cm.copper 
     sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
-
     cbar = plt.colorbar(sm, orientation='vertical') 
     cbar.set_ticks ( [0, 1] )
-    cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
-    cbar.ax.tick_params (labelsize=14)
-    cbar.ax.set_ylabel ("Strength of aligned \nmonomer-solvent interactions", fontsize=18, rotation=270)
+    cbar.set_ticklabels( ["0", "0.2"] )
+    cbar.ax.set_ylabel ( "Fraction of solvent without \ndirectional interactions\n\n", fontsize=18, rotation=270 ) 
+    # cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
+    cbar.ax.tick_params(labelsize=14)
+    # cbar.ax.set_ylabel ("Strength of good solvent", fontsize=18, rotation=270)
+    ax.set_xscale('log')
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\left\\langle \\frac{1}{R_h} \\right\\rangle \cdot \sqrt{N}$", fontsize=18)     
-    ax.set_xscale ("log")
-    ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
-    # ax.yaxis.set_major_formatter(FormatStrFormatter('%1.2f'))
-    # ax.set_xticks ( temperatures )
-    plt.savefig   ( "DOP_"+str(dop)+"_rh.png", dpi=800)
+    ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)     
+    ax.set_yticks (np.linspace(0, 1, 11)) 
+    plt.savefig   ( "DOP_"+str(dop)+"_multiple_rg.png", dpi=1000)
+    
     if show_plot_bool:
         plt.show() 
 
-    #########################
+
+
     stop = time.time() 
 
     print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)

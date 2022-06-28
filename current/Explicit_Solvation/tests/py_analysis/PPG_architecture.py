@@ -2,7 +2,8 @@
 
 # PPG stands for Polymer Positions Generator. 
 # given the number of polymers and dimensions of the box, PPG should be able to create valid 
-# simulation boxes 
+# simulation boxes. The architecture option allows us to create a polymer with a specific AnBm architecture. 
+# all polymers are linear. 
  
 import numpy as np 
 import argparse 

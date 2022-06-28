@@ -71,7 +71,8 @@ if __name__=="__main__":
         df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e, sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python')
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts
         plt.errorbar ( temperatures, contacts/mm_max, yerr=np.std(df["mm_tot"].values)/(mm_max*np.sqrt(10000)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0 )
-        plt.legend(["Athermal solvent"])
+        # plt.legend(["Athermal solvent"], loc='best', fontsize=12)
+        plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
 
     my_cmap = cm.copper
     sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1))

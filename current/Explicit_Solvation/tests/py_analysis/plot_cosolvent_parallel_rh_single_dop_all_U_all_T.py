@@ -194,7 +194,7 @@ if __name__ == "__main__":
     cbar.set_ticks ( [0, 1] )
     cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
     cbar.ax.tick_params (labelsize=14)
-    cbar.ax.set_ylabel ("Strength of aligned \nmonomer-solvent interactions", fontsize=18, rotation=270)
+    cbar.ax.set_ylabel ("Strength of better solvent", fontsize=18, rotation=270)
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
     ax.set_ylabel ( "$\\left\\langle \\frac{1}{R_h} \\right\\rangle \cdot \sqrt{N}$", fontsize=18)     
     ax.set_xscale ("log")

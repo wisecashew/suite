@@ -71,7 +71,7 @@ if __name__=="__main__":
         df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e, sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python' )
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts 
         ax.errorbar ( temperatures, contacts/mm_max, yerr = np.std( df["mm_tot"].values)/(mm_max*np.sqrt(100)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0 ) 
-        ax.legend ( ["Athermal solvent"], loc='best', fontsize=12 ) 
+        ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
 
     my_cmap = cm.copper
     sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1))
@@ -98,9 +98,6 @@ if __name__=="__main__":
     ax.set_xscale('log')
     ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
     ax.set_yticks ( np.linspace (0, 1, 11) )
-    # ax.set_ylim( bottom=0, top=1 )
-    # ax.yaxis.get_major_locator().set_params(integer=False)
-    plt.yticks(fontsize=16)
     plt.savefig("DOP_"+str(args.dop)+"_multiple_mmcorr.png", dpi=1000)
 
     if args.sp:

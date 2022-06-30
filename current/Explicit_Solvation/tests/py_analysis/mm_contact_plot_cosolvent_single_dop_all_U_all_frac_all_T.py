@@ -61,7 +61,7 @@ if __name__=="__main__":
     
     i = 0
     for U in U_list:
-        plt.errorbar ( temperatures, PLOT_DICT[U][0]/mm_max, yerr=PLOT_DICT[U][1]/mm_max, linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), fmt='o', markeredgecolor='k', label='_nolegend_')
+        ax.errorbar ( temperatures, PLOT_DICT[U][0]/mm_max, yerr=PLOT_DICT[U][1]/mm_max, linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/len(U_list)), fmt='o', markeredgecolor='k', label='_nolegend_')
         i += 1 
     
     contacts =  np.ones ( len(temperatures) ) 
@@ -69,8 +69,9 @@ if __name__=="__main__":
     if args.ev:
         df = pd.read_csv("Uexcl/DOP_"+str(args.dop)+"/0.1/energydump", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "time_step"], engine='python')
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts
-        plt.errorbar ( temperatures, contacts/mm_max, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0)
-        plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+        ax.errorbar ( temperatures, contacts/mm_max, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0)
+        # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
         # 
 
     
@@ -92,7 +93,8 @@ if __name__=="__main__":
     cbar = plt.colorbar(sm, orientation='vertical')
     cbar.set_ticks( [0, 1] )
     cbar.set_ticklabels( ["0", "0.2"] )
-    cbar.ax.set_ylabel ( "Fraction of solvent without \ndirectional interactions\n\n", fontsize=18, rotation=270 ) 
+    cbar.ax.tick_params(labelsize=14)
+    cbar.ax.set_ylabel ( "Fraction of cosolvent", fontsize=18, rotation=270 ) 
     ax.set_xscale('log')
     ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
     ax.set_yticks ( np.linspace (0, 1, 11) )

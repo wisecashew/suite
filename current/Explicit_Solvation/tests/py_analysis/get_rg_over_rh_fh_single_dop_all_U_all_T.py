@@ -112,7 +112,7 @@ if __name__=="__main__":
         else: 
             plt.plot( T_list, 1/np.asarray(rh_list)*1/np.sqrt(np.asarray(rg_list)), marker='^', markeredgecolor='k', linestyle='-' )
             # plt.legend ( ["Athermal solvent"] )
-            plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+            plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
     
     my_cmap = cm.copper 
     sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1))

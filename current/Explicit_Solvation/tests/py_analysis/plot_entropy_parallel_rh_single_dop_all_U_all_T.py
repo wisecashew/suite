@@ -48,7 +48,8 @@ if __name__ == "__main__":
     #aux.plot_entropy_rh_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
 
     U_list = aux.dir2U ( os.listdir (".") )
-        
+    
+
     # print (edge_length(dop))
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 

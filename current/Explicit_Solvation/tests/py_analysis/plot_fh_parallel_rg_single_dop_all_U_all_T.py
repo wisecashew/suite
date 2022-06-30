@@ -11,6 +11,8 @@ import os
 import aux 
 import time 
 import sys 
+import multiprocessing
+import itertools
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -46,6 +48,13 @@ if __name__ == "__main__":
     # aux.plot_fh_rg_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
     U_list = aux.dir2U ( os.listdir (".") )
     PLOT_DICT = {} 
+    dop = args.dop
+    coords_files   = args.c
+    starting_index = args.s
+    excl_vol_bool  = args.ev
+    show_plot_bool = args.sp
+    
+    #####
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(axis='x', labelsize=16)
@@ -183,7 +192,8 @@ if __name__ == "__main__":
         # print ("rg_max is ", rg_max )
         ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/rg_max, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
         # ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
-        ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
+        # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
         
         f.write ("Rg^2: ")
         for j in range (len(temperatures) ):

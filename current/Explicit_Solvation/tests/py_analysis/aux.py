@@ -197,7 +197,7 @@ def get_Rg(master_dict, xlen, ylen, zlen):
         offset = coord_arr - r_com 
         rg += np.sum ( np.square (offset) )/ N 
         count += 1
-        
+
     return rg/count
 
 # End of function. 
@@ -213,7 +213,7 @@ def get_Rg_list(master_dict, xlen, ylen, zlen):
         coord_arr = unfuck_polymer ( master_dict[key][0], xlen, ylen, zlen )
         r_com = np.mean( coord_arr, axis=0) # get center of mass 
         offset = coord_arr - r_com 
-        rg_list.append( np.sqrt ( np.sum ( np.square (offset) )/ N ) )
+        rg_list.append(  np.sum ( np.square (offset) )/ N  )
         
     return rg_list
 
@@ -370,9 +370,10 @@ def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
     # for key in master_dict:
     #    print ("key is ", key)
     #    print ("coordinates are: \n", master_dict[key][0] )
-
+    # print ("Inside " + filename)
     rg = get_Rg(master_dict, edge, edge, edge) 
-    
+
+
     return rg 
 
 # End of function.

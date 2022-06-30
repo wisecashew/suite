@@ -12,6 +12,7 @@ import aux
 import time 
 import sys 
 import multiprocessing 
+import itertools
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -48,7 +49,13 @@ if __name__ == "__main__":
     #aux.plot_entropy_rh_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
 
     U_list = aux.dir2U ( os.listdir (".") )
-        
+    dop = args.dop
+    starting_index = args.s
+    coords_files = args.c
+    excl_vol_bool = args.ev
+    show_plot_bool = args.sp
+
+    
     # print (edge_length(dop))
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
@@ -80,7 +87,7 @@ if __name__ == "__main__":
         ntraj_dict = {}
         for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
-            num_list = list( np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) )  ) )
+            num_list = list( np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) )  ) )
             master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )

@@ -114,7 +114,8 @@ if __name__=="__main__":
             i += 1
         else:
             plt.plot ( T_list,1/np.asarray(rh_list)*1/np.sqrt(np.asarray(rg_list)), marker='^', markeredgecolor='k', linestyle='-' ) 
-            plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+            # plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+            plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
 
 ###########################################
     

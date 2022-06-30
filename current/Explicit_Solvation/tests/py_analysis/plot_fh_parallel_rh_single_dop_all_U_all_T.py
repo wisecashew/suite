@@ -11,6 +11,8 @@ import os
 import aux 
 import time 
 import sys 
+import multiprocessing
+import itertools 
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'

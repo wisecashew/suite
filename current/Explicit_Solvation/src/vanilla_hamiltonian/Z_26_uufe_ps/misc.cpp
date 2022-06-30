@@ -1779,7 +1779,9 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
 void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int step, std::string filename, int x, int y, int z ) {
     // std::cout<< "just inside dumpO..."<<std::endl; 
     std::ofstream dump_file (filename, std::ios::app); 
+    // std::cout << "step = " << step << ".\n";
     dump_file << "START for Step " << step << ".\n";
+    std::vector <int> solvent_indices; 
     // std::pair <char, int> properties (' ' , -1); 
     for ( Polymer& pmer: (*Polymers) ) {
         for ( Particle*& p: pmer.chain ) {
@@ -1791,7 +1793,7 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* 
                 
                 // std::cout << "Reported~\n"; 
                 
-                if ( (*LATTICE)[ lattice_index(ne, y, z) ]->ptype == 's'){
+                if ( (*LATTICE)[ lattice_index(ne, y, z) ]->ptype == 's' && std::find( solvent_indices.begin(), solvent_indices.end(), lattice_index(ne, y, z)) == solvent_indices.end()  ){
                     dump_file << ((*LATTICE)[ lattice_index(ne, y, z) ])->orientation << " | ";  
                 } 
             }

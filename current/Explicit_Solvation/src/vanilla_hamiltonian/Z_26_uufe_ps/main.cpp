@@ -480,7 +480,9 @@ int main(int argc, char** argv) {
         if ( ( i % dfreq == 0) ){
            
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
-            // dumpOrientation         (&Polymers, &Solvent, i, mfile, x, y, z); 
+            if ( i%(dfreq*10) == 0 ) {
+                dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
+            }
             
             if ( metropolis ){
                 dumpEnergy (sysEnergy, i, mm_aligned, mm_naligned, ms_aligned, ms_naligned, efile);

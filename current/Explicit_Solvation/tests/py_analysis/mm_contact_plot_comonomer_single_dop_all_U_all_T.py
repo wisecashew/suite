@@ -31,7 +31,10 @@ if __name__=="__main__":
 
     #instantiate plt figure
     plt.figure( figsize=(8,6) )
-    
+    ax = plt.axes()
+    ax.tick_params ( axis='x', labelsize=16 )
+    ax.tick_params ( axis='y', labelsize=16 )
+
     # instantiate some pertinent variables
     i=0
     Tmax = []
@@ -76,7 +79,6 @@ if __name__=="__main__":
 
     plt.ylabel("$\\langle M_C \\rangle$", fontsize=18)
     plt.xlabel("Temperature (reduced)", fontsize=18)
-    plt.xticks( temperatures, fontsize=12 )
     ytick_list = np.unique( np.linspace (0, np.max(mm_max)+1, 20, dtype=int) )
 
     ytick_list = np.arange(0, ytick_list[-1], np.ceil(int(ytick_list[-1])/10 ) )  
@@ -91,10 +93,9 @@ if __name__=="__main__":
     cbar.set_ticklabels( ["Weakest", "Strongest"] )
     # cbar.ax.set_ylabel ( "Strength of aligned \nmonomer-solvent interactions", fontsize=16, rotation=270 ) 
     ax.set_xscale('log')
-    ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
-    ax.yaxis.get_major_locator().set_params(integer=True)
-    plt.yticks(fontsize=12)
-    plt.savefig("comonomer_DOP_"+str(args.dop)+"_multiple_mmcorr.png", dpi=800)
+    # ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
+    # ax.yaxis.get_major_locator().set_params(integer=True)
+    plt.savefig("comonomer_DOP_"+str(args.dop)+"_multiple_mmcorr.png", dpi=1000)
 
     if args.sp:
         plt.show()

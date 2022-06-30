@@ -12,6 +12,7 @@ import aux
 import time 
 import sys 
 import multiprocessing
+import itertools
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -47,6 +48,14 @@ if __name__ == "__main__":
     # aux.plot_entropy_rg_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
 
     U_list = aux.dir2U ( os.listdir (".") )
+    # U_list = U_list[0:3]
+
+    dop = args.dop
+    starting_index = args.s 
+    coords_files   = args.c
+    show_plot_bool = args.sp
+    excl_vol_bool  = args.ev
+
     PLOT_DICT = {} 
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
@@ -79,7 +88,7 @@ if __name__ == "__main__":
         ntraj_dict = {}
         for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
-            num_list = list(np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
+            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )
@@ -161,7 +170,7 @@ if __name__ == "__main__":
         f = open ("RG_DATA_"+str(dop), 'a')
         f.write ( "U = Uexcl:\n")
         temperatures_excl = aux.dir2float ( os.listdir( "Uexcl" +"/DOP_"+str(dop) ) )
-        edge = edge_length (dop) 
+        edge = aux.edge_length (dop) 
         rg_mean = []
         rg_std  = [] 
         for T in temperatures_excl:
@@ -179,7 +188,8 @@ if __name__ == "__main__":
             rg_std.append  ( np.std  (rg_list) ) 
         
         ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
-        ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+        # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
         # ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
         f.write ("Rg^2: ")
         for j in range (len (temperatures) ):
@@ -202,7 +212,7 @@ if __name__ == "__main__":
     cbar = plt.colorbar(sm, orientation='vertical') 
     cbar.set_ticks ( [0, 1] )
     cbar.set_ticklabels( ["0", "0.2"] )
-    cbar.ax.set_ylabel ( "Fraction of solvent without \ndirectional interactions\n\n", fontsize=18, rotation=270 ) 
+    cbar.ax.set_ylabel ( "Fraction of cosolvent", fontsize=18, rotation=270 ) 
     # cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
     cbar.ax.tick_params(labelsize=14)
     # cbar.ax.set_ylabel ("Strength of good solvent", fontsize=18, rotation=270)

@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     start = time.time() 
 
-    aux.plot_rg_parallelized_single ( args.U, args.T, args.dop, args.s, args.n, args.c )
+    aux.plot_rg_parallelized_singletrajectory ( args.U, args.T, args.dop, args.s, args.n, args.c )
 
     stop = time.time() 
 

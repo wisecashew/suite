@@ -114,7 +114,8 @@ if __name__=="__main__":
             i += 1
         else:
             plt.plot ( T_list,1/np.asarray(rh_list)*1/np.sqrt(np.asarray(rg_list)), marker='^', markeredgecolor='k', linestyle='-' ) 
-            plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+            plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
+            # plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
 
 ###########################################
     
@@ -125,7 +126,7 @@ if __name__=="__main__":
     cbar.set_ticks ( [0,1] ) 
     cbar.ax.tick_params(labelsize=14)
     cbar.set_ticklabels( ["0", "0.2"] )
-    cbar.ax.set_ylabel ( "Fraction of solvent without \ndirectional interactions\n\n", fontsize=18, rotation=270 ) 
+    cbar.ax.set_ylabel ( "Fraction of cosolvent", fontsize=18, rotation=270 ) 
     plt.yticks (fontsize=16)
     plt.xticks (fontsize=16) 
     plt.savefig ( "DOP_"+str(args.dop)+"_rg_over_rh.png", dpi=1000)

@@ -12,6 +12,7 @@ import aux
 import time 
 import sys 
 import multiprocessing 
+import itertools
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -48,6 +49,13 @@ if __name__ == "__main__":
 
     U_list = aux.dir2U ( os.listdir (".") )
     PLOT_DICT = {} 
+    dop            = args.dop
+    coords_files   = args.c
+    starting_index = args.s
+    excl_vol_bool  = args.ev
+    show_plot_bool = args.sp
+    
+    ######
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(axis='x', labelsize=16)
@@ -79,7 +87,7 @@ if __name__ == "__main__":
         ntraj_dict = {}
         for T in temperatures: 
             # print ("T is " + str(T), flush=True) 
-            num_list = list(np.unique ( dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
+            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )
@@ -179,7 +187,8 @@ if __name__ == "__main__":
             rg_std.append  ( np.std  (rg_list) ) 
         
         ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
-        ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
+        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
+        
         f.write ("Rg^2: ")
         for j in range (len (temperatures) ):
             f.write ( "{:.2f} ".format (rg_mean[0] ) ) 

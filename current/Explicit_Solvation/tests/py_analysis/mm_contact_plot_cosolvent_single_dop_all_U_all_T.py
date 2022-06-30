@@ -61,7 +61,8 @@ if __name__=="__main__":
         df = pd.read_csv("Uexcl/DOP_"+str(args.dop)+"/"+str(temp)+"/energydump.txt", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "time_step"], engine='python')
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts
         plt.errorbar ( temperatures, contacts, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0)
-        plt.legend( ["Athermal solvent"] )
+        # plt.legend( ["Athermal solvent"] )
+        plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
 
     
     # # # # 

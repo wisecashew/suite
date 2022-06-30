@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "\nWelcome to my Monte Carlo simulation engine (v0.5) for polymers in a simple cubic box (Z=26). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
+                "\nWelcome to my Monte Carlo simulation engine (v0.5) for polymers in a simple cubic box (Z=26). \nThis is a simulation engine which incorporates a single type of comonomer along with a singular solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
                 "\nThis system has cosolvent present. \n"
                 "\nLast updated: June 15, 2022, 12:39 PM. Added restarting capabilities. \nAuthor: satyend@princeton.edu\n" <<
                 "\n----------------------------------------------------------------------------------------------------------------------------------\n" << 

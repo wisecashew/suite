@@ -72,7 +72,7 @@ if __name__=="__main__":
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts
         plt.errorbar ( temperatures, contacts/mm_max, yerr=np.std(df["mm_tot"].values)/(mm_max*np.sqrt(10000)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0 )
         # plt.legend(["Athermal solvent"], loc='best', fontsize=12)
-        plt.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+        plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
 
     my_cmap = cm.copper
     sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1))

@@ -3,7 +3,7 @@
 import numpy as np 
 import re 
 import matplotlib
-# matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
 import pandas as pd
@@ -38,6 +38,8 @@ if __name__=="__main__":
     #######################################
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes  () 
+    ax.tick_params (axis='x', labelsize=16)
+    ax.tick_params (axis='y', labelsize=16)
 
     U_list    = aux.dir2U ( os.listdir (".") ) 
     PLOT_DICT = {} 
@@ -123,21 +125,16 @@ if __name__=="__main__":
     ##############################################################
 
     my_cmap = cm.seismic
-    ax.tick_params ( axis='x', labelsize=16 )
-    ax.tick_params ( axis='y', labelsize=16 )
     sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
     cbar = plt.colorbar(sm, orientation='vertical') 
     cbar.set_ticks ( [0, 1] )
     cbar.set_ticklabels( ["Poorest", "Best"] ) 
     cbar.ax.tick_params(labelsize=14)
-    cbar.ax.set_ylabel ("Quality of solvent", fontsize=18, rotation=270)
+    cbar.ax.set_ylabel ("Strength of aligned \nmonomer-solvent interactions", fontsize=18, rotation=270)
     ax.set_xscale('log')
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\xi$", fontsize=18)
-    ax.yaxis.set_major_locator(matplotlib.ticker.MaxNLocator(11))
+    ax.set_ylabel ( "$\\xi$", fontsize=18)     
     ax.set_yticks (np.linspace(0, 1, 11)) 
-    ax.set_ylim   (bottom=-0.05)
-    # fig.tight_layout ()
     plt.savefig   ( "DOP_"+str(dop)+"_solvation_shell_order_parameter.png", dpi=1000)
     
     if show_plot_bool:

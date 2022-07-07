@@ -2024,4 +2024,55 @@ def plot_fh_shape_parameter_parallelized_single_dop_all_U_all_T ( dop, starting_
 
 
     return None
+# End of function. 
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#############################################################################
+#############################################################################
+# Description This function meant for obtaining the order parameter
+# a. multiple U values 
+# b. Multiple T values 
+# c. In a single plot 
+# d. For a given degree of polymerization 
+def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
+    
+    pi = np.pi 
+
+    start_str = "START for Step"
+    end_str   = "END" 
+
+    f = open(U+"/DOP_"+str(N)+"/"+str(T)+"/"+ortn_file_name+"_"+str(idx), 'r')
+
+    order_parameter_list = [] 
+    extract_orr = False 
+    start_bool  = False 
+    for line in f:
+
+        if re.match ( start_str, line ):
+            a = re.search ("\d+", line)
+            extract_orr = True
+            if int( a.group(0) ) == starting_index:
+                start_bool = True 
+            oparam = 0 
+            count  = 0 
+
+        elif re.match ( end_str, line ) and start_bool:
+            # print ( line )
+            extract_orr = False 
+            order_parameter_list.append( oparam/count ) 
+
+        elif extract_orr and start_bool: 
+            or_list = extract_loc_from_string( line )
+
+            for cnum in or_list:
+                oparam += complex ( np.cos(2*pi*cnum/6 ), np.sin (2*pi*cnum/6) )
+                count  += 1 
+
+    f.close() 
+
+    
+    #print ( "Order parameter for solvation shell is: ", abs(np.mean (order_parameter_list[starting_index:]) ) ) 
+    # print (type(starting_index))
+    # print ( "mean order_param = ", abs( np.mean(order_parameter_list) ) )
+    return abs( np.mean (order_parameter_list) )
+
 

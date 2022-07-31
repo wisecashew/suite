@@ -36,6 +36,7 @@ def extract_loc_from_string (a_string):
     loc = [int(word) for word in a_string.split() if word.isdigit() ] 
     return np.asarray(loc) 
 
+
 def unfuck_polymer (polymer, x, y, z): 
     unfucked_polymer = np.asarray([polymer[0,:]])
     
@@ -49,6 +50,7 @@ def unfuck_polymer (polymer, x, y, z):
     
     return unfucked_polymer  
 
+
 def modified_modulo(divident, divisor):
     midway = divisor/2
     if (divident%divisor > midway):
@@ -58,37 +60,35 @@ def modified_modulo(divident, divisor):
         return divident%divisor
 
 
+
 def get_ne_list (unfucked_polymer, x, y, z):
     
-    ne_list = [] 
+    ne_list = np.empty((0,3))
     for loc in unfucked_polymer: 
         for drtn in directions: 
             ne = np.asarray (loc) + np.asarray (drtn) 
-            ne[0] = ne[0]%x 
-            ne[1] = ne[0]%y 
-            ne[2] = ne[2]%z 
-            ne_list.append(ne) 
-
-    # make sure list is unique 
-    unique_ne_list = [ ] 
-
-    for ne_ in ne_list:
-        if unique_ne_list.count(ne_) > 0:
-            continue
-        else:
-            unique_ne_list.append(ne) 
-
-    return unique_ne_list 
-
-
-
-def get_solvation_shell (ne_list, unfucked_polymer): 
-    
-    for loc in unfucked_polymer:
-        if ne_list.count(loc) > 0:
-            ne_list.remove(loc) 
+            # ne[0] = ne[0]%x 
+            # ne[1] = ne[1]%y 
+            # ne[2] = ne[2]%z 
+            ne_list = np.vstack ( (ne_list, ne) )
 
     return ne_list 
+
+
+
+def get_solvation_shell (unique_ne_list, unfucked_polymer): 
+    
+    # print (unique_ne_list)
+    for loc in unfucked_polymer:
+        # print (loc)
+        idx  = np.where ( np.all (unique_ne_list == loc) )
+
+        if len(idx[0]) == 0:
+            continue
+        else:
+            unique_ne_list = np.delete ( unique_ne_list, idx[0][0] )
+
+    return unique_ne_list 
 
 ################################
 ################################
@@ -150,6 +150,7 @@ for line in coord_file:
     else:
         # print(pmer_flag)
         monomer_coords = extract_loc_from_string ( line ) 
+        # print (line)
         master_dict[step_num][pmer_flag] = np.vstack( (master_dict[step_num][pmer_flag], monomer_coords[0:-1]) )
         continue 
 
@@ -167,6 +168,26 @@ xmin, ymin, zmin = 10000, 10000, 10000
 xmax, ymax, zmax = -10000, -10000, -10000
 
 step_to_extract = args.p
+
+###############
+
+############# define colormaps 
+cmap = plt.cm.jet 
+cmaplist = [cmap(i) for i in range(cmap.N)]
+
+# create the new map 
+cmap = mpl.colors.LinearSegmentedColormap.from_list ('Custom cmap', cmaplist, cmap.N)
+
+# define the bins and normalize 
+bounds = np.linspace ( 1, 6, 6)
+norm = mpl.colors.BoundaryNorm( bounds, cmap.N )
+
+polymer_random = np.random.randint (1, 6, np.shape( master_dict[10000][0] )[0] )
+
+
+
+
+###############
 
 for key in master_dict[step_to_extract]:
     # print(key)
@@ -196,15 +217,42 @@ for key in master_dict[step_to_extract]:
         zmax = np.max(z_coords)
         
     ax.plot(x_coords, y_coords, z_coords, c='C1')
-    ax.scatter(x_coords, y_coords, z_coords, marker='o', c='g', edgecolors='k' )
+    ax.scatter(x_coords, y_coords, z_coords, marker='o', cmap=cmap, norm=norm, c=polymer_random, edgecolors='k', depthshade=False )
 
 
 # get the solvation shell... 
 ne_list = get_ne_list ( unfucked_polymer, args.x, args.y, args.z )
 solvation_shell = get_solvation_shell ( ne_list, unfucked_polymer )
+solvation_shell = np.vstack ( {tuple(row) for row in solvation_shell})
 
-ax.scatter ( solvation_shell[:][0], solvation_shell[:][1], solvation_shell[:][2], marker='o', c='g', alpha=0.5 )
+ss_x = [] 
+ss_y = [] 
+ss_z = [] 
 
+for elem in solvation_shell:
+    ss_x.append (elem[0])
+    ss_y.append (elem[1])
+    ss_z.append (elem[2])
+
+
+if (np.min(ss_x) < xmin):
+    xmin = np.min(ss_x) 
+if (np.min(ss_y) < ymin):
+    ymin = np.min(ss_y) 
+if (np.min(ss_z) < zmin):
+    zmin = np.min(ss_z) 
+
+if (np.max(ss_x) > xmax):
+    xmax = np.max(ss_x)
+if (np.max(ss_y) > ymax):
+    ymax = np.max(ss_y) 
+if (np.max(ss_z) > zmax):
+    zmax = np.max(ss_z)
+
+nsolv_shell = len (solvation_shell)
+solvation_random = np.random.randint (1, 6, nsolv_shell)
+
+ax.scatter ( ss_x, ss_y, ss_z, marker='o', cmap=cmap, c=solvation_random, norm=norm, edgecolors='k', alpha=0.2 )
 
 ax.set_xlabel("X")
 ax.set_ylabel("Y")
@@ -218,7 +266,8 @@ else:
     ax.set_ylim3d(bottom= -args.y, top=args.y)
     ax.set_zbound(lower= -args.z, upper=args.z)
 
-plt.grid(False)
+plt.grid(b=None)
+plt.axis('off')
 plt.savefig(args.n, dpi=1200)
-plt.show()
+# plt.show()
     

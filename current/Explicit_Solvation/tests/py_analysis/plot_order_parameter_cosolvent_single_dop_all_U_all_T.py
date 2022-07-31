@@ -20,6 +20,8 @@ parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to
 
 args = parser.parse_args()  
 
+divnorm = matplotlib.colors.SymLogNorm ( 0.005, vmin=-0.1, vmax=0.1 )
+
 if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
@@ -49,8 +51,11 @@ if __name__=="__main__":
                 
             op_err.append( np.std(op_list)/np.sqrt(40) )
             op_mean.append( np.mean(op_list) ) 
-
-        plt.errorbar(temperatures, np.asarray(op_mean), yerr=np.asarray(op_err), linestyle='-', elinewidth=1, capsize=0, color=cm.seismic(i/len(U_list)), fmt='o', markeredgecolor='k', label='_nolegend_')   
+        
+        chi_1 = aux.get_chi_cosolvent ( str(U) + "/geom_and_esurf.txt")[1]
+        rgba_color = cm.PiYG (divnorm (chi_2) ) 
+        plt.plot ( temperatures, op_mean, marker='o', linestyle='-', color=rgba_color, markeredgecolor='k', linewidth=2, label='_nolegend_')
+        # plt.errorbar(temperatures, np.asarray(op_mean), yerr=np.asarray(op_err), linestyle='-', elinewidth=1, capsize=0, color=cm.seismic(i/len(U_list)), fmt='o', markeredgecolor='k', label='_nolegend_')   
         i += 1
         # mm_max.append( np.max(mm_list) ) 
         print("done!", flush=True)
@@ -59,12 +64,12 @@ if __name__=="__main__":
 
     
     # # # # 
-    my_cmap = cm.seismic 
-    sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) ) 
+    my_cmap = cm.PiYG
+    sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) ) 
     ax = plt.axes() 
     
 
-    plt.ylabel("$\\langle M_C \\rangle$", fontsize=18)
+    plt.ylabel("$\\mu$", fontsize=18)
     plt.xlabel("Temperature (reduced)", fontsize=18)
     plt.xticks( temperatures, fontsize=16 )
     plt.yticks( fontsize=16 )
@@ -78,9 +83,9 @@ if __name__=="__main__":
     # plt.yticks( ytick_list ) 
 
     cbar = plt.colorbar(sm, orientation='vertical')
-    cbar.set_ticks( [0, 1] )
-    cbar.set_ticklabels( ["Weakest", "Strongest"] )
-    cbar.ax.set_ylabel ( "Strength of better solvent \n\n", fontsize=16, rotation=270 ) 
+    cbar.set_ticks( [-0.1, 0.1] )
+    cbar.set_ticklabels( [-0.1, 0.1] )
+    cbar.ax.set_ylabel ( "$ \chi ^1$ ", fontsize=16, rotation=270 ) 
     ax.set_xscale('log')
     ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
     plt.yticks ( np.linspace(0,1,11) )

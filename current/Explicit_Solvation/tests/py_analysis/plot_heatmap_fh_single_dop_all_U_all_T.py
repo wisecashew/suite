@@ -1,8 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/licensed/anaconda3/2020.7/bin/python
 
 import pandas as pd 
 import numpy as np 
 import matplotlib
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm
 import argparse 
@@ -23,29 +24,46 @@ parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to
 
 args = parser.parse_args()   
 
+class MidpointNormalize(matplotlib.colors.Normalize):
+    ## class from the mpl docs:
+    # https://matplotlib.org/users/colormapnorms.html
+
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        super().__init__(vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        # I'm ignoring masked values and all kinds of edge cases to make a
+        # simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))    
+
+@plt.FuncFormatter
+def fake_log(x, pos):
+    'The two args are the value and tick position'
+    return r'$10^{%d}$' % (x)
+
 if __name__=="__main__":
     
     # get the entire list of potential energy surfaces 
-    U_list = aux.dir2U ( os.listdir (".") )
-
+    U_list  = aux.dir2U ( os.listdir (".") )
+    # U_list  = U_list[0:4]
+    mm_matrix = np.zeros((len(U_list), 14))
     #instantiate plt figure
-    plt.figure( figsize=(8,6) )
+    plt.figure( figsize=(10,6) )
     ax = plt.axes() 
-    ax.tick_params ( axis='x', labelsize=16 )
-    ax.tick_params ( axis='y', labelsize=16 ) 
-
-    # if we want the Uexcl contacts
+    ax.tick_params ( axis='x', labelsize=16, pad=10 )
+    ax.tick_params ( axis='y', labelsize=16, pad=10 )
 
     # instantiate some pertinent variables
     i=0
     Tmax = []
-    # mm_max = [] 
+
     for U in U_list:
         print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True )
         mm_list = np.asarray([])
         mm_err  = np.asarray([])
         mm_mean = np.asarray([])
-
         temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
         Tmax.append ( np.max(temperatures) )
         for temp in temperatures: 
@@ -53,55 +71,35 @@ if __name__=="__main__":
             
             for num in num_list:
                 df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num), sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python', skiprows=args.s)
-
                 mm_list = np.hstack ( ( mm_list, ( df["mm_tot"].values ) - (args.dop-1) ) )
-            if U == "U1" and temp == 0.01:
-                mm_max = np.max( mm_list ) 
 
-            mm_err  = np.hstack ( ( mm_err , np.std  ( mm_list ) / np.sqrt(10000) ) ) 
+            
+            mm_err  = np.hstack ( ( mm_err , np.std  ( mm_list ) / np.sqrt(40) ) ) 
             mm_mean = np.hstack ( ( mm_mean, np.mean ( mm_list ) ) )
 
-        plt.errorbar(temperatures, np.asarray(mm_mean)/mm_max, yerr=np.asarray(mm_err)/mm_max, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, color=cm.copper(i/9), label='_nolegend_')
-        i += 1
-        # mm_max.append( np.max(mm_list) ) 
+        mm_matrix[i,:] = mm_mean 
+        i += 1 
         print ("done!", flush=True)
-    
-    contacts = np.ones(len(temperatures))
-    if args.ev:
-        df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e, sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python')
-        contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts
-        plt.errorbar ( temperatures, contacts/mm_max, yerr=np.std(df["mm_tot"].values)/(mm_max*np.sqrt(10000)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0 )
-        # plt.legend(["Athermal solvent"], loc='best', fontsize=12)
-        plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
-
-    my_cmap = cm.copper
+   
+    print (mm_matrix)
+    plt.imshow(mm_matrix, cmap='coolwarm', interpolation='nearest', origin='lower',norm=MidpointNormalize(midpoint=80), extent=[0.1,100,-0.2,0.2], aspect='auto')
+    my_cmap = matplotlib.cm.get_cmap ('coolwarm_r')
     sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1))
     
     ax = plt.axes()
 
-    plt.ylabel("$\\langle M_C \\rangle/ \\langle M_C \\rangle _{\mathrm{max}} $", fontsize=18)
+    plt.ylabel("$\chi$", fontsize=18)
     plt.xlabel("Temperature (reduced)", fontsize=18)
-    ytick_list = np.unique( np.linspace (0, np.max(mm_max)+1, 20, dtype=int) )
-
-    ytick_list = np.arange(0, ytick_list[-1], np.ceil(int(ytick_list[-1])/10 ) )  
-
-    if not ( (np.max(mm_max)+1) in ytick_list):
-        ytick_list = np.hstack ( (ytick_list, np.max(mm_max)+1 ) ) 
-
-    # plt.yticks( ytick_list ) 
-
-
+    # plt.xticks( temperatures, fontsize=16 )
     cbar = plt.colorbar(sm, orientation='vertical')
-    cbar.set_ticks( [0, 1] )
-    cbar.set_ticklabels( ["Poorest", "Best"] )
-    cbar.ax.tick_params (labelsize=14)
-    cbar.ax.set_ylabel ( "Quality of solvent", fontsize=18, rotation=270 ) 
+    cbar.set_ticks( [0, 0.5, 1] )
+    cbar.set_ticklabels( ["Coil", "Random", "Globule"] )
+    cbar.ax.tick_params(labelsize=14)
+    cbar.ax.set_ylabel ( "State of polymer chain", fontsize=18, rotation=270, labelpad=25 ) 
+    ax.set_yticks (np.linspace(-0.2,0.2,5))
+    ax.set_xticklabels (temperatures)
     ax.set_xscale('log')
-    # ax.set_ylim( bottom=0, top=1 ) 
-    ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
-    ax.set_yticks ( np.linspace(0,1,11) )
-    # ax.yaxis.get_major_locator().set_params(integer=True)
-    plt.savefig("DOP_"+str(args.dop)+"_mmcorr.png", dpi=1000)
-
+    plt.savefig("DOP_"+str(args.dop)+"_heatmap.png", dpi=1000)
+    plt.tight_layout()
     if args.sp:
         plt.show()

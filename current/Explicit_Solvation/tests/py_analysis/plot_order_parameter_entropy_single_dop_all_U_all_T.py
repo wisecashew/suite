@@ -28,9 +28,11 @@ parser.add_argument('-dop', metavar='DOP'   , dest='dop', type=int , action='sto
 parser.add_argument('-s'  , metavar='S'     , type=int  , dest='s' , action='store', help='start parsing after this index.', default=100)
 # parser.add_argument('--excl-vol' , dest='ev', action ='store_true' , help='Flag to include excluded volume forcefield.', default=False) 
 parser.add_argument('--ortn-file', dest='of', metavar='orientation', action='store', type=str, help='Name of orientation dump file to parse information.', default='orientation')
+parser.add_argument('--ord-param', dest='op', metavar='monomer/solvent', type=str, action='store', help='monomer or solvent order parameter.')
 parser.add_argument('--show-plot', dest='sp', action ='store_true' , help='Flag to include to see plot.') 
 args = parser.parse_args() 
 
+divnorm = matplotlib.colors.SymLogNorm (0.005, vmin=-0.1, vmax=0.1)
 
 if __name__=="__main__":
 
@@ -38,10 +40,12 @@ if __name__=="__main__":
     #######################################
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes  () 
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
     ax.tick_params (axis='x', labelsize=16)
     ax.tick_params (axis='y', labelsize=16)
 
     U_list    = aux.dir2U ( os.listdir (".") ) 
+    U_list    = ["U1"]
     PLOT_DICT = {} 
 
     starting_index = args.s
@@ -63,19 +67,21 @@ if __name__=="__main__":
         # get the num_list for each temperature 
         master_temp_list = [] 
         master_num_list  = [] 
-        ord_par_dict     = {} 
+        ord_par1_dict     = {} 
+        ord_par2_dict     = {} 
         ntraj_dict       = {} 
 
         # define stores 
-        ord_par_mean     = [] 
-        ord_par_std      = [] 
+        ord_par1_mean     = [] 
+        # ord_par2_mean     = [] 
 
         for T in temperatures:
             num_list         = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend  ( num_list )
             master_temp_list.extend ( [T]* len(num_list) )
             ntraj_dict[T]    = len (num_list)
-            ord_par_dict [T] = []
+            ord_par1_dict [T] = []
+            # ord_par2_dict [T] = []
 
         # start multiprocessing... keeping in mind that each node only has 96 cores
         # start splitting up master_num_list and master_temp_list 
@@ -90,7 +96,7 @@ if __name__=="__main__":
         mnum_list_p3  = master_num_list [100:105]
         mnum_list     = [mnum_list_p1, mnum_list_p2, mnum_list_p3]
 
-        # define a shitty dict 
+        # define a shitty dict
         shitty_dict = {0:0, 1:0, 2:1}
 
         for uidx in range(3):
@@ -101,13 +107,17 @@ if __name__=="__main__":
             print ("Pool has been closed. This pool has {} threads.".format ( len(results ) ), flush=True )
 
             for k in range ( len (mtemp_list[uidx]) ):
-                ord_par_dict[ mtemp_list[uidx][k] ].append ( results[k] )
+                # ord_par2_dict[ mtemp_list[uidx][k] ].append ( results[k][0] )
+                # ord_par1_dict[ mtemp_list[uidx][k] ].append ( results[k][1] )
+                ord_par1_dict[ mtemp_list[uidx][k] ].append ( results[k] )
 
             for T in np.unique ( mtemp_list [uidx] ):
-                ord_par_mean.append ( np.mean ( ord_par_dict[T] ) ) 
-                ord_par_std.append  ( np.std  ( ord_par_dict[T] ) / np.sqrt ( ntraj_dict[T] ) )
+                # ord_par2_mean.append ( np.mean ( ord_par2_dict[T] ) )
+                # ord_par1_mean.append  ( np.mean  ( ord_par1_dict[T] ) )
+                ord_par1_mean.append  ( np.mean  ( ord_par1_dict[T] ) )
 
-        PLOT_DICT [U] = (np.asarray (ord_par_mean), np.asarray (ord_par_std))
+        # PLOT_DICT [U] = ( np.asarray (ord_par1_mean), np.asarray (ord_par2_mean) ) 
+        PLOT_DICT [U] = np.asarray (ord_par1_mean)
 
     pool1.close()
     pool1.join () 
@@ -119,23 +129,45 @@ if __name__=="__main__":
     # colors = [ cm.seismic(x) for x in np.linspace(0, 1, len(U_list) ] 
     for U in U_list: 
         # print ("i=", i, ", len(U_list)=",len(U_list) )
-        ax.errorbar ( temperatures, PLOT_DICT[U][0], yerr=PLOT_DICT[U][1], fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.seismic(i/len(U_list)), label='_nolegend_')
+        
+        chi_a = aux.get_chi_entropy ( str(U)+"/geom_and_esurf.txt")[0]
+        rgba_color = cm.PiYG_r (divnorm(chi_a))
+        
+        if args.op == "monomer":
+            ax.errorbar ( temperatures, np.asarray(1 - PLOT_DICT[U])/temperatures, yerr=0, fmt='none', linestyle='-', elinewidth=1, capsize=2, linewidth=0.5, color='k', label='_nolegend_')
+            ax.plot ( temperatures, (1-PLOT_DICT[U])/temperatures, marker='o', markeredgecolor='k', linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_')
+        # elif args.op == "solvent":
+            # ax.errorbar ( temperatures, (PLOT_DICT[U][2]), yerr=0, fmt='none', linestyle='-', elinewidth=1, capsize=2, linewidth=0.5, color='k', label='_nolegend_')
+            # ax.plot ( temperatures, PLOT_DICT[U][2], marker='o', markeredgecolor='k', linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_')
+        # elif args.op == "both": 
+            # ax.errorbar ( temperatures, (PLOT_DICT[U][0]+PLOT_DICT[U][2])/2, yerr=0, fmt='none', linestyle='-', elinewidth=1, capsize=2, linewidth=0.5, color='k', label='_nolegend_')
+            # ax.plot ( temperatures, (PLOT_DICT[U][2]+PLOT_DICT[U][0])/2, marker='o', markeredgecolor='k', linestyle='-', c=rgba_color, label='_nolegend_', markersize=10)
+        else:
+            print ("Bad input for --ord-param.")
+            exit()
         i += 1
 
     ##############################################################
 
-    my_cmap = cm.seismic
-    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
+    my_cmap = cm.PiYG_r
+    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) )
     cbar = plt.colorbar(sm, orientation='vertical') 
-    cbar.set_ticks ( [0, 1] )
-    cbar.set_ticklabels( ["Poorest", "Best"] ) 
+    cbar.set_ticks ( [-0.1,0.1] )
+    cbar.set_ticklabels( [-0.1, 0.1] ) 
     cbar.ax.tick_params(labelsize=14)
-    cbar.ax.set_ylabel ("Strength of aligned \nmonomer-solvent interactions", fontsize=18, rotation=270)
+    # cbar.ax.set_ylabel ("$\chi ^a$", fontsize=18, rotation=270, labelpad=15)
     ax.set_xscale('log')
-    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\xi$", fontsize=18)     
-    ax.set_yticks (np.linspace(0, 1, 11)) 
-    plt.savefig   ( "DOP_"+str(dop)+"_solvation_shell_order_parameter.png", dpi=1000)
+    # ax.set_xlabel ( "Temperature (reduced)", fontsize=18)
+    # if args.op == "monomer": 
+    # ax.set_ylabel ( "$\\xi _1$", fontsize=18) 
+    # elif args.op == "solvent": 
+    # ax.set_ylabel ( "$\\xi _2$", fontsize=18) 
+    # elif args.op == "both":
+    # ax.set_ylabel ( "$\\xi _1 + \\xi _2$", fontsize=18) 
+
+
+    # ax.set_yticks (np.linspace(0, 1, 11)) 
+    plt.savefig   ( "DOP_"+str(dop)+"_"+str(args.op)+"_order_parameter.png", dpi=1000)
     
     if show_plot_bool:
         plt.show() 

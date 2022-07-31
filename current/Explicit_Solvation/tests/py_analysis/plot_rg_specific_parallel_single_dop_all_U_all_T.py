@@ -11,7 +11,7 @@ import os
 import aux 
 import time 
 import sys 
-import multiprocessing
+import multiprocessing 
 import itertools
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
@@ -40,27 +40,35 @@ parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', 
 parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include to see plot.') 
 args = parser.parse_args() 
 
+divnorm = matplotlib.colors.TwoSlopeNorm (vmin=0.5, vmax=3, vcenter=1.7)
 
 if __name__ == "__main__":    
 
     start = time.time() 
-    
+    ##################################
     # aux.plot_entropy_rg_parallelized_single_dop_all_U_all_T ( args.dop, args.s, args.ev, args.c, args.sp )
 
     U_list = aux.dir2U ( os.listdir (".") )
-    # U_list = U_list[0:3]
-
-    dop = args.dop
-    starting_index = args.s 
-    coords_files   = args.c
-    show_plot_bool = args.sp
-    excl_vol_bool  = args.ev
-
+    # U_list = ["U1"]
     PLOT_DICT = {} 
-    fig = plt.figure( figsize=(8,6) )
+    dop            = args.dop
+    coords_files   = args.c
+    excl_vol_bool  = args.ev
+    show_plot_bool = args.sp
+    
+    ######
+    plt.style.use('classic')
+    fig = plt.figure( figsize=(2.3,2.3) )
     ax  = plt.axes() 
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True)
+    ax.tick_params(axis='x', labelsize=6, pad=3.5)
+    ax.tick_params(axis='y', labelsize=6, pad=3.5)
+    ax.xaxis.set_tick_params(which='major', width=0.3)
+    ax.xaxis.set_tick_params(which='minor', width=0.1)
+    ax.yaxis.set_tick_params(which='major', width=0.3)
+    ax.yaxis.set_tick_params(which='minor', width=0.1) 
+    # ax.set_ylim([0,1])
+    ax.set_xlim([0.01,100])
     i = 0 
     Tmax = [] 
 
@@ -74,8 +82,13 @@ if __name__ == "__main__":
     f = open("RG_DATA_"+str(dop), "w") 
 
     for U in U_list:
+        if U == "U11":
+            starting_index = args.s
+        elif U=="U1":
+            starting_index = args.s/2
+
         f.write ( "U = " + str(U) + ":\n" )
-        print("Inside U = " + U + ", and N = " + str(dop), flush=True )
+        print("Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
         rg_mean = [] 
         rg_std  = [] 
         temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
@@ -160,11 +173,22 @@ if __name__ == "__main__":
     
     i=0
     for U in U_list:
+       
+        if U == "U1":
+            temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
+            # temperatures = 
+            rg_max = dop*1/6 # ((6+12+np.sqrt(2)+8*np.sqrt(3)) /26)**2*1/6*dop
+            ax.plot ( temperatures, np.sqrt(PLOT_DICT[U][0])/np.sqrt(rg_max), linewidth=0.5, c='k', zorder=1, clip_on=False, linestyle='dashed')
+            ax.scatter ( temperatures, np.sqrt(PLOT_DICT[U][0])/np.sqrt(rg_max), marker='o', edgecolors='k', c=np.sqrt(PLOT_DICT[U][0])/np.sqrt(rg_max), cmap=cm.PiYG, zorder=10, linewidth=0.5, norm=divnorm, s=15, clip_on=False)
         
-        ax.errorbar   ( temperatures, PLOT_DICT[U][0]/rg_max, yerr=PLOT_DICT[U][1]/rg_max, fmt='o', markeredgecolor='k', \
-                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.copper(i/9), label='_nolegend_' ) 
-        i += 1
-
+        if U=="U11":
+            rg_max =  dop*1/6 
+            rg_list = np.sqrt(PLOT_DICT[U][0])/np.sqrt(rg_max)
+            rg_list_colors = divnorm (rg_list)
+            temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
+            # print(rg_list)
+            ax.plot ( temperatures, rg_list, linewidth=0.5, c='k', zorder=1, clip_on=False, linestyle='dotted')
+            ax.scatter ( temperatures, rg_list, marker='^', edgecolors='k', c=rg_list, cmap=cm.PiYG, zorder=11, linewidth=0.5, norm=divnorm, s=15, clip_on=False)
     # plot Uexcl...
     if excl_vol_bool:
         f = open ("RG_DATA_"+str(dop), 'a')
@@ -188,9 +212,8 @@ if __name__ == "__main__":
             rg_std.append  ( np.std  (rg_list) ) 
         
         ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
-        # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
         ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
-        # ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
+        
         f.write ("Rg^2: ")
         for j in range (len (temperatures) ):
             f.write ( "{:.2f} ".format (rg_mean[0] ) ) 
@@ -204,29 +227,30 @@ if __name__ == "__main__":
         f.write ("\n") 
         f.flush()
         f.close() 
-
+    
     ########################################
 
-    my_cmap = cm.copper 
-    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
+    my_cmap = cm.PiYG
+    sm = plt.cm.ScalarMappable ( cmap=my_cmap,norm=divnorm )
     cbar = plt.colorbar(sm, orientation='vertical') 
-    cbar.set_ticks ( [0, 1] )
-    cbar.set_ticklabels( ["0", "0.2"] )
-    cbar.ax.set_ylabel ( "Fraction of cosolvent", fontsize=18, rotation=270 ) 
-    # cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
-    cbar.ax.tick_params(labelsize=14)
-    # cbar.ax.set_ylabel ("Strength of good solvent", fontsize=18, rotation=270)
+    cbar.set_ticks ( [] )
+    # cbar.set_ticklabels( ["Globule", "Gaussian", "Coil"] ) 
+    cbar.ax.tick_params(labelsize=4, width=0.1, pad=0.5)
+    # cbar.ax.set_ylabel ("State of polymer", fontsize=6, rotation=270, labelpad=9)
+    cbar.outline.set_visible(False)
     ax.set_xscale('log')
-    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)     
-    ax.set_yticks (np.linspace(0, 1, 11)) 
+    # ax.set_xlabel ( "$T^*$", fontsize=4, labelpad=0) 
+    # ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=4, labelpad=0)     
+    # ax.set_yticks (np.linspace(0, 1, 6)) 
+    plt.tight_layout()
     plt.savefig   ( "DOP_"+str(dop)+"_multiple_rg.png", dpi=1000)
     
-    if show_plot_bool:
-        plt.show() 
+    # if show_plot_bool:
+    #    plt.show() 
 
 
 
+    ##################################
     stop = time.time() 
 
     print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)

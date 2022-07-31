@@ -40,6 +40,7 @@ parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', 
 parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include to see plot.') 
 args = parser.parse_args() 
 
+divnorm = matplotlib.colors.SymLogNorm (0.005, vmin=-0.1, vmax=0.1)
 
 if __name__ == "__main__":    
 
@@ -58,6 +59,7 @@ if __name__ == "__main__":
     ######
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
     ax.tick_params(axis='x', labelsize=16)
     ax.tick_params(axis='y', labelsize=16)
     i = 0 
@@ -127,8 +129,8 @@ if __name__ == "__main__":
         
             for T in np.unique (mtemp_list[uidx]):
                 rg_mean.append( np.mean ( rg_dict[T] ) ) 
-                rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( ntraj_dict[T] ) ) 
-        
+                rg_std.append ( np.std  ( rg_dict[T] )/ np.sqrt( 5 ) ) 
+
         if rg_max < np.max (rg_mean):
             rg_max = np.max(rg_mean) 
 
@@ -159,9 +161,11 @@ if __name__ == "__main__":
     
     i=0
     for U in U_list:
-        
-        ax.errorbar   ( temperatures, PLOT_DICT[U][0]/rg_max, yerr=PLOT_DICT[U][1]/rg_max, fmt='o', markeredgecolor='k', \
-                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.seismic(i/9), label='_nolegend_' ) 
+        chi_a = aux.get_chi_entropy( str(U)+"/geom_and_esurf.txt")[0]
+        rgba_color = cm.PiYG_r (divnorm (chi_a) )
+        ax.errorbar ( temperatures, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, c=rgba_color, fmt='none', color='k', label='_nolegend_')
+        ax.plot   ( temperatures, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', \
+                    linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_', markersize=10 ) 
         i += 1
 
     # plot Uexcl...
@@ -186,8 +190,8 @@ if __name__ == "__main__":
             rg_mean.append ( np.mean (rg_list) ) 
             rg_std.append  ( np.std  (rg_list) ) 
         
-        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
-        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
+        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1, markersize=10 )
+        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.3), fontsize=15)
         
         f.write ("Rg^2: ")
         for j in range (len (temperatures) ):
@@ -205,17 +209,17 @@ if __name__ == "__main__":
     
     ########################################
 
-    my_cmap = cm.seismic
-    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
+    my_cmap = cm.PiYG_r
+    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) )
     cbar = plt.colorbar(sm, orientation='vertical') 
-    cbar.set_ticks ( [0, 1] )
-    cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
+    cbar.set_ticks ( [-0.1, 0.1] )
+    cbar.set_ticklabels( [-0.1, 0.1] ) 
     cbar.ax.tick_params(labelsize=14)
-    cbar.ax.set_ylabel ("Strength of aligned \nmonomer-solvent interactions", fontsize=18, rotation=270)
+    # cbar.ax.set_ylabel ("$\chi ^a$", fontsize=18, rotation=270, labelpad=15)
     ax.set_xscale('log')
     # ax.set_yscale('log')
-    ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-    ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)     
+    # ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
+    # ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)     
     ax.set_yticks (np.linspace(0, 1, 11)) 
     plt.savefig   ( "DOP_"+str(dop)+"_multiple_rg.png", dpi=1000)
     

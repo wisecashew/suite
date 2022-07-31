@@ -37,6 +37,69 @@ def extract_loc_from_string(a_string):
 # End of function. 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+def get_chi_fh (topology):
+    
+    f = open (topology)
+    E_mm = "Emm_a"
+    E_ms = "Ems_a"
+
+    for line in f:
+        if re.findall (E_mm, line):
+            demixing = float( line[8:] )
+        elif re.findall (E_ms, line):
+            mixing   = float( line[8:] ) 
+
+    chi = mixing - 0.5*demixing
+    f.close()
+    return chi 
+
+def get_chi_entropy (topology):
+
+    f = open (topology)
+    Emm_a = "Emm_a"
+    Emm_n = "Emm_n"
+    Ems_a = "Ems_a"
+    Ems_n = "Ems_n"
+
+    for line in f:
+        if re.findall (Emm_a, line):
+            mm_a = float( line[8:] ) 
+        elif re.findall ( Emm_n, line):
+            mm_n = float( line[8:] ) 
+        elif re.findall ( Ems_a, line):
+            ms_a = float( line[8:] ) 
+        elif re.findall ( Ems_n, line):
+            ms_n = float( line[8:] ) 
+
+    chi_a = ms_a - 0.5*mm_a
+    chi_n = ms_n - 0.5*mm_n 
+    f.close()
+
+    return (chi_a, chi_n) 
+
+def get_chi_cosolvent (topology):
+    f = open (topology) 
+    Emm_a = "Emm_a"
+    Ems1_a = "Ems1_a" 
+    Ems2_a = "Ems2_a"
+
+    for line in f:
+        if re.findall ( Emm_a, line):
+            mm_a = float( line[8:] )
+        elif re.findall (Ems1_a, line):
+            ms1_a = float( line[9:] ) 
+        elif re.findall ( Ems2_a, line):
+            ms2_a = float ( line[9:] ) 
+
+    f.close() 
+    chi_1 = ms1_a - 0.5*mm_a 
+    chi_2 = ms2_a - 0.5*mm_a 
+
+    return (chi_1, chi_2)
+
+# End of function
+#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            
 ###########################################################################
 ###########################################################################
 # Description: Looks at a divident and divisor. It is a play on the original modulo function. 
@@ -104,6 +167,16 @@ def dir2RGDATA (list_of_dirs):
 
 # End of function. 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+def dir2set (list_of_dirs):
+    l = []
+    for dir_name in list_of_dirs:
+        r = re.findall ("^set\d+",dir_name)
+        if (r):
+            l.append ( int(dir_name[3:] ) )
+    l.sort()
+    return l
+
 
 ############################################################################
 ############################################################################
@@ -2042,7 +2115,8 @@ def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
 
     f = open(U+"/DOP_"+str(N)+"/"+str(T)+"/"+ortn_file_name+"_"+str(idx), 'r')
 
-    order_parameter_list = [] 
+    order_parameter_list1 = [] 
+    order_parameter_list2 = [] 
     extract_orr = False 
     start_bool  = False 
     for line in f:
@@ -2052,27 +2126,45 @@ def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
             extract_orr = True
             if int( a.group(0) ) == starting_index:
                 start_bool = True 
-            oparam = 0 
-            count  = 0 
+            # oparam1 = []
+            # oparam2 = []
+            # count1  = 0
+            # count2  = 0
+            oparam    = []
+            oparam_list    = [] 
+            count     = 0 
 
         elif re.match ( end_str, line ) and start_bool:
             # print ( line )
-            extract_orr = False 
-            order_parameter_list.append( oparam/count ) 
+            extract_orr = False
+            oparam_list.append ( np.sum(oparam)/count )
+            # order_parameter_list1.extend (oparam1)
+            # order_parameter_list2.extend (oparam2)
+            # order_parameter_list1.append( oparam1/count1 )
+            # order_parameter_list2.append( oparam2/count2 ) 
 
         elif extract_orr and start_bool: 
-            or_list = extract_loc_from_string( line )
-
+            # or1_list = [ extract_loc_from_string( line )[0] ]
+            # or2_list = extract_loc_from_string( line )[1:]
+            or_list    = extract_loc_from_string ( line )  
+            
             for cnum in or_list:
-                oparam += complex ( np.cos(2*pi*cnum/6 ), np.sin (2*pi*cnum/6) )
-                count  += 1 
+                oparam.append( complex (np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) )
+                count += 1
+            
+            # for cnum in or1_list:
+                # oparam1 += complex ( np.cos(2*pi*cnum/6 ), np.sin (2*pi*cnum/6) )
+                # oparam1.append ( complex (np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) )
+                # count1  += 1 
+            
+            # for cnum in or2_list:
+                # oparam2 += complex ( np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) 
+                # oparam2.append ( complex (np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) )
+                # count2+=1 
 
-    f.close() 
+    f.close()
 
-    
-    #print ( "Order parameter for solvation shell is: ", abs(np.mean (order_parameter_list[starting_index:]) ) ) 
-    # print (type(starting_index))
-    # print ( "mean order_param = ", abs( np.mean(order_parameter_list) ) )
-    return abs( np.mean (order_parameter_list) )
-
+    # return (abs( np.mean (order_parameter_list1) ), abs( np.mean (order_parameter_list2) ) )
+    # return ( abs(np.mean(order_parameter_list1)), abs(np.mean(order_parameter_list2 ) ), abs(np.std(order_parameter_list1)), abs(np.std(order_parameter_list2)) )
+    return abs( np.mean (oparam_list) ) 
 

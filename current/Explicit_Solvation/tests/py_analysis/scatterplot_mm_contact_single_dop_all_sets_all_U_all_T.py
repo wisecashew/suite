@@ -3,7 +3,7 @@
 import pandas as pd 
 import numpy as np 
 import matplotlib
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm
 import argparse 
@@ -24,24 +24,44 @@ parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to
 
 args = parser.parse_args()   
 
+divnorm = matplotlib.colors.TwoSlopeNorm(vmin=0, vcenter=60, vmax=430)
+
+class MidpointNormalize(matplotlib.colors.Normalize):
+    ## class from the mpl docs:
+    # https://matplotlib.org/users/colormapnorms.html
+
+    def __init__(self, vmin=None, vmax=None, midpoint=None, clip=False):
+        self.midpoint = midpoint
+        super().__init__(vmin, vmax, clip)
+
+    def __call__(self, value, clip=None):
+        # I'm ignoring masked values and all kinds of edge cases to make a
+        # simple example...
+        x, y = [self.vmin, self.midpoint, self.vmax], [0, 0.5, 1]
+        return np.ma.masked_array(np.interp(value, x, y))    
+
 if __name__=="__main__":
     
     # get the entire list of potential energy surfaces 
     U_list = aux.dir2U ( os.listdir (".") )
 
     #instantiate plt figure
-    plt.figure( figsize=(8,6) )
-    ax = plt.axes() 
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-    ax.tick_params ( axis='x', labelsize=16 )
-    ax.tick_params ( axis='y', labelsize=16 )
+    plt.figure( figsize=(10,8) )
+    ax = plt.axes(projection="3d" ) 
+    ax.tick_params ( axis='x', labelsize=12 )
+    ax.tick_params ( axis='y', labelsize=12 )
+    ax.tick_params ( axis='z', labelsize=12
 
     # instantiate some pertinent variables
     i=0
     Tmax = []
     # mm_max = [] 
-    mm_max  = -1
+    mm_max   = -1
+    chi_a_list = []
+    chi_n_list = []
     for U in U_list:
+        if U == "U5" or U == "U7":
+            continue
         print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True )
         mm_list = np.asarray([])
         mm_err  = np.asarray([])
@@ -55,16 +75,21 @@ if __name__=="__main__":
                 df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num), sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python', skiprows=args.s)
                 mm_list = np.hstack ( ( mm_list, ( df["mm_tot"].values ) - (args.dop-1) ) )
 
-            if U == "U1" and temp == 0.1:
-                mm_max = np.max( mm_list )
-            mm_err  = np.hstack ( ( mm_err , np.std  ( mm_list ) / np.sqrt(80) ) ) 
+            # if U == "U1" and temp == 0.1:
+            #     mm_max = np.max( mm_list )
+            mm_err  = np.hstack ( ( mm_err , np.std  ( mm_list ) / np.sqrt(40) ) ) 
             mm_mean = np.hstack ( ( mm_mean, np.mean ( mm_list ) ) )
-
-        ax.errorbar(temperatures, np.asarray(mm_mean)/mm_max, yerr=np.asarray(mm_err)/mm_max, fmt='o', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=2, color=cm.PiYG(i/9), ecolor='k', label='_nolegend_', markersize=10)   
+        
+        chi_n = aux.get_chi_entropy(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/geom_and_esurf.txt")[1] 
+        chi_a = aux.get_chi_entropy(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/geom_and_esurf.txt")[0] 
+        chi_a_list = np.ones (len(temperatures))*chi_a
+        chi_n_list = np.ones (len(temperatures))*chi_n
+        ax.scatter3D(chi_a_list, chi_n_list, temperatures, marker='o', edgecolors='k', c=mm_mean, cmap='coolwarm', label='_nolegend_', norm=divnorm)   
+        print (mm_mean)
         i += 1
         # mm_max.append( np.max(mm_list) ) 
         print ("done!", flush=True)
-        # print ( mm_list )
+        print ( "chi is ", chi )
     
     
     contacts = np.ones ( len (temperatures) )
@@ -72,24 +97,33 @@ if __name__=="__main__":
     if args.ev:
         df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e, sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python' )
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts 
-        ax.errorbar ( temperatures, contacts/mm_max, yerr = np.std( df["mm_tot"].values)/(mm_max*np.sqrt(100)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, markersize=10 ) 
-        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.3), fontsize=15)
+        ax.errorbar ( temperatures, contacts/mm_max, yerr = np.std( df["mm_tot"].values)/(mm_max*np.sqrt(100)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0 ) 
+        # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
+        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
 
-    my_cmap = cm.PiYG_r
+    my_cmap = cm.coolwarm
     sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1))
     
     ax = plt.axes()
 
-    # plt.ylabel("$\\langle M_C \\rangle/\\langle M_C \\rangle _{\\mathrm{max}}$", fontsize=18)
-    # plt.xlabel("Temperature (reduced)", fontsize=18)
+    ax.set_ylabel("$\chi ^{a'}", fontsize=18)
+    ax.set_xlabel("$\chi ^a$", fontsize=18)
+    ax.set_zlabel("Temperature (reduced)", fontsize=18)
+    # plt.xticks( temperatures, fontsize=16 )
     cbar = plt.colorbar(sm, orientation='vertical')
-    cbar.set_ticks( [0, 1] )
-    cbar.set_ticklabels( ["-0.1", "0.1"] )
+    cbar.set_ticks( [0, 0.5, 1] )
+    cbar.set_ticklabels( ["Globule", "Random", "Coil"] )
     cbar.ax.tick_params(labelsize=14)
-    # cbar.ax.set_ylabel ( "$\\chi$", fontsize=18, rotation=270 ) 
-    ax.set_xscale('log')
-    ax.set_yticks ( np.linspace (0, 1, 11) )
-    plt.savefig("DOP_"+str(args.dop)+"_multiple_mmcorr.png", dpi=1000)
+    cbar.ax.set_ylabel ( "State of polymer chain", fontsize=18, rotation=270, labelpad=25 ) 
+    ax.set_zscale('log')
+    ax.set_xticks (chi_a_list)
+    ax.set_yticks (chi_n_list)
+    plt.xticks (rotation=90)
+    # plt.autoscale(True, axis='x')
+    # ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
+    # ax.set_yticks ( temperatures )
+    plt.tight_layout()
+    plt.savefig("DOP_"+str(args.dop)+"_scatter3d_mmcorr.png", dpi=1000)
 
     if args.sp:
         plt.show()

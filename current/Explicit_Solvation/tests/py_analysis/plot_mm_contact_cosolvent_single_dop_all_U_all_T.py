@@ -18,7 +18,9 @@ parser.add_argument('--excl-vol', dest='ev', action='store_true', help='flag to 
 parser.add_argument('--dump-file', dest='e', metavar='energydump', action='store', type=str, help='Name of energy dump file to parse information.', default='energydump') 
 parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include if you want the image to be rendered on screen.', default=False) 
 
-args = parser.parse_args()  
+args = parser.parse_args()
+
+divnorm = matplotlib.colors.SymLogNorm ( 0.005, vmin=-0.1, vmax=0.1 ) 
 
 if __name__=="__main__":
 
@@ -63,7 +65,10 @@ if __name__=="__main__":
     
     i=0
     for U in U_list:
-        plt.errorbar ( temperatures, PLOT_DICT[U][0]/mm_max, yerr=PLOT_DICT[U][1]/mm_max, linestyle='-', elinewidth=1, capsize=0, color=cm.seismic (i/len(U_list)), fmt='o', markeredgecolor='k', label='_nolegend_')
+        chi_1 = aux.get_chi_cosolvent ( str(U)+"/geom_and_esurf.txt" )[1]
+        rgba_color = cm.PiYG(divnorm (chi_1))
+        plt.errorbar ( temperatures, PLOT_DICT[U][0]/mm_max, yerr=PLOT_DICT[U][1]/mm_max, linewidth=1, fmt='none', capsize=2, color='k', label='_nolegend_')
+        plt.plot ( temperatures, PLOT_DICT[U][0]/mm_max, linestyle='-', marker='o', color=rgba_color,  markeredgecolor='k', linewidth=2, label='_nolegend_', markersize=10)
         i += 1
 
     # plot excluded volume
@@ -73,37 +78,27 @@ if __name__=="__main__":
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts
         plt.errorbar ( temperatures, contacts/mm_max, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0)
         # plt.legend( ["Athermal solvent"] )
-        plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
+        # plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
 
     
     # # # # 
-    my_cmap = cm.seismic 
-    sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) ) 
+    my_cmap = cm.PiYG_r
+    sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) ) 
     ax = plt.axes() 
-
-    ax.tick_params ( axis='x', labelsize=16 ) 
-    ax.tick_params ( axis='y', labelsize=16 )
-    plt.ylabel("$\\langle M_C \\rangle / \\langle M_C \\rangle _{\mathrm{max}}$", fontsize=18)
-    plt.xlabel("Temperature (reduced)", fontsize=18)
-    ytick_list = np.unique( np.linspace (0, np.max(mm_max)+1, 20, dtype=int) )
-
-    ytick_list = np.arange(0, ytick_list[-1], np.ceil(int(ytick_list[-1])/10 ) )  
-
-    if not ( (np.max(mm_max)+1) in ytick_list):
-        ytick_list = np.hstack ( (ytick_list, np.max(mm_max)+1 ) ) 
-
-    # plt.yticks( ytick_list ) 
-
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
+    ax.tick_params ( axis='x', labelsize=16, direction="in", left="off", labelleft="on" )
+    ax.tick_params ( axis='y', labelsize=16, direction="in", left="off", labelleft="on" )
+    
     cbar = plt.colorbar(sm, orientation='vertical')
-    cbar.set_ticks( [0, 1] )
+    cbar.set_ticks( [-0.1, 0.1] )
     cbar.ax.tick_params (labelsize=14)
-    cbar.set_ticklabels( ["Weakest", "Strongest"] )
-    cbar.ax.set_ylabel ( "Strength of better solvent \n", fontsize=16, rotation=270 ) 
+    cbar.set_ticklabels( [-0.1, 0.1] )
+    # cbar.ax.set_ylabel ( "Strength of better solvent \n", fontsize=16, rotation=270 ) 
     ax.set_xscale('log')
     # ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
     # ax.yaxis.get_major_locator().set_params(integer=True)
     ax.set_yticks (np.linspace (0,1,11))
-    plt.savefig("DOP_"+str(args.dop)+"_cosolvent_multiple_mmcorr.png", dpi=800)
+    plt.savefig("DOP_"+str(args.dop)+"_cosolvent_multiple_mmcorr.png", dpi=1000)
 
     if args.sp:
         plt.show()

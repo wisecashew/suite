@@ -40,6 +40,8 @@ parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', 
 parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include to see plot.') 
 args = parser.parse_args() 
 
+divnorm = matplotlib.colors.SymLogNorm (0.005, vmin=-0.1, vmax=0.1) 
+
 
 if __name__ == "__main__":    
 
@@ -58,6 +60,7 @@ if __name__ == "__main__":
     PLOT_DICT = {} 
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
     ax.tick_params(axis='x', labelsize=16)
     ax.tick_params(axis='y', labelsize=16)
     i = 0 
@@ -159,9 +162,10 @@ if __name__ == "__main__":
     
     i=0
     for U in U_list:
-        
-        ax.errorbar   ( temperatures, PLOT_DICT[U][0]/rg_max, yerr=PLOT_DICT[U][1]/rg_max, fmt='o', markeredgecolor='k', \
-                    linestyle='-', elinewidth=1, capsize=0, linewidth=1, color=cm.seismic(i/len(U_list)), label='_nolegend_' ) 
+        chi_2 = aux.get_chi_cosolvent ( str(U) + "/geom_and_esurf.txt")[1]
+        rgba_color = cm.PiYG (divnorm (chi_2))
+        ax.errorbar ( temperatures, PLOT_DICT[U][0]/rg_max, yerr=PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, fmt='none', color='k', label='_nolegend_' )
+        ax.plot ( temperatures, PLOT_DICT[U][0]/ rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_', markersize=10)
         i += 1
 
     # plot Uexcl...
@@ -188,7 +192,7 @@ if __name__ == "__main__":
         
         ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0 , fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, linewidth=1 )
         # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
-        ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
+        # ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
         # ax.legend     ( ["Athermal solvent"], loc='best', fontsize=12)
         f.write ("Rg^2: ")
         for j in range (len (temperatures) ):
@@ -206,13 +210,13 @@ if __name__ == "__main__":
 
     ########################################
 
-    my_cmap = cm.seismic 
-    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=1) )
+    my_cmap = cm.PiYG_r
+    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) )
     cbar = plt.colorbar(sm, orientation='vertical') 
-    cbar.set_ticks ( [0, 1] )
-    cbar.set_ticklabels( ["Weakest", "Strongest"] ) 
+    cbar.set_ticks ( [-0.1, 0.1] )
+    cbar.set_ticklabels( [-0.1, 0.1] ) 
     cbar.ax.tick_params(labelsize=14)
-    cbar.ax.set_ylabel ("Strength of better solvent", fontsize=18, rotation=270)
+    cbar.ax.set_ylabel ("\chi ^1", fontsize=18, rotation=270)
     ax.set_xscale('log')
     ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
     ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)     
@@ -227,4 +231,4 @@ if __name__ == "__main__":
     stop = time.time() 
 
     print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)
-        
+

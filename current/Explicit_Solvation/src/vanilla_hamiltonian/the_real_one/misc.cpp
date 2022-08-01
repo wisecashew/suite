@@ -276,6 +276,18 @@ void print(std::array <double, 3> v){
 	std::cout << std::endl;
 }
 
+
+template <typename T>
+void print (T arr){
+    
+    for (int i{0}; i<static_cast<int>(arr.size()); ++i){
+        std::cout << arr[i] << " | ";
+    }
+    std::cout << std::endl; 
+
+}
+
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 

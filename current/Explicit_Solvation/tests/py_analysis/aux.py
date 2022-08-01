@@ -2106,6 +2106,7 @@ def plot_fh_shape_parameter_parallelized_single_dop_all_U_all_T ( dop, starting_
 # b. Multiple T values 
 # c. In a single plot 
 # d. For a given degree of polymerization 
+
 def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
     
     pi = np.pi 
@@ -2146,7 +2147,7 @@ def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
         elif extract_orr and start_bool: 
             # or1_list = [ extract_loc_from_string( line )[0] ]
             # or2_list = extract_loc_from_string( line )[1:]
-            or_list    = extract_loc_from_string ( line )  
+            or_list    = [extract_loc_from_string ( line ) [0] ]
             
             for cnum in or_list:
                 oparam.append( complex (np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) )

@@ -37,8 +37,8 @@ int main(int argc, char** argv) {
 
             case 'h':
                 std::cout << 
-                "\nWelcome to my Monte Carlo simulation engine (v0.5) for polymers in a simple cubic box (Z=26). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
-		        "\nLast updated: June 13, 2022, 09:26 PM. Added restarting capabilities. \nAuthor: satyend@princeton.edu\n" <<
+                "\nWelcome to my Monte Carlo simulation engine (v0.6) for polymers in a simple cubic box (Z=26). \nThis is a simulation engine which incorporates directional bonding between monomer and solvent. Here, we incorporate the relative orientations of the particles affecting the energy of interaction. \nIn this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency." <<
+		        "\nLast updated: Aug 1, 2022, 12:56 AM. Added restarting capabilities. \nAuthor: satyend@princeton.edu\n" <<
                 "\n----------------------------------------------------------------------------------------------------------------------------------\n" << 
                 "These are all the inputs the engine accepts for a single run, as of right now:\n\n" <<
                 "help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<

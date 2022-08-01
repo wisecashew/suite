@@ -45,7 +45,7 @@ if __name__=="__main__":
     ax.tick_params (axis='y', labelsize=16)
 
     U_list    = aux.dir2U ( os.listdir (".") ) 
-    U_list    = ["U1"]
+    # U_list    = ["U8"]
     PLOT_DICT = {} 
 
     starting_index = args.s
@@ -118,7 +118,6 @@ if __name__=="__main__":
 
         # PLOT_DICT [U] = ( np.asarray (ord_par1_mean), np.asarray (ord_par2_mean) ) 
         PLOT_DICT [U] = np.asarray (ord_par1_mean)
-
     pool1.close()
     pool1.join () 
 
@@ -129,13 +128,13 @@ if __name__=="__main__":
     # colors = [ cm.seismic(x) for x in np.linspace(0, 1, len(U_list) ] 
     for U in U_list: 
         # print ("i=", i, ", len(U_list)=",len(U_list) )
-        
+        print (PLOT_DICT[U])
         chi_a = aux.get_chi_entropy ( str(U)+"/geom_and_esurf.txt")[0]
         rgba_color = cm.PiYG_r (divnorm(chi_a))
         
         if args.op == "monomer":
-            ax.errorbar ( temperatures, np.asarray(1 - PLOT_DICT[U])/temperatures, yerr=0, fmt='none', linestyle='-', elinewidth=1, capsize=2, linewidth=0.5, color='k', label='_nolegend_')
-            ax.plot ( temperatures, (1-PLOT_DICT[U])/temperatures, marker='o', markeredgecolor='k', linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_')
+            ax.errorbar ( temperatures, np.asarray(1 - PLOT_DICT[U])/temperatures, yerr=0, fmt='none', linestyle='-', elinewidth=1, capsize=2, linewidth=1, color='k', label='_nolegend_')
+            ax.plot ( temperatures, (1-PLOT_DICT[U])/temperatures, marker='o', markeredgecolor='k', linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_', markersize=10)
         # elif args.op == "solvent":
             # ax.errorbar ( temperatures, (PLOT_DICT[U][2]), yerr=0, fmt='none', linestyle='-', elinewidth=1, capsize=2, linewidth=0.5, color='k', label='_nolegend_')
             # ax.plot ( temperatures, PLOT_DICT[U][2], marker='o', markeredgecolor='k', linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_')

@@ -30,7 +30,7 @@ std::array <int,3> axay   = {1,1,0}, axaz   = {1,0,1} , axny   = {1,-1,0}, axnz 
 std::array <int,3> ayaz   = {0,1,1}, aynz   = {0,1,-1}, nyaz   = {0,-1,1}, nynz   = {0,-1,-1};  
 std::array <int,3> axayaz = {1,1,1}, axaynz = {1,1,-1}, axnyaz = {1,-1,1}, axnynz = {1,-1,-1},  nxayaz = {-1,1,1}, nxaynz = {-1,1,-1}, nxnyaz = {-1,-1,1}, nxnynz = {-1,-1,-1}; 
 std::array <std::array <int,3>, 26> adrns = { ax, ay, az, nx, ny, nz, axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
-
+std::map <int, std::array<double,3>> Or2Dir = { {0, {1.0/2.0,0,0}}, {1, {0,1.0/2.0,0}}, {2, {0,0,1.0/2.0}}, {3, {-1.0/2.0,0,0}}, {4, {0,-1.0/2.0,0}}, {5, {0,0,-1.0/2.0}}, {6, {1.0/(std::sqrt(2)*2), 1.0/(std::sqrt(2)*2), 0}}, {7, {1.0/(2*std::sqrt(2)), 0, 1.0/(2*std::sqrt(2))}}, {8, {1.0/(2*std::sqrt(2)),-1.0/(2*std::sqrt(2)),0}}, {9, {1.0/(2*std::sqrt(2)),0,-1.0/(2*std::sqrt(2))}}, {10, {-1.0/(2*std::sqrt(2)),1.0/(2*std::sqrt(2)),0}}, {11, {-1.0/(2*std::sqrt(2)),0,1.0/(2*std::sqrt(2))}}, {12, {-1.0/(2*std::sqrt(2)),-1.0/(2*std::sqrt(2)),0}}, {13, {-1.0/(2*std::sqrt(2)),0,-1.0/(2*std::sqrt(2))}}, {14, {0,1.0/(2*std::sqrt(2)),1.0/(2*std::sqrt(2))}}, {15, {0,1.0/(2*std::sqrt(2)),-1.0/(2*std::sqrt(2))}}, {16, {0,-1.0/(2*std::sqrt(2)), 1.0/(2*std::sqrt(2))}}, {17, {0,-1.0/(2*std::sqrt(2)), -1.0/(2*std::sqrt(2))}}, {18, {1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {19, {1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {20, {1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}}, {21, {1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}}, {22, {-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {23, {-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}}, {24, {-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {25, {-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}} };
 
 //=====================================================
 // impose periodic boundary conditions on vector 
@@ -71,6 +71,26 @@ void impose_pbc(std::array <int,3>* arr, int x_len, int y_len, int z_len) {
 }
 
 
+void impose_pbc(std::array <double,3>* arr, int x_len, int y_len, int z_len) {
+	for (int i{0}; i<3; ++i){
+		if (i==0){
+			(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], x_len) +x_len), x_len); 
+		}
+		else if (i==1){
+			(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], y_len) +y_len), y_len); 
+			// (*arr)[i] = (((*arr)[i]%y_len)+y_len)%y_len; 	
+		}
+		else {
+			(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], z_len) +z_len), z_len); 
+			// (*arr)[i] = (((*arr)[i]%z_len)+z_len)%z_len; 
+		}
+
+	}
+
+	return; 
+}
+
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
@@ -88,6 +108,22 @@ int modified_modulo(int divident, int divisor){
 	else {
 		// std::cout << "result is " << result << std::endl;
 		return (((divident%divisor)+divisor)%divisor);
+	}
+
+}
+
+double modified_modulo ( double divident, int divisor){
+	
+	double midway = static_cast<double>(divisor/2); 
+	
+	if ( std::fmod(std::fmod(divident, divisor)+divisor,divisor) > midway){
+		
+		return std::fmod((std::fmod(divident,divisor)+divisor), divisor)-divisor; 
+		
+	}
+	else {
+		// std::cout << "result is " << result << std::endl;
+		return std::fmod(std::fmod(divident,divisor)+divisor,divisor);
 	}
 
 }
@@ -234,7 +270,7 @@ void print(std::array <int, 3> v){
 }
 
 void print(std::array <double, 3> v){
-	for (int i: v){
+	for (double i: v){
 		std::cout << i << " | ";
 	}
 	std::cout << std::endl;
@@ -336,8 +372,63 @@ std::array <int,3> add_arrays(std::array <int,3>* a1, std::array <int,3>* a2){
 	return a3;
 
 }
+
+std::array <double,3> add_arrays(std::array <double,3>* a1, std::array <double,3>* a2){
+	std::array<double, 3> a3; 
+
+	for (int i{0}; i<3; ++i){
+		a3[i] = (*a1)[i] + (*a2)[i]; 
+	}
+
+	return a3;
+
+}
+
+std::array <double,3> add_arrays(std::array <int,3>* a1, std::array <double,3>* a2){
+	std::array<double, 3> a3; 
+
+	for (int i{0}; i<3; ++i){
+		a3[i] = (*a1)[i] + (*a2)[i]; 
+	}
+
+	return a3;
+
+}
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
+
+double distance_between_points (std::array <double,3>* a1, std::array <double,3>* a2, int xlen, int ylen, int zlen){
+
+	std::array <double,3> delta = subtract_arrays (a1, a2); 
+	// std::cout << "delta array is "; print (delta);
+	for ( int i{0}; i<3; ++i){
+		if (i==0){
+			delta[i] = modified_modulo ( delta[i], xlen );
+		}
+		else if ( i == 1 ){
+			delta[i] = modified_modulo ( delta[i], ylen ); 
+		}
+		else if ( i == 2 ){
+			delta[i] = modified_modulo ( delta[i], zlen ); 
+		}
+	}
+
+	// impose_pbc ( &delta, xlen, ylen, zlen ); 
+
+	return std::sqrt(delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2]);
+
+}
+
+
+/*double distance_between_points (std::array <double,3>* a1, std::array <double,3>* a2, int xlen, int ylen, int zlen){
+
+	std::array <double,3> delta = subtract_arrays (a1, a2); 
+	impose_pbc ( &delta, xlen, ylen, zlen ); 
+
+	return std::sqrt(delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2]);
+
+}*/
 
 
 //=====================================================
@@ -364,6 +455,16 @@ std::array <int,3> subtract_arrays(std::array <int,3>* a1, std::array <int,3>* a
 
 }
 
+std::array <double,3> subtract_arrays(std::array <double,3>* a1, std::array <double,3>* a2){
+	std::array<double, 3> a3; 
+
+	for (int i{0}; i<3; ++i){
+		a3[i] = (*a1)[i] - (*a2)[i]; 
+	}
+
+	return a3;
+
+}
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -825,10 +926,13 @@ Polymer makePolymer(std::vector <std::array <int,3> > locations, char type_m){
 	std::vector <int> pmer_spins; 
     short size_ = locations.size(); 
     for (short i=0; i<size_; i++){
-        unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
-        std::mt19937 generator(seed); 
-        std::uniform_int_distribution<int> distribution (0,1); 
+        // unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+        std::random_device rd;
+        std::mt19937 generator(rd () ); 
+        // std::cout << "check..." << std::endl;
+        std::uniform_int_distribution<int> distribution (0, 25); 
         pmer_spins.push_back(distribution(generator));
+        
     }
 
     std::vector <Particle*> ptc_vec; 
@@ -1562,29 +1666,70 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
     (*ms_aligned)  = 0;  
     (*ms_naligned) = 0;
     // polymer-polymer interaction energies 
-    
+    double delta = 0; 
     // std::pair <char, int> properties ( ' ' , -1 );
+    std::array <double,3> ext1, ext2;
+
 
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
             std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
             
+            ext1 = add_arrays ( &(p->coords), &(Or2Dir[p->orientation]) );
+            // std::cout << "ext1 is "; print(ext1);
             for ( std::array <int, 3>& loc: ne_list){
 
             	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == 'm'){
                     
-            		if ( (*LATTICE)[ lattice_index(loc, y, z) ]->orientation == p->orientation ){
+            		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &(Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]) );
+            		// std::cout << "ext2 monomer is "; print (ext2);
+            		// std::cout << "orientation = " << (*LATTICE)[ lattice_index(loc, y, z )]->orientation << std::endl;
+            		// std::cout << "orientational addition is "; print (Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]);
+            		delta = distance_between_points (&ext1, &ext2, x, y, z);
+
+            		Energy += 0.5* ((1-delta/2)*Emm_n + (delta/2)*Emm_a);
+
+            		// std::cout << "outside delta is " << delta << std::endl; 
+
+            		if ( delta == 2){
+            			// std::cout << "inside delta is " << delta << std::endl;
+            			(*mm_aligned) += 0.5;
+            		}
+            		else {
+            			// std::cout << "inside delta is " << delta << std::endl;
+            			*(mm_naligned)  += 0.5;
+            		}
+            		/* if ( (*LATTICE)[ lattice_index(loc, y, z) ]->orientation == p->orientation ){
                         (*mm_aligned) += 0.5; 
             			Energy += 0.5*Emm_a; 
             		}
             		else {
                         (*mm_naligned) += 0.5; 
             			Energy += 0.5*Emm_n; 
-            		}
+            		} */
             	}
 
             	else { // particle is of type solvent 
 
+					ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &(Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]) );
+					// std::cout << "ext2 solvent is "; print (ext2);
+					// std::cout << "orientation = " << (*LATTICE)[ lattice_index(loc, y, z )]->orientation << std::endl;
+					// std::cout << "orientational addition is "; print (Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]);
+
+            		delta = distance_between_points (&ext1, &ext2, x, y, z);
+
+            		Energy += ((delta/2)*Ems_n + (1-delta/2)*Ems_a);
+
+            		// std::cout << "Outside delta is " << delta << std::endl;            		
+            		if ( delta == 2){
+            			// std::cout << "Inside delta is " << delta << std::endl;
+            			(*ms_naligned) += 1;
+            		}
+            		else {
+            			// std::cout << "inside delta is " << delta << std::endl;
+            			*(ms_aligned)  += 1;
+            		}
+            		/*
             		if ( (*LATTICE)[ lattice_index(loc, y, z) ]->orientation == p->orientation ){
                         (*ms_aligned)  += 1;
             			Energy += Ems_a;
@@ -1593,6 +1738,7 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
                         (*ms_naligned) += 1; 
             			Energy += Ems_n; 
             		}
+            		*/
             	}
             }
         }
@@ -1754,6 +1900,7 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "Chain regrowth                     - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << ".\n"; 
     dump_file << "Single solvent orientation flips   - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n"; 
     dump_file << "Single monomer orientation flips   - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << ".\n"; 
+    dump_file << "Single random site flips           - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
     // dump_file << "Multiple solvent orientation flips - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
     // dump_file << "Multiple monomer orientation flips - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n"; 
 
@@ -3193,11 +3340,28 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
     *rweight = static_cast<double>(Nsurr)/static_cast<double>(Nmer+Nsurr); 
 
 	int ridx = rng_uniform (0, Nsurr-1);
+	// std::cout << "Nsurr is " << Nsurr << std::endl;
 	(*memory).first.push_back( { solvent_indices.at(ridx), (*LATTICE)[solvent_indices.at(ridx)]->orientation } );
-	(*LATTICE)[solvent_indices.at(ridx)]->orientation = rng_uniform (0, 5);  
+	(*LATTICE)[solvent_indices.at(ridx)]->orientation = rng_uniform (0, 25);  
 	(*memory).second.push_back( { solvent_indices.at(ridx), (*LATTICE)[solvent_indices.at(ridx)]->orientation } );	
 
+	// std::cout << "Exiting..." << std::endl;
+
 	return; 
+}
+
+void SiteFlipSingular ( std::vector <Particle*>* LATTICE, \
+	int x, int y, int z, \
+	std::pair <std::vector <std::array<int,2>>, std::vector <std::array<int,2>>>* memory ){
+
+	int flip_idx = rng_uniform (0, x*y*z-1); 
+	(*memory).first.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
+	(*LATTICE)[flip_idx]->orientation = rng_uniform (0, 25);  
+	// std::cout << "(*LATTICE)[flip_idx]->orientation = " << (*LATTICE)[flip_idx]->orientation << std::endl;
+	(*memory).second.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
+
+	return; 
+
 }
 
 
@@ -3257,7 +3421,7 @@ void PolymerFlipSingular ( std::vector <Polymer>* Polymers,\
 	// std::cout << "ridx = " << ridx << std::endl;
 	// std::cout << "Initial orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
 	(*memory).first.push_back ( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );
-	(*Polymers)[0].chain.at(ridx)->orientation = rng_uniform (0, 5);  
+	(*Polymers)[0].chain.at(ridx)->orientation = rng_uniform (0, 25);  
 	(*memory).second.push_back( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );	
 	// std::cout << "Final orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
 	// std::cout << "memory first[0][1] is " << (*memory).first[0][1] << std::endl;
@@ -3277,7 +3441,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	int* monomer_index, int* back_or_front, int Nsurr ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = rng_uniform (1, 5);
+    int r = rng_uniform (1, 6);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 
@@ -3347,23 +3511,14 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             (*attempts)[6] += 1;
             break;
         
-        case (8):
-        	if (v){
-        		printf("Performing polymer orientation flips... \n");
+        case (6): 
+        	if (v) {
+        		printf("Performing a random site flip... \n");
         	}
-        	SolventFlip ( Polymers, LATTICE, x, y, z, rweight, Nsurr, memory2);
-            *move_number = 8; 
-            (*attempts)[7] += 1;
-        	break;
-        
-        case (9):
-            if (v) {
-                printf("Performing local polymer orientation flips... \n");
-            }
-            PolymerFlip ( Polymers, rweight, Nsurr, memory2); 
-            *move_number = 9; 
-            (*attempts)[8] += 1;
-            break;
+        	SiteFlipSingular ( LATTICE, x, y, z, memory2); 
+        	*move_number = 8;
+        	(*attempts)[7] += 1;
+        	break; 
         
     }
     
@@ -3642,11 +3797,9 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 
 		case (8):
 			if (v) {
-				printf("Reversing multiple solvent flips...");
+				printf("Reversing singular random flip...");
 			}
-			for ( std::array<int,2>& a: (*memory2).first) {
-				(*LATTICE)[ a[0] ]->orientation = a[1]; 
-			}
+			(*LATTICE)[ (*memory2).first[0][0] ]->orientation = (*memory2).first[0][1]; 
 			break; 
 
 		case (9):
@@ -4038,7 +4191,7 @@ void AddSolvent (int x, int y, int z, std::vector <Particle*>* LATTICE){
 				}
 				c_idx = lattice_index (loc,y,z); 
 
-				Particle* p_ptr = new Particle (loc, 's', 0); 
+				Particle* p_ptr = new Particle ( loc, 's', rng_uniform (0, 25) ); 
 
 				// std::cout << "loc is "; print(loc);
 				// std::cout << "index in lattice is " << lattice_index (loc, y, z) << std::endl;

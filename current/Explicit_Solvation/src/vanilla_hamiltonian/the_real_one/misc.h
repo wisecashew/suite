@@ -43,8 +43,9 @@ void StringToFile(std::string filename, std::string to_send);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // imposing modified modulo methods 
-void modified_direction (std::array<int,3>* a, int x, int y, int z);
-int  modified_modulo    (int divident, int divisor);
+void   modified_direction (std::array<int,3>* a, int x, int y, int z);
+int    modified_modulo    (int divident, int divisor);
+double modified_modulo    (double divident, int divisor);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -76,10 +77,17 @@ std::array <int,3>   location      ( int lattice_index, int x, int y, int z);
 // adding the two 
 std::vector <int>   add_vectors (std::vector <int>* v1, std::vector <int>* v2); 
 std::array  <int,3> add_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
+std::array  <double,3> add_arrays  (std::array <int,3>* a1, std::array <double,3>* a2);
+std::array  <double,3> add_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
 
 // subtracting the two 
-std::vector <int>   subtract_vectors (std::vector <int>* v1, std::vector <int>* v2); 
-std::array  <int,3> subtract_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
+std::vector <int>      subtract_vectors (std::vector <int>* v1, std::vector <int>* v2); 
+std::array  <int,3>    subtract_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
+std::array  <double,3> subtract_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+// getting distance between two points 
+double              distance_between_points (std::array <int,3>* a1, std::array <int,3>* a2, int xlen, int ylen, int zlen);
 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -178,6 +186,7 @@ void                  SolventFlip          (std::vector <Polymer>* Polymers, std
 void                  SolventFlipSingular  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory );
 void                  PolymerFlip          (std::vector <Polymer>* Polymers, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
 void                  PolymerFlipSingular  (std::vector <Polymer>* Polymers, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
+void                  SiteFlipSingular     (std::vector <Particle*>* LATTICE, int x, int y, int z, std::pair <std::vector <std::array<int,2>>, std::vector <std::array<int,2>>>* memory ) ;
 
 // methods relevant to chain regrowth 
 bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* Polymers);

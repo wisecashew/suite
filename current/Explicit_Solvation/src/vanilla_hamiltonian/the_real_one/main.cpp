@@ -206,11 +206,11 @@ int main(int argc, char** argv) {
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
     
-        for (Polymer& pmer:Polymers){
-            for (Particle*& p: pmer.chain){
-                p->orientation = 0; 
-            }
-        }
+        // for (Polymer& pmer:Polymers){
+        //    for (Particle*& p: pmer.chain){
+        //        p->orientation = 0; 
+        //    }
+        // }
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 

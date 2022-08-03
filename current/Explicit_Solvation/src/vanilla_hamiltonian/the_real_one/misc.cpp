@@ -30,7 +30,7 @@ std::array <int,3> axay   = {1,1,0}, axaz   = {1,0,1} , axny   = {1,-1,0}, axnz 
 std::array <int,3> ayaz   = {0,1,1}, aynz   = {0,1,-1}, nyaz   = {0,-1,1}, nynz   = {0,-1,-1};  
 std::array <int,3> axayaz = {1,1,1}, axaynz = {1,1,-1}, axnyaz = {1,-1,1}, axnynz = {1,-1,-1},  nxayaz = {-1,1,1}, nxaynz = {-1,1,-1}, nxnyaz = {-1,-1,1}, nxnynz = {-1,-1,-1}; 
 std::array <std::array <int,3>, 26> adrns = { ax, ay, az, nx, ny, nz, axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
-std::map <int, std::array<double,3>> Or2Dir = { {0, {1.0/2.0,0,0}}, {1, {0,1.0/2.0,0}}, {2, {0,0,1.0/2.0}}, {3, {-1.0/2.0,0,0}}, {4, {0,-1.0/2.0,0}}, {5, {0,0,-1.0/2.0}}, {6, {1.0/(std::sqrt(2)*2), 1.0/(std::sqrt(2)*2), 0}}, {7, {1.0/(2*std::sqrt(2)), 0, 1.0/(2*std::sqrt(2))}}, {8, {1.0/(2*std::sqrt(2)),-1.0/(2*std::sqrt(2)),0}}, {9, {1.0/(2*std::sqrt(2)),0,-1.0/(2*std::sqrt(2))}}, {10, {-1.0/(2*std::sqrt(2)),1.0/(2*std::sqrt(2)),0}}, {11, {-1.0/(2*std::sqrt(2)),0,1.0/(2*std::sqrt(2))}}, {12, {-1.0/(2*std::sqrt(2)),-1.0/(2*std::sqrt(2)),0}}, {13, {-1.0/(2*std::sqrt(2)),0,-1.0/(2*std::sqrt(2))}}, {14, {0,1.0/(2*std::sqrt(2)),1.0/(2*std::sqrt(2))}}, {15, {0,1.0/(2*std::sqrt(2)),-1.0/(2*std::sqrt(2))}}, {16, {0,-1.0/(2*std::sqrt(2)), 1.0/(2*std::sqrt(2))}}, {17, {0,-1.0/(2*std::sqrt(2)), -1.0/(2*std::sqrt(2))}}, {18, {1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {19, {1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {20, {1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}}, {21, {1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}}, {22, {-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {23, {-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}}, {24, {-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),1.0/(2*std::sqrt(3))}}, {25, {-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3)),-1.0/(2*std::sqrt(3))}} };
+std::map <int, std::array<double,3>> Or2Dir = { {0, {1.0,0,0}}, {1, {0,1.0,0}}, {2, {0,0,1}}, {3, {-1,0,0}}, {4, {0,-1,0}}, {5, {0,0,-1}}, {6, {1.0/(std::sqrt(2)), 1.0/(std::sqrt(2)), 0}}, {7, {1.0/(std::sqrt(2)), 0, 1.0/(std::sqrt(2))}}, {8, {1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {9, {1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {10, {-1.0/(std::sqrt(2)),1.0/(std::sqrt(2)),0}}, {11, {-1.0/(std::sqrt(2)),0,1.0/(std::sqrt(2))}}, {12, {-1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {13, {-1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {14, {0,1.0/(std::sqrt(2)),1.0/(std::sqrt(2))}}, {15, {0,1.0/(std::sqrt(2)),-1.0/(std::sqrt(2))}}, {16, {0,-1.0/(std::sqrt(2)), 1.0/(std::sqrt(2))}}, {17, {0,-1.0/(std::sqrt(2)), -1.0/(std::sqrt(2))}}, {18, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {19, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {20, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {21, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {22, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {23, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {24, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {25, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}} };
 
 //=====================================================
 // impose periodic boundary conditions on vector 
@@ -248,6 +248,7 @@ std::array <std::array <int,3>, 3> HingeSwingDirections(std::array <int,3>* Hing
 //=====================================================
 // function to print out contents of a vector 
 //$====================================================
+
 void print(std::vector <int> v){
 	for (int i: v){
 		std::cout << i << " | ";
@@ -275,18 +276,6 @@ void print(std::array <double, 3> v){
 	}
 	std::cout << std::endl;
 }
-
-
-template <typename T>
-void print (T arr){
-    
-    for (int i{0}; i<static_cast<int>(arr.size()); ++i){
-        std::cout << arr[i] << " | ";
-    }
-    std::cout << std::endl; 
-
-}
-
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
@@ -407,12 +396,55 @@ std::array <double,3> add_arrays(std::array <int,3>* a1, std::array <double,3>* 
 
 }
 
+std::array <double,3> scale_arrays ( double scalar, std::array <double,3>* array){
+
+	std::array <double,3> arr_n;
+	for (int i{0}; i<3; ++i){
+		arr_n [i] = (*array)[i]*scalar; 
+	}
+	return arr_n;
+
+}
+
+std::array <double,3> scale_arrays ( double scalar, std::array <int,3>* array){
+
+	std::array <double,3> arr_n;
+	for (int i{0}; i<3; ++i){
+		arr_n [i] = (*array)[i]*scalar; 
+	}
+	return arr_n;
+	
+}
+
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 double distance_between_points (std::array <double,3>* a1, std::array <double,3>* a2, int xlen, int ylen, int zlen){
 
 	std::array <double,3> delta = subtract_arrays (a1, a2); 
+	// std::cout << "delta array is "; print (delta);
+	for ( int i{0}; i<3; ++i){
+		if (i==0){
+			delta[i] = modified_modulo ( delta[i], xlen );
+		}
+		else if ( i == 1 ){
+			delta[i] = modified_modulo ( delta[i], ylen ); 
+		}
+		else if ( i == 2 ){
+			delta[i] = modified_modulo ( delta[i], zlen ); 
+		}
+	}
+
+	// impose_pbc ( &delta, xlen, ylen, zlen ); 
+
+	return std::sqrt(delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2]);
+
+}
+
+double distance_between_points (std::array <int,3>* a1, std::array <int,3>* a2, int xlen, int ylen, int zlen){
+
+	std::array <int,3> delta = subtract_arrays (a1, a2); 
 	// std::cout << "delta array is "; print (delta);
 	for ( int i{0}; i<3; ++i){
 		if (i==0){
@@ -1672,85 +1704,80 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 // THE CODE: 
 
 double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* mm_aligned, double* mm_naligned, int* ms_aligned, int* ms_naligned){
+    
     double Energy {0.0};
-    (*mm_aligned)  = 0; 
-    (*mm_naligned) = 0; 
-    (*ms_aligned)  = 0;  
-    (*ms_naligned) = 0;
+    (*mm_aligned ) =  0; 
+    (*mm_naligned) =  0; 
+    (*ms_aligned ) =  0;  
+    (*ms_naligned) =  0;
     // polymer-polymer interaction energies 
-    double delta = 0; 
-    // std::pair <char, int> properties ( ' ' , -1 );
-    std::array <double,3> ext1, ext2;
-
+    double delta_p = 0; 
+    double delta_o = 0; 
+    std::array <double,3> ext1, ext2, scaled_o1, scaled_o2;
 
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
             std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
             
-            ext1 = add_arrays ( &(p->coords), &(Or2Dir[p->orientation]) );
-            // std::cout << "ext1 is "; print(ext1);
+            std::cout << "Particle loc is "; print (p->coords); 
+
             for ( std::array <int, 3>& loc: ne_list){
 
             	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == 'm'){
-                    
-            		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &(Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]) );
-            		// std::cout << "ext2 monomer is "; print (ext2);
-            		// std::cout << "orientation = " << (*LATTICE)[ lattice_index(loc, y, z )]->orientation << std::endl;
-            		// std::cout << "orientational addition is "; print (Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]);
-            		delta = distance_between_points (&ext1, &ext2, x, y, z);
+					std::cout << "neighbor is "; print (loc);
+            		// std::cout << "Neighbor loc is "; print ((*LATTICE)[ lattice_index(loc, y, z) ]->coords); 
 
-            		Energy += 0.5* ((1-delta/2)*Emm_n + (delta/2)*Emm_a);
+            		delta_p  = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
+            		scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[p->orientation] ) );
+            		scaled_o2 = scale_arrays (delta_p/2, &(Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ] ) );
 
-            		// std::cout << "outside delta is " << delta << std::endl; 
+            		ext1  = add_arrays  ( &(p->coords), &( scaled_o1 ) );
+            		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &( scaled_o2 ) );
 
-            		if ( delta == 2){
-            			// std::cout << "inside delta is " << delta << std::endl;
-            			(*mm_aligned) += 0.5;
+            		// std::cout << "ext1 is "; print (ext1);
+            		// std::cout << "ext2 is "; print (ext2);  
+
+            		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
+
+            		Energy += 0.5* ((delta_o/2)*Emm_n + (1-delta_o/2)*Emm_a);
+
+            		// std::cout << "delta_o is " << delta_o << std::endl; 
+
+            		if ( delta_o <= 1){
+            			(*mm_aligned)   += 0.5;
             		}
             		else {
-            			// std::cout << "inside delta is " << delta << std::endl;
-            			*(mm_naligned)  += 0.5;
+            			(*mm_naligned)  += 0.5;
             		}
-            		/* if ( (*LATTICE)[ lattice_index(loc, y, z) ]->orientation == p->orientation ){
-                        (*mm_aligned) += 0.5; 
-            			Energy += 0.5*Emm_a; 
-            		}
-            		else {
-                        (*mm_naligned) += 0.5; 
-            			Energy += 0.5*Emm_n; 
-            		} */
             	}
 
             	else { // particle is of type solvent 
 
-					ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &(Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]) );
-					// std::cout << "ext2 solvent is "; print (ext2);
-					// std::cout << "orientation = " << (*LATTICE)[ lattice_index(loc, y, z )]->orientation << std::endl;
-					// std::cout << "orientational addition is "; print (Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ]);
+            		// std::cout << "Neighbor loc is "; print ((*LATTICE)[ lattice_index(loc, y, z) ]->coords); 
 
-            		delta = distance_between_points (&ext1, &ext2, x, y, z);
+            		delta_p = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
+            		scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[p->orientation] ) );
+            		scaled_o2 = scale_arrays (delta_p/2, &( Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ] ) );
 
-            		Energy += ((delta/2)*Ems_n + (1-delta/2)*Ems_a);
+            		ext1 =  add_arrays ( &(p->coords), &( scaled_o1 ) );
+            		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &( scaled_o2 ) );
 
-            		// std::cout << "Outside delta is " << delta << std::endl;            		
-            		if ( delta == 2){
-            			// std::cout << "Inside delta is " << delta << std::endl;
+            		// std::cout << "ext1 is "; print (ext1);
+            		// std::cout << "ext2 is "; print (ext2);  
+
+            		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
+
+            		Energy += ((delta_o/2)*Ems_n + (1-delta_o/2)*Ems_a);
+
+            		// std::cout << "delta_o is " << delta_o << std::endl;
+
+            		if ( delta_o <= 1){
             			(*ms_naligned) += 1;
             		}
             		else {
-            			// std::cout << "inside delta is " << delta << std::endl;
-            			*(ms_aligned)  += 1;
+            			(*ms_aligned)  += 1;
             		}
-            		/*
-            		if ( (*LATTICE)[ lattice_index(loc, y, z) ]->orientation == p->orientation ){
-                        (*ms_aligned)  += 1;
-            			Energy += Ems_a;
-            		}
-            		else {
-                        (*ms_naligned) += 1; 
-            			Energy += Ems_n; 
-            		}
-            		*/
+
             	}
             }
         }

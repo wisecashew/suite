@@ -1,0 +1,6 @@
+For step 1000000.
+End rotations                      - attempts: 10071, acceptances: 0, acceptance fraction: 0.
+Reptation                          - attempts: 10104, acceptances: 1, acceptance fraction: 9.89707e-05.
+Chain regrowth                     - attempts: 10238, acceptances: 61, acceptance fraction: 0.00595819.
+Single solvent orientation flips   - attempts: 959557, acceptances: 158719, acceptance fraction: 0.165409.
+Single monomer orientation flips   - attempts: 10030, acceptances: 59, acceptance fraction: 0.00588235.

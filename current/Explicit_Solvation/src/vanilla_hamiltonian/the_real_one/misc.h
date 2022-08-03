@@ -75,8 +75,8 @@ std::array <int,3>   location      ( int lattice_index, int x, int y, int z);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // std::vector and std::array arithmetic
 // adding the two 
-std::vector <int>   add_vectors (std::vector <int>* v1, std::vector <int>* v2); 
-std::array  <int,3> add_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
+std::vector <int>      add_vectors (std::vector <int>* v1, std::vector <int>* v2); 
+std::array  <int,3>    add_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
 std::array  <double,3> add_arrays  (std::array <int,3>* a1, std::array <double,3>* a2);
 std::array  <double,3> add_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
 
@@ -87,8 +87,8 @@ std::array  <double,3> subtract_arrays  (std::array <double,3>* a1, std::array <
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // getting distance between two points 
-double              distance_between_points (std::array <int,3>* a1, std::array <int,3>* a2, int xlen, int ylen, int zlen);
-
+double              distance_between_points (std::array <int,3>*    a1, std::array <int,3>* a2   , int xlen, int ylen, int zlen);
+double              distance_between_points (std::array <double,3>* a1, std::array <double,3>* a2, int xlen, int ylen, int zlen);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
@@ -101,6 +101,19 @@ void InputParser (int dfreq, int max_iter, bool r, std::string positions, \
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // print methods  
 // print out a vector 
+
+/*
+template <typename T>
+void print (T arr){
+    
+    for (int i{0}; i<static_cast<int>(arr.size()); ++i){
+        std::cout << arr[i] << " | ";
+    }
+    std::cout << std::endl; 
+
+}
+*/
+
 void print (std::vector <int> v); 
 void print (std::vector <double> v);
 
@@ -223,6 +236,10 @@ template <typename T>
 void reset(T &x){
     x = T();
 }
+
+
+std::array <double,3>  scale_arrays ( double scalar, std::array <double,3>* array );
+std::array <double,3>  scale_arrays ( double scalar, std::array <int,3>*    array ); 
 
 
 // !~!~!~!!~!!~!~!~!!~~!!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~

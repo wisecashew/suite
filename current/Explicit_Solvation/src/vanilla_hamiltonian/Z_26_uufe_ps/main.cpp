@@ -206,11 +206,11 @@ int main(int argc, char** argv) {
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
     
-        for (Polymer& pmer:Polymers){
-            for (Particle*& p: pmer.chain){
-                p->orientation = 0; 
-            }
-        }
+        // for (Polymer& pmer:Polymers){
+        //    for (Particle*& p: pmer.chain){
+        //        p->orientation = 0; 
+        //    }
+        // }
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
@@ -296,7 +296,7 @@ int main(int argc, char** argv) {
     
     int Nsurr = ms_aligned + ms_naligned; 
     
-    std::cout << "max_iter is " << max_iter << std::endl;
+    std::cout << "Iterations to perform = " << max_iter << std::endl;
 
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 

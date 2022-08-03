@@ -3237,6 +3237,22 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
     return; 
 }
 
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+void SiteFlipSingular ( std::vector <Particle*>* LATTICE, \
+	int x, int y, int z, \
+	std::pair <std::vector <std::array<int,2>>, std::vector <std::array<int,2>>>* memory ){
+
+	int flip_idx = rng_uniform (0, x*y*z-1); 
+	(*memory).first.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
+	(*LATTICE)[flip_idx]->orientation = rng_uniform (0, 25);  
+	// std::cout << "(*LATTICE)[flip_idx]->orientation = " << (*LATTICE)[flip_idx]->orientation << std::endl;
+	(*memory).second.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
+
+	return; 
+
+}
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
@@ -3277,7 +3293,8 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	int* monomer_index, int* back_or_front, int Nsurr ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = rng_uniform (1, 5);
+    int r = rng_uniform (1, 6);
+    // int s = rng_uniform (0,99);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 
@@ -3290,25 +3307,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             *move_number = 1;
             (*attempts)[0] += 1;
             break;  
-    	/*
-        case (2):
-            if (v){
-               printf("Performing bond vibration...\n"); 
-            }
-            BondVibration	(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
-            *move_number = 2; 
-            (*attempts)[1] += 1;
-            break;   
-        
-        case (3):
-            if (v){
-               printf("Performing crank shaft...\n"); 
-            }
-            CrankShaft		(Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory3);
-            *move_number = 3; 
-            (*attempts)[2] += 1;
-            break; 
-        */
+
         case (2):
             if (v){
                printf("Performing reptation...\n"); 
@@ -3329,7 +3328,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         	break;
         
         
-        case (4): 
+        case(4): 
         	if (v){
         		printf("Performing single solvent orientation flips... \n");
         	}
@@ -3346,24 +3345,15 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             *move_number = 7; 
             (*attempts)[6] += 1;
             break;
-        
-        case (8):
-        	if (v){
-        		printf("Performing polymer orientation flips... \n");
+
+        case (6):
+        	if (v) {
+        		printf("Performing a random site flip...\n"); 
         	}
-        	SolventFlip ( Polymers, LATTICE, x, y, z, rweight, Nsurr, memory2);
-            *move_number = 8; 
-            (*attempts)[7] += 1;
+        	SiteFlipSingular (LATTICE, x, y, z, memory2 );
+        	*move_number = 8; 
+        	(*attempts)[7] += 1;
         	break;
-        
-        case (9):
-            if (v) {
-                printf("Performing local polymer orientation flips... \n");
-            }
-            PolymerFlip ( Polymers, rweight, Nsurr, memory2); 
-            *move_number = 9; 
-            (*attempts)[8] += 1;
-            break;
         
     }
     
@@ -3642,11 +3632,9 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 
 		case (8):
 			if (v) {
-				printf("Reversing multiple solvent flips...");
+				printf("Reversing random site flip...");
 			}
-			for ( std::array<int,2>& a: (*memory2).first) {
-				(*LATTICE)[ a[0] ]->orientation = a[1]; 
-			}
+			(*LATTICE)[ (*memory2).first[0][0] ]->orientation = (*memory2).first[0][1]; 
 			break; 
 
 		case (9):
@@ -4038,8 +4026,8 @@ void AddSolvent (int x, int y, int z, std::vector <Particle*>* LATTICE){
 				}
 				c_idx = lattice_index (loc,y,z); 
 
-				Particle* p_ptr = new Particle (loc, 's', 0); 
-
+				// Particle* p_ptr = new Particle (loc, 's', 0); 
+				Particle* p_ptr = new Particle (loc, 's', rng_uniform(0,5)); 
 				// std::cout << "loc is "; print(loc);
 				// std::cout << "index in lattice is " << lattice_index (loc, y, z) << std::endl;
 

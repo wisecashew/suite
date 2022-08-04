@@ -3246,7 +3246,7 @@ void SiteFlipSingular ( std::vector <Particle*>* LATTICE, \
 
 	int flip_idx = rng_uniform (0, x*y*z-1); 
 	(*memory).first.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
-	(*LATTICE)[flip_idx]->orientation = rng_uniform (0, 25);  
+	(*LATTICE)[flip_idx]->orientation = rng_uniform (0, 5);  
 	// std::cout << "(*LATTICE)[flip_idx]->orientation = " << (*LATTICE)[flip_idx]->orientation << std::endl;
 	(*memory).second.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
 

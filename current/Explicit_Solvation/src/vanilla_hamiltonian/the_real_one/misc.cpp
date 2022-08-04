@@ -1724,9 +1724,8 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
             for ( std::array <int, 3>& loc: ne_list){
 
             	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == 'm'){
+					
 					std::cout << "neighbor is "; print (loc);
-            		// std::cout << "Neighbor loc is "; print ((*LATTICE)[ lattice_index(loc, y, z) ]->coords); 
-
             		delta_p  = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
             		scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[p->orientation] ) );
             		scaled_o2 = scale_arrays (delta_p/2, &(Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ] ) );
@@ -1739,14 +1738,16 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
 
             		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
 
-            		Energy += 0.5* ((delta_o/2)*Emm_n + (1-delta_o/2)*Emm_a);
+            		// Energy += 0.5* ((delta_o/2)*Emm_n + (1-delta_o/2)*Emm_a);
 
             		// std::cout << "delta_o is " << delta_o << std::endl; 
 
-            		if ( delta_o <= 1){
+            		if ( delta_o <= delta_p/2){
+            			Energy          += 0.5*Emm_a;
             			(*mm_aligned)   += 0.5;
             		}
             		else {
+            			Energy          += 0.5*Emm_n;
             			(*mm_naligned)  += 0.5;
             		}
             	}
@@ -1762,22 +1763,16 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
             		ext1 =  add_arrays ( &(p->coords), &( scaled_o1 ) );
             		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &( scaled_o2 ) );
 
-            		// std::cout << "ext1 is "; print (ext1);
-            		// std::cout << "ext2 is "; print (ext2);  
-
             		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
 
-            		Energy += ((delta_o/2)*Ems_n + (1-delta_o/2)*Ems_a);
-
-            		// std::cout << "delta_o is " << delta_o << std::endl;
-
-            		if ( delta_o <= 1){
+            		if ( delta_o <= delta_p/2 ) {
+            			Energy         += Ems_a;
             			(*ms_naligned) += 1;
             		}
             		else {
+            			Energy         += Ems_n; 
             			(*ms_aligned)  += 1;
             		}
-
             	}
             }
         }

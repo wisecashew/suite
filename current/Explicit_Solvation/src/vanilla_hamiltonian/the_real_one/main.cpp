@@ -142,7 +142,8 @@ int main(int argc, char** argv) {
     const int y = info_vec[1]; 
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
-    const std::array <double, 8> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], \
+
+    std::array <double, 8> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], \
         info_vec[9], info_vec[10], info_vec[11]};
     /*
     const double Emm_a = info_vec[4]; 
@@ -174,8 +175,8 @@ int main(int argc, char** argv) {
     // ################################################################################ 
     
 
-    int step_number = 0; // step_number++;
-    double sysEnergy  {0}; // sysEnergy++;
+    int step_number = 0; 
+    double sysEnergy  {0}; 
     double sysEnergy_ {0}; 
 
     std::vector <Particle*> LATTICE;
@@ -293,6 +294,7 @@ int main(int argc, char** argv) {
     int back_or_front = -1; 
     std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>> memory3; 
     std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>> memory2;
+    std::vector <std::array<int,2>> s_memory; 
 
     printf("Initiation complete. We are ready to go. The engine will output information every %d configuration(s).\n", dfreq); 
     
@@ -319,11 +321,11 @@ int main(int argc, char** argv) {
         }
 
         // choose a move... 
-        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory3, &memory2, &monomer_index, &back_or_front, Nsurr); 
+        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory3, &memory2, &s_memory, &monomer_index, &back_or_front, Nsurr); 
 
 
         if (IMP_BOOL){ 
-            sysEnergy_ = CalculateEnergy (&Polymers, &LATTICE, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &mm_aligned, &mm_naligned, &ms_aligned, &ms_naligned); 
+            sysEnergy_ = CalculateEnergy (&Polymers, &LATTICE, x, y, z, &E, &contacts); 
         }
 
         if ( v && (i%dfreq==0) ){
@@ -379,7 +381,7 @@ int main(int argc, char** argv) {
 
             else { 
 
-                ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory3, &memory2, monomer_index, back_or_front);
+                ReversePerturbation (&Polymers, &LATTICE, x, y, z, v, move_number, &memory3, &memory2, &s_memory, monomer_index, back_or_front);
 
                 // std::cout << "Polymer coordinates after reversal are: " << std::endl;
                 // Polymers[0].printChainCoords();
@@ -488,16 +490,17 @@ int main(int argc, char** argv) {
             }
             
             if ( metropolis ){
-                dumpEnergy (sysEnergy, i, mm_aligned, mm_naligned, ms_aligned, ms_naligned, efile);
+                dumpEnergy (sysEnergy, i, &contacts, efile);
             }
             else {
-                dumpEnergy (sysEnergy, i, mm_aligned_copy, mm_naligned_copy, ms_aligned_copy, ms_naligned_copy, efile);
+                dumpEnergy (sysEnergy, i, &contacts_copy, efile);
             } 
         }
 
         // reset the memory carrier, and IMP_BOOL
         reset (memory3);
         reset (memory2);
+        reset (s_memory);
         IMP_BOOL = true; 
            
     }

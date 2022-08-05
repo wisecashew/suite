@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
     // ################################################################################
 
     // ExtractTopologyFromFile extracts all the topology from the input file 
-    std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
+    std::array <double,13> info_vec {ExtractTopologyFromFile(topology)}; 
 
     // ExtractNumberOfPolymers extracts the total number of chains in the input file 
     const int N = ExtractNumberOfPolymers(positions); 
@@ -142,10 +142,15 @@ int main(int argc, char** argv) {
     const int y = info_vec[1]; 
     const int z = info_vec[2]; 
     const double T = info_vec[3]; 
+    const std::array <double, 8> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], \
+        info_vec[9], info_vec[10], info_vec[11]};
+    /*
     const double Emm_a = info_vec[4]; 
     const double Emm_n = info_vec[5]; 
     const double Ems_a = info_vec[6];
     const double Ems_n = info_vec[7]; 
+    */
+    const double frac  = info_vec[12]; 
     
     std::array <int,9> attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9> acceptances = {0,0,0,0,0,0,0,0,0}; 
@@ -158,7 +163,8 @@ int main(int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ".\n" << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_a = " << Emm_a <<", Emm_n = " << Emm_n << ", Ems_a = "<< Ems_a << ", Ems_n = " << Ems_n <<".\n \n";  
+    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
+    std::cout << "Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ", Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
 
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
@@ -169,7 +175,7 @@ int main(int argc, char** argv) {
     
 
     int step_number = 0; // step_number++;
-    double sysEnergy {0}; // sysEnergy++;
+    double sysEnergy  {0}; // sysEnergy++;
     double sysEnergy_ {0}; 
 
     std::vector <Particle*> LATTICE;
@@ -197,6 +203,8 @@ int main(int argc, char** argv) {
                 LATTICE.at(lattice_index (p->coords, y, z) ) = p; 
             }
         }
+
+        AddCosolvent (x, y, z, frac, static_cast<int>(Polymers[0].chain.size()), &LATTICE);
 
         // now that i have my polymer coordinates, i can create the grand lattice map
     
@@ -255,25 +263,19 @@ int main(int argc, char** argv) {
     /////////////////////////////////////////////////
     // ######################################################################
     
+    std::array <double,8> contacts = {0,0,0,0,0,0,0,0};
+    std::array <double,8> contacts_copy = {0,0,0,0,0,0,0,0};
     
-    double mm_aligned  = 0,  mm_aligned_copy  = 0; 
-    double mm_naligned = 0,  mm_naligned_copy = 0;
-    int ms_aligned     = 0,  ms_aligned_copy  = 0;
-    int ms_naligned    = 0,  ms_naligned_copy = 0; 
-    
-    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, Emm_a, Emm_n, Ems_a, Ems_n, &mm_aligned, &mm_naligned, &ms_aligned, &ms_naligned); 
+    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, &E, &contacts); 
 
     std::cout <<"\nCalculating energy..." << std::endl;
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
-    mm_aligned_copy   = mm_aligned ; 
-    mm_naligned_copy  = mm_naligned; 
-    ms_aligned_copy   = ms_aligned ;
-    ms_naligned_copy  = ms_naligned;
+    contacts_copy = contacts; 
 
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
-        dumpEnergy      (sysEnergy, step_number, mm_aligned, mm_naligned, ms_aligned, ms_naligned, efile); 
+        dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
         dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
     }
     
@@ -294,7 +296,7 @@ int main(int argc, char** argv) {
 
     printf("Initiation complete. We are ready to go. The engine will output information every %d configuration(s).\n", dfreq); 
     
-    int Nsurr = ms_aligned + ms_naligned; 
+    int Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; // ms_aligned + ms_naligned; 
     
     std::cout << "max_iter is " << max_iter << std::endl;
 
@@ -305,13 +307,14 @@ int main(int argc, char** argv) {
         }
 
         if ( !(metropolis) ){
-            
-            mm_aligned = mm_aligned_copy; mm_naligned = mm_naligned_copy; ms_aligned = ms_aligned_copy; ms_naligned = ms_naligned_copy;
-            Nsurr = ms_aligned + ms_naligned;
+            contacts = contacts_copy; 
+            // mm_aligned = mm_aligned_copy; mm_naligned = mm_naligned_copy; ms_aligned = ms_aligned_copy; ms_naligned = ms_naligned_copy;
+            Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; 
         }
         else {
-            mm_aligned_copy = mm_aligned; mm_naligned_copy = mm_naligned; ms_aligned_copy = ms_aligned; ms_naligned_copy = ms_naligned;
-            Nsurr = ms_aligned + ms_naligned;
+            contacts_copy = contacts; 
+            // mm_aligned_copy = mm_aligned; mm_naligned_copy = mm_naligned; ms_aligned_copy = ms_aligned; ms_naligned_copy = ms_naligned;
+            Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; 
             metropolis = false; 
         }
 

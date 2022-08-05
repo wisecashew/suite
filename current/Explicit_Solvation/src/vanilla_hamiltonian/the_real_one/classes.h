@@ -16,7 +16,7 @@ class Particle{
 public: 
     std::array <int,3> coords;                                        // the coordinates of the particles
     short int orientation;
-    char ptype; 
+    std::string ptype; 
 
     bool operator<(const Particle& rhs)const{
         return (this->coords) < (rhs.coords); 
@@ -30,7 +30,7 @@ public:
     // constructor 
     Particle(){};  // default constructor
 
-    Particle (std::array <int, 3> crds, char type_, int orientation_): coords (crds), orientation (orientation_), ptype (type_) { };
+    Particle (std::array <int, 3> crds, std::string type_, int orientation_): coords (crds), orientation (orientation_), ptype (type_) { };
 
     // destructor 
     ~Particle(){

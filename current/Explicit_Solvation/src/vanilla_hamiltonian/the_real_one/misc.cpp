@@ -834,13 +834,15 @@ double NumberExtractor(std::string s){
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
-std::array <double,8> ExtractTopologyFromFile(std::string filename){
+std::array <double,13> ExtractTopologyFromFile(std::string filename){
     
-    std::array <double, 8> info_vec; 
+    std::array <double, 13> info_vec; 
     double info; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
-    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm_a ("Emm_a"), Emm_n ("Emm_n"), Ems_a ("Ems_a"), Ems_n ("Ems_n"), eof ("END OF FILE"); 
+    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm_a ("Emm_a"),\
+    Emm_n ("Emm_n"), Ems1_a ("Ems1_a"), Ems1_n ("Ems1_n"), Ems2_a ("Ems2_a"), Ems2_n ("Ems2_n"), Es1s2_a("Es1s2_a"), Es1s2_n ("Es1s2_n"), \
+    frac ("frac"), eof ("END OF FILE"); 
     //bool out_mat = true; 
 
     // print(contents);
@@ -884,17 +886,46 @@ std::array <double,8> ExtractTopologyFromFile(std::string filename){
     		continue; 
     	}
 
-    	else if (std::regex_search (s, Ems_a)){
+    	else if (std::regex_search (s, Ems1_a)){
     		double info = NumberExtractor(s); 
     		info_vec[6] = info; 
     		continue; 
     	}
 
-    	else if (std::regex_search (s, Ems_n)){
+    	else if (std::regex_search (s, Ems1_n)){
 
     		double info = NumberExtractor(s);
     		info_vec[7] = info; 
     		continue;
+    	}
+    	else if (std::regex_search (s, Ems2_a)){
+
+    		double info = NumberExtractor(s);
+    		info_vec[8] = info; 
+    		continue;
+    	}
+    	else if (std::regex_search (s, Ems2_n)){
+
+    		double info = NumberExtractor(s);
+    		info_vec[9] = info; 
+    		continue;
+    	}
+    	else if (std::regex_search (s, Es1s2_a)){
+
+    		double info = NumberExtractor(s);
+    		info_vec[10] = info; 
+    		continue;
+    	}
+    	else if (std::regex_search (s, Es1s2_n)){
+
+    		double info = NumberExtractor(s);
+    		info_vec[11] = info; 
+    		continue;
+    	}
+    	else if (std::regex_search (s, frac)) {
+    		double info = NumberExtractor(s);
+    		info_vec[12] = info;
+    		continue; 
     	}
 
     	else if (std::regex_search(s, eof)){
@@ -1703,17 +1734,15 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 //
 // THE CODE: 
 
-double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* mm_aligned, double* mm_naligned, int* ms_aligned, int* ms_naligned){
+double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, std::array<double,8>* E, std::array <double,8>* contacts) {
     
     double Energy {0.0};
-    (*mm_aligned ) =  0; 
-    (*mm_naligned) =  0; 
-    (*ms_aligned ) =  0;  
-    (*ms_naligned) =  0;
+    (*contacts) = {0,0,0,0,0,0,0,0};
     // polymer-polymer interaction energies 
     double delta_p = 0; 
     double delta_o = 0; 
     std::array <double,3> ext1, ext2, scaled_o1, scaled_o2;
+    std::vector <int> ss1; 
 
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
@@ -1723,60 +1752,115 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
 
             for ( std::array <int, 3>& loc: ne_list){
 
-            	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == 'm'){
+            	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype[0] == 'm'){
 					
-					std::cout << "neighbor is "; print (loc);
-            		delta_p  = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
+            		delta_p   = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
             		scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[p->orientation] ) );
             		scaled_o2 = scale_arrays (delta_p/2, &(Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ] ) );
 
             		ext1  = add_arrays  ( &(p->coords), &( scaled_o1 ) );
             		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &( scaled_o2 ) );
 
-            		// std::cout << "ext1 is "; print (ext1);
-            		// std::cout << "ext2 is "; print (ext2);  
-
             		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
 
-            		// Energy += 0.5* ((delta_o/2)*Emm_n + (1-delta_o/2)*Emm_a);
-
-            		// std::cout << "delta_o is " << delta_o << std::endl; 
-
-            		if ( delta_o <= delta_p/2){
-            			Energy          += 0.5*Emm_a;
-            			(*mm_aligned)   += 0.5;
+            		if ( delta_o <= delta_p/2 ){
+            			Energy          += 0.5* (*E)[0];
+            			(*contacts)[0]   += 0.5;
             		}
             		else {
-            			Energy          += 0.5*Emm_n;
-            			(*mm_naligned)  += 0.5;
+            			Energy          += 0.5* (*E)[1];
+            			(*contacts)[1]  += 0.5;
             		}
             	}
 
-            	else { // particle is of type solvent 
+            	else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1" ) {
 
-            		// std::cout << "Neighbor loc is "; print ((*LATTICE)[ lattice_index(loc, y, z) ]->coords); 
+            		if ( std::find (ss1.begin(), ss1.end(), lattice_index (loc, y, z)) == ss1.end() ){
+            			ss1.push_back ( lattice_index (loc, y, z) ); 
+            		}
 
-            		delta_p = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
+            		delta_p   = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
             		scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[p->orientation] ) );
             		scaled_o2 = scale_arrays (delta_p/2, &( Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ] ) );
 
-            		ext1 =  add_arrays ( &(p->coords), &( scaled_o1 ) );
+            		ext1  = add_arrays ( &(p->coords), &( scaled_o1 ) );
             		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &( scaled_o2 ) );
 
             		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
 
             		if ( delta_o <= delta_p/2 ) {
-            			Energy         += Ems_a;
-            			(*ms_naligned) += 1;
+            			Energy         += (*E)[2];
+            			(*contacts)[2] += 1;
             		}
             		else {
-            			Energy         += Ems_n; 
-            			(*ms_aligned)  += 1;
+            			Energy         += (*E)[3]; 
+            			(*contacts)[3]  += 1;
+            		}
+            	}
+
+            	else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2" ) {
+
+            		if ( std::find (ss1.begin(), ss1.end(), lattice_index (loc, y, z)) == ss1.end() ){
+            			ss1.push_back ( lattice_index (loc, y, z) ); 
+            		}
+
+            		delta_p   = distance_between_points ( &(p->coords), &((*LATTICE)[lattice_index(loc, y, z)]->coords ), x, y, z );
+            		scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[p->orientation] ) );
+            		scaled_o2 = scale_arrays (delta_p/2, &( Or2Dir[(*LATTICE)[ lattice_index(loc, y, z )]->orientation ] ) );
+
+            		ext1  = add_arrays ( &(p->coords), &( scaled_o1 ) );
+            		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &( scaled_o2 ) );
+
+            		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
+
+            		if ( delta_o <= delta_p/2 ) {
+            			Energy         += (*E)[4];
+            			(*contacts)[4] += 1;
+            		}
+            		else {
+            			Energy         += (*E)[5]; 
+            			(*contacts)[5]  += 1;
             		}
             	}
             }
         }
     }
+
+    // find the second solvation shell... 
+    for (int i: ss1){
+
+    	ne_list = obtain_ne_list(p->coords, x, y, z); 
+    	for ( std::array<int,3>& n: ne_list ){
+    		if ( (*LATTICE)[ lattice_index (ne, y, z)]->ptype[0]=='m' ){
+    			// this energy has already been calculated
+    			;
+    		}
+    		else {
+
+    			delta_p   = distance_between_points ( &(n), &((*LATTICE)[i]->coords ), x, y, z );
+            	scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[(*LATTICE)[lattice_index(n, y, z)]->orientation ] ) );
+            	scaled_o2 = scale_arrays (delta_p/2, &( Or2Dir[(*LATTICE)[i]->orientation ] ) );
+
+            	ext1  = add_arrays ( &(n), &( scaled_o1 ) );
+            	ext2  = add_arrays ( &( (*LATTICE)[i]->coords ), &( scaled_o2 ) );
+
+            	delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
+
+            	if ( delta_o <= delta_p/2 ) {
+            		Energy         += 0.5*(*E)[6];
+            		(*contacts)[6] += 1;
+            	}
+            	else {
+            		Energy         += 0.5*(*E)[7]; 
+            		(*contacts)[7]  += 1;
+            	}
+
+    		}
+
+    	}
+
+    }
+
     
     return Energy; 
 }
@@ -1926,7 +2010,6 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     std::ofstream dump_file (stats_file, std::ios::out); 
     dump_file << "For step " << step << ".\n";
     
-
     dump_file << "End rotations                      - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << ".\n"; 
     // dump_file << "Bond vibrations                    - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << ".\n"; 
     // dump_file << "Crank shafts                       - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << ".\n"; 
@@ -1935,8 +2018,11 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "Single solvent orientation flips   - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << ".\n"; 
     dump_file << "Single monomer orientation flips   - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << ".\n"; 
     dump_file << "Single random site flips           - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
+    dump_file << "Single solvent exchange flip       - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n"; 
     // dump_file << "Multiple solvent orientation flips - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << ".\n"; 
     // dump_file << "Multiple monomer orientation flips - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << ".\n"; 
+
+    return; 
 
 }
 
@@ -3384,6 +3470,15 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 	return; 
 }
 
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
+
+
 void SiteFlipSingular ( std::vector <Particle*>* LATTICE, \
 	int x, int y, int z, \
 	std::pair <std::vector <std::array<int,2>>, std::vector <std::array<int,2>>>* memory ){
@@ -3467,15 +3562,118 @@ void PolymerFlipSingular ( std::vector <Polymer>* Polymers,\
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
+
+void SingleSolventExchange ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	int x, int y, int z, bool* IMP_BOOL, double* rweight, \
+	std::vector <std::array <int,2>>* s_memory ){
+
+	// find indices of surrouding solvent molecules 
+	std::array < std::array<int,3>, 26> ne_list; 
+	std::vector <int> surr_solvent_indices; 
+	int nmonomer = (*Polymers)[0].chain.size(); 
+
+	for ( Polymer& pmer: (*Polymers) ){
+		for ( Particle*& p: pmer.chain ){
+
+			ne_list = obtain_ne_list ( p->coords, x, y, z); 
+			for ( std::array<int,3>& ne: ne_list ){
+				if ( (*LATTICE).at(lattice_index (ne, y, z))->ptype[0] == 's' ) {
+					surr_solvent_indices.push_back ( lattice_index(ne, y, z) ); 
+					continue; 
+				}
+			}
+		}
+	}
+
+	// std::cout << "Is finding solvent indices was not an issue..." << std::endl;
+
+	// get rid of repeated indices, obtain indices of solvent molecules surrounding polymer 
+	std::sort ( surr_solvent_indices.begin(), surr_solvent_indices.end() ); 
+	surr_solvent_indices.erase ( std::unique ( surr_solvent_indices.begin(), surr_solvent_indices.end() ), surr_solvent_indices.end() );
+
+	// shuffle surr_solvent_indices 
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  	std::shuffle (std::begin(surr_solvent_indices), std::end(surr_solvent_indices), std::default_random_engine(seed));
+
+  	int nsurr_solvent = static_cast<int>( surr_solvent_indices.size() );
+
+  	// std::cout << "Number of surrounding solvents is " << nsurr_solvent << std::endl;
+
+	int nexchange = 1 ; 
+	int test_idx  = -1; 
+	*rweight = 1; 
+   
+	for ( int j{0}; j < nexchange; ++j ){
+		
+		test_idx = rng_uniform (0, x*y*z-1); 
+		// std::cout << "test_idx = " << test_idx << "." << std::endl;
+		if ( (*LATTICE)[test_idx]->ptype != "m1" && test_idx != surr_solvent_indices[j] ){
+
+			*IMP_BOOL = true; 
+
+			// std::cout << "surr_solvent_indices[j] = " << surr_solvent_indices[j] << std::endl;
+            // std::cout << "Location of solvent in surr = "; print ( (*LATTICE)[ surr_solvent_indices[j] ]->coords );
+			// std::cout << "test_idx = " << test_idx << std::endl;
+            // std::cout << "Location of far away solvent = "; print ( (*LATTICE)[ test_idx ]->coords ); 
+
+			(*s_memory).push_back ( {surr_solvent_indices[j], test_idx } );
+
+			// tmp     = (*LATTICE)[ test_idx ];  
+
+			// std::cout << "Made the temporary pointer..." << std::endl;
+            
+            // if ( (*LATTICE)[test_idx]->ptype != (*LATTICE)[surr_solvent_indices[j]]->ptype ){
+            //     std::cout << "IMPORTANT EXCHANGE taking place for indices right above!!!!" << std::endl;
+            //     std::cout << "ptype of test idx is " << (*LATTICE)[test_idx]->ptype << std::endl;
+            //     std::cout << "ptype of surr solvent is " << (*LATTICE)[surr_solvent_indices[j]]->ptype << std::endl; 
+            // }
+
+            std::string t_ptype = (*LATTICE)[test_idx]->ptype; 
+            int orientation = (*LATTICE)[test_idx]->orientation; 
+
+			(*LATTICE)[ test_idx ]->ptype        = (*LATTICE)[surr_solvent_indices[j] ]->ptype; 
+			(*LATTICE)[ test_idx ]->orientation  = (*LATTICE)[surr_solvent_indices[j] ]->orientation; 
+			
+			// std::cout << "Transferred the surrounding solvent to another spot!" << std::endl;
+            // std::cout << "--------------------------------------------------------------------" << std::endl;
+			// change the test_idx
+			(*LATTICE)[ surr_solvent_indices[j] ]->ptype            = t_ptype    ; 
+			(*LATTICE)[ surr_solvent_indices[j] ]->orientation      = orientation;
+			
+			// std::cout << "(*LATTICE)[ssi[j]]->coords = "; print ( (*LATTICE)[surr_solvent_indices[j]]->coords );
+
+			*rweight = (*rweight)*static_cast<double>(nsurr_solvent)/static_cast<double>(nsurr_solvent + nmonomer); 
+
+		}
+	}
+	// std::cout << "ratio of solvent/solvent+monomer = " << static_cast<double>(nsurr_solvent)/static_cast<double>(nsurr_solvent + nmonomer) << std::endl; 
+	// std::cout << "Total number of surr solv = " << nsurr_solvent << std::endl;
+	// std::cout << "Reached end of Solvent Exchange." << std::endl;
+
+	return; 
+}
+
+
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
+
 void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, \
 	std::array <int,9>* attempts, int* move_number, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
+	std::vector <std::array<int,2>>* s_memory, \
 	int* monomer_index, int* back_or_front, int Nsurr ){
 
     int index = rng_uniform(0, static_cast<int>((*Polymers).size())-1); 
-    int r = rng_uniform (1, 6);
+    int r = rng_uniform (1, 7);
  	// std::cout << x << y << z << v << r << index << *IMP_BOOL << rweight << (*attempts)[0] << move_number << std::endl;
  	// LATTICE->begin();
 
@@ -3553,6 +3751,15 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         	*move_number = 8;
         	(*attempts)[7] += 1;
         	break; 
+
+        case (7):
+        	if (v) {
+        		printf("Performing a solvent exchange... \n"); 
+        	}
+        	SingleSolventExchange (Polymers, LATTICE, x, y, z, IMP_BOOL,  rweight, s_memory); 
+            *move_number = 9; 
+            (*attempts)[8] += 1; 
+            break;     
         
     }
     
@@ -3570,6 +3777,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int y, int z, bool v, int move_number, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
+	std::vector <std::array<int,2>>* s_memory, \
 	int monomer_index, int back_or_front){
 
 	switch (move_number){
@@ -4225,7 +4433,7 @@ void AddSolvent (int x, int y, int z, std::vector <Particle*>* LATTICE){
 				}
 				c_idx = lattice_index (loc,y,z); 
 
-				Particle* p_ptr = new Particle ( loc, 's', rng_uniform (0, 25) ); 
+				Particle* p_ptr = new Particle ( loc, "s1", rng_uniform (0, 25) ); 
 
 				// std::cout << "loc is "; print(loc);
 				// std::cout << "index in lattice is " << lattice_index (loc, y, z) << std::endl;
@@ -4240,6 +4448,38 @@ void AddSolvent (int x, int y, int z, std::vector <Particle*>* LATTICE){
 	return; 
 
 }
+
+
+void AddCosolvent (int x, int y, int z, double frac, int Nmonomer, std::vector <Particle*>* LATTICE){
+
+	std::vector <int> used_idx; 
+
+	int nsol2         = std::floor((x*y*z-Nmonomer)*frac); 
+	int lattice_index = -1; 
+
+	// generate lattice index 
+	int count = 0;
+
+	while ( count<nsol2 ){
+
+		lattice_index = rng_uniform(0, x*y*z-1);
+		if ( (*LATTICE)[lattice_index]->ptype[0] == 'm' ){
+			used_idx.push_back (lattice_index); 
+		}
+		else if ( std::find (used_idx.begin(), used_idx.end(), lattice_index) != used_idx.end() ){
+			;
+		}
+		else {
+			(*LATTICE)[lattice_index]->ptype = "s2"; 
+		}
+		count += 1; 
+
+	} 
+
+	return;
+
+}
+
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

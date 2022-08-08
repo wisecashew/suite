@@ -1749,7 +1749,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
         for (Particle*& p: pmer.chain){
             ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
             
-            std::cout << "Particle loc is "; print (p->coords); 
+            // std::cout << "Particle loc is "; print (p->coords); 
 
             for ( std::array <int, 3>& loc: ne_list){
 
@@ -1827,16 +1827,21 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
         }
     }
 
+    // std::cout << "Size of solvation shell is " << ss1.size() << "." << std::endl;
+    // std::vector <int> ss2; 
     // find the second solvation shell... 
+    // ss1 is the first solvation shell... 
     for (int i: ss1){
 
     	ne_list = obtain_ne_list( (*LATTICE)[i]->coords, x, y, z); 
     	for ( std::array<int,3>& n: ne_list ) {
+    		// only calculate energy if the two particles of different solvent species 
+
     		if ( (*LATTICE)[ lattice_index (n, y, z)]->ptype[0]=='m' ){
     			// this energy has already been calculated
-    			;
+    			continue;
     		}
-    		else {
+    		else if ( (*LATTICE)[lattice_index (n, y, z)]->ptype != (*LATTICE)[i]->ptype ){
 
     			delta_p   = distance_between_points ( &(n), &((*LATTICE)[i]->coords ), x, y, z );
             	scaled_o1 = scale_arrays (delta_p/2, &( Or2Dir[(*LATTICE)[lattice_index(n, y, z)]->orientation ] ) );
@@ -1847,17 +1852,45 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 
             	delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
 
-            	if ( delta_o <= delta_p/2 ) {
-            		Energy         += 0.5*(*E)[6];
-            		(*contacts)[6] += 1;
-            	}
-            	else {
-            		Energy         += 0.5*(*E)[7]; 
-            		(*contacts)[7]  += 1;
-            	}
+            	if ( std::find (ss1.begin(), ss1.end(), lattice_index(n, y, z) ) != ss1.end() ){
+
+	            	if ( delta_o <= delta_p/2 ) {
+	            		Energy         += 0.5*(*E)[6];
+	            		(*contacts)[6] += 1;
+	            	}
+	            	else {
+	            		Energy          += 0.5*(*E)[7]; 
+	            		(*contacts)[7]  += 1;
+	            	}
+	            }
+	            else {
+	            	
+	            	if ( delta_o <= delta_p/2 ) {
+	            		Energy         += (*E)[6];
+	            		(*contacts)[6] += 1;
+	            	}
+	            	else {
+	            		Energy          += (*E)[7]; 
+	            		(*contacts)[7]  += 1;
+	            	}	
+	            }
     		}
     	}
     }
+
+    /*
+    std::cout << "Printing out solvation shell one..." << std::endl;
+    for (int i: ss1){
+    	print (location(i, x, y, z));
+    }
+    std::cout << "Size of solvation shell is " << ss1.size() << std::endl << std::endl; 
+    
+    std::cout << "Printing out solvation shell two..." << std::endl;
+    for (int i: ss2){
+    	print (location (i, x,y, z));
+    }
+    std::cout << "Size of solvation shell is " << ss2.size() << std::endl << std::endl; 
+	*/ 
 
     return Energy; 
 }
@@ -1984,7 +2017,7 @@ void dumpEnergy (double sysEnergy, int step, std::array <double,8>* contacts , s
     // std::ostringstream os; 
     
     dump_file << sysEnergy << " | " << (*contacts)[0]+(*contacts)[1] << " | " << (*contacts)[0] << " | " << (*contacts)[1] << " | " \
-            << (*contacts)[2]+(*contacts)[3]+(*contacts)[4]+(*contacts)[5] << " | " << (*contacts)[2] + (*contacts)[3] << " | " << (*contacts)[2] << " | " << (*contacts)[3] \
+            << (*contacts)[2]+(*contacts)[3]+(*contacts)[4]+(*contacts)[5] << " | " << (*contacts)[2] + (*contacts)[3] << " | " << (*contacts)[2] << " | " << (*contacts)[3] << " | " \
             << (*contacts)[4]+(*contacts)[5] << " | " << (*contacts)[4] << " | " << (*contacts)[5] << " | " << (*contacts)[6] + (*contacts)[7] << " | " << (*contacts)[6] << " | " << (*contacts)[7] << " | " << step << "\n";
     
     return; 
@@ -2928,7 +2961,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	int* index_monomer, int* back_or_front ){
 
 	int deg_of_poly = (*Polymers)[index_of_polymer].deg_poly; 
-	*index_monomer = rng_uniform (1, deg_of_poly-2); // (1, deg_of_poly-2); 
+	 
 
 	// decide which end of the polymer do i want to move around 
     bool first_entry_bool = true; 
@@ -2941,8 +2974,10 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 	if ( *back_or_front == 0 ) {
 	    // std::cout << "Performing tailspin.\n";	
+	    *index_monomer = rng_uniform (1, static_cast<int>(std::floor(deg_of_poly/2)) ); // (1, deg_of_poly-2);
 		old_cut.reserve (*index_monomer);
 		new_cut.reserve (*index_monomer);
+		
 
 		old_cut = extract_positions_tail ( &((*Polymers)[index_of_polymer].chain), *index_monomer );
 
@@ -2993,12 +3028,13 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	}
 
 	else {
-        
+
+        *index_monomer = rng_uniform (static_cast<int>(std::ceil(deg_of_poly/2)), deg_of_poly-2 );
         // std::cout << "Performing headspin.\n"; 
 		old_cut.reserve (deg_of_poly-(*index_monomer));
 		new_cut.reserve (deg_of_poly-(*index_monomer));
-
 		old_cut = extract_positions_head ( &((*Polymers)[index_of_polymer].chain), *index_monomer );
+		
 		HeadSpin (Polymers, index_of_polymer, *index_monomer, deg_of_poly, x, y, z, IMP_BOOL, &first_entry_bool, rweight); 
 
 		if ( !(*IMP_BOOL) ){
@@ -3480,14 +3516,18 @@ void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particl
 
 
 void SiteFlipSingular ( std::vector <Particle*>* LATTICE, \
-	int x, int y, int z, \
+	int x, int y, int z, int* nflips, \
 	std::pair <std::vector <std::array<int,2>>, std::vector <std::array<int,2>>>* memory ){
+	int flip_idx = 0; 
 
-	int flip_idx = rng_uniform (0, x*y*z-1); 
-	(*memory).first.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
-	(*LATTICE)[flip_idx]->orientation = rng_uniform (0, 25);  
-	// std::cout << "(*LATTICE)[flip_idx]->orientation = " << (*LATTICE)[flip_idx]->orientation << std::endl;
-	(*memory).second.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
+	(*nflips) = rng_uniform(0, static_cast<int>(x*y*z/20));
+
+	for (int i{0}; i<*nflips; ++i){
+		flip_idx = rng_uniform (0, x*y*z-1); 
+		(*memory).first.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
+		(*LATTICE)[flip_idx]->orientation = rng_uniform (0, 25);  
+		(*memory).second.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
+	}
 
 	return; 
 
@@ -3665,7 +3705,7 @@ void SingleSolventExchange ( std::vector <Polymer>* Polymers, std::vector <Parti
 ///////////////////////////////////////////////////////////////////////////
 
 void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, \
+	int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, int* nflips, \
 	std::array <int,9>* attempts, int* move_number, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
@@ -3747,7 +3787,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
         	if (v) {
         		printf("Performing a random site flip... \n");
         	}
-        	SiteFlipSingular ( LATTICE, x, y, z, memory2); 
+        	SiteFlipSingular ( LATTICE, x, y, z, nflips, memory2); 
         	*move_number = 8;
         	(*attempts)[7] += 1;
         	break; 
@@ -3774,7 +3814,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z, bool v, int move_number, \
+void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z, bool v, int move_number, int* nflips, \
 	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
 	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
 	std::vector <std::array<int,2>>* s_memory, \
@@ -4041,7 +4081,9 @@ void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*
 			if (v) {
 				printf("Reversing singular random flip...");
 			}
-			(*LATTICE)[ (*memory2).first[0][0] ]->orientation = (*memory2).first[0][1]; 
+			for (int i{0}; i<*nflips; ++i){
+				(*LATTICE)[ (*memory2).first[i][0] ]->orientation = (*memory2).first[i][1]; 
+			}
 			break; 
 
 		case (9):

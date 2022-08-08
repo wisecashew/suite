@@ -290,6 +290,7 @@ int main(int argc, char** argv) {
     
     double rweight =  0; 
     int move_number = 0; 
+    int nflips = 0;
     int monomer_index = -1; 
     int back_or_front = -1; 
     std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>> memory3; 
@@ -321,7 +322,7 @@ int main(int argc, char** argv) {
         }
 
         // choose a move... 
-        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &attempts, &move_number, &memory3, &memory2, &s_memory, &monomer_index, &back_or_front, Nsurr); 
+        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &IMP_BOOL, &rweight, &nflips, &attempts, &move_number, &memory3, &memory2, &s_memory, &monomer_index, &back_or_front, Nsurr); 
 
 
         if (IMP_BOOL){ 
@@ -381,7 +382,7 @@ int main(int argc, char** argv) {
 
             else { 
 
-                ReversePerturbation (&Polymers, &LATTICE, x, y, z, v, move_number, &memory3, &memory2, &s_memory, monomer_index, back_or_front);
+                ReversePerturbation (&Polymers, &LATTICE, x, y, z, v, move_number, &nflips, &memory3, &memory2, &s_memory, monomer_index, back_or_front);
 
                 // std::cout << "Polymer coordinates after reversal are: " << std::endl;
                 // Polymers[0].printChainCoords();

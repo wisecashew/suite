@@ -102,7 +102,7 @@ void InputParser (int dfreq, int max_iter, bool r, std::string positions, \
 // print methods  
 // print out a vector 
 
-/*
+
 template <typename T>
 void print (T arr){
     
@@ -112,7 +112,6 @@ void print (T arr){
     std::cout << std::endl; 
 
 }
-*/
 
 void print (std::vector <int> v); 
 void print (std::vector <double> v);
@@ -218,9 +217,9 @@ std::array <std::array <int,3>,3> HingeSwingDirections (std::array <int,3>* Hing
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Polymer moves with Rosenbluth sampling methods 
-void                  TailRotation 				   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, double* sysEnergy, double temperature, bool* IMP_BOOL, double* rweight, std::array<double,8>* E, std::array<double,8>* contacts, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
-void                  HeadRotation                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
-void                  EndRotation                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, double* sysEnergy, double temperature, bool* IMP_BOOL, double* rweight, std::array<double,8>* E, std::array<double,8>* contacts, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
+void                  TailRotation 				   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, double* sysEnergy, double temperature, bool* IMP_BOOL, std::array<double,8>* E, std::array<double,8>* contacts); 
+void                  HeadRotation                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, double* sysEnergy, double temperature, bool* IMP_BOOL, std::array<double,8>* E, std::array<double,8>* contacts); 
+void                  EndRotation                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, double* sysEnergy, double temperature, bool* IMP_BOOL, std::array<double,8>* E, std::array<double,8>* contacts); 
 void                  KinkJump                     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 void                  BondVibration                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);
 void                  CrankShaft                   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory);

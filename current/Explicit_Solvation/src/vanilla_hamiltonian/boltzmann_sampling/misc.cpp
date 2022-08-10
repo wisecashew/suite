@@ -20,7 +20,7 @@
 /* ==================================================
 These are some objects I have defined which I tend to use often. 
 Helpful definitions which are employed often in the context of the z=6 lattice I am using.
-====================================================*/ 
+==================================================== */ 
 
 const std::vector <int> ex{1,0,0}, nex{-1,0,0}, ey{0,1,0}, ney{0,-1,0}, ez{0,0,1}, nez{0,0,-1}; 	// unit directions 
 const std::vector <std::vector <int>> drns = {ex, nex, ey, ney, ez, nez};  							// vector of unit directions 
@@ -30,7 +30,12 @@ std::array <int,3> axay   = {1,1,0}, axaz   = {1,0,1} , axny   = {1,-1,0}, axnz 
 std::array <int,3> ayaz   = {0,1,1}, aynz   = {0,1,-1}, nyaz   = {0,-1,1}, nynz   = {0,-1,-1};  
 std::array <int,3> axayaz = {1,1,1}, axaynz = {1,1,-1}, axnyaz = {1,-1,1}, axnynz = {1,-1,-1},  nxayaz = {-1,1,1}, nxaynz = {-1,1,-1}, nxnyaz = {-1,-1,1}, nxnynz = {-1,-1,-1}; 
 std::array <std::array <int,3>, 26> adrns = { ax, ay, az, nx, ny, nz, axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
-std::map <int, std::array<double,3>> Or2Dir = { {0, {1.0,0,0}}, {1, {0,1.0,0}}, {2, {0,0,1}}, {3, {-1,0,0}}, {4, {0,-1,0}}, {5, {0,0,-1}}, {6, {1.0/(std::sqrt(2)), 1.0/(std::sqrt(2)), 0}}, {7, {1.0/(std::sqrt(2)), 0, 1.0/(std::sqrt(2))}}, {8, {1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {9, {1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {10, {-1.0/(std::sqrt(2)),1.0/(std::sqrt(2)),0}}, {11, {-1.0/(std::sqrt(2)),0,1.0/(std::sqrt(2))}}, {12, {-1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {13, {-1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {14, {0,1.0/(std::sqrt(2)),1.0/(std::sqrt(2))}}, {15, {0,1.0/(std::sqrt(2)),-1.0/(std::sqrt(2))}}, {16, {0,-1.0/(std::sqrt(2)), 1.0/(std::sqrt(2))}}, {17, {0,-1.0/(std::sqrt(2)), -1.0/(std::sqrt(2))}}, {18, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {19, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {20, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {21, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {22, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {23, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {24, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {25, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}} };
+std::map <int, std::array<double,3>> Or2Dir = { {0, {1.0,0,0}}, {1, {0,1.0,0}}, {2, {0,0,1}}, {3, {-1,0,0}}, {4, {0,-1,0}}, {5, {0,0,-1}}, {6, {1.0/(std::sqrt(2)), 1.0/(std::sqrt(2)), 0}}, {7, {1.0/(std::sqrt(2)), 0, 1.0/(std::sqrt(2))}}, \
+{8, {1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {9, {1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {10, {-1.0/(std::sqrt(2)),1.0/(std::sqrt(2)),0}}, {11, {-1.0/(std::sqrt(2)),0,1.0/(std::sqrt(2))}}, \
+{12, {-1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {13, {-1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {14, {0,1.0/(std::sqrt(2)),1.0/(std::sqrt(2))}}, {15, {0,1.0/(std::sqrt(2)),-1.0/(std::sqrt(2))}}, {16, {0,-1.0/(std::sqrt(2)), 1.0/(std::sqrt(2))}}, \
+{17, {0,-1.0/(std::sqrt(2)), -1.0/(std::sqrt(2))}}, {18, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {19, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {20, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, \
+{21, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {22, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {23, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {24, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, \
+{25, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}} };
 
 //=====================================================
 // impose periodic boundary conditions on vector 
@@ -1762,7 +1767,18 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
             		ext1  = add_arrays  ( &(p->coords), &( scaled_o1 ) );
             		ext2  = add_arrays ( &( (*LATTICE)[ lattice_index(loc, y, z )]->coords ), &( scaled_o2 ) );
 
+            		/*
+            		std::cout << "or = " << p->orientation << ", "; print (p->coords); 
+            		std::cout << "scaled o1 = "; print (scaled_o1); 
+            		std::cout << "ext1 is "; print (ext1); 
+
+            		std::cout << "or = " << (*LATTICE)[lattice_index(loc, y, z)]->orientation << ", "; print ((*LATTICE)[lattice_index(loc, y, z)]->coords); 
+            		std::cout << "scaled o2 = "; print (scaled_o2); 
+            		std::cout << "ext2 is "; print (ext2);
+					*/
+
             		delta_o = distance_between_points ( &ext1, &ext2, x, y, z ); 
+            		// std::cout << "delta_o = " << delta_o << std::endl; 
 
             		if ( delta_o <= delta_p/2 ){
             			Energy          += 0.5* (*E)[0];
@@ -2302,10 +2318,13 @@ void dumpLATTICE ( std::vector <Particle*> *LATTICE, int step, int y, int z, std
 // THE CODE: 
 
 void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	int index, int x, int y, int z, double* sysEnergy, double temperature, bool* IMP_BOOL, double* rweight, std::array<double,8>* E, \
-	std::array<double,8>* contacts, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>> >* memory ){
+	int index, int x, int y, int z, double* sysEnergy, double temperature, \
+	bool* IMP_BOOL, std::array<double,8>* E, std::array<double,8>* contacts ){
 
     // get the neighborlist of particle at index 1 
+
+	std::array <double,8> c_contacts = *contacts; 
+
     std::array <int,3> loc_0 = (*Polymers)[index].chain[0]->coords; 
     std::array <int,3> loc_1 = (*Polymers)[index].chain[1]->coords; 
 
@@ -2314,7 +2333,7 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     // first check if tail rotation can even be performed in the first place... 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
 
-	(*rweight) = 0.0; 
+	double rweight = 0.0; 
 
 	// find all spots that are available 
 	std::vector <std::array <int,3>> idx_v; 
@@ -2329,18 +2348,18 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 		// else if ( ! ( MonomerReporter(Polymers, &to_rot) ) ){
 		else if ( ! (MonomerReporter(LATTICE, &to_rot, y, z) ) ){
-			(*rweight) += 1;
+			rweight += 1;
 			idx_v.push_back( to_rot );  
 		}
 	}
 
-    if ( (*rweight) == 0 ){
+    if ( rweight == 0 ){
     	// if nothing can be done, just get out. 
     	*IMP_BOOL = false;
     	return; 
     }
 
-    std::cout << "Suggested locations are "; print (idx_v);
+    // std::cout << "Suggested locations are "; print (idx_v);
 
     // prepare the initial boltzmann sampling
     // get the solvent neighbors in the current location 
@@ -2362,8 +2381,8 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     std::cout << "solvent count = " << solvent_count << std::endl; 
     std::array<std::array<int,3>,51> orientation_configs; 
     std::array<double,51> energetic_states; 
-    std::cout << "solvents present = " << solvent_count << std::endl;
-    std::cout << "indices to flip are "; print (solvents_to_flip);
+    // std::cout << "solvents present = " << solvent_count << std::endl;
+    // std::cout << "indices to flip are "; print (solvents_to_flip);
 
     orientation_configs[0] = solvent_init_config; 
     energetic_states   [0] = *sysEnergy;
@@ -2378,10 +2397,10 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     		for (int k{0}; k<2; ++k){
     			(*LATTICE)[ solvents_to_flip[2] ]->orientation = rng_uniform (0, 25); 
     			orientation_configs[or_config_c] = {(*LATTICE)[ solvents_to_flip[0] ]->orientation, (*LATTICE)[ solvents_to_flip[1] ]->orientation, (*LATTICE)[ solvents_to_flip[2] ]->orientation}; 
-    			std::cout << "Flipped orientations is: "; print (orientation_configs[or_config_c]);
+    			// std::cout << "Flipped orientations is: "; print (orientation_configs[or_config_c]);
 
     			energetic_states[or_config_c] = CalculateEnergy (Polymers, LATTICE, x, y, z, E); 
-    			std::cout << "energy is = " << energetic_states[or_config_c] << std::endl; 
+    			// std::cout << "energy is = " << energetic_states[or_config_c] << std::endl; 
     			or_config_c += 1; 
     		}
     	}
@@ -2392,16 +2411,19 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     }
     w1 = w1*solvent_count/26; 
 
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[0].chain[0]->orientation << std::endl;
+    // print (energetic_states); 
+
     //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // i have done the boltzmann sampling spins in the original state. 
     // let's move on to the perturbed state - after tailrotation has been performed. 
     // but first, get the LATTICE to its original state 
 
-    std::cout << "Index: orientation --- ";
+    // std::cout << "Index: orientation --- ";
     for (int i{0}; i<3; ++i){
     	(*LATTICE)[solvents_to_flip[i]]->orientation = solvent_init_config[i]; 
-    	std::cout << solvents_to_flip[i] << " : " << solvent_init_config[i] << " --- "; 
+    	// std::cout << solvents_to_flip[i] << " : " << solvent_init_config[i] << " --- "; 
     }
     std::cout << std::endl;
 
@@ -2429,43 +2451,57 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	(*LATTICE)[ lattice_index (idx_v[r], y, z)] = (*Polymers)[index].chain[0]; 
 
 	// update memory 
-	(*memory).first.push_back  ( loc_0 ); 		// initial location of monomer
-	(*memory).second.push_back ( idx_v[r] );	// final location of monomer 
+	// (*memory).first.push_back  ( loc_0 ); 		// initial location of monomer
+	// (*memory).second.push_back ( idx_v[r] );	// final location of monomer 
+
+
 
 	// update connmap 
 	(*Polymers)[index].ChainToConnectivityMap(); 
 	
 
+	std::cout << "Orientation of monomer 0 is " << (*Polymers)[0].chain[0]->orientation << std::endl; 
+
 	// run the boltzmann sampling of the new state... 
 	// get the solvent neighbors of the particle at the very end.  
 	// reusing the same variable from above for no particular reason apart from efficient resource utilization... 
-	initial_ne_list = obtain_ne_list (idx_v[r], x, y, z);
-	energetic_states[0] = CalculateEnergy (Polymers, LATTICE, x, y, z, E); 
+	std::array <std::array<double,8>, 51> store_contacts; 
+
+	initial_ne_list     = obtain_ne_list (idx_v[r], x, y, z);
+	energetic_states[0] = CalculateEnergy (Polymers, LATTICE, x, y, z, E, contacts);
+	store_contacts [0] = *contacts; 
+	
 	current_idx = 0; 
 
 	// obtain the first iteration of the perturbed state 
 	solvent_count = 0; 
+
+	std::array <int,3> solvents_to_flip_n; 
+	std::array <int,3> solvent_init_config_n; 
 	for (std::array<int,3>& i: initial_ne_list){
     	if ( (*LATTICE)[lattice_index(i, y, z)]->ptype[0] != 'm') {
     		solvent_count += 1; 
     		if (current_idx < 3){
-    			solvents_to_flip[current_idx] = lattice_index(i,y,z); 
-    			solvent_init_config [current_idx] = (*LATTICE)[lattice_index(i, y, z)]->orientation; 
+    			solvents_to_flip_n[current_idx] = lattice_index(i,y,z); 
+    			solvent_init_config_n [current_idx] = (*LATTICE)[lattice_index(i, y, z)]->orientation; 
     			current_idx += 1; 
     		}
     	}
     }
+    orientation_configs[0] = {(*LATTICE)[ solvents_to_flip_n[0] ]->orientation, (*LATTICE)[ solvents_to_flip_n[1] ]->orientation, (*LATTICE)[ solvents_to_flip_n[2] ]->orientation}; 
     std::cout << "solvent count = " << solvent_count << std::endl;
 
     or_config_c = 1; 
-    std::array <std::array<double,8>, 51> store_contacts; 
+    
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[0].chain[0]->orientation << std::endl;
+
     for (int i{0}; i<5; ++i){
-    	(*LATTICE)[ solvents_to_flip[0] ]->orientation = rng_uniform (0, 25); 
+    	(*LATTICE)[ solvents_to_flip_n[0] ]->orientation = rng_uniform (0, 25); 
     	for (int j{0}; j<5; ++j){
-    		(*LATTICE)[ solvents_to_flip[1] ]->orientation = rng_uniform (0, 25); 
+    		(*LATTICE)[ solvents_to_flip_n[1] ]->orientation = rng_uniform (0, 25); 
     		for (int k{0}; k<2; ++k){
-    			(*LATTICE)[ solvents_to_flip[2] ]->orientation = rng_uniform (0, 25); 
-    			orientation_configs[or_config_c] = {(*LATTICE)[ solvents_to_flip[0] ]->orientation, (*LATTICE)[ solvents_to_flip[1] ]->orientation, (*LATTICE)[ solvents_to_flip[2] ]->orientation}; 
+    			(*LATTICE)[ solvents_to_flip_n[2] ]->orientation = rng_uniform (0, 25); 
+    			orientation_configs[or_config_c] = {(*LATTICE)[ solvents_to_flip_n[0] ]->orientation, (*LATTICE)[ solvents_to_flip_n[1] ]->orientation, (*LATTICE)[ solvents_to_flip_n   [2] ]->orientation}; 
     			energetic_states[or_config_c] = CalculateEnergy (Polymers, LATTICE, x, y, z, E, contacts); 
     			store_contacts  [or_config_c] = *contacts; 
     			or_config_c += 1; 
@@ -2473,7 +2509,8 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     	}
     }
 
-
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[0].chain[0]->orientation << std::endl;
+    // print(energetic_states);
     // calculate the boltzmann weight 
     for ( double energy: energetic_states){
     	w2 += std::exp (-1/temperature*energy); 
@@ -2483,6 +2520,8 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     // choose an orientation of solvent molecules from the states we have 
 
     double rng = rng_uniform (0.0, 1.0); 
+    std::cout << "rng = " << rng << std::endl; 
+
     if (rng < w2/w1){
     	std::cout << "w2 = " << w2 <<", w1 = " << w1 << std::endl;
     	std::cout << "We accepted." << std::endl;
@@ -2491,16 +2530,17 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     	int count = 0; 
     	for (double energy: energetic_states){
     		running_boltzmann += std::exp (-1/temperature*energy)/w2; 
-    		if ( state_index <= running_boltzmann ){
+    		if ( state_index <= running_boltzmann ) {
     			break;
     		}
     		count += 1; 
     	}
 
     	for (int i{0}; i<3; ++i){
-    		(*LATTICE)[solvents_to_flip[i]]->orientation = orientation_configs[count][i];
+    		(*LATTICE)[solvents_to_flip_n[i]]->orientation = orientation_configs[count][i];
     	}
     	*contacts = store_contacts  [count]; 
+    	std::cout << "contacts on acceptance is "; print(*contacts);
     	*sysEnergy = energetic_states[count];
     	std::cout << "New energy is " << *sysEnergy << std::endl;
 
@@ -2518,13 +2558,15 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
     	// now that the solvent and polymer are in their original spatial state, i have to now get the solvents back into
     	// their original orientational state 
-    	for (int j {0}; j<3; ++j){
+    	for (int j {0}; j<3; ++j) {
     		(*LATTICE)[solvents_to_flip[j]]->orientation = solvent_init_config [j];
     	}
-
+    	std::cout << "contacts on rejection is "; print(c_contacts);
+    	*contacts = c_contacts;
     }
-
 	
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[0].chain[0]->orientation << std::endl;
+
 	return; 
 }
 
@@ -2548,16 +2590,23 @@ void TailRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 // THE CODE: 
 
 void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	int index, int x, int y, int z, bool* IMP_BOOL, double* rweight, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
+	int index, int x, int y, int z, double* sysEnergy, double temperature, \
+	bool* IMP_BOOL, std::array<double,8>* E, std::array<double,8>* contacts){ 
+
+	// make a copy of the contacts 
+	std::array<double,8> c_contacts = *contacts; 
 
     // get the neighborlist of particle at index 1 
     int dop = (*Polymers)[index].deg_poly; 
+
     std::array <int,3> loc_0 = (*Polymers)[index].chain[dop-1]->coords; 
     std::array <int,3> loc_1 = (*Polymers)[index].chain[dop-2]->coords;
     
+    double w1 {0}, w2 {0}; 
+
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z) ; 
 
-    (*rweight) = 0.0; 
+    double rweight = 0; 
 	
     // find all spots that are available 
     std::vector <std::array <int,3>> idx_v; 
@@ -2573,23 +2622,94 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
     	// else if ( ! (MonomerReporter(Polymers, &to_rot) ) ){
 		else if ( ! ( MonomerReporter (LATTICE, &to_rot, y, z ) ) ) {
     		// std::cout << "a free location is "; print(to_rot); 
-    		(*rweight) += 1; 
+    		rweight += 1; 
     		idx_v.push_back(to_rot); 
     	}
     }
 
-    if ( (*rweight) == 0){
+    if ( rweight == 0){
     	// if rweight is zero, return 
     	*IMP_BOOL = false;
     	return; 
     }
 
-    // if rweight is not zero, lets fuckin go
+    // prepare the initial boltzmann sampling 
+    // get the solvent neighbors in the current location 
 
-	int r = rng_uniform(0, static_cast<int> (idx_v.size() - 1) ); 
+    std::array <std::array<int,3>,26> initial_ne_list = obtain_ne_list (loc_0, x, y, z);
+    std::array<int,3> solvents_to_flip;
+    std::array<int,3> solvent_init_config; 
+    int current_idx {0};
+    int solvent_count = 0; 
+    for (std::array<int,3>& i: initial_ne_list){
+    	if ( (*LATTICE)[lattice_index(i, y, z)]->ptype[0] != 'm') {
+    		solvent_count += 1; 
+    		if (current_idx < 3 ){
+	    		solvents_to_flip[current_idx] = lattice_index(i,y,z); 
+	    		solvent_init_config [current_idx] = (*LATTICE)[lattice_index(i, y, z)]->orientation; 
+	    		current_idx += 1; 
+    		}
+    	}
+    }
+    std::cout << "solvent count = " << solvent_count << std::endl; 
+    std::array<std::array<int,3>,51> orientation_configs; 
+    std::array<double,51> energetic_states; 
+
+    orientation_configs[0] = solvent_init_config; 
+    energetic_states   [0] = *sysEnergy;
+
+    std::cout << "Initial orientations is: "; print (orientation_configs[0]);
+
+    int or_config_c {1}; 
+    for (int i{0}; i<5; ++i){
+    	(*LATTICE)[ solvents_to_flip[0] ]->orientation = rng_uniform (0, 25); 
+    	for (int j{0}; j<5; ++j){
+    		(*LATTICE)[ solvents_to_flip[1] ]->orientation = rng_uniform (0, 25); 
+    		for (int k{0}; k<2; ++k){
+    			(*LATTICE)[ solvents_to_flip[2] ]->orientation = rng_uniform (0, 25); 
+    			orientation_configs[or_config_c] = {(*LATTICE)[ solvents_to_flip[0] ]->orientation, (*LATTICE)[ solvents_to_flip[1] ]->orientation, (*LATTICE)[ solvents_to_flip[2] ]->orientation}; 
+    			// std::cout << "Flipped orientations is: "; print (orientation_configs[or_config_c]);
+
+    			energetic_states[or_config_c] = CalculateEnergy (Polymers, LATTICE, x, y, z, E); 
+    			// std::cout << "energy is = " << energetic_states[or_config_c] << std::endl; 
+    			or_config_c += 1; 
+    		}
+    	}
+    }
+
+    for ( double energy: energetic_states){
+    	w1 += std::exp (-1/temperature*energy); 
+    }
+    w1 = w1*solvent_count/26; 
+
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[index].chain[dop-1]->orientation << std::endl;
+    // print (energetic_states); 
+
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // i have done the boltzmann sampling spins in the original state. 
+    // let's move on to the perturbed state - after tailrotation has been performed. 
+    // but first, get the LATTICE to its original state 
+
+    // std::cout << "Index: orientation --- ";
+    for (int i{0}; i<3; ++i){
+    	(*LATTICE)[solvents_to_flip[i]]->orientation = solvent_init_config[i]; 
+    	// std::cout << solvents_to_flip[i] << " : " << solvent_init_config[i] << " --- "; 
+    }
+    std::cout << std::endl;
+
+    // lattice is now in the original state... 
+    //************************************************
+
+    // let's fuckin go
+
+    int r = rng_uniform(0, static_cast<int> (idx_v.size() - 1) ); 
 	
 	// make the change to the polymer 
 	(*Polymers)[index].chain[dop-1]->coords = idx_v[r];
+
+	std::cout << "=--------------------------------------------------------------------=" << std::endl;
+	std::cout << "Suggested location for monomer to swing to is "; print (idx_v[r]);
 
 	// make the change on the lattice 
 	// make the change only to the SOLVENT site...
@@ -2601,12 +2721,120 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	(*LATTICE)[ lattice_index (idx_v[r], y, z)] = (*Polymers)[index].chain[dop-1]; 
 
 	// update memory 
-	(*memory).first.push_back  ( loc_0 ); 
-	(*memory).second.push_back ( idx_v[r] );
+	// (*memory).first.push_back  ( loc_0 ); 
+	// (*memory).second.push_back ( idx_v[r] );
 
 	// update connmap 
-	// (*Polymers)[index].ChainToConnectivityMap(); 
-	(*rweight) = (*rweight)/26.0; 
+	(*Polymers)[index].ChainToConnectivityMap(); 
+	// (*rweight) = (*rweight)/26.0; 
+
+	std::cout << "Orientation of monomer dop-1 is " << (*Polymers)[index].chain[dop-1]->orientation << std::endl; 
+
+	// run the boltzmann sampling of the new state... 
+	// get the solvent neighbors of the particle at the very end.  
+	// reusing the same variable from above for no particular reason apart from efficient resource utilization... 
+	std::array <std::array<double,8>, 51> store_contacts; 
+
+	initial_ne_list     = obtain_ne_list (idx_v[r], x, y, z);
+	energetic_states[0] = CalculateEnergy (Polymers, LATTICE, x, y, z, E, contacts);
+	store_contacts [0] = *contacts; 
+	
+	current_idx = 0; 
+
+	// obtain the first iteration of the perturbed state 
+	solvent_count = 0; 
+
+	std::array <int,3> solvents_to_flip_n; 
+	std::array <int,3> solvent_init_config_n; 
+	for (std::array<int,3>& i: initial_ne_list){
+    	if ( (*LATTICE)[lattice_index(i, y, z)]->ptype[0] != 'm') {
+    		solvent_count += 1; 
+    		if (current_idx < 3){
+    			solvents_to_flip_n[current_idx] = lattice_index(i,y,z); 
+    			solvent_init_config_n [current_idx] = (*LATTICE)[lattice_index(i, y, z)]->orientation; 
+    			current_idx += 1; 
+    		}
+    	}
+    }
+
+	orientation_configs[0] = {(*LATTICE)[ solvents_to_flip_n[0] ]->orientation, (*LATTICE)[ solvents_to_flip_n[1] ]->orientation, (*LATTICE)[ solvents_to_flip_n[2] ]->orientation}; 
+    std::cout << "solvent count = " << solvent_count << std::endl;
+
+    or_config_c = 1; 
+    
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[0].chain[dop-1]->orientation << std::endl;
+
+    for (int i{0}; i<5; ++i){
+    	(*LATTICE)[ solvents_to_flip_n[0] ]->orientation = rng_uniform (0, 25); 
+    	for (int j{0}; j<5; ++j){
+    		(*LATTICE)[ solvents_to_flip_n[1] ]->orientation = rng_uniform (0, 25); 
+    		for (int k{0}; k<2; ++k){
+    			(*LATTICE)[ solvents_to_flip_n[2] ]->orientation = rng_uniform (0, 25); 
+    			orientation_configs[or_config_c] = {(*LATTICE)[ solvents_to_flip_n[0] ]->orientation, (*LATTICE)[ solvents_to_flip_n[1] ]->orientation, (*LATTICE)[ solvents_to_flip_n   [2] ]->orientation}; 
+    			energetic_states[or_config_c] = CalculateEnergy (Polymers, LATTICE, x, y, z, E, contacts); 
+    			store_contacts  [or_config_c] = *contacts; 
+    			or_config_c += 1; 
+    		}
+    	}
+    }
+
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[index].chain[dop-1]->orientation << std::endl;
+    // print(energetic_states);
+    // calculate the boltzmann weight 
+    for ( double energy: energetic_states){
+    	w2 += std::exp (-1/temperature*energy); 
+    }
+    w2 = w2*solvent_count/26; 
+    
+    // choose an orientation of solvent molecules from the states we have 
+
+    double rng = rng_uniform (0.0, 1.0); 
+    std::cout << "rng = " << rng << std::endl; 
+
+    if (rng < w2/w1){
+    	std::cout << "w2 = " << w2 <<", w1 = " << w1 << std::endl;
+    	std::cout << "We accepted." << std::endl;
+    	double state_index = rng_uniform(0.0, 1.0); 
+    	double running_boltzmann = 0; 
+    	int count = 0; 
+    	for (double energy: energetic_states){
+    		running_boltzmann += std::exp (-1/temperature*energy)/w2; 
+    		if ( state_index <= running_boltzmann ) {
+    			break;
+    		}
+    		count += 1; 
+    	}
+
+    	for (int i{0}; i<3; ++i){
+    		(*LATTICE)[solvents_to_flip_n[i]]->orientation = orientation_configs[count][i];
+    	}
+    	*contacts = store_contacts  [count]; 
+    	std::cout << "contacts on rejection is "; print(*contacts);
+    	*sysEnergy = energetic_states[count];
+    	std::cout << "New energy is " << *sysEnergy << std::endl;
+
+    }
+
+    else {
+    	std::cout << "We rejected." << std::endl;
+    	// return back to the original state 
+    	(*Polymers)[index].chain[dop-1]->coords = loc_0;
+    	(*LATTICE)[ lattice_index(loc_0, y, z) ]->coords = idx_v[r];
+
+    	// do the switch 
+    	(*LATTICE)[ lattice_index( idx_v[r], y, z) ] = (*LATTICE)[ lattice_index (loc_0, y, z) ];
+    	(*LATTICE)[ lattice_index( loc_0, y, z )   ] = (*Polymers)[index].chain[dop-1]; 
+
+    	// now that the solvent and polymer are in their original spatial state, i have to now get the solvents back into
+    	// their original orientational state 
+    	for (int j {0}; j<3; ++j) {
+    		(*LATTICE)[solvents_to_flip[j]]->orientation = solvent_init_config [j];
+    	}
+    	std::cout << "contacts on rejection is "; print(c_contacts);
+    	*contacts = c_contacts;
+    }
+	
+    std::cout << "Orientation of monomer 0 is " << (*Polymers)[index].chain[dop-1]->orientation << std::endl;
 
 	return; 
 }
@@ -2631,22 +2859,22 @@ void HeadRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 // THE CODE: 
 
 void EndRotation (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	int index, int x, int y, int z, double* sysEnergy, double temperature, bool* IMP_BOOL, double* rweight, std::array<double,8>* E, \
-	std::array<double,8>* contacts, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory){
+	int index, int x, int y, int z, double* sysEnergy, double temperature, \
+	bool* IMP_BOOL, std::array<double,8>* E, std::array<double,8>* contacts){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
     std::mt19937 generator(seed); 
     std::uniform_int_distribution<int> distribution (0,1); 
-    int num = 0; // distribution(generator); 
+    int num = distribution(generator); 
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
-        // std::cout << "Zero index rotation!" << std::endl;
-        TailRotation (Polymers, LATTICE, index, x, y, z, sysEnergy, temperature, IMP_BOOL, rweight, E, contacts, memory); 
+        std::cout << "Zero index rotation!" << std::endl;
+        TailRotation (Polymers, LATTICE, index, x, y, z, sysEnergy, temperature, IMP_BOOL, E, contacts); 
         return; 
     }
     else {
-        // std::cout << "Final index rotation!" << std::endl;
-        HeadRotation (Polymers, LATTICE, index, x, y, z, IMP_BOOL, rweight, memory); 
+        std::cout << "Final index rotation!" << std::endl;
+        HeadRotation (Polymers, LATTICE, index, x, y, z, sysEnergy, temperature, IMP_BOOL, E, contacts); 
         return; 
     }
    
@@ -3904,28 +4132,55 @@ void PolymerFlip ( std::vector <Polymer>* Polymers, \
 ///////////////////////////////////////////////////////////////////////////
 
 
-void PolymerFlipSingular ( std::vector <Polymer>* Polymers,\
-	double* rweight, int Nsurr, \
-	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ){
+void PolymerFlipSingular ( std::vector <Polymer>* Polymers, int nmonomer){
     
-	int Nmer  = static_cast<int>( (*Polymers)[0].chain.size() ); 
-    
-    *rweight = static_cast<double>(Nmer)/static_cast<double>(Nmer+Nsurr); 
+	std::random_device rg;
+	std::mt19937 g(rd()); 
 
-	int ridx = rng_uniform (0, Nmer-1);
+	std::vector <int> sample( static_cast<int>( (*Polymers)[0].chain.size() );  ); 
+	std::iota (sample.begin(), sample.end(), 0);
+	std::random_shuffle ( sample.begin(), sample.end(), g); 
 
-	// std::cout << "ridx = " << ridx << std::endl;
-	// std::cout << "Initial orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
-	(*memory).first.push_back ( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );
-	(*Polymers)[0].chain.at(ridx)->orientation = rng_uniform (0, 25);  
-	(*memory).second.push_back( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );	
-	// std::cout << "Final orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
-	// std::cout << "memory first[0][1] is " << (*memory).first[0][1] << std::endl;
+	// this is the vector with the indices of monomers to flip 
+	std::vector <int> chosen (sample.begin(), sample.begin()+nmonomer); 
+	std::vector <int> initial_orientation; 
+	std::vector <double> energetic_states;  
+	for (int i{0}; i<chosen.size(); ++i){
+		inital_orientation.push_back ((*Polymers)[0].chain[chosen[i]]->orientation);
+	}	
+
+	obtain_energetic_states ( Polymers, &energetic_states, &chosen, nmonomer ); 
+	
+
 	return; 
 }
 
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+
+void obtain_energetic_states ( std::vector <Polymer>* Polymers, std::vector<double>* energetic_states, \
+	std::vector <int>* config, std:vector<std::vector<int>>* config_coll, \
+	int nmonomer){
+
+	for (int i {0}; i<5; ++i){
+		(*config).push_back(rng_uniform(0,25)); 
+		if ((*config).size() < nmonomer){
+			obtain_energetic_states( Polymers, energetic_states, config, config_coll, nmonomer );
+		}
+		else {
+			(*config_coll).push_back (*config); 
+			(*config).pop_back(); 
+		}
+	}
+	(*config).pop_back();
+	return; 
+
+
+}
+
+
+
+
 ///////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
 
@@ -4050,7 +4305,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
             if (v){
                printf("Performing end rotations...\n"); 
             }
-            EndRotation		(Polymers, LATTICE, index, x, y, z, sysEnergy, temperature, IMP_BOOL, rweight, E, contacts, memory3);
+            EndRotation		(Polymers, LATTICE, index, x, y, z, sysEnergy, temperature, IMP_BOOL, E, contacts);
             *move_number = 1;
             (*attempts)[0] += 1;
             break;  

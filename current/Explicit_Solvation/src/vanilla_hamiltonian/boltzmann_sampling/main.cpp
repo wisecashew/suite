@@ -264,14 +264,14 @@ int main(int argc, char** argv) {
     // ######################################################################
     
     std::array <double,8> contacts = {0,0,0,0,0,0,0,0};
-    std::array <double,8> contacts_copy = {0,0,0,0,0,0,0,0};
+    // std::array <double,8> contacts_copy = {0,0,0,0,0,0,0,0};
     
     sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, &E, &contacts); 
 
     std::cout <<"\nCalculating energy..." << std::endl;
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
-    contacts_copy = contacts; 
+    // contacts_copy = contacts; 
 
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
@@ -285,7 +285,7 @@ int main(int argc, char** argv) {
     
     
     bool IMP_BOOL = true; 
-    bool metropolis = false;
+    // bool metropolis = false;
     
     double rweight =  0; 
     int move_number = 0; 
@@ -302,32 +302,34 @@ int main(int argc, char** argv) {
     
     std::cout << "max_iter is " << max_iter << std::endl;
 
+    int m1_or = (Polymers)[0].chain[0]->orientation; 
+    int m2_or = (Polymers)[0].chain[1]->orientation; 
+    int m3_or = (Polymers)[0].chain[2]->orientation; 
+    int m4_or = (Polymers)[0].chain[3]->orientation; 
+
     for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
 
         if ( v && (i%dfreq==0) ){
             printf("Step number: %d.\n", i);
         }
 
-        if ( !(metropolis) ){
-            contacts = contacts_copy; 
-            // mm_aligned = mm_aligned_copy; mm_naligned = mm_naligned_copy; ms_aligned = ms_aligned_copy; ms_naligned = ms_naligned_copy;
-            Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; 
-        }
-        else {
-            contacts_copy = contacts; 
-            // mm_aligned_copy = mm_aligned; mm_naligned_copy = mm_naligned; ms_aligned_copy = ms_aligned; ms_naligned_copy = ms_naligned;
-            Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; 
-            metropolis = false; 
-        }
+        // contacts = contacts_copy; 
+        // mm_aligned = mm_aligned_copy; mm_naligned = mm_naligned_copy; ms_aligned = ms_aligned_copy; ms_naligned = ms_naligned_copy;
+        Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; 
 
         // choose a move... 
         PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &sysEnergy, T, &IMP_BOOL, &rweight, &E, &contacts, &nflips, &attempts, &move_number, &memory3, &memory2, &s_memory, &monomer_index, &back_or_front, Nsurr); 
 
 
+        if ( m1_or != (Polymers)[0].chain[0]->orientation || m2_or != (Polymers)[0].chain[1]->orientation || m3_or != (Polymers)[0].chain[2]->orientation || m4_or != (Polymers)[0].chain[3]->orientation ){
+            std::cerr << "Something is fucked up. " << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
         if (v){
 
             if ( IMP_BOOL ){
-                std::cout << "Accepted!" << std::endl;
+                std::cout << "Limbo, honestly." << std::endl;
             }
             else {
                 std::cout << "Rejected... Same position printing out." << std::endl;
@@ -376,7 +378,7 @@ int main(int argc, char** argv) {
                 dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
             }
             
-            dumpEnergy (sysEnergy, i, &contacts_copy, efile);
+            dumpEnergy (sysEnergy, i, &contacts, efile);
                         
         }
 

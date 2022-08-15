@@ -14,7 +14,7 @@
 #include "misc.h"
 
 
-int main(int argc, char** argv) {
+int main (int argc, char** argv) {
 
     // set up 
     int opt; 
@@ -120,41 +120,57 @@ int main(int argc, char** argv) {
     }
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    // parse inputs 
+    // INSTANTIATING NECESSARY DATA STRUCTURES UP FRONT.
+
+    int    step_number  {0}; // step_number++;
+    double sysEnergy    {0}; // sysEnergy++;
+    std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
+    std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
+    std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
+
+    std::vector <Polymer> Polymers; 
+    Polymers.reserve(N);
+
+    std::vector <Particle*> LATTICE;
+    LATTICE.reserve (x*y*z); 
+
+
+    bool IMP_BOOL = true; 
+    
+    double rweight =  0; 
+    int move_number = 0; 
+    int monomer_index = -1; 
+    int back_or_front = -1; 
+
+
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser (dfreq, max_iter, r, positions, \
+    InputParser ( dfreq, max_iter, r, positions, \
         topology, dfile, efile, mfile, stats_file, \
         lattice_file_read ); 
 
-    // driver 
 
-    // this remains constant 
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    
+    // GO! 
+
     // ################################################################################
-
-    // ExtractTopologyFromFile extracts all the topology from the input file 
-    std::array <double,13> info_vec {ExtractTopologyFromFile(topology)}; 
-
     // ExtractNumberOfPolymers extracts the total number of chains in the input file 
     const int N = ExtractNumberOfPolymers(positions); 
-
-    // assign values from info_vec to variables 
-    const int x = info_vec[0];
-    const int y = info_vec[1]; 
-    const int z = info_vec[2]; 
-    const double T = info_vec[3]; 
-
-    std::array <double, 8> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], \
-        info_vec[9], info_vec[10], info_vec[11]};
-    /*
-    const double Emm_a = info_vec[4]; 
-    const double Emm_n = info_vec[5]; 
-    const double Ems_a = info_vec[6];
-    const double Ems_n = info_vec[7]; 
-    */
-    const double frac  = info_vec[12]; 
     
-    std::array <int,9> attempts    = {0,0,0,0,0,0,0,0,0};
-    std::array <int,9> acceptances = {0,0,0,0,0,0,0,0,0}; 
+    // EXTRACT TOPOLOGY FROM FILE 
+    std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
+    const int x             = info_vec[0];
+    const int y             = info_vec[1]; 
+    const int z             = info_vec[2]; 
+    const double T          = info_vec[3]; 
+    std::array <double,4> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7]}; 
+    
+
+    // ################################################################################ 
+    // OPENING TILES
+    // 
 
     std::cout << std::endl;
     std::cout << "Preparing for take-off...\n\n" ; 
@@ -164,49 +180,22 @@ int main(int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << ".\n" << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
-    std::cout << "Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ", Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
-
+    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems_a = "<< E[2] << ", Ems_n = " << E[3] <<".\n \n";  
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
-
     std::cout << "Running some more checks on input... \n\n" ; 
 
     // ################################################################################ 
     
-
-    int step_number = 0; 
-    double sysEnergy  {0}; 
-
-    std::vector <Particle*> LATTICE;
-    LATTICE.reserve (x*y*z); 
-
+    // SET TIMERS UP! 
     auto start = std::chrono::high_resolution_clock::now(); 
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    // start creating LATTICE! 
-    // if i am not restarting, get stuff from 
-    // positions and set up LATTICE. 
-    std::vector <Polymer> Polymers; 
-    Polymers.reserve(N);
 
     if ( !r ){
-        std::cout << "No restarts..." << std::endl;
-        Polymers = ExtractPolymersFromFile(positions, x, y, z); 
-
-        AddSolvent (x, y, z, &LATTICE);
-    
-        // populate the lattice 
-        for (Polymer& pmer: Polymers){
-            for (Particle*& p: pmer.chain ){
-                LATTICE.at(lattice_index (p->coords, y, z) ) = p; 
-            }
-        }
-
-        AddCosolvent (x, y, z, frac, static_cast<int>(Polymers[0].chain.size()), &LATTICE);
-
-        // now that i have my polymer coordinates, i can create the grand lattice map
+        std::cout << "Setting up the lattice from scratch! " << std::endl;
+        SetUpLatticeFromScratch (x, y, z, &Polymers, &LATTICE, &positions); 
     
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
@@ -214,185 +203,95 @@ int main(int argc, char** argv) {
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
     
-        // for (Polymer& pmer:Polymers){
-        //    for (Particle*& p: pmer.chain){
-        //        p->orientation = 0; 
-        //    }
-        // }
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
-
-
     // ######################################################################
-    // if restarting, extract LATTICE from lattice_file_read
-    // extract polymers from coords file 
-    // set up lattice and polymer vectors 
 
     else {
-
-        LATTICE  = ExtractLatticeFromRestart ( lattice_file_read, &step_number, x, y, z ); 
-        Polymers = ExtractPolymersFromTraj   ( dfile, positions, step_number, x, y, z );
-
-        // std::cout << "Is polymer being extracted?" << std::endl;
-        // make copies of pointers from polymers and put them in lattice 
-        for ( Polymer& pmer: Polymers) {
-            for ( Particle*& p: pmer.chain){
-
-                // std::cout << "ptypes: " << LATTICE[lattice_index(p->coords, y, z) ]->ptype << ", " << p->ptype << std::endl;
-                // std::cout << "orientation: " << LATTICE[lattice_index(p->coords, y, z) ]->orientation << ", " << p->orientation << std::endl;
-                // std::cout << "locs: "; print(LATTICE[lattice_index(p->coords, y, z) ]->coords); print( p->coords );
-
-                if ( !(LATTICE [ lattice_index(p->coords, y, z) ]->ptype == p->ptype && LATTICE [ lattice_index(p->coords, y, z) ]->coords == p->coords && LATTICE [ lattice_index(p->coords, y, z) ]->orientation == p->orientation) ) {
-                    std::cerr << "There is a problem with extraction for restart..." << std::endl;
-                    exit (EXIT_FAILURE); 
-                } 
-                LATTICE [ lattice_index(p->coords, y, z) ] = p;
-            }
-        }
-
+        std::cout << "Setting up system from a restart file!" << std::endl;
+        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, step_number, lattice_file_read, dfile, positions ); 
+        
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
         std::cout << "System set-up took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Simulation cell has been made! \n\n" ;
 
-    }
-    // std::cout << "Printing out polymer... " << std::endl; 
-    // Polymers[0].printChainCoords(); 
-    /////////////////////////////////////////////////
-    // ######################################################################
+    }    
     
-    std::array <double,8> contacts = {0,0,0,0,0,0,0,0};
-    // std::array <double,8> contacts_copy = {0,0,0,0,0,0,0,0};
-    
-    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, &E, &contacts); 
+    // THERMODYNAMICS OF SET-UP
 
     std::cout <<"\nCalculating energy..." << std::endl;
+    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, &E, &contacts); 
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
-    // contacts_copy = contacts; 
-
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
         dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
         dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
     }
     
-    if (r) {
+    else {
         dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z);    
     }
     
-    
-    bool IMP_BOOL = true; 
-    // bool metropolis = false;
-    
-    double rweight =  0; 
-    int move_number = 0; 
-    int nflips = 0;
-    int monomer_index = -1; 
-    int back_or_front = -1; 
-    std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>> memory3; 
-    std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>> memory2;
-    std::vector <std::array<int,2>> s_memory; 
-
     printf("Initiation complete. We are ready to go. The engine will output information every %d configuration(s).\n", dfreq); 
     
-    int Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; // ms_aligned + ms_naligned; 
-    
-    std::cout << "max_iter is " << max_iter << std::endl;
+    std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
 
-    int m1_or = (Polymers)[0].chain[0]->orientation; 
-    int m2_or = (Polymers)[0].chain[1]->orientation; 
-    int m3_or = (Polymers)[0].chain[2]->orientation; 
-    int m4_or = (Polymers)[0].chain[3]->orientation; 
-
-    for (int i = step_number+1; i< (step_number+max_iter+1); i++) {
+    for (int i = step_number+1; i< (step_number+max_iter+1); ++i) {
 
         if ( v && (i%dfreq==0) ){
             printf("Step number: %d.\n", i);
+            printf("Executing...\n");
         }
-
-        // contacts = contacts_copy; 
-        // mm_aligned = mm_aligned_copy; mm_naligned = mm_naligned_copy; ms_aligned = ms_aligned_copy; ms_naligned = ms_naligned_copy;
-        Nsurr = contacts[2]+contacts[3]+contacts[4]+contacts[5]; 
 
         // choose a move... 
-        PerturbSystem (&Polymers, &LATTICE, x, y, z, v, &sysEnergy, T, &IMP_BOOL, &rweight, &E, &contacts, &nflips, &attempts, &move_number, &memory3, &memory2, &s_memory, &monomer_index, &back_or_front, Nsurr); 
+        PerturbSystem_BIASED (&Polymers, &LATTICE, index, x, y, z, &sysEnergy, temperature, &move_number, &IMP_BOOL, &attempts); 
+        
+        if ( IMP_BOOL ) {
+            if ( MetropolisAcceptance (sysEnergy, sysEnergy_, T, rweight) ){
+                metropolis = true; 
+                acceptances[move_number-1]+=1;
 
+                if ( v ){
+                    CheckStructures (x, y, z, &IMP_BOOL, &Polymers, &LATTICE);
+                }
+            }
 
-        if ( m1_or != (Polymers)[0].chain[0]->orientation || m2_or != (Polymers)[0].chain[1]->orientation || m3_or != (Polymers)[0].chain[2]->orientation || m4_or != (Polymers)[0].chain[3]->orientation ){
-            std::cerr << "Something is fucked up. " << std::endl;
-            exit(EXIT_FAILURE);
+            else { 
+
+                ReversePerturbation (&Polymers, &LATTICE, y, z, v, move_number, &memory3, &memory2, monomer_index, back_or_front);
+                
+                if ( v ){
+                    CheckStructures (x, y, z, &IMP_BOOL, &Polymers, &LATTICE); 
+                }
+            }
         }
 
-        if (v){
-            // all of this can also be scrunched up into a function 
-
-            if ( IMP_BOOL ){
-                std::cout << "Limbo, honestly." << std::endl;
-            }
-            else {
-                std::cout << "Rejected... Same position." << std::endl;
-            }
-
-            printf("Checking validity of coords...");
-            printf("checkForOverlaps says: %d.\n", checkForOverlaps(Polymers)); 
-            if (!checkForOverlaps(Polymers)){
-                printf("Something is fucked up overlaps-wise. \n");
-                exit(EXIT_FAILURE);
-            }
-
-            if (! checkForOverlaps (&Polymers, &LATTICE)){
-                printf("Random monomer floating!!");
-                exit (EXIT_FAILURE);
-            }
-            std::cout << "No random monomers floating around!!" << std::endl;
-
-            if (!checkForSolventMonomerOverlap (&Polymers, &LATTICE, y, z) ){
-                printf("Something is fucked up solvent-monomer overlaps-wise. \n");
-                exit(EXIT_FAILURE);
-            }
-
-            printf("checkConnectivity says: %d\n", checkConnectivity(Polymers, x, y, z)); 
-            if (!checkConnectivity(Polymers, x, y, z) ){
-                printf("Something is fucked up connectivity-wise. \n");
-                exit(EXIT_FAILURE);
-            }
-            
-            // printf("Energy of the system is %.2f.\n", sysEnergy_);
-            printf("This should be 1 as IMP_BOOL must be true on acceptance: %d\n", IMP_BOOL);
-
-            if (checkPointersOnLattice (&LATTICE, x, y, z) ){
-                printf("We good. LATTICE is in good shape. \n\n\n"); 
-            }
-            else {
-                std::cerr <<"Something is fucked with pointers on LATTICE." << std::endl; 
-                exit (EXIT_FAILURE);
+        else {
+            if (v){
+                printf ("IMP_BOOL is zero. Nothing will be done.\n\n");
+                CheckStructure (x, y, z, &IMP_BOOL, &Polymers, &LATTICE); 
             }
         }
 
         if ( ( i % dfreq == 0) ){
-           
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
             if ( i%(dfreq*10) == 0 ) {
                 dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
             }
-            
-            dumpEnergy (sysEnergy, i, &contacts, efile);
-                        
+            dumpEnergy (sysEnergy, i, mm_aligned_copy, mm_naligned_copy, ms_aligned_copy, ms_naligned_copy, efile);
         }
 
-        // reset the memory carrier, and IMP_BOOL
-        reset (memory3);
-        reset (memory2);
-        reset (s_memory);
         IMP_BOOL = true; 
            
     }
+
     dumpMoveStatistics      (&attempts, &acceptances, max_iter, stats_file);  
     
-    if ( lattice_file_write != "__blank__" ){
+    if ( lattice_file_write != "__blank__" ) {
         dumpLATTICE ( &LATTICE, step_number+max_iter, y, z, lattice_file_write ); 
     }
 

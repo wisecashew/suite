@@ -144,8 +144,8 @@ std::vector <Particle>           CreateSolventVector     (int x, int y, int z, s
 void                             AddSolvent              (int x, int y, int z, std::vector <Particle*>* LATTICE);
 void                             SetUpLatticeFromScratch (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::string positions);
 void                             SetUpLatticeFromRestart (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int step_number, std::string lattice_file_read, std::string dfile, std::string positions); 
-Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, char type_m='m'); 
-Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::vector<int> pmer_spins, char type_m='m'); 
+Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::string type_m="m1"); 
+Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::vector<int> pmer_spins, std::string type_m="m1"); 
 // create a lattice 
 std::vector <std::array <int,3>> create_lattice_pts  (int x_len, int y_len, int z_len); 
 
@@ -153,7 +153,7 @@ std::vector <std::array <int,3>> create_lattice_pts  (int x_len, int y_len, int 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // validity checks 
-void CheckStructures                      (int x, int y, int z, bool* IMP_BOOL, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE);
+void CheckStructures                      (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE);
 bool checkValidityOfCoords                (std::array <int,3> v, int x, int y, int z); 
 bool checkForOverlaps                     (std::vector <Polymer> Polymers);
 bool checkForOverlaps                     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE);
@@ -179,7 +179,7 @@ double                   NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z, double Emm_a, double Emm_n, double Ems_a, double Ems_n, double* mm_aligned, double* mm_naligned, int* ms_aligned, int* ms_naligned);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z, std::array<double,4>* E, std::array<double,4>* contacts);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -188,7 +188,7 @@ bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // dump methods 
 void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, std::string filename);
-void dumpEnergy              (double sysEnergy, int step, double mm_aligned, double mm_naligned, int ms_aligned, int ms_naligned, std::string filename);
+void dumpEnergy              (double sysEnergy, int step, std::array<double,4>* contacts, std::string filename);
 void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
 void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,9>* acceptances, int step, std::string stats_file); 
@@ -235,6 +235,18 @@ void                  HeadSpin			           (std::vector <Polymer>* Polymers, in
 void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, bool v, bool* IMP_BOOL, double* rweight, std::array <int,9>* attempts, int* move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, int* monomer_index, int* back_or_front, int Nsurr);
 void                  ReversePerturbation          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, int monomer_index, int back_or_front);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+void                  TailRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  HeadRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  EndRotation_BIASED           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, std::array<int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature,  int* move_number, int x, int y, int z);
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+void        forward_reptation_without_tail_biting  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, Particle* tmp, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array<int,3> to_slither, std::array <int,3> loc0, std::array <int,3> locf, int deg_poly, int index, int x, int y, int z);
+void        backward_reptation_without_head_biting (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, Particle* tmp, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array<int,3> to_slither, std::array <int,3> loc0, std::array <int,3> locf, int deg_poly, int index, int x, int y, int z);
+void        forward_reptation_with_tail_biting     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array <int,3> to_slither, int deg_poly, int index, int x, int y, int z); 
+void        backward_reptation_with_head_biting    (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array <int,3> to_slither, int deg_poly, int index, int x, int y, int z);
+
 
 template <typename T>
 void reset(T &x){

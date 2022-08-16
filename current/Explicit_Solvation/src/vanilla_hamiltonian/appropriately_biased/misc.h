@@ -179,7 +179,7 @@ double                   NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z, std::array<double,4>* E, std::array<double,4>* contacts);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, int x, int y, int z);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -236,12 +236,31 @@ void                  PerturbSystem                (std::vector <Polymer>* Polym
 void                  ReversePerturbation          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int y, int z, bool v, int move_number, std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, int monomer_index, int back_or_front);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void                  TailRotation_SIMPLE          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  HeadRotation_SIMPLE          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  EndRotation_SIMPLE           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  ForwardReptation_SIMPLE      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  BackwardReptation_SIMPLE     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  Reptation_SIMPLE             (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
 void                  TailRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  HeadRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  EndRotation_BIASED           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, std::array<int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature,  int* move_number, int x, int y, int z);
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void                  forward_reptation_with_tail_biting        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <int,3>* to_slither, int deg_poly, int index, int y, int z);
+void                  backward_reptation_with_head_butting      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <int,3>* to_slither, int deg_poly, int index, int y, int z);
+void                  forward_reptation_without_tail_biting     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, Particle* tmp, std::array <int,3>* to_slither, std::array <int,3>* loc0, int deg_poly, int index, int y, int z);
+void                  backward_reptation_without_head_butting   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, Particle* tmp, std::array <int,3>* to_slither, std::array <int,3>* locf, int deg_poly, int index, int y, int z);
+
+
 void        forward_reptation_without_tail_biting  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, Particle* tmp, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array<int,3> to_slither, std::array <int,3> loc0, std::array <int,3> locf, int deg_poly, int index, int x, int y, int z);
 void        backward_reptation_without_head_biting (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, Particle* tmp, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array<int,3> to_slither, std::array <int,3> loc0, std::array <int,3> locf, int deg_poly, int index, int x, int y, int z);
 void        forward_reptation_with_tail_biting     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array <int,3> to_slither, int deg_poly, int index, int x, int y, int z); 

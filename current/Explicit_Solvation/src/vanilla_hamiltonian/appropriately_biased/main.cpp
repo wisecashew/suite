@@ -18,8 +18,8 @@
 
 int main (int argc, char** argv) {
 
-    // INSTANTIATE INPUT VARIABLES 
-    int opt; 
+    // INSTANTIATE USER INPUT VARIABLES 
+    int opt;          // storage variable to hold options from getopt() [line 36] 
     int dfreq   {-1}; // frequency at which coordinates will be dumped out 
     int max_iter{-1}; // number of iteration to perform
     bool v = false;   // boolean for verbosity of output  (default: not verbose)
@@ -155,15 +155,15 @@ int main (int argc, char** argv) {
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    // ExtractNumberOfPolymers extracts the total number of chains in the input file 
+    // ExtractNumberOfPolymers extracts the total number of chains in the input file. used to reserve vector [line 171] 
     const int N = ExtractNumberOfPolymers(positions); 
     
     // EXTRACT TOPOLOGY FROM FILE 
     std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
-    const int x             = info_vec[0];
-    const int y             = info_vec[1]; 
-    const int z             = info_vec[2]; 
-    const double T          = info_vec[3]; 
+    const int x             =  info_vec[0];
+    const int y             =  info_vec[1]; 
+    const int z             =  info_vec[2]; 
+    const double T          =  info_vec[3]; 
     std::array <double,4> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7]}; 
     
     // initialize custom data structures 
@@ -228,7 +228,7 @@ int main (int argc, char** argv) {
 
     std::cout <<"\nCalculating energy..." << std::endl;
 
-    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, x, y, z, &E, &contacts); 
+    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, &E, &contacts, x, y, z); 
 
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
@@ -247,9 +247,13 @@ int main (int argc, char** argv) {
 
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+
+    // ALL INPUTS HAVE BEEN PROCESSED AND DATA STRUCTURES HAVE BEEN SET UP. 
+    
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
 
-    // main loop of simulation! yee-haw!  
+    // BEGIN: main loop of simulation! yee-haw!  
 
     for (int i = step_number+1; i< (step_number+max_iter+1); ++i) {
 
@@ -259,21 +263,21 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
         
         if ( IMP_BOOL ) {
-
-            (acceptances)[move_number] += 1; 
-            if ( v ){
-                    std::cout << "Polymer was perturbed from initial structure." << std::endl; 
-                    CheckStructures (x, y, z, &Polymers, &LATTICE);
-                }
+            (acceptances)[move_number] += 1;    
         }
-        else {
-            if (v){
-                std::cout << "Move was rejected. Nothing will be done." << std::endl; 
-                CheckStructures (x, y, z, &Polymers, &LATTICE); 
+
+        if ( v ){
+            if (IMP_BOOL){
+                std::cout << "Accepted!" << std::endl;
             }
+            else {
+                 std::cout << "Rejected..." << std::endl;   
+            }
+            std::cout << "Checking if data structures are in good conditions..." << std::endl; 
+            CheckStructures (x, y, z, &Polymers, &LATTICE);
         }
 
         if ( ( i % dfreq == 0) ){
@@ -284,9 +288,7 @@ int main (int argc, char** argv) {
             dumpEnergy (sysEnergy, i, &contacts, efile);
         }
 
-        // reset the selection boolean to 'true' 
-        IMP_BOOL = true; 
-           
+        IMP_BOOL = true;      
     }
 
     dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  

@@ -2509,7 +2509,7 @@ void HeadRotation_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
     
 	CheckStructures(x, y, z, Polymers, LATTICE);
 	std::cerr << "Everything seems to be okay!" << std::endl;
-	exit(EXIT_SUCCESS);
+	// exit(EXIT_SUCCESS);
 
 	return; 
 }
@@ -5576,7 +5576,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 	// choose an index to regrow from 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
-	int m_index  = 1; // rng_uniform (0, deg_poly-1); 
+	int m_index  = 2; //rng_uniform (1,deg_poly-2); 
 
 	std::array <double,4> c1_contacts = *contacts; 
 	std::array <double,4> c2_contacts = *contacts; 
@@ -5585,7 +5585,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	double prob_n_to_o {1}; 
 	double frontflow_energy {*sysEnergy}; 
 	double backflow_energy  {0}; 
-	int recursion_depth {0}; 
+	int    recursion_depth  {0}; 
 	// old_cut contains the old positions of thr monomer 
 	std::vector <std::array<int,3>> old_cut; 
 	std::vector <std::array<int,3>> new_cut;
@@ -5610,6 +5610,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 		std::cout << "---------" << std::endl;
 		(*Polymers)[p_index].printChainCoords();
 
+		std::cout << "Checking structures... " << std::endl;
 		CheckStructures (x, y, z, Polymers, LATTICE);
 		std::cerr << "throw in a break after head regrowth." << std::endl; 
 
@@ -5625,6 +5626,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 		(*Polymers)[p_index].printChainCoords(); 
 		std::cout << "backflow energy = " << backflow_energy << std::endl; 
 		if ( *sysEnergy != backflow_energy && c2_contacts != *contacts ){
+			std::cout << "Energies are bad, or contacts are not right." << std::endl;
 			std::cout << "Shit's fucked." << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -5635,6 +5637,9 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 		std::cout << "backflow energy is " << backflow_energy << std::endl;
 		std::cout << "frontflow energy is " << frontflow_energy << std::endl; 
 
+		std::cout << "Checking structures... " << std::endl;
+		CheckStructures (x, y, z, Polymers, LATTICE);
+
 		// check acceptance criterion
 		double rng_acc = rng_uniform (0.0, 1.0); 
 		std::cout << "rng_acc = " << rng_acc << std::endl; 
@@ -5643,6 +5648,9 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 			// accept new cut 
 			// perform swaps 
 			for (int i{m_index+1}; i<deg_poly; ++i){
+				std::cout << "Polymers.chain["<<i<<"]->coords = "; print(new_cut[i-m_index-1]);
+				std::cout << "new_cut[i-m_index-1] = "; print(new_cut[i-m_index-1]); 
+				std::cout << "old_cut[i-m_index-1] = "; print(new_cut[i-m_index-1]); 
 				(*Polymers)[p_index].chain[i]->coords = new_cut[i-m_index-1]; 
 				(*LATTICE)[ lattice_index (new_cut[i-m_index-1], y, z) ]->coords = old_cut[i-m_index-1];
 
@@ -5661,7 +5669,9 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 		std::cout << "Final configuration is " << std::endl;
 		(*Polymers)[p_index].printChainCoords(); 
 
-		exit (EXIT_SUCCESS);
+		std::cout << "Checking structures... " << std::endl;
+		CheckStructures (x, y, z, Polymers, LATTICE);
+		// exit (EXIT_SUCCESS);
 
 	}
 	else {
@@ -5728,7 +5738,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 		std::cout << "Final configuration is " << std::endl;
 		(*Polymers)[p_index].printChainCoords(); 
-		exit (EXIT_SUCCESS);
+		// exit (EXIT_SUCCESS);
 
 	}
 
@@ -5879,30 +5889,49 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 		return; 
 	}
 
-	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; 
+	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; // this is the key item of interest
 
-	// generate an array for energies 
-	std::array <double,6> energies; 
-	energies[0] = *backflow_energy; 
+	int crit_idx {-1}; 
 
-	std::array <double,6> boltzmann; 
-	boltzmann[0] = std::exp (-1/temperature*energies[0]); 
+	if ( loc_m == (*old_cut)[recursion_depth] ){
+		// BackFlowFromHeadRegrowth (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
+		// return; 
+		crit_idx = 0; 
+	}
+	else {
+		crit_idx = 1; 
+	}
 
-	double rboltzmann = std::exp (-1/temperature*energies[0]); // running sum for boltzmann weights 
 
 	// generate possible locations to jump to 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
-	
+	std::cout << "ne_list unshuffled is "; 
+	for (std::array <int,3>& n: ne_list){
+		print(n, ", ");
+	}
 	// randomly select five of them 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle   (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
 
 	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[recursion_depth]) - ne_list.begin() ; 
+	std::cout << "ne_idx = " << ne_idx << std::endl;
+	std::cout << "old_cut = "; for (auto v: *old_cut){
+		print (v, ", ");
+	}
 
-	// make sure old_cut is present at position 0 
+	// crit_idx = 1; 
 	std::array <int,3> tmp = ne_list[0]; 
 	ne_list[0]             = ne_list[ne_idx];
 	ne_list[ne_idx]        = tmp; 
+
+	
+	std::cout << "crit_idx = " << crit_idx << std::endl;
+	// generate an array for energies 
+	std::array <double,6> energies; 
+	energies[0] = *backflow_energy; // energy of the current state 
+	std::array <double,6> boltzmann; 
+	boltzmann[0] = std::exp (-1/temperature*energies[0]); // boltzmann weight of the current state 
+	double rboltzmann = std::exp (-1/temperature*energies[0]); // running sum for boltzmann weights 
 
 	std::cout << "ne_list is "; 
 	for (std::array <int,3>& n: ne_list){
@@ -5920,6 +5949,7 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 	while ( proposition_counter < 5 ){
 
 		if ( ne_list[idx_counter] == loc_m ){
+			// this is the current position 
 			idx_counter += 1; 
 			continue; 
 		}
@@ -5962,10 +5992,16 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 	std::cout << "normalization = " << rboltzmann << std::endl;
 	
 
-	*prob_n_to_o *= boltzmann[1]/rboltzmann;
-	*backflow_energy = energies[1]; 
-
+	*prob_n_to_o *= boltzmann[crit_idx]/rboltzmann;
+	*backflow_energy = energies[crit_idx]; 
 	std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
+
+	if ( crit_idx == 0 ){
+		BackFlowFromHeadRegrowth (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
+		return;
+	}
+
+	
 	// do the swap again to the right positions 
 
 	(*LATTICE)[lattice_index(ne_list[0], y, z)]->coords     = loc_m;
@@ -6083,9 +6119,8 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	std::cout << "rng = " << rng_acc << std::endl;
 
 	for (int j{0}; j<6; ++j){
-
 		rsum += boltzmann[j]/rboltzmann; 
-		if ( rng_acc < rsum ){
+		if ( rng_acc < rsum ) {
 			e_idx = j; 
 			break; 
 		}	
@@ -6126,6 +6161,14 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; 
 
+	int crit_idx {-1}; 
+	if ( loc_m == (*old_cut)[recursion_depth] ){
+		crit_idx = 0;  
+	}
+	else {
+		crit_idx = 1; 
+	}
+
 	// generate an array for energies 
 	std::array <double,6> energies; 
 	energies[0] = *backflow_energy; 
@@ -6145,6 +6188,7 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[recursion_depth]) - ne_list.begin() ; 
 
 	// make sure old_cut is present at position 0 
+	// crit_idx = 1; 
 	std::array <int,3> tmp = ne_list[0]; 
 	ne_list[0]             = ne_list[ne_idx];
 	ne_list[ne_idx]        = tmp; 
@@ -6206,10 +6250,15 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 	std::cout << "Boltzmann weights are: "; print(boltzmann); 
 	std::cout << "normalization = " << rboltzmann << std::endl;
 
-	*prob_n_to_o *= boltzmann[1]/rboltzmann;
-	*backflow_energy = energies[1]; 
+	*prob_n_to_o *= boltzmann[crit_idx]/rboltzmann;
+	*backflow_energy = energies[crit_idx]; 
 
 	std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
+	
+	if ( crit_idx == 0 ){
+		BackFlowFromTailRegrowth (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
+		return;
+	}
 
 	// do the swap again to the positions dictated by old_cut  
 

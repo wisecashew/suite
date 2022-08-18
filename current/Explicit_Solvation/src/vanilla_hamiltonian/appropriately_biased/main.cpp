@@ -48,12 +48,10 @@ int main (int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "\n" << 
-                "Welcome to the Monte Carlo simulation engine (v0.8) for polymers on a lattice (Z=26). \n" << 
-                "This is a simulation engine which incorporates directional bonding between monomer and solvent. \n" << 
-                "Here, each particle is given a discrete orientation. This orientation affects the energy of interaction two neighboring particles experience. All moves are performed with Boltzmann biasing. \n" << 
-                "In this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency. \n" <<
-		        "Last updated: Aug 15, 2022, 13:21. Added restarting capabilities. \nAuthor: satyend@princeton.edu \n" <<
-                "\n \n" << 
+                "Welcome to the Monte Carlo simulation engine (v0.9) for polymers and solvent on a cubic lattice (Z=26). \n" << 
+		        "Last updated: Aug 17, 2022, 14:56. \n" << 
+                "Author: satyend@princeton.edu \n" <<
+                "\n" << 
                 "----------------------------------------------------------------------------------------------------------------------------------\n" << 
                 "These are all the inputs the engine accepts for a single run, as of right now: \n\n" <<
                 "help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
@@ -64,7 +62,7 @@ int main (int argc, char** argv) {
                 "Polymer coordinates       [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
                 "Energy and geometry       [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
                 "Energy of grid            [-u]           (STRING ARGUMENT REQUIRED)     Name of output file with energy of system at each step in a file.\n"<<
-                "Lattice file to write to  [-L]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
+                "Lattice file to write to  [-L]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to write out current simulation.\n" <<
                 "Lattice file to read from [-R]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
                 "Orientation file          [-e]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain orientation of ALL particles in system.\n" << 
                 "Move statistics file      [-s]           (STRING ARGUMENT REQUIRED)     Name of output file with move statistics. \n" <<
@@ -271,18 +269,20 @@ int main (int argc, char** argv) {
 
         if ( v ){
             if (IMP_BOOL){
+                std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
                 std::cout << "Accepted!" << std::endl;
             }
             else {
-                 std::cout << "Rejected..." << std::endl;   
+                std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
+                std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
             CheckStructures (x, y, z, &Polymers, &LATTICE);
         }
 
-        if ( ( i % dfreq == 0) ){
+        if ( ( i % dfreq == 0 ) ){
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
-            if ( i%(dfreq*10) == 0 ) {
+            if ( i % (dfreq*10) == 0 ) {
                 dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
             }
             dumpEnergy (sysEnergy, i, &contacts, efile);

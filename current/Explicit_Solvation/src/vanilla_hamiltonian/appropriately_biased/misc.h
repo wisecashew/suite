@@ -103,17 +103,15 @@ void InputParser (int dfreq, int max_iter, bool r, std::string positions, \
 // print methods  
 // print out a vector 
 
-/*
 template <typename T>
-void print (T arr){
-    
-    for (int i{0}; i<static_cast<int>(arr.size()); ++i){
-        std::cout << arr[i] << " | ";
-    }
-    std::cout << std::endl; 
+void print (T vec, std::string end="\n"){
 
+    for (int i{0}; i < static_cast<int>(vec.size()); ++i){
+        std::cout << vec[i] << " | "; 
+    }
+    std::cout << end; 
+    return;
 }
-*/
 
 void print (std::vector <int> v, std::string c="\n"); 
 void print (std::vector <double> v, std::string c="\n");
@@ -122,6 +120,7 @@ void print (std::vector <double> v, std::string c="\n");
 void print (std::array <int,3> a, std::string c="\n"); 
 void print (std::array <int,6> a, std::string c="\n"); 
 void print (std::array <double,3> a, std::string c="\n");
+void print (std::array <double,4> a, std::string c="\n"); 
 void print (std::array <double, 6> v, std::string c="\n");
 void print (std::array <std::array<int,3>,6> aa );
 

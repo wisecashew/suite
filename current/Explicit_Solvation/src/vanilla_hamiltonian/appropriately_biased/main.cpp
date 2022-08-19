@@ -257,7 +257,7 @@ int main (int argc, char** argv) {
 
         if ( v && (i%dfreq==0) ){
             std::cout << "Step number: " << i << "." << std::endl; 
-            std::cout << "Executing..." << std::endl;
+            std::cout << "Executing..." << std::endl << std::endl;
         }
 
         // perform move on the system! 

@@ -256,6 +256,9 @@ int main (int argc, char** argv) {
     for (int i = step_number+1; i< (step_number+max_iter+1); ++i) {
 
         if ( v && (i%dfreq==0) ){
+            std::cout << "Final config is:" << std::endl;
+            Polymers[0].printChainCoords();
+            std::cout << " -------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;
         }

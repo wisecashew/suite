@@ -16,7 +16,7 @@
 #include <utility>
 #include <unordered_set>
 #include <algorithm>
-
+#include <boost/multiprecision/cpp_dec_float.hpp>
 
 
 /* ==================================================
@@ -5603,14 +5603,14 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 		if ( ne_list[idx_counter] == loc_m ){ 
 			energies[idx_counter]       = *frontflow_energy;
-			boltzmann[idx_counter]      = std::exp (-1/temperature*energies[idx_counter]);
-			rboltzmann                 += boltzmann[idx_counter]; 
+			// boltzmann[idx_counter]      = std::exp (-1/temperature*energies[idx_counter]);
+			// rboltzmann                 += boltzmann[idx_counter]; 
 			contacts_store[idx_counter] = current_contacts;
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
 			energies [idx_counter] = 1e+6;
-			boltzmann[idx_counter] = 0;
+			// boltzmann[idx_counter] = 0;
 			contacts_store[idx_counter] = {-1, -1, -1, -1}; 
 			block_counter += 1;   
 		}
@@ -5625,8 +5625,8 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 			// get the energy
 			energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
-			boltzmann[idx_counter] = std::exp (-1/temperature*energies[idx_counter]);
-			rboltzmann  += boltzmann[idx_counter];  
+			// boltzmann[idx_counter] = std::exp (-1/temperature*energies[idx_counter]);
+			// rboltzmann  += boltzmann[idx_counter];  
 			contacts_store[idx_counter] = *contacts; 
 
 			// revert back to original structure 
@@ -5649,12 +5649,20 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 	// now that i have all the energies, and boltzmann weights, i can choose a configuration 
 	std::cout << "Energies are "; print(energies); 
+
+	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
+	std::cout << "Emin = " << Emin << std::endl; 
+
+	for (int i{0}; i<5; ++i){
+		boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
+		rboltzmann  += boltzmann[i]; 
+	}
+
 	std::cout << "Boltzmann weights are: "; print(boltzmann); 
 	double rng_acc = rng_uniform (0.0, 1.0); 
 	double rsum    = 0; 
 	int    e_idx   = 0; 
 	std::cout << "normalization = " << rboltzmann << std::endl;
-	std::cout << "log(nomalization) = " << std::log10(rboltzmann) << std::endl;
 	std::cout << "rng = " << rng_acc << std::endl;
 
 	for (int j{0}; j<5; ++j){
@@ -5903,7 +5911,7 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	double rsum    = 0; 
 	int e_idx      = 0; 
 	std::cout << "normalization = " << rboltzmann << std::endl;
-	std::cout << "log(nomalization) = " << std::log10(rboltzmann) << std::endl;
+	// std::cout << "log(nomalization) = " << std::log10(rboltzmann) << std::endl;
 	std::cout << "rng = " << rng_acc << std::endl;
 
 	for (int j{0}; j<5; ++j){

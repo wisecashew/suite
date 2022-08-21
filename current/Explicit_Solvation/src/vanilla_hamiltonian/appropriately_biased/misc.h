@@ -1,7 +1,6 @@
 #ifndef _MISC_H_
 #define _MISC_H_
 #include "classes.h"
-#include <boost/multiprecision/cpp_dec_float.hpp>
 
 
 // this is a bunch of miscellaneous functions I use 
@@ -246,13 +245,18 @@ void                  ForwardReptation_SIMPLE      (std::vector <Polymer>* Polym
 void                  BackwardReptation_SIMPLE     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  Reptation_SIMPLE             (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  ChainRegrowth                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z); 
-void                  HeadRegrowth                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, boost::multiprecision::cpp_dec_float_50* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
-void                  TailRegrowth                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, boost::multiprecision::cpp_dec_float_50* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
-void                  BackFlowFromHeadRegrowth     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array <int,3>>* old_cut, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, boost::multiprecision::cpp_dec_float_50* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
-void                  BackFlowFromTailRegrowth     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array <int,3>>* old_cut, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, boost::multiprecision::cpp_dec_float_50* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
+void                  HeadRegrowth                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
+void                  TailRegrowth                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
+void                  BackFlowFromHeadRegrowth     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array <int,3>>* old_cut, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
+void                  BackFlowFromTailRegrowth     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array <int,3>>* old_cut, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
 void                  PerturbSystem                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void                  TailRegrowth_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, bool* IMP_BOOL, int deg_poly, int p_index, int m_index, int x, int y, int z);
+void                  HeadRegrowth_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, bool* IMP_BOOL, int deg_poly, int p_index, int m_index, int x, int y, int z);
+void                  ChainRegrowth_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  PerturbSystem_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 
 void                  TailRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  HeadRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);

@@ -252,6 +252,15 @@ int main (int argc, char** argv) {
     //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
 
     // BEGIN: main loop of simulation! yee-haw!  
+    int hitcheck {1}; 
+    int nhits {0}; 
+    std::array <int,3> loc_m; 
+    std::vector <std::array<int,3>> old_cut;
+    for ( int i{0}; i<4; ++i ){
+        old_cut.push_back ( (Polymers)[0].chain[i+4]->coords ); 
+    }
+
+    std::vector <std::array<int,3>> target = {{3,1,0}, {3,2,0}, {2,2,0}, {2,1,0}};
 
     for (int i = step_number+1; i< (step_number+max_iter+1); ++i) {
 
@@ -265,14 +274,12 @@ int main (int argc, char** argv) {
 
         // perform move on the system! 
         PerturbSystem_UNBIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
-        
-        if ( IMP_BOOL ) {
-            (acceptances)[move_number] += 1;    
-        }
 
         if ( v ){
             if (IMP_BOOL){
                 std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
+                std::cout << "perturbed config is:" << std::endl;
+                Polymers[0].printChainCoords();
                 std::cout << "Accepted!" << std::endl;
             }
             else {
@@ -291,10 +298,36 @@ int main (int argc, char** argv) {
             dumpEnergy (sysEnergy, i, &contacts, efile);
         }
 
-        IMP_BOOL = true;      
+        // run checks 
+        if (IMP_BOOL){
+            (acceptances)[move_number] += 1;  
+            for (int i{4}; i<8; ++i){
+                if ( (Polymers)[0].chain[i]->coords != target[i-4] ){
+                    hitcheck = 0;
+                    break; 
+                }
+            }
+            if (hitcheck){
+                std::cout << "HIT!" << std::endl;
+                nhits += 1; 
+            }
+
+            // revert back to original structure. 
+            for (int i{4}; i<8; ++i){
+                loc_m = (Polymers)[0].chain[i]->coords;
+                (LATTICE)[lattice_index (old_cut[i-4], y, z)]->coords = loc_m;
+                (Polymers)[0].chain[i]->coords = old_cut[i-4]; 
+                (LATTICE)[ lattice_index (loc_m, y, z) ] = (LATTICE)[ lattice_index (old_cut[i-4], y, z) ];
+                (LATTICE)[ lattice_index (old_cut[i-4], y, z) ] = (Polymers)[0].chain[i]; 
+            }
+        }
+
+        IMP_BOOL = true;     
+        hitcheck = 1;  
     }
 
     dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
+    std::cout << "Number of hits = " << nhits << std::endl;
     
     if ( lattice_file_write != "__blank__" ) {
         dumpLATTICE ( &LATTICE, step_number+max_iter, y, z, lattice_file_write ); 

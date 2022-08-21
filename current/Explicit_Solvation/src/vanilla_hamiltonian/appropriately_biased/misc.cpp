@@ -5328,7 +5328,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 	// choose an index to regrow from 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
-	int m_index  = rng_uniform (1, deg_poly-2); 
+	int m_index  = rng_uniform (deg_poly/2, deg_poly-2); 
 	// std::cout << "m_index = " << m_index << std::endl;
 
 	std::array <double,4> c1_contacts = *contacts; 
@@ -5403,16 +5403,16 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 			return; 
 		}
 
-		// std::cout << "NEW ENERGY = " << frontflow_energy << std::endl << std::endl;
+		std::cout << "NEW ENERGY = " << frontflow_energy << std::endl << std::endl;
 
-		// CheckStructures (x, y, z, Polymers, LATTICE);
+		CheckStructures (x, y, z, Polymers, LATTICE);
 
 		backflow_energy = frontflow_energy; 
 		// std::cout << "BEGIN BACK FLOW! " << std::endl;
 		BackFlowFromHeadRegrowth (Polymers, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
-		// std::cout << "Backflow polymer = " << std::endl;
-		// (*Polymers)[p_index].printChainCoords(); 
+		std::cout << "Backflow polymer = " << std::endl;
+		(*Polymers)[p_index].printChainCoords(); 
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
@@ -6109,7 +6109,7 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of ChainRegrowth
+//             End of ChainRegrowth_UNBIASED
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -6120,7 +6120,7 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 
 	// choose an index to regrow from 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
-	int m_index  = rng_uniform (1, deg_poly-2); 
+	int m_index  = rng_uniform (deg_poly/2, deg_poly-2); 
 	// std::cout << "m_index = " << m_index << std::endl;
 
 	std::array <double,4> c1_contacts = *contacts; 
@@ -6180,9 +6180,11 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 		}
 
 		frontflow_energy = CalculateEnergy (Polymers, LATTICE, E, &c1_contacts, x, y, z); 
+		// std::cout << "frontflow_energy = " << frontflow_energy << std::endl;
 
 		// check acceptance criterion
 		double rng_acc = rng_uniform (0.0, 1.0); 
+		// std::cout << "rng = " << rng_acc << std::endl; 
 		
 		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) ){
 			
@@ -6203,12 +6205,13 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ];
 				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ] = (*Polymers)[p_index].chain[i]; 
 			}
-			
 		}
-
 	}
 	else {
-		
+
+		// std::cout << "Tail regrowth... " << std::endl;
+		// std::cout << "OLD ENERGY = " << *sysEnergy << std::endl << std::endl;
+		// get old_cut 
 		for ( int i{0}; i<m_index; ++i){
 			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords);
 		}
@@ -6235,9 +6238,11 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 		}
 
 		frontflow_energy = CalculateEnergy (Polymers, LATTICE, E, &c1_contacts, x, y, z); 
+		// std::cout << "frontflow_energy = " << frontflow_energy << std::endl;
 		
 		// check acceptance criterion 
 		double rng_acc = rng_uniform (0.0, 1.0); 
+		// std::cout << "rng = " << rng_acc << std::endl;
 
 		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) ){
 			
@@ -6284,9 +6289,16 @@ void HeadRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	// generate possible locations to jump to. 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
 
+	// std::cout << "ne list = "; 
+	// for ( std::array <int,3>& ne: ne_list){
+	//	print (ne, " -- ");
+	// }
+	// std::cout << std::endl;
+
 	// randomly select five of them 
 	int rint = rng_uniform (0, 25); 
-	
+	// std::cout << "rint = " << rint << "." << std::endl;
+	// std::cout << "suggested location = "; print (ne_list[rint]); 
 	// start attempting jumps 
 
 	if ( (*LATTICE)[ lattice_index (ne_list[rint], y, z) ]->ptype[0]=='s' ){
@@ -6329,9 +6341,16 @@ void TailRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	// generate possible locations to jump to. 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
 
+	// std::cout << "ne list = "; 
+	// for ( std::array <int,3>& ne: ne_list){
+		// print (ne, " -- ");
+	// }
+	// std::cout << std::endl;
+
 	// randomly select five of them 
 	int rint = rng_uniform (0, 25); 
-	
+	// std::cout << "rint = " << rint << "." << std::endl;
+	// std::cout << "suggested location = "; print (ne_list[rint]); 
 	// start attempting jumps 
 
 	if ( (*LATTICE)[ lattice_index (ne_list[rint], y, z) ]->ptype[0]=='s' ){

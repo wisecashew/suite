@@ -298,6 +298,18 @@ int main (int argc, char** argv) {
             dumpEnergy (sysEnergy, i, &contacts, efile);
         }
 
+
+        for (int i{4}; i<8; ++i){
+                if ( (Polymers)[0].chain[i]->coords != target[i-4] ){
+                    hitcheck = 0;
+                    break; 
+                }
+            }
+        if (hitcheck){
+            std::cout << "HIT!" << std::endl;
+            nhits += 1; 
+        }
+
         // run checks 
         if (IMP_BOOL){
             (acceptances)[move_number] += 1;  
@@ -328,7 +340,7 @@ int main (int argc, char** argv) {
 
     dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
     std::cout << "Number of hits = " << nhits << std::endl;
-    
+
     if ( lattice_file_write != "__blank__" ) {
         dumpLATTICE ( &LATTICE, step_number+max_iter, y, z, lattice_file_write ); 
     }

@@ -5602,21 +5602,52 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 	int block_counter       = 0; 
 	int idx_counter         = 0; 
+	int self_swap_idx       = -1; 
 
 	while ( idx_counter < 5 ){
 
 		if ( ne_list[idx_counter] == loc_m ){ 
-			energies[idx_counter]       = *frontflow_energy;
-			// boltzmann[idx_counter]      = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann                 += boltzmann[idx_counter]; 
+			// current position
+			energies[idx_counter]       = *frontflow_energy; 
 			contacts_store[idx_counter] = current_contacts;
+			block_counter += 1; 
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
-			energies [idx_counter] = 1e+6;
-			// boltzmann[idx_counter] = 0;
-			contacts_store[idx_counter] = {-1, -1, -1, -1}; 
-			block_counter += 1;   
+
+			for ( int u{0}; u<deg_poly-1; ++u ){
+				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ){
+					self_swap_idx = u; 
+					break; 
+				}
+			}
+
+			if ( self_swap_idx < m_index ){
+				// maintain current state 
+				energies[idx_counter] = *frontflow_energy; 
+				contacts_store[idx_counter] = *contacts; 
+				block_counter += 1; 
+			}
+			else {
+				// prep the swap 
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
+				(*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
+				
+				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
+				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
+				// get the energy
+				energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
+				contacts_store[idx_counter] = *contacts; 
+
+				// revert back to original structure 
+				(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
+				(*Polymers)[p_index].chain[m_index+1]->coords  = loc_m;
+				
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
+				(*LATTICE)[lattice_index(loc_m, y, z)]         = (*Polymers)[p_index].chain[m_index+1];
+			}
+			
 		}
 		else {
 			// prep the swap 
@@ -5750,20 +5781,50 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 	// start attempting jumps 
 	int idx_counter         = 0; 
+	int self_swap_idx 		= -1; 
 
 	while ( idx_counter < 5 ){
 
 		if ( ne_list[idx_counter] == loc_m ){
 			energies[idx_counter]       = *backflow_energy;
-			// boltzmann[idx_counter]      = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann                 += boltzmann[idx_counter]; 
 			contacts_store[idx_counter] = current_contacts;
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
-			energies [idx_counter] = 1e+6; 
-			boltzmann[idx_counter] = 0; 
-			contacts_store[idx_counter] = {-1, -1, -1, -1}; 
+
+			for ( int u{0}; u<deg_poly-1; ++u){
+				if ( (*Polymers)[p_index].chain[u]->coords == ne_list [idx_counter] ){
+					self_swap_idx = u; 
+					break; 
+				}
+			}
+
+			if ( self_swap_idx < m_index+1 ){
+				// maintain current state 
+				energies [idx_counter] = *backflow_energy; 
+				contacts_store[idx_counter] = current_contacts; 
+			}
+			else {
+				// prep the swap 
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
+				(*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
+				
+				// perform the swap 
+				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
+				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
+				
+				// get the energy
+				energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
+				contacts_store[idx_counter] = *contacts; 
+
+				// revert back to original structure 
+				(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
+				(*Polymers)[p_index].chain[m_index+1]->coords  = loc_m;
+				
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
+				(*LATTICE)[lattice_index(loc_m, y, z)]         = (*Polymers)[p_index].chain[m_index+1];
+			}
 		}
 		else {
 			// prep the swap 
@@ -5871,21 +5932,52 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	// start attempting jumps 
 	int block_counter       = 0; 
 	int idx_counter         = 0; 
+	int self_swap_idx       = 0; 
 
 	while ( idx_counter < 5 ){
 
 		if ( ne_list[idx_counter] == loc_m ){
 			energies[idx_counter]       = *frontflow_energy;
-			// boltzmann[idx_counter]      = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann                 += boltzmann[idx_counter]; 
 			contacts_store[idx_counter] = current_contacts;
+			block_counter += 1; 
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
-			energies [idx_counter] = 1e+6;
-			// boltzmann[idx_counter] = 0;
-			contacts_store[idx_counter] = {-1, -1, -1, -1}; 
-			block_counter += 1;  
+
+			for ( int u{0}; u<deg_poly-1; ++u){
+				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ){
+					self_swap_idx = u; 
+					break; 
+				}				
+			}
+
+			if ( self_swap_idx > m_index ){
+				energies[idx_counter] = *frontflow_energy; 
+				contacts_store[idx_counter] = *contacts; 
+				block_counter += 1; 		
+			}
+			else {
+				// prep the swap 
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
+				(*Polymers)[p_index].chain[m_index-1]->coords       = ne_list[idx_counter];
+				
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
+				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
+
+				// get the energy
+				energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
+				contacts_store[idx_counter] = *contacts; 
+
+				// revert back to original structure 
+				(*LATTICE) [lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
+				(*Polymers)[p_index].chain[m_index-1]->coords  = loc_m;
+				
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
+				(*LATTICE)[lattice_index(loc_m, y, z)]                   = (*Polymers)[p_index].chain[m_index-1];
+			}
+
 		}
 		else {
 			// prep the swap 
@@ -5898,8 +5990,6 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 			// get the energy
 			energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
-			// boltzmann[idx_counter] = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann  += boltzmann[idx_counter];  
 			contacts_store[idx_counter] = *contacts; 
 
 			// revert back to original structure 
@@ -6015,21 +6105,52 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 	ne_list[ne_idx]        = tmp; 
 
 	// start attempting jumps 
-	int idx_counter         = 0; 
+	int idx_counter         = 0 ; 
+	int self_swap_idx		= -1;
 
 	while ( idx_counter < 5 ){
 
 		if ( ne_list [idx_counter] == loc_m ){
 			energies[idx_counter]       = *backflow_energy;
-			// boltzmann[idx_counter]      = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann                 += boltzmann[idx_counter]; 
 			contacts_store[idx_counter] = current_contacts;
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
-			energies [idx_counter] = 1e+6; 
-			// boltzmann[idx_counter] = 0; 
-			contacts_store[idx_counter] = {-1, -1, -1, -1}; 
+			
+			for ( int u{0}; u<deg_poly-1; ++u){
+				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ){
+					self_swap_idx = u; 
+					break; 
+				}				
+			}
+
+			if ( self_swap_idx > m_index ){
+				energies[idx_counter] = *backflow_energy; 
+				contacts_store[idx_counter] = *contacts; 
+			}
+
+			else {
+				// prep the swap 
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
+				(*Polymers)[p_index].chain[m_index-1]->coords       = ne_list[idx_counter];
+				
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
+				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
+
+				// get the energy
+				energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
+				contacts_store[idx_counter] = *contacts; 
+
+				// revert back to original structure 
+				(*LATTICE) [lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
+				(*Polymers)[p_index].chain[m_index-1]->coords  = loc_m;
+				
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
+				(*LATTICE)[lattice_index(loc_m, y, z)]                   = (*Polymers)[p_index].chain[m_index-1];
+			}
+
 		}
 		else {
 			// prep the swap 
@@ -6042,8 +6163,6 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 			// get the energy
 			energies [idx_counter]       = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
-			// boltzmann[idx_counter]       = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann                  += boltzmann[idx_counter];  
 			contacts_store[idx_counter]  = *contacts; 
 
 			// revert back to original structure 

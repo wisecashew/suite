@@ -1,0 +1,3 @@
+All simulations have been sent...
+slurmstepd: error: *** JOB 195668 ON stellar-k09n1 CANCELLED AT 2022-08-23T00:39:01 DUE TO TIME LIMIT ***
+"wait" command filed with exit code 0.

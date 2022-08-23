@@ -1408,6 +1408,8 @@ bool checkForSolventMonomerOverlap(std::vector <Polymer>* Polymers, std::vector 
 
         	else {
         		std::cerr << "Something is wrong with the LATTICE map. Monomer unit lost. Something is fucked. " << std::endl;
+        		std::cerr << "Output from *Polymers: "; print (p->coords);
+        		std::cerr << "Output from *LATTICE: "; print ((*LATTICE)[ lattice_index (p->coords, y, z)]->coords);
         		exit(EXIT_FAILURE);
         	}
 
@@ -4302,7 +4304,7 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	int* move_number, int x, int y, int z){
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform (0, 2); 
+	int r     = 2; // rng_uniform (0, 2); 
 
 	switch (r) {
 
@@ -4346,291 +4348,6 @@ void PerturbSystem (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 //             End of PerturbSystem
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-void ReversePerturbation (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int y, int z, bool v, int move_number, \
-	std::pair <std::vector<std::array<int,3>>, std::vector<std::array<int,3>>>* memory3, \
-	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory2, \
-	int monomer_index, int back_or_front){
-
-	switch (move_number){
-		case (1):
-			if (v) {
-				printf("Reversing end rotations...\n");
-			}
-
-			// swap pointers 
-			// take the location from memory.first and put it back on lattice (which is a solvent)  
-			{
-				Particle* tmp = (*LATTICE)[lattice_index((*memory3).second[0], y, z)]; 
-
-				(*LATTICE)[ lattice_index((*memory3).second[0], y, z)] = (*LATTICE)[ lattice_index((*memory3).first[0], y, z)];
-				(*LATTICE)[ lattice_index((*memory3).second[0], y, z)]->coords = (*memory3).second[0]; 
-
-				(*LATTICE)[ lattice_index((*memory3).first[0], y, z)]  = tmp;  
-				(*LATTICE)[ lattice_index((*memory3).first[0], y, z)]->coords  = (*memory3).first[0]; 
-			}
-			break;
-
-		case (2):
-			if (v) {
-				printf("Reversing bond vibration...\n");
-			}
-
-			// swap pointers 
-			// take the location from memory.first and put it back on lattice 
-			{
-				Particle* tmp = (*LATTICE)[lattice_index((*memory3).second[0], y, z)]; 
-
-				(*LATTICE)[lattice_index((*memory3).second[0], y, z)] = (*LATTICE)[ lattice_index((*memory3).first[0], y, z)]; 
-				(*LATTICE)[lattice_index((*memory3).second[0], y, z)]->coords = (*memory3).second[0]; 
-
-				(*LATTICE)[ lattice_index((*memory3).first[0], y, z)] = tmp; 
-				(*LATTICE)[ lattice_index((*memory3).first[0], y, z)]->coords = (*memory3).first[0]; 
-				
-			}
-			break;
-
-		case (3):
-			if (v) {
-				printf("Reversing crank shaft...\n");
-			}
-			// swap pointers 
-			// take the location from memory.first and put it back on the lattice
-			{
-				Particle* tmp1 = (*LATTICE)[ lattice_index((*memory3).second[0], y, z)];
-				Particle* tmp2 = (*LATTICE)[ lattice_index((*memory3).second[1], y, z)];
-
-				(*LATTICE)[lattice_index((*memory3).second[0], y, z)] = (*LATTICE)[lattice_index((*memory3).first[0], y, z)]; 
-				(*LATTICE)[lattice_index((*memory3).second[0], y, z)]->coords = (*memory3).second[0]; 
-				(*LATTICE)[lattice_index((*memory3).second[1], y, z)] = (*LATTICE)[lattice_index((*memory3).first[1], y, z)]; 
-				(*LATTICE)[lattice_index((*memory3).second[1], y, z)]->coords = (*memory3).second[1]; 
-
-				(*LATTICE)[lattice_index((*memory3).first[0], y, z)]  = tmp1;
-				(*LATTICE)[lattice_index((*memory3).first[0], y, z)]->coords = (*memory3).first[0]; 
-				(*LATTICE)[lattice_index((*memory3).first[1], y, z)]  = tmp2; 
-				(*LATTICE)[lattice_index((*memory3).first[1], y, z)]->coords = (*memory3).first[1];
-
-			}
-			break;
-
-		case (4):
-			if (v) {
-				printf("Reversing reptation...\n");
-			}
-			// swap pointers 
-			// take the location from memory.first and put it back on the lattice
-			{	
-				int deg_poly = static_cast<int>((*memory3).first.size());
-				if ( (*memory3).first[0] != (*memory3).second[deg_poly-1]){
-
-					// switch up the solvent molecule
-					Particle* tmp = (*LATTICE)[ lattice_index((*memory3).second[deg_poly-1], y, z)]; // this is the monomer at the tail after perturbation 
-					(*LATTICE)[ lattice_index((*memory3).second[deg_poly-1], y, z)] = (*LATTICE)[ lattice_index((*memory3).first[0], y, z) ];
-					(*LATTICE)[ lattice_index((*memory3).second[deg_poly-1], y, z)]->coords = (*memory3).second[deg_poly-1]; 
-
-					for (int i{0}; i<deg_poly; ++i){
-						if ( i != deg_poly-1 ){
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ] = (*LATTICE)[ lattice_index((*memory3).second[i], y, z) ];
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ]->coords = (*memory3).first[i]; 
-						}
-						else {
-							
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ] = tmp;
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ]->coords = (*memory3).first[i]; 
-						}
-					} 
-				}
-
-				else {
-					Particle* tmp = (*LATTICE)[ lattice_index((*memory3).second[deg_poly-1], y, z)]; // this is the monomer at the tail after perturbation 
-					
-					for (int i{0}; i<deg_poly; ++i){
-						if ( i != deg_poly-1 ){
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ] = (*LATTICE)[ lattice_index((*memory3).second[i], y, z) ];
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ]->coords = (*memory3).first[i];
-						}
-						else {
-							
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ] = tmp; 
-							(*LATTICE)[ lattice_index((*memory3).first[i], y, z) ]->coords = (*memory3).first[i]; 
-						}
-					}
-				}
-			}
-			break;
-
-		case (5):
-			if (v) {
-				printf ("Reversing chain regrowth...\n");
-			}
-			{
-				// create a linked list 
-				// this will need to be done recursively
-
-				if (back_or_front == 0){
-					// change the locations of the pointers on the lattice... 
-					int l = static_cast<int>((*memory3).first.size()); 
-					for (int i{0}; i<l; ++i){
-						(*Polymers)[0].chain[i]->coords = (*memory3).first[i]; 
-					}
-					
-					// print ((*Polymers)[0].chain[0]->coords);
-					std::vector <std::vector<std::array<int,3>>> master_linked_list; 
-					std::vector <std::array<int,3>> link;
-					// std::cout << "Is it crapping out here?" << std::endl;
-					create_linked_list ( (*memory3).second, (*memory3).first, link, &master_linked_list, 1); 
-
-					/*
-					for ( auto& V: master_linked_list){
-						for (auto& v: V){
-							for ( int& i: v ){
-								std::cout << " | " << i; 
-							}
-							if ( v != V.back() ){
-								std::cout << " -->";
-							}
-						}
-						std::cout << std::endl;
-					}
-					*/
-					// for each link in the list, understand if it is a circular list (where monomer jump between spots) 
-					// or a straight list (where a monomer eventually jumps
-					// to a spot where a solvent is)
-					// std::cout << "master_linked_list.size() = " << master_linked_list.size() << std::endl;
-					for ( std::vector <std::array<int,3>>& linked_list: master_linked_list){
-						// std::cout << "printing out linked list... " << std::endl;
-						// print (linked_list);
-
-						if ( (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype[0] == 's' ){
-							// std::cout << "linked_list.back() = "; print (linked_list.back() );
-							// std::cout << "ptype is " << (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype;
-							// std::cout << "this is a straight link." << std::endl;
-							// transfer the solvent molecule to an appropriate location 
-							// print ( (*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords );
-							(*LATTICE)[ lattice_index (linked_list[0], y, z) ] = (*LATTICE)[ lattice_index (linked_list.back(), y, z) ];
-							(*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords = linked_list[0]; 
-
-						}
-						else {
-							// std::cout << "this is a circular link. do jack shit." << std::endl;
-							// std::cout << "linked_list.back() = "; print (linked_list.back() );
-							// std::cout << "ptype is " << (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype << std::endl;
-							// do jack shit 
-							// (*LATTICE)
-
-						}
-
-					}
-					// std::cout << "printing out polymers pointer..." << std::endl;
-					// print ((*Polymers)[0].chain[0]->coords);
-					for ( int i{0}; i<monomer_index; ++i) {
-						// std::cout << "Reassigning LATTICE." << std::endl;
-						
-						(*LATTICE)[ lattice_index ((*Polymers)[0].chain[i]->coords, y, z) ] = (*Polymers)[0].chain[i]; 
-
-					}
-				}
-				
-				else {
-
-					int deg_poly = static_cast<int>((*Polymers)[0].chain.size()); 
-					for (int i{monomer_index+1}; i<deg_poly; ++i){
-						(*Polymers)[0].chain[i]->coords = (*memory3).first[i-(monomer_index+1)]; 
-					}
-					// print ( (*Polymers)[0].chain[monomer_index+1]->coords); 
-					std::vector <std::vector<std::array<int,3>>> master_linked_list; 
-					std::vector <std::array<int,3>> link;
-					
-					// std::cout << "Is it crapping out here?" << std::endl;
-
-					create_linked_list ( (*memory3).second, (*memory3).first, link, &master_linked_list, 1); 
-					/*
-					for ( auto& V: master_linked_list){
-						for (auto& v: V){
-							for ( int& i: v ){
-								std::cout << " | " << i; 
-							}
-							if ( v != V.back() ){
-								std::cout << " -->";
-							}
-						}
-						std::cout << std::endl;
-					}
-					*/
-
-					// std::cout << "master_linked_list.size() = " << master_linked_list.size() << std::endl;
-
-					for ( std::vector <std::array<int,3>>& linked_list: master_linked_list){
-						// std::cout << "printing out linked list... " << std::endl;
-						// print (linked_list);
-
-						if ((*LATTICE)[ lattice_index (linked_list.back(), y, z ) ]->ptype[0] == 's' ){
-
-							// std::cout << "linked_list.back() = "; print (linked_list.back() );
-							// std::cout << "ptype is " << (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype;
-							// std::cout << "this is a straight link." << std::endl;
-							// transfer the solvent molecule to an appropriate location 
-							// print ( (*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords );
-							(*LATTICE)[ lattice_index (linked_list[0], y, z) ] = (*LATTICE)[ lattice_index (linked_list.back(), y, z) ];
-							(*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords = linked_list[0];
-							// std::cout << "type of linked_list[0] is " << (*LATTICE)[ lattice_index (linked_list[0], y, z) ]->ptype << std::endl;
-							// print ((*LATTICE)[ lattice_index (linked_list[0], y, z) ]->coords); 
-						}
-						else {
-							//std::cout << "this is a circular link. do jack shit." << std::endl;
-							//std::cout << "linked_list.back() = "; print (linked_list.back() );
-							// std::cout << "ptype is " << (*LATTICE)[ lattice_index( linked_list.back(), y, z ) ]->ptype << std::endl;
-							// do jack shit 
-							// (*LATTICE)
-
-						}
-					}
-					// std::cout << "printing out polymers pointer..." << std::endl;
-					// print ((*Polymers)[0].chain[monomer_index+1]->coords);
-					for ( int i{monomer_index+1}; i<deg_poly; ++i) {
-						// std::cout << "Reassigning LATTICE." << std::endl;
-						(*LATTICE)[ lattice_index ((*Polymers)[0].chain[i]->coords, y, z) ] = (*Polymers)[0].chain[i]; 
-					}
-				}
-			}
-			break;
-
-		case (6):
-			if (v) {
-				printf("Reversing a singular solvent flip...");
-			}
-			(*LATTICE)[ (*memory2).first[0][0] ]->orientation = (*memory2).first[0][1]; 
-			break; 
-
-		case (7):
-			if (v) {
-				printf("Reversing a singular monomer flip...");
-			}
-			(*LATTICE)[ lattice_index((*Polymers)[0].chain[ (*memory2).first[0][0]]->coords, y, z) ]->orientation = (*memory2).first[0][1]; 
-			break;
-
-		case (8):
-			if (v) {
-				printf("Reversing singular random flip...");
-			}
-			(*LATTICE)[ (*memory2).first[0][0] ]->orientation = (*memory2).first[0][1]; 
-			break; 
-
-		case (9):
-			if (v) {
-				printf("Reversing multiple monomer flips...");
-			}
-			for ( std::array<int,2>& a: (*memory2).first ){
-				(*LATTICE)[ lattice_index((*Polymers)[0].chain[ a[0] ]->coords, y, z) ]->orientation = a[1];
-			}
-			break; 
-
-	}
-
-	// (*Polymers)[0].ChainToConnectivityMap (); 
-
-	return; 
-}
 
 //============================================================
 //============================================================
@@ -5326,6 +5043,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int p_index, int x, int y, int z){
 
+	std::cout << "contacts = "; print(*contacts);
 	// choose an index to regrow from 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
 	int m_index  = rng_uniform (1, deg_poly-2); 
@@ -5363,7 +5081,7 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 	}
 	
 	if ( growth ){
-		// std::cout << "Head regrowth... " << std::endl;
+		std::cout << "Head regrowth... " << std::endl;
 		// std::cout << "OLD ENERGY = " << *sysEnergy << std::endl << std::endl;
 		// get old_cut 
 		for (int i {m_index+1}; i<deg_poly; ++i){
@@ -5379,9 +5097,9 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 		}
 
 		if ( old_cut == new_cut ){
-			// std::cout << "------------------------------------------------------------------------" << std::endl;
-			// std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN CONFIGURATION." << std::endl;
-			// std::cout << "------------------------------------------------------------------------" << std::endl << std::endl;
+			std::cout << "------------------------------------------------------------------------" << std::endl;
+			std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN CONFIGURATION." << std::endl;
+			std::cout << "------------------------------------------------------------------------" << std::endl << std::endl;
 			return; 
 		}
 
@@ -5390,29 +5108,43 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 			// revert back to the original state. 
 
 			for (int i{m_index+1}; i<deg_poly; ++i){
-				// std::cout << "Polymers.chain["<<i<<"]->coords = "; print((*Polymers)[p_index].chain[i]->coords);
-				// std::cout << "new_cut[i-m_index-1] = "; print(new_cut[i-m_index-1]); 
-				// std::cout << "old_cut[i-m_index-1] = "; print(old_cut[i-m_index-1]); 
+
+				// these are checks to avoid incorrectly doing monomer-monomer swaps and bypassing self-swaps 
+				if ( old_cut[i-m_index-1] == new_cut[i-m_index-1] ){
+					continue; 
+				}
+
+				std::cout << "Polymers.chain["<<i<<"]->coords = "; print((*Polymers)[p_index].chain[i]->coords);
+				std::cout << "new_cut[i-m_index-1] = "; print(new_cut[i-m_index-1]); 
+				std::cout << "old_cut[i-m_index-1] = "; print(old_cut[i-m_index-1]); 
 				(*Polymers)[p_index].chain[i]->coords = old_cut[i-m_index-1]; 
 				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ]->coords = new_cut[i-m_index-1];
 
 				(*LATTICE)[ lattice_index (new_cut[i-m_index-1], y, z) ] = (*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ];
 				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ] = (*Polymers)[p_index].chain[i]; 
+
+				if ( (*LATTICE)[lattice_index(new_cut[i-m_index-1], y, z) ]->ptype[0] == 'm' ){
+					new_cut[i-m_index] = new_cut[i-m_index-1];
+				}	
+			
 			}
 
 			return; 
 		}
 
-		// std::cout << "NEW ENERGY = " << frontflow_energy << std::endl << std::endl;
+		std::cout << "NEW ENERGY = " << frontflow_energy << std::endl << std::endl;
+		std::cout << "Suggested configuration after move is " << std::endl;
+		(*Polymers)[p_index].printChainCoords(); 
 
-		// CheckStructures (x, y, z, Polymers, LATTICE);
+
+		CheckStructures (x, y, z, Polymers, LATTICE);
 
 		backflow_energy = frontflow_energy; 
 		// std::cout << "BEGIN BACK FLOW! " << std::endl;
 		BackFlowFromHeadRegrowth (Polymers, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
-		// std::cout << "Backflow polymer = " << std::endl;
-		// (*Polymers)[p_index].printChainCoords(); 
+		std::cout << "Backflow polymer = " << std::endl;
+		(*Polymers)[p_index].printChainCoords(); 
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
@@ -5422,47 +5154,38 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 			exit(EXIT_FAILURE);
 		}
 
-
-		// CheckStructures (x, y, z, Polymers, LATTICE);
+		CheckStructures (x, y, z, Polymers, LATTICE);
 
 		// check acceptance criterion
 		double rng_acc = rng_uniform (0.0, 1.0); 
 
-		// std::cout << "rng_acc = " << rng_acc << std::endl; 
-		// std::cout << "exp(-beta*(E(n)-E(o))) = " << std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) << std::endl;
-		// std::cout << "prob_n_to_o = " << prob_n_to_o << ", prob_o_to_n = " << prob_o_to_n << "." << std::endl;
-		// std::cout << "prob_acc = " <<std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n << std::endl;
+		std::cout << "rng_acc = " << rng_acc << std::endl; 
+		std::cout << "exp(-beta*(E(n)-E(o))) = " << std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) << std::endl;
+		std::cout << "prob_n_to_o = " << prob_n_to_o << ", prob_o_to_n = " << prob_o_to_n << "." << std::endl;
+		std::cout << "prob_acc = " <<std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n << std::endl;
 		
 		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy- *sysEnergy)) * prob_n_to_o/prob_o_to_n ){
-			// accept new cut 
-			// perform swaps 
-			for (int i{m_index+1}; i<deg_poly; ++i){
-				// std::cout << "Polymers.chain["<<i<<"]->coords = "; print((*Polymers)[p_index].chain[i-m_index-1]->coords);
-				// std::cout << "new_cut[i-m_index-1] = "; print(new_cut[i-m_index-1]); 
-				// std::cout << "old_cut[i-m_index-1] = "; print(old_cut[i-m_index-1]); 
-				(*Polymers)[p_index].chain[i]->coords = new_cut[i-m_index-1]; 
-				(*LATTICE)[ lattice_index (new_cut[i-m_index-1], y, z) ]->coords = old_cut[i-m_index-1];
 
-				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ] = (*LATTICE)[ lattice_index (new_cut[i-m_index-1], y, z) ];
-				(*LATTICE)[ lattice_index (new_cut[i-m_index-1], y, z) ] = (*Polymers)[p_index].chain[i]; 
-			}
+			acceptance_after_head_regrowth (LATTICE, &old_cut, &new_cut, y, z); 
 			*sysEnergy = frontflow_energy; 
 			*contacts  = c1_contacts;
+
 		}
+
 		else {
 			*IMP_BOOL = false; 
 		}
 
-		// std::cout << "Final configuration is " << std::endl;
-		// (*Polymers)[p_index].printChainCoords(); 
+		std::cout << "Final configuration after move is " << std::endl;
+		(*Polymers)[p_index].printChainCoords(); 
 
-		// std::cout << "Checking structures... " << std::endl;
-		// CheckStructures (x, y, z, Polymers, LATTICE);
+		std::cout << "Checking structures... " << std::endl;
+		CheckStructures (x, y, z, Polymers, LATTICE);
 		// exit (EXIT_SUCCESS);
 
 	}
 	else {
-		// std::cout << "Tail regrowth... " << std::endl;
+		std::cout << "Tail regrowth... " << std::endl;
 		// std::cout << "OLD ENERGY = " << *sysEnergy << std::endl << std::endl; 
 		// get old cut 
 		for ( int i{0}; i<m_index; ++i){
@@ -5477,43 +5200,57 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 		}
 
 		if ( old_cut == new_cut ){
-			// std::cout << "------------------------------------------------------------------------"  << std::endl;
-			// std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN CONFIGURATION." << std::endl;
-			// std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
+			std::cout << "------------------------------------------------------------------------"  << std::endl;
+			std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN."               << std::endl;
+			std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
 			return; 
 		}
 
 		
 		if ( !(*IMP_BOOL) ){
 			// std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
+			// revert back to the original state 
+			
 			for (int i{0}; i<m_index; ++i){
 
-				// std::cout << "Polymers.chain[" << m_index-1-i << "]->coords = "; print((*Polymers)[p_index].chain[m_index-1-i]->coords); 
-				// std::cout << "new_cut[" << m_index-1-i << "] = "; print(new_cut[m_index-1-i]); 
-				// std::cout << "old_cut[" << m_index-1-i << "] = "; print(old_cut[m_index-1-i]); 
+				// these are checks to avoid incorrectly doing monomer-monomer swaps and bypassing self-swaps 
+				if ( old_cut[m_index-1-i] == new_cut[m_index-1-i] ){
+					continue; 
+				}
 
+				std::cout << "Polymers.chain[" << m_index-1-i << "]->coords = "; print((*Polymers)[p_index].chain[m_index-1-i]->coords); 
+				std::cout << "new_cut[" << m_index-1-i << "] = "; print(new_cut[m_index-1-i]); 
+				std::cout << "old_cut[" << m_index-1-i << "] = "; print(old_cut[m_index-1-i]); 
 				(*Polymers)[p_index].chain[m_index-1-i]->coords = old_cut[m_index-1-i]; 
 				(*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ]->coords = new_cut[m_index-1-i]; 
+
 				(*LATTICE)[ lattice_index (new_cut[m_index-1-i], y, z) ] = (*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ];
 				(*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ] = (*Polymers)[p_index].chain[m_index-1-i]; 
 				
+				if ( (*LATTICE)[lattice_index(new_cut[m_index-1-i], y, z) ]->ptype[0] == 'm' ){
+					new_cut[m_index-2-i] = new_cut[m_index-1-i];
+				}
+
 			}
 
 			return; 
 		}
 
-		// CheckStructures (x, y, z, Polymers, LATTICE);
+		CheckStructures (x, y, z, Polymers, LATTICE);
 
-		// std::cout << "NEW ENERGY = " << frontflow_energy << std::endl << std::endl;
+		std::cout << "Suggested configuration after move is " << std::endl;
+		(*Polymers)[p_index].printChainCoords(); 
+
+		std::cout << "NEW ENERGY = " << frontflow_energy << std::endl << std::endl;
 
 		backflow_energy = frontflow_energy; 
 
-		// std::cout << "BEGIN BACK FLOW! " << std::endl;
+		std::cout << "BEGIN BACK FLOW! " << std::endl;
 
 		BackFlowFromTailRegrowth (Polymers, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
-		// std::cout << "Backflow polymer..." << std::endl;
-		// (*Polymers)[p_index].printChainCoords(); 
+		std::cout << "Backflow polymer..." << std::endl;
+		(*Polymers)[p_index].printChainCoords(); 
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
@@ -5523,31 +5260,44 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 			exit(EXIT_FAILURE);
 		}
 
-		// CheckStructures (x, y, z, Polymers, LATTICE);
+		CheckStructures (x, y, z, Polymers, LATTICE);
 
 		// check acceptance criterion 
 		double rng_acc = rng_uniform (0.0, 1.0); 
 
-		// std::cout << "rng_acc = " << rng_acc << std::endl; 
-		// std::cout << "exp(-beta*(E(n)-E(o))) = " << std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) << std::endl;
-		// std::cout << "prob_n_to_o = " << prob_n_to_o << ", prob_o_to_n = " << prob_o_to_n << "." << std::endl;
-		// std::cout << "prob_acc = " <<std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n << std::endl;
+		std::cout << "rng_acc = " << rng_acc << std::endl; 
+		std::cout << "exp(-beta*(E(n)-E(o))) = " << std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) << std::endl;
+		std::cout << "prob_n_to_o = " << prob_n_to_o << ", prob_o_to_n = " << prob_o_to_n << "." << std::endl;
+		std::cout << "prob_acc = " <<std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n << std::endl;
 		
 		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy- *sysEnergy)) * prob_n_to_o/prob_o_to_n ){
 			// accept new cut 
 			// perform swaps 
+			acceptance_after_tail_regrowth (LATTICE, &old_cut, &new_cut, y, z); 
+			/*
 			for (int i{0}; i<m_index; ++i){
 
-				// std::cout << "Polymers.chain[" << m_index-1-i << "]->coords = "; print((*Polymers)[p_index].chain[m_index-1-i]->coords); 
-				// std::cout << "new_cut[" << m_index-1-i << "] = "; print(new_cut[m_index-1-i]); 
-				// std::cout << "old_cut[" << m_index-1-i << "] = "; print(old_cut[m_index-1-i]); 
+				if ( old_cut[m_index-1-i] == new_cut[m_index-1-i] ){
+					continue; 
+				}
 
+				std::cout << "Polymers.chain[" << m_index-1-i << "]->coords = "; print((*Polymers)[p_index].chain[m_index-1-i]->coords); 
+				std::cout << "new_cut[" << m_index-1-i << "] = "; print(new_cut[m_index-1-i]); 
+				std::cout << "old_cut[" << m_index-1-i << "] = "; print(old_cut[m_index-1-i]); 
+
+				
 				(*Polymers)[p_index].chain[m_index-1-i]->coords = new_cut[m_index-1-i]; 
 				(*LATTICE)[ lattice_index (new_cut[m_index-1-i], y, z) ]->coords = old_cut[m_index-1-i]; 
+				
 				(*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ] = (*LATTICE)[ lattice_index (new_cut[m_index-1-i], y, z) ];
 				(*LATTICE)[ lattice_index (new_cut[m_index-1-i], y, z) ] = (*Polymers)[p_index].chain[m_index-1-i]; 
+
+				if ( (*LATTICE)[lattice_index(old_cut[m_index-1-i], y, z) ]->ptype[0] == 'm' ){
+					old_cut[m_index-2-i] = old_cut[m_index-1-i];
+				}
 				
 			}
+			*/
 			*sysEnergy = frontflow_energy; 
 			*contacts  = c1_contacts;
 		}
@@ -5556,6 +5306,9 @@ void ChainRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 		}
 
 		// exit (EXIT_SUCCESS);
+
+		std::cout << "Final configuration after move is " << std::endl;
+		(*Polymers)[p_index].printChainCoords(); 
 
 	}
 
@@ -5574,8 +5327,9 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 		return; 
 	}
 
-	std::array <double,4> current_contacts = *contacts; 
+	std::cout << "m_index = " << m_index << std::endl;
 	// generate an array for energies 
+	std::array <double,4> current_contacts = *contacts; 
 	std::array <double,5> energies; 
 	std::array <std::array<double,4>,5> contacts_store; 
 	std::array <double,5> boltzmann; 
@@ -5591,12 +5345,11 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
 
-	// std::cout << "ne_list is "; 
-	// for (std::array <int,3>& n: ne_list){
-	//	print(n, " -- ");
-	// }
-	// std::cout << std::endl;
-	
+	std::cout << "shuffled ne_list is "; 
+	for (std::array <int,3>& n: ne_list){
+		print(n, " : ");
+	}
+	std::cout << std::endl;
 	
 	// start attempting jumps 
 
@@ -5604,7 +5357,10 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	int idx_counter         = 0; 
 	int self_swap_idx       = -1; 
 
+
 	while ( idx_counter < 5 ){
+
+		std::cout << "ptype = " << (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype << std::endl;
 
 		if ( ne_list[idx_counter] == loc_m ){ 
 			// current position
@@ -5615,17 +5371,27 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
 
-			for ( int u{0}; u<deg_poly-1; ++u ){
+			// check which region of the polymer the swap is taking place 
+
+			for ( int u{0}; u<deg_poly; ++u ){
 				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ){
 					self_swap_idx = u; 
 					break; 
 				}
 			}
 
+			// if it is with other head units, do the swap 
+			// if not, discourage it 
+
+			std::cout << "self_swap_idx = " << self_swap_idx << std::endl; 
 			if ( self_swap_idx < m_index ){
-				// maintain current state 
-				energies[idx_counter] = *frontflow_energy; 
-				contacts_store[idx_counter] = *contacts; 
+				// maintain current state, and sample another state 
+				// maintain_idx.push_back(idx_counter); 
+				std::cout << "maintain current state..." << std::endl;
+				std::cout << "You have run into an undoable swap. " << std::endl; 
+				std::cout << "Selected position is "; print (ne_list[idx_counter]);
+				energies[idx_counter] = 1e+08; // very unfavorable state 
+				contacts_store[idx_counter] = {-1,-1,-1,-1}; 
 				block_counter += 1; 
 			}
 			else {
@@ -5633,8 +5399,10 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 				(*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
 				
+				// perform the swap (since coords were changed, this swap works)
 				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
+
 				// get the energy
 				energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
 				contacts_store[idx_counter] = *contacts; 
@@ -5660,8 +5428,6 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 			// get the energy
 			energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
-			// boltzmann[idx_counter] = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann  += boltzmann[idx_counter];  
 			contacts_store[idx_counter] = *contacts; 
 
 			// revert back to original structure 
@@ -5683,22 +5449,23 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	}
 
 	// now that i have all the energies, and boltzmann weights, i can choose a configuration 
-	// std::cout << "Energies are "; print(energies); 
+	std::cout << "Energies are "; print(energies); 
 
 	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
-	// std::cout << "Emin = " << Emin << std::endl; 
+	std::cout << "Emin = " << Emin << std::endl; 
 
 	for (int i{0}; i<5; ++i){
 		boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
 		rboltzmann  += boltzmann[i]; 
 	}
 
-	// std::cout << "Boltzmann weights are: "; print(boltzmann); 
+	std::cout << "Boltzmann weights are: "; print(boltzmann); 
 	double rng_acc = rng_uniform (0.0, 1.0); 
 	double rsum    = 0; 
 	int    e_idx   = 0; 
-	// std::cout << "normalization = " << rboltzmann << std::endl;
-	// std::cout << "rng = " << rng_acc << std::endl;
+	
+	std::cout << "normalization = " << rboltzmann << std::endl;
+	std::cout << "rng = " << rng_acc << std::endl;
 
 	for (int j{0}; j<5; ++j){
 		rsum += boltzmann[j]/rboltzmann; 
@@ -5713,22 +5480,25 @@ void HeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	*frontflow_energy = energies[e_idx];
 	*contacts         = contacts_store [e_idx]; 
 
-	// std::cout << "e_idx = " << e_idx << std::endl;
-	// std::cout << "frontflow_energy is " << *frontflow_energy << std::endl; 
-	// std::cout << "position chosen = "; print (ne_list[ e_idx ]);
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << "p(o->n) = " << *prob_o_to_n << std::endl;
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << std::endl;
+	std::cout << "e_idx = " << e_idx << std::endl;
+	// std::cout << "maintain_idx = "; print(maintain_idx);
+	std::cout << "frontflow_energy is " << *frontflow_energy << std::endl; 
+	std::cout << "position chosen = "; print (ne_list[ e_idx ]);
+	std::cout << "------------------------------" << std::endl;
+	std::cout << "p(o->n) = " << *prob_o_to_n << std::endl;
+	std::cout << "------------------------------" << std::endl;
+	std::cout << std::endl;
 
-	// do the swap again 
+
+	// do the swap again
 	(*LATTICE)[lattice_index(ne_list[e_idx], y, z)]->coords = loc_m;
 	(*Polymers)[p_index].chain[m_index+1]->coords           = ne_list[e_idx];
-	
+
 	// perform the swap (since coords were changed, this swap works)
 	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[e_idx], y, z)];
 	(*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
+	// else { do nothing and maintain structure, because suggested index is in the maintain index vector }
 	HeadRegrowth (Polymers, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
 
 	return; 
@@ -5747,11 +5517,14 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 		return; 
 	}
 
-	std::array <double,4> current_contacts = *contacts; 
+	std::cout << "m_index = " << m_index << std::endl;
+	
 	// generate an array for energies 
+	
 	std::array <double,5> energies; 
-	std::array <std::array<double,4>,5> contacts_store; 
 	std::array <double,5> boltzmann; 
+	std::array <double,4> current_contacts = *contacts; 
+	std::array <std::array<double,4>,5> contacts_store; 
 
 	double rboltzmann = 0; // running sum for boltzmann weights 
 
@@ -5766,16 +5539,15 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[recursion_depth]) - ne_list.begin() ; 
 
-	// crit_idx = 1; 
 	std::array <int,3> tmp = ne_list[0]; 
 	ne_list[0]             = ne_list[ne_idx];
 	ne_list[ne_idx]        = tmp; 
 
-	// std::cout << "ne_list is "; 
-	// for (std::array <int,3>& n: ne_list){
-		// print(n, ", ");
-	// }
-	// std::cout << std::endl;
+	std::cout << "shuffled ne_list is "; 
+	for (std::array <int,3>& n: ne_list){
+		print(n, ", ");
+	}
+	std::cout << std::endl;
 
 	// i now have a vector which has the back peddling step at position index 0 
 
@@ -5784,25 +5556,31 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 	int self_swap_idx 		= -1; 
 
 	while ( idx_counter < 5 ){
-
+		std::cout << "Suggested location = "; print(ne_list[idx_counter]);
 		if ( ne_list[idx_counter] == loc_m ){
 			energies[idx_counter]       = *backflow_energy;
 			contacts_store[idx_counter] = current_contacts;
+			std::cout << "current_contacts = "; print(current_contacts); 
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
 
-			for ( int u{0}; u<deg_poly-1; ++u){
+			for ( int u{0}; u<deg_poly; ++u){
 				if ( (*Polymers)[p_index].chain[u]->coords == ne_list [idx_counter] ){
 					self_swap_idx = u; 
+					std::cout << "selfswap = " << self_swap_idx << ", u = " << u << std::endl;
 					break; 
 				}
 			}
 
-			if ( self_swap_idx < m_index+1 ){
+			if ( self_swap_idx < m_index ){
 				// maintain current state 
-				energies [idx_counter] = *backflow_energy; 
-				contacts_store[idx_counter] = current_contacts; 
+				std::cout << "self_swap_idx = " << self_swap_idx << std::endl;
+				std::cout << "maintain current state..." << std::endl;
+				std::cout << "Run into an undoable swap during backflow. " << std::endl; 
+				std::cout << "Selected position is "; print (ne_list[idx_counter]);
+				energies [idx_counter] = 1e+08; 
+				contacts_store[idx_counter] = {-1,-1,-1,-1}; 
 			}
 			else {
 				// prep the swap 
@@ -5816,6 +5594,7 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 				// get the energy
 				energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
 				contacts_store[idx_counter] = *contacts; 
+				std::cout << "current_contacts = "; print(current_contacts); 
 
 				// revert back to original structure 
 				(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
@@ -5837,9 +5616,8 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 			// get the energy 
 			energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
-			// boltzmann[idx_counter] = std::exp (-1/temperature*energies[idx_counter]);
-			// rboltzmann  += boltzmann[idx_counter];  
 			contacts_store [idx_counter] = *contacts;
+			std::cout << "current_contacts = "; print(current_contacts); 
 
 			// revert back to original structure 
 			(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
@@ -5854,39 +5632,37 @@ void BackFlowFromHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 	}
 
-	// std::cout << "Energies are "; print(energies); 
-
+	std::cout << "Energies are "; print(energies); 
 	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
-	// std::cout << "Emin = " << Emin << std::endl; 
+	std::cout << "Emin = " << Emin << std::endl; 
 
 	for (int i{0}; i<5; ++i){
 		boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
 		rboltzmann  += boltzmann[i]; 
 	}
 
-
-	// std::cout << "Boltzmann weights are: "; print(boltzmann); 
-	// std::cout << "normalization = " << rboltzmann << std::endl;
+	std::cout << "Boltzmann weights are: "; print(boltzmann); 
+	std::cout << "normalization = " << rboltzmann << std::endl;
 
 	*prob_n_to_o     = (*prob_n_to_o)*boltzmann[0]/rboltzmann;
 	*backflow_energy = energies[0]; 
 	*contacts        = contacts_store [0];
 
-	// std::cout << "position chosen = "; print (ne_list[0]);
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
-	// std::cout << "------------------------------" << std::endl;
+	std::cout << "position chosen = "; print (ne_list[0]);
+	std::cout << "------------------------------" << std::endl;
+	std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
+	std::cout << "------------------------------" << std::endl;
 
-	
-	// do the swap again to the right positions 
 
+	// do the swap again
 	(*LATTICE)[lattice_index(ne_list[0], y, z)]->coords     = loc_m;
 	(*Polymers)[p_index].chain[m_index+1]->coords           = ne_list[0];
-	
+
 	// perform the swap (since coords were changed, this swap works)
 	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[0], y, z)];
-	(*LATTICE)[ lattice_index (ne_list[0], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
+	(*LATTICE)[ lattice_index (ne_list[0], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
+	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
 	BackFlowFromHeadRegrowth (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
 
 	return; 
@@ -5905,6 +5681,7 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 		return;
 	}
 
+	std::cout << "m_index = " << m_index << std::endl; 
 	// generate an array for energies 
 	std::array <double,4> current_contacts = *contacts; 
 	std::array <double,5> energies; 
@@ -5922,19 +5699,21 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
 
-	// std::cout << "shuffled ne_list is "; 
-	// for (std::array <int,3>& n: ne_list){
-		// print(n, ", ");
-	// }
-	// std::cout << std::endl;
+	std::cout << "shuffled ne_list is "; 
+	for (std::array <int,3>& n: ne_list){
+		print(n, " : ");
+	}
+	std::cout << std::endl;
 	
 
 	// start attempting jumps 
 	int block_counter       = 0; 
 	int idx_counter         = 0; 
-	int self_swap_idx       = 0; 
+	int self_swap_idx       = -1; 
 
 	while ( idx_counter < 5 ){
+
+		std::cout << "ptype = " << (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype << std::endl;
 
 		if ( ne_list[idx_counter] == loc_m ){
 			energies[idx_counter]       = *frontflow_energy;
@@ -5944,17 +5723,26 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
 
-			for ( int u{0}; u<deg_poly-1; ++u){
+			// check which region of the polymer the swap is taking place 
+
+			for ( int u{0}; u<deg_poly; ++u){
 				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ){
 					self_swap_idx = u; 
 					break; 
 				}				
 			}
 
+			// if it is with other tail units, do the swap 
+			// if not, discourage it 
+
+			std::cout << "self_swap_idx = " << self_swap_idx << std::endl; 
 			if ( self_swap_idx > m_index ){
-				energies[idx_counter] = *frontflow_energy; 
-				contacts_store[idx_counter] = *contacts; 
-				block_counter += 1; 		
+				std::cout << "maintain current state..." << std::endl;
+				std::cout << "You have run into an undoable swap. " << std::endl; 
+				std::cout << "Selected position is "; print (ne_list[idx_counter]);	
+				energies[idx_counter] = 1e+08; 
+				contacts_store[idx_counter] = {-1,-1,-1,-1}; 
+				block_counter += 1; 
 			}
 			else {
 				// prep the swap 
@@ -5971,7 +5759,7 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 
 				// revert back to original structure 
 				(*LATTICE) [lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
-				(*Polymers)[p_index].chain[m_index-1]->coords  = loc_m;
+				(*Polymers)[p_index].chain[m_index-1]->coords   = loc_m;
 				
 				// perform the swap (since coords were changed, this swap works)
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
@@ -6011,23 +5799,22 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	}
 
 	// now that i have all the energies, and boltzmann weights, i can choose a configuration 
-	// std::cout << "Energies are "; print(energies); 
+	std::cout << "Energies are "; print(energies); 
 
 	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
-	// std::cout << "Emin = " << Emin << std::endl; 
+	std::cout << "Emin = " << Emin << std::endl; 
 
 	for (int i{0}; i<5; ++i){
 		boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
 		rboltzmann  += boltzmann[i]; 
 	}
 
-	// std::cout << "Boltzmann weights are: "; print(boltzmann); 
+	std::cout << "Boltzmann weights are: "; print(boltzmann); 
 	double rng_acc = rng_uniform (0.0, 1.0); 
 	double rsum    = 0; 
 	int e_idx      = 0; 
-	// std::cout << "normalization = " << rboltzmann << std::endl;
-	// std::cout << "log(nomalization) = " << std::log10(rboltzmann) << std::endl;
-	// std::cout << "rng = " << rng_acc << std::endl;
+	std::cout << "normalization = " << rboltzmann << std::endl;
+	std::cout << "rng = " << rng_acc << std::endl;
 
 	for (int j{0}; j<5; ++j){
 		rsum += boltzmann[j]/rboltzmann; 
@@ -6042,22 +5829,26 @@ void TailRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* LAT
 	*frontflow_energy = energies[e_idx];
 	*contacts         = contacts_store [e_idx];
 
-	// std::cout << "e_idx = " << e_idx << std::endl;
-	// std::cout << "frontflow_energy is " << *frontflow_energy << std::endl; 
-	// std::cout << "position chosen = "; print (ne_list[e_idx]);
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << "p(o->n) = " << *prob_o_to_n << std::endl;
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << std::endl; 
+	std::cout << "e_idx = " << e_idx << std::endl;
+	std::cout << "frontflow_energy is " << *frontflow_energy << std::endl; 
+	std::cout << "position chosen = "; print (ne_list[e_idx]);
+	std::cout << "------------------------------" << std::endl;
+	std::cout << "p(o->n) = " << *prob_o_to_n << std::endl;
+	std::cout << "------------------------------" << std::endl;
+	std::cout << std::endl; 
 
-	// do the swap again 
+	// if { e_idx is not in the maintain index vector, perform the swap}
+		
+	// do the swap again 	
 	(*LATTICE)[lattice_index(ne_list[e_idx], y, z)]->coords = loc_m;
 	(*Polymers)[p_index].chain[m_index-1]->coords           = ne_list[e_idx];
 	
 	// perform the swap (since coords were changed, this swap works)
 	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[e_idx], y, z)];
 	(*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
+	
 
+	// else { do nothing and maintain structure, because the suggested index is in the the maintain index vector }
 	TailRegrowth (Polymers, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
 
 	return; 
@@ -6075,15 +5866,18 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 		return; 
 	}
 
-	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; 
-
+	std::cout << "m_index = " << m_index << std::endl;
+	
 	// generate an array for energies 
-	std::array <double,4> current_contacts = *contacts;
+	
 	std::array <double,5> energies; 
 	std::array <double,5> boltzmann; 
+	std::array <double,4> current_contacts = *contacts;
 	std::array <std::array<double,4>,5> contacts_store; 
 
 	double rboltzmann = 0; // running sum for boltzmann weights 
+
+	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; 
 
 	// generate possible locations to jump to 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
@@ -6093,40 +5887,50 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 
 	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[m_index-1]) - ne_list.begin() ; 
 
-	if (ne_idx == 26){
-		std::cout << "Index out of bounds. Something is fucked." << std::endl;
-		exit(EXIT_FAILURE);
-	}
-
 	// make sure old_cut is present at position 0 
 	// crit_idx = 1; 
 	std::array <int,3> tmp = ne_list[0]; 
 	ne_list[0]             = ne_list[ne_idx];
 	ne_list[ne_idx]        = tmp; 
 
+	std::cout << "shuffled ne_list is "; 
+	for (std::array <int,3>& n: ne_list){
+		print(n, ", ");
+	}
+	std::cout << std::endl;
+
+	// i now have a vector which has the back peddling position at position index 0 
+
 	// start attempting jumps 
 	int idx_counter         = 0 ; 
 	int self_swap_idx		= -1;
 
 	while ( idx_counter < 5 ){
-
+		std::cout << "Suggested location = "; print(ne_list[idx_counter]);
 		if ( ne_list [idx_counter] == loc_m ){
 			energies[idx_counter]       = *backflow_energy;
 			contacts_store[idx_counter] = current_contacts;
+			std::cout << "current_contacts = "; print(current_contacts); 
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
 			
-			for ( int u{0}; u<deg_poly-1; ++u){
+			for ( int u{0}; u<deg_poly; ++u){
 				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ){
 					self_swap_idx = u; 
+					std::cout << "selfswap = " << self_swap_idx << ", u = " << u << std::endl;
 					break; 
 				}				
 			}
 
 			if ( self_swap_idx > m_index ){
-				energies[idx_counter] = *backflow_energy; 
-				contacts_store[idx_counter] = *contacts; 
+				// maintain current state
+				std::cout << "self_swap_idx = " << self_swap_idx << std::endl;
+				std::cout << "maintain current state..." << std::endl;
+				std::cout << "Run into an undoable swap during backflow. " << std::endl; 
+				std::cout << "Selected position is "; print (ne_list[idx_counter]);
+				energies[idx_counter] = 1e+08; 
+				contacts_store[idx_counter] = {-1,-1,-1,-1}; 
 			}
 
 			else {
@@ -6141,6 +5945,7 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 				// get the energy
 				energies [idx_counter] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
 				contacts_store[idx_counter] = *contacts; 
+				std::cout << "current_contacts = "; print(current_contacts); 
 
 				// revert back to original structure 
 				(*LATTICE) [lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
@@ -6164,6 +5969,7 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 			// get the energy
 			energies [idx_counter]       = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
 			contacts_store[idx_counter]  = *contacts; 
+			std::cout << "current_contacts = "; print(current_contacts); 
 
 			// revert back to original structure 
 			(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
@@ -6178,31 +5984,29 @@ void BackFlowFromTailRegrowth (std::vector <Polymer>* Polymers, std::vector <Par
 		
 	}
 
-	// std::cout << "Energies are "; print(energies); 
-
+	std::cout << "Energies are "; print(energies); 
 	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
-	// std::cout << "Emin = " << Emin << std::endl; 
+	std::cout << "Emin = " << Emin << std::endl; 
 
 	for (int i{0}; i<5; ++i){
 		boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
 		rboltzmann  += boltzmann[i]; 
 	}
 
-	// std::cout << "Boltzmann weights are: "; print(boltzmann); 
-	// std::cout << "normalization = " << rboltzmann << std::endl;
+	std::cout << "Boltzmann weights are: "; print(boltzmann); 
+	std::cout << "normalization = " << rboltzmann << std::endl;
 	
 	*prob_n_to_o    *= boltzmann[0]/rboltzmann;
 	*backflow_energy = energies[0]; 
 	*contacts        = contacts_store[0];
 
-	// std::cout << "position chosen = "; print (ne_list[0]);
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
-	// std::cout << "------------------------------" << std::endl;
+	std::cout << "position chosen = "; print (ne_list[0]);
+	std::cout << "------------------------------" << std::endl;
+	std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
+	std::cout << "------------------------------" << std::endl;
 
 
 	// do the swap again to the positions dictated by old_cut  
-
 	(*LATTICE)[lattice_index(ne_list[0], y, z)]->coords     = loc_m;
 	(*Polymers)[p_index].chain[m_index-1]->coords           = ne_list[0];
 	
@@ -6529,6 +6333,177 @@ void PerturbSystem_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 	return; 
 
 }
+
+
+
+// ##################################################
+// constructs polymer and lattice data structure correctly 
+
+void acceptance_after_head_regrowth (std::vector <Particle*>* LATTICE, \
+	std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut, int y, int z){
+
+
+	std::vector< std::vector<std::array<int,3>>> master_linked_list;
+	std::vector <std::array<int,3>> link; 
+
+
+	create_linked_list (*old_cut, *new_cut, link, &master_linked_list, 1);
+
+	for ( std::vector<std::array<int,3>>& linked_list: master_linked_list ){
+
+		for ( std::array <int,3>& link: linked_list){
+			print (link, " - ");
+		}
+		std::cout << std::endl;
+
+	}
+	int L; 
+	Particle* tmp_par_ptr  {nullptr}; 
+	Particle* tmp_par_ptr_ {nullptr}; 
+
+	for ( std::vector<std::array<int,3>>& linked_list: master_linked_list ){
+		
+		L = static_cast<int> (linked_list.size()) ; 
+		
+		// check if the final object location in link goes to a solvent
+		// then do a cyclical transition, starting from the end index and make it to the first index 
+		if ( (*LATTICE)[ lattice_index(linked_list[L-1], y, z) ]->ptype[0] == 's' ){
+
+			tmp_par_ptr = (*LATTICE) [ lattice_index (linked_list.back(), y, z) ]; 
+			// go backwards 
+			for (int i{0}; i < L ; i=i+2 ){
+
+				(*LATTICE)[lattice_index (linked_list[L-2-i], y, z)]->coords = linked_list[L-1-i]; 
+				(*LATTICE)[lattice_index (linked_list[L-1-i], y, z)] = (*LATTICE)[lattice_index( linked_list[L-2-i], y, z )]; 
+				
+			}
+			tmp_par_ptr->coords = linked_list[0]; 
+			(*LATTICE)[lattice_index (linked_list[0], y, z)] = tmp_par_ptr; 
+
+		}
+
+		else { // when it is a circulation of monomers 
+			for ( std::array <int,3>& link: linked_list){
+				print (link, " - ");
+			}
+			std::cout << "IT IS A CIRCULATION OF MONOMER!!!" << std::endl;
+
+			for ( int i{0}; i < L; i=i+2){
+				std::cout << "i = " << i << std::endl;
+				if ( i == 0 ) {
+					// store info about linked_list[1]... and consequently also linked_list[2]
+					tmp_par_ptr = (*LATTICE)[lattice_index ( linked_list[i+1], y, z) ];
+
+					(*LATTICE)[ lattice_index ( linked_list[i],   y, z) ]->coords = linked_list[i+1]; 
+					(*LATTICE)[ lattice_index ( linked_list[i+1], y, z) ] = (*LATTICE)[lattice_index ( linked_list[i], y, z) ]; 
+					std::cout << "Completed index " << i << std::endl;
+				}
+				else {
+
+					tmp_par_ptr->coords = linked_list[i+1]; 
+					tmp_par_ptr_ = (*LATTICE)[ lattice_index (linked_list[i+1], y, z) ]; 
+					(*LATTICE)[ lattice_index (linked_list[i+1], y, z) ] = tmp_par_ptr;
+					tmp_par_ptr = tmp_par_ptr_; 
+					
+					std::cout << "Completed index " << i << std::endl;
+				}
+						
+			}
+
+		}
+
+	}
+
+	return; 
+
+}
+
+
+
+void acceptance_after_tail_regrowth (std::vector <Particle*>* LATTICE, \
+	std::vector <std::array<int,3>>* old_cut, std::vector <std::array <int,3>>* new_cut, int y, int z){
+
+	std::vector< std::vector<std::array<int,3>>> master_linked_list;
+	std::vector <std::array<int,3>> link; 
+
+
+	create_linked_list (*old_cut, *new_cut, link, &master_linked_list, 1);
+
+	for ( std::vector<std::array<int,3>>& linked_list: master_linked_list ){
+
+		for ( std::array <int,3>& link: linked_list){
+			print (link, " - ");
+		}
+		std::cout << std::endl;
+
+	}
+	int L; // to store length of linked_list 
+
+	Particle* tmp_par_ptr  {nullptr}; // to help with swaps of pointers
+	Particle* tmp_par_ptr_ {nullptr}; // this guy as well 
+
+	for ( std::vector <std::array<int,3>>& linked_list: master_linked_list ) {
+
+		L = static_cast<int> (linked_list.size()) ;
+
+		if ( (*LATTICE)[ lattice_index(linked_list[L-1], y, z) ]->ptype[0] == 's' ){
+
+			tmp_par_ptr = (*LATTICE) [ lattice_index (linked_list.back(), y, z) ]; 
+			// go backwards 
+			for (int i{0}; i < L ; i=i+2 ){
+
+				(*LATTICE)[lattice_index (linked_list[L-2-i], y, z)]->coords = linked_list[L-1-i]; 
+				(*LATTICE)[lattice_index (linked_list[L-1-i], y, z)] = (*LATTICE)[lattice_index( linked_list[L-2-i], y, z )]; 
+				
+			}
+			tmp_par_ptr->coords = linked_list[0]; 
+			(*LATTICE)[lattice_index (linked_list[0], y, z)] = tmp_par_ptr; 
+
+		}
+
+		else { // when it is a circulation of monomers 
+			for ( std::array <int,3>& link: linked_list){
+				print (link, " - ");
+			}
+			std::cout << "IT IS A CIRCULATION OF MONOMER!!!" << std::endl;
+
+			for ( int i{0}; i < L; i=i+2){
+				std::cout << "i = " << i << std::endl;
+				if ( i == 0 ) {
+					// store info about linked_list[1]... and consequently also linked_list[2]
+					tmp_par_ptr = (*LATTICE)[lattice_index ( linked_list[i+1], y, z) ];
+
+					(*LATTICE)[ lattice_index ( linked_list[i],   y, z) ]->coords = linked_list[i+1]; 
+					(*LATTICE)[ lattice_index ( linked_list[i+1], y, z) ] = (*LATTICE)[lattice_index ( linked_list[i], y, z) ]; 
+					std::cout << "Completed index " << i << std::endl;
+				}
+				else {
+
+					tmp_par_ptr->coords = linked_list[i+1]; 
+					tmp_par_ptr_ = (*LATTICE)[ lattice_index (linked_list[i+1], y, z) ]; 
+					(*LATTICE)[ lattice_index (linked_list[i+1], y, z) ] = tmp_par_ptr;
+					tmp_par_ptr = tmp_par_ptr_; 
+					
+					std::cout << "Completed index " << i << std::endl;
+				}
+						
+			}
+
+		}	
+
+	}
+
+	return;
+}
+
+
+
+
+
+
+
+
+
 
 
 

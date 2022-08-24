@@ -259,8 +259,8 @@ int main (int argc, char** argv) {
 
     int hitcheck {1}; 
     int nhits {0}; 
-    std::array <int,3> loc_m; 
     std::vector <std::array<int,3>> old_cut;
+    std::vector <std::array<int,3>> new_cut; 
     int m_index = 6; 
 
     for ( int i{0}; i<deg_poly-m_index-1; ++i ){
@@ -282,6 +282,10 @@ int main (int argc, char** argv) {
         // perform move on the system! 
         PerturbSystem (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
+        new_cut.clear(); 
+        for ( int y{0}; y<deg_poly-m_index-1; ++y ){
+            new_cut.push_back ( (Polymers)[0].chain[y+m_index+1]->coords ); 
+        }
 
         if ( v ){
             if (IMP_BOOL){
@@ -308,9 +312,10 @@ int main (int argc, char** argv) {
 
         // run checks 
         if (IMP_BOOL){
+
             (acceptances)[move_number] += 1;  
-            for (int i{m_index+1}; i<deg_poly; ++i){
-                if ( (Polymers)[0].chain[i]->coords != target[i-(m_index+1)] ){
+            for (int s{m_index+1}; s<deg_poly; ++s){
+                if ( (Polymers)[0].chain[s]->coords != target[s-(m_index+1)] ){
                     hitcheck = 0;
                     break; 
                 }
@@ -323,13 +328,8 @@ int main (int argc, char** argv) {
             }
 
             // revert back to original structure. 
-            for (int i{m_index+1}; i<deg_poly; ++i){
-                loc_m = (Polymers)[0].chain[i]->coords;
-                (LATTICE)[lattice_index (old_cut[i-(m_index+1)], y, z)]->coords = loc_m;
-                (Polymers)[0].chain[i]->coords = old_cut[i-(m_index+1)]; 
-                (LATTICE)[ lattice_index (loc_m, y, z) ] = (LATTICE)[ lattice_index (old_cut[i-(m_index+1)], y, z) ];
-                (LATTICE)[ lattice_index (old_cut[i-(m_index+1)], y, z) ] = (Polymers)[0].chain[i]; 
-            }
+            acceptance_after_head_regrowth ( &LATTICE, &new_cut, &old_cut, y, z);
+            // CheckStructures (x, y, z, &Polymers, &LATTICE);
         }
 
         // std::cout << "sysEnergy = " << sysEnergy << std::endl;

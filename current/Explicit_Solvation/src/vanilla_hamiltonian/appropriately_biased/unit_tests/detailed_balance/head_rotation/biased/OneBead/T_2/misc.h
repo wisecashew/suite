@@ -277,6 +277,12 @@ void        backward_reptation_without_head_biting (std::vector <Polymer>* Polym
 void        forward_reptation_with_tail_biting     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array <int,3> to_slither, int deg_poly, int index, int x, int y, int z); 
 void        backward_reptation_with_head_biting    (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <double>* energies, std::vector <std::array<int,4>>* contacts_store, std::array <double,4>* E, std::array <double,4>* c_contacts, std::array <int,3> to_slither, int deg_poly, int index, int x, int y, int z);
 
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void        acceptance_after_head_regrowth         (std::vector <Particle*>* LATTICE, std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut, int y, int z); 
+void        acceptance_after_tail_regrowth         (std::vector <Particle*>* LATTICE, std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut, int y, int z); 
+
 
 template <typename T>
 void reset(T &x){

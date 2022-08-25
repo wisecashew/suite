@@ -5469,33 +5469,15 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 		}
 
 		if ( !(*IMP_BOOL) ){
-			// std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
-			// revert back to the original state. 
 
 			acceptance_after_head_regrowth (LATTICE, &new_cut, &old_cut, y, z); 
-
-			/*
-			for (int i{m_index+1}; i<deg_poly; ++i){
-				// std::cout << "Polymers.chain["<<i<<"]->coords = "; print((*Polymers)[p_index].chain[i]->coords);
-				// std::cout << "new_cut[i-m_index-1] = "; print(new_cut[i-m_index-1]); 
-				// std::cout << "old_cut[i-m_index-1] = "; print(old_cut[i-m_index-1]); 
-				loc_m = (*Polymers)[p_index].chain[i]->coords;
-				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ]->coords = loc_m;
-				(*Polymers)[p_index].chain[i]->coords = old_cut[i-m_index-1]; 
-
-				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ];
-				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ] = (*Polymers)[p_index].chain[i]; 
-			}
-			*/
 			return; 
 		}
 
 		frontflow_energy = CalculateEnergy (Polymers, LATTICE, E, &c1_contacts, x, y, z); 
-		// std::cout << "frontflow_energy = " << frontflow_energy << std::endl;
 
 		// check acceptance criterion
 		double rng_acc = rng_uniform (0.0, 1.0); 
-		// std::cout << "rng = " << rng_acc << std::endl; 
 		
 		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) ){
 			
@@ -5506,26 +5488,11 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 			
 			*IMP_BOOL = false; 
 			acceptance_after_head_regrowth (LATTICE, &new_cut, &old_cut, y, z); 
-			/*
-			for (int i{m_index+1}; i<deg_poly; ++i){
-				// std::cout << "Polymers.chain["<<i<<"]->coords = "; print((*Polymers)[p_index].chain[i]->coords);
-				// std::cout << "new_cut[i-m_index-1] = "; print(new_cut[i-m_index-1]); 
-				// std::cout << "old_cut[i-m_index-1] = "; print(old_cut[i-m_index-1]); 
-				loc_m = (*Polymers)[p_index].chain[i]->coords;
-				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ]->coords = loc_m;
-				(*Polymers)[p_index].chain[i]->coords = old_cut[i-m_index-1]; 
-
-				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ];
-				(*LATTICE)[ lattice_index (old_cut[i-m_index-1], y, z) ] = (*Polymers)[p_index].chain[i]; 
-			}
-			*/
 		}
 	}
 	else {
 
 		// std::cout << "Tail regrowth... " << std::endl;
-		// std::cout << "OLD ENERGY = " << *sysEnergy << std::endl << std::endl;
-		// get old_cut 
 		for ( int i{0}; i<m_index; ++i){
 			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords);
 		}
@@ -5540,30 +5507,12 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 		if ( !(*IMP_BOOL) ){
 			// std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
 			acceptance_after_tail_regrowth (LATTICE, &new_cut, &old_cut, y, z);
-			/*
-			for (int i{0}; i<m_index; ++i){
-
-				// std::cout << "Polymers.chain[" << m_index-1-i << "]->coords = "; print((*Polymers)[p_index].chain[m_index-1-i]->coords); 
-				// std::cout << "new_cut[" << m_index-1-i << "] = "; print(new_cut[m_index-1-i]); 
-				// std::cout << "old_cut[" << m_index-1-i << "] = "; print(old_cut[m_index-1-i]); 
-				loc_m = (*Polymers)[p_index].chain[m_index-1-i]->coords; 
-				(*Polymers)[p_index].chain[m_index-1-i]->coords = old_cut[m_index-1-i]; 
-				(*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ]->coords = loc_m; 
-
-				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ];
-				(*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ] = (*Polymers)[p_index].chain[m_index-1-i]; 
-				
-			}
-			*/
 			return; 
 		}
 
 		frontflow_energy = CalculateEnergy (Polymers, LATTICE, E, &c1_contacts, x, y, z); 
-		// std::cout << "frontflow_energy = " << frontflow_energy << std::endl;
 		
-		// check acceptance criterion 
 		double rng_acc = rng_uniform (0.0, 1.0); 
-		// std::cout << "rng = " << rng_acc << std::endl;
 
 		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) ){
 			

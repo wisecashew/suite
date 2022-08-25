@@ -264,8 +264,9 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
+        // PerturbSystem_UNBIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
         PerturbSystem (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
-        
+
         if ( IMP_BOOL ) {
             (acceptances)[move_number] += 1;    
         }

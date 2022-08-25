@@ -3,4 +3,20 @@
 shopt -s expand_aliases
 source ~/.bash_profile
 
-g++ main.cpp misc.cpp classes.cpp -o boltz 
+set -e 
+
+if [ $# -eq 0 ] # if number of arguments is 0, don't do anything 
+then 
+    echo "No input provided. Nothing will be done."
+
+elif [ $1 = "biased" ] # if configure asked for biased simulation, make the biased executable
+then
+    g++ main.cpp misc.cpp classes.cpp -o biased 
+elif [ $1 = "unbiased" ] # if configure asked for unbiased simulation, make the unbiased executable
+then
+    g++ main.cpp misc.cpp classes.cpp -o unbiased 
+else 
+    echo "Invalid input. Nothing will be done."
+fi
+
+

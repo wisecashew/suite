@@ -1,4 +1,4 @@
 For step 1000.
 End rotations                      - attempts: 0, acceptances: 0, acceptance fraction: nan
 Reptation                          - attempts: 0, acceptances: 0, acceptance fraction: nan
-Chain regrowth                     - attempts: 1000, acceptances: 109, acceptance fraction: 0.109
+Chain regrowth                     - attempts: 1000, acceptances: 33, acceptance fraction: 0.033

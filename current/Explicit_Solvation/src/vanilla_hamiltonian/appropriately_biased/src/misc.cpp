@@ -5429,7 +5429,6 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 
 	double frontflow_energy {*sysEnergy}; 
 	
-	std::array <int,3> loc_m; 
 	// old_cut contains the old positions of thr monomer 
 	std::vector <std::array<int,3>> old_cut; 
 	std::vector <std::array<int,3>> new_cut; 
@@ -5468,6 +5467,7 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 			new_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
 		}
 
+		// if the move could not be completed, i need to back track 
 		if ( !(*IMP_BOOL) ){
 
 			acceptance_after_head_regrowth (LATTICE, &new_cut, &old_cut, y, z); 
@@ -5485,7 +5485,7 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 			*contacts  = c1_contacts; 
 		}
 		else {
-			
+			// since move was not accepted, need to get the original configuration 
 			*IMP_BOOL = false; 
 			acceptance_after_head_regrowth (LATTICE, &new_cut, &old_cut, y, z); 
 		}
@@ -5504,8 +5504,9 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 			new_cut.push_back ((*Polymers)[p_index].chain[i]->coords); 
 		}
 		
+		// if the move could not be completed, i need to back track 
 		if ( !(*IMP_BOOL) ){
-			// std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
+
 			acceptance_after_tail_regrowth (LATTICE, &new_cut, &old_cut, y, z);
 			return; 
 		}
@@ -5520,20 +5521,9 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 			*contacts  = c1_contacts; 
 		}
 		else {
+			// since move was not accepted, need to get the original configuration 
 			*IMP_BOOL = false; 
-			for (int i{0}; i<m_index; ++i){
-
-				// std::cout << "Polymers.chain[" << m_index-1-i << "]->coords = "; print((*Polymers)[p_index].chain[m_index-1-i]->coords); 
-				// std::cout << "new_cut[" << m_index-1-i << "] = "; print(new_cut[m_index-1-i]); 
-				// std::cout << "old_cut[" << m_index-1-i << "] = "; print(old_cut[m_index-1-i]); 
-				loc_m = (*Polymers)[p_index].chain[m_index-1-i]->coords; 
-				(*Polymers)[p_index].chain[m_index-1-i]->coords = old_cut[m_index-1-i]; 
-				(*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ]->coords = loc_m; 
-
-				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ];
-				(*LATTICE)[ lattice_index (old_cut[m_index-1-i], y, z) ] = (*Polymers)[p_index].chain[m_index-1-i];
-				
-			}
+			acceptance_after_tail_regrowth (LATTICE, &new_cut, &old_cut, y, z); 
 		}
 
 	}
@@ -5559,17 +5549,10 @@ void HeadRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	// generate possible locations to jump to. 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
 
-	// std::cout << "ne list = "; 
-	// for ( std::array <int,3>& ne: ne_list){
-	//	print (ne, " -- ");
-	// }
-	// std::cout << std::endl;
-
 	// randomly select five of them 
 	int rint = rng_uniform (0, 25); 
-	// std::cout << "rint = " << rint << "." << std::endl;
-	// std::cout << "suggested location = "; print (ne_list[rint]); 
-	// start attempting jumps 
+
+	std::cout << "Suggested location = "; print(ne_list[rint]);  
 
 	if ( (*LATTICE)[ lattice_index (ne_list[rint], y, z) ]->ptype[0]=='s' ){
 
@@ -5639,17 +5622,10 @@ void TailRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	// generate possible locations to jump to. 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
 
-	// std::cout << "ne list = "; 
-	// for ( std::array <int,3>& ne: ne_list){
-		// print (ne, " -- ");
-	// }
-	// std::cout << std::endl;
-
 	// randomly select five of them 
 	int rint = rng_uniform (0, 25); 
-	// std::cout << "rint = " << rint << "." << std::endl;
-	// std::cout << "suggested location = "; print (ne_list[rint]); 
-	// start attempting jumps 
+
+	std::cout << "Suggested location = "; print(ne_list[rint]); 
 
 	if ( (*LATTICE)[ lattice_index (ne_list[rint], y, z) ]->ptype[0]=='s' ){
 
@@ -5751,7 +5727,7 @@ void PerturbSystem_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 
 
 
-// ##################################################
+// ##############################################################
 // constructs polymer and lattice data structure correctly 
 
 void acceptance_after_head_regrowth (std::vector <Particle*>* LATTICE, \
@@ -5789,8 +5765,6 @@ void acceptance_after_head_regrowth (std::vector <Particle*>* LATTICE, \
 		}
 
 		else { // when it is a circulation of monomers 
-			
-			
 
 			for ( int i{0}; i < L; i=i+2){
 			
@@ -5821,7 +5795,8 @@ void acceptance_after_head_regrowth (std::vector <Particle*>* LATTICE, \
 
 }
 
-
+// #############################################################################################################
+// constructs polymer and lattice data structure correctly 
 
 void acceptance_after_tail_regrowth (std::vector <Particle*>* LATTICE, \
 	std::vector <std::array<int,3>>* old_cut, std::vector <std::array <int,3>>* new_cut, int y, int z){
@@ -5886,5 +5861,5 @@ void acceptance_after_tail_regrowth (std::vector <Particle*>* LATTICE, \
 	return;
 }
 
-
+// #############################################################################################################
 

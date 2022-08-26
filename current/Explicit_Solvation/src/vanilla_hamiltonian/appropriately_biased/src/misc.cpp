@@ -5552,7 +5552,7 @@ void HeadRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	// randomly select five of them 
 	int rint = rng_uniform (0, 25); 
 
-	std::cout << "Suggested location = "; print(ne_list[rint]);  
+	// std::cout << "Suggested location = "; print(ne_list[rint]);  
 
 	if ( (*LATTICE)[ lattice_index (ne_list[rint], y, z) ]->ptype[0]=='s' ){
 
@@ -5625,7 +5625,7 @@ void TailRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	// randomly select five of them 
 	int rint = rng_uniform (0, 25); 
 
-	std::cout << "Suggested location = "; print(ne_list[rint]); 
+	// std::cout << "Suggested location = "; print(ne_list[rint]); 
 
 	if ( (*LATTICE)[ lattice_index (ne_list[rint], y, z) ]->ptype[0]=='s' ){
 
@@ -5716,7 +5716,7 @@ void PerturbSystem_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 			}
 			ChainRegrowth_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
 			*move_number    = 2; 
-			(*attempts)[2] += 1;			
+			(*attempts)[2] += 1;
 			break; 
 
 	}

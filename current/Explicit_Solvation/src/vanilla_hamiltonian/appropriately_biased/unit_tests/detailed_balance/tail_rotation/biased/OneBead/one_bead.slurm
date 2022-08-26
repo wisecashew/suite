@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-#SBATCH --job-name=unit_test_onebead                           # name of job
-#SBATCH --ntasks=12        	     			                   # number of tasks across all nodes 
+#SBATCH --job-name=unit_test_onebead-tail                           # name of job
+#SBATCH --ntasks=6        	     			                   # number of tasks across all nodes 
 #SBATCH --cpus-per-task=1                    			           # cpu-cores per task (>1 if multi-threaded tasks)
 #SBATCH --mem-per-cpu=1GB                            			   # total memory requested
 #SBATCH --time=00:30:00                       			           # total run time limit (HH:MM:SS)
@@ -20,7 +20,7 @@ trap 'last_command=$current_command; current_command=$BASH_COMMAND' DEBUG
 # echo an error message before exiting
 trap 'echo "\"${last_command}\" command filed with exit code $?." ' EXIT
 
-for dir in T_2 T_3; do
+for dir in T_1; do
     cd $dir
     for i in {1..3}; do
         ./hr_o_n_boltz -f 100000 -M 10'000'000 -p initial.txt -t geom_and_esurf.txt -u energy1_$i -L lattice1_$i -e orientation1_$i -s stats1_$i -o coords1_$i > o_to_n_$i 2>&1 &

@@ -27,10 +27,6 @@ std::vector <std::vector <int> > part2loc (std::vector <Particle> pVec);
 // run an acceptance criterion for two polymers 
 bool acceptance(int dE, double kT); 
 
-// calculate energy of polymer-solvent interaction only 
-int PolymerEnergySolvent   (std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy);
-int PolymerEnergySolvation (std::vector <Particle> polymer, int x_len, int y_len, int z_len, int intr_energy, int intr_energymm);
-
 // sending a string to a file
 void StringToFile(std::string filename, std::string to_send);
 
@@ -192,16 +188,9 @@ void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,
 void dumpLATTICE             (std::vector <Particle*>* LATTICE, int step, int y, int z, std::string filename);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-// Polymer moves
-
-std::vector <Polymer> Translation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-void                  SolventFlip          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
-void                  SolventFlipSingular  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory );
-void                  PolymerFlip          (std::vector <Polymer>* Polymers, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
-void                  PolymerFlipSingular  (std::vector <Polymer>* Polymers, double* rweight, int Nsurr, std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ); 
-void                  SiteFlipSingular     (std::vector <Particle*>* LATTICE, int x, int y, int z, std::pair <std::vector <std::array<int,2>>, std::vector <std::array<int,2>>>* memory ) ;
-
 // methods relevant to chain regrowth 
 bool checkOccupancy                                     (std::array <int,3>* loc, std::vector <Polymer>* Polymers);
 bool checkOccupancyTail                                 (std::array <int,3>* loc, std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer);
@@ -217,6 +206,15 @@ std::array <std::array <int,3>,3> HingeSwingDirections (std::array <int,3>* Hing
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+// Orientation flip moves 
+void SolventFlip_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void PolymerFlip_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+// End rotation moves
 
 void                  TailRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  HeadRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
@@ -281,25 +279,5 @@ void reset(T &x){
 }
 
 
-
-
-// !~!~!~!!~!!~!~!~!!~~!!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-// METHOD GRAVEYARD
-// !~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
-
-/*
-std::vector <Polymer> TailRotation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL);
-std::vector <Polymer> HeadRotation         (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> EndRotation          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> KinkJump             (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> CrankShaft           (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL);
-std::vector <Polymer> ForwardReptation     (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL);
-std::vector <Polymer> Reptation            (std::vector<Polymer>*  Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-std::vector <Polymer> BackwardReptation    (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index, int x, int y, int z, bool* IMP_BOOL); 
-void                  ChainRegrowth        (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int index_of_polymer, int x, int y, int z, bool* IMP_BOOL );
-void                  TailSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool );
-void                  HeadSpin             (std::vector <Polymer>* Polymers, int index_of_polymer, int index_of_monomer, int deg_poly,int x, int y, int z, bool* b, bool* IMP_BOOL, bool* first_entry_bool);
-std::vector <Polymer> MoveChooser          (std::vector <Polymer>* Polymers, std::vector <Particle>* Solvent, int x, int y, int z, bool v, bool* IMP_BOOL);
-*/ 
 
 #endif 

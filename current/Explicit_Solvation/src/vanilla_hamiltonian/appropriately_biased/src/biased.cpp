@@ -260,7 +260,7 @@ int main (int argc, char** argv) {
 
     // BEGIN: main loop of simulation! yee-haw!  
 
-    for (int i = step_number+1; i< (step_number+max_iter+1); ++i) {
+    for (int i = step_number+1; i < (step_number+max_iter+1); ++i) {
 
         if ( v && (i%dfreq==0) ){
             std::cout << "Init config for step is:" << std::endl;

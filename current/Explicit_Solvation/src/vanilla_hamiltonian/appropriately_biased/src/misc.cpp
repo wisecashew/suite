@@ -2325,6 +2325,8 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "End rotations                      - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << std::endl; 
     dump_file << "Reptation                          - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << std::endl; 
     dump_file << "Chain regrowth                     - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << std::endl; 
+    dump_file << "Solvent flips                      - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << std::endl;
+    dump_file << "Polymer flips                      - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << std::endl;
 
     return;
 }
@@ -3248,43 +3250,56 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
 
 
 
-//============================================================
-//============================================================
+//==============================================================================================
+//==============================================================================================
 //
 // 
-// NAME OF FUNCTION: OrientationFlip and PolymerFlip
+// NAME OF FUNCTION: SolventFlip_UNBIASED, PolymerFlip_UNBIASED
 //
-// PARAMETERS: std::vector <Particle*>* LATTICE
+// PARAMETERS: LATTICE, Polymers, and everything that goes into calculating energies
 // 
 // WHAT THE FUNCTION DOES: randomly picks a region of space, and perturbs the orientation of the solvent molecule 
 // in that region. this function is a bit aggressive, imo. 
 //
-// DEPENDENCIES: impose_pbc
+// DEPENDENCIES: metropolis, calculateenergy 
 //
 // THE CODE: 
 
 void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, \
-	bool* IMP_BOOL, double* sysEnergy, int deg_poly, int x, int y, int z ){
+	bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z ){
 
 	// number of sites to flip 
-	int nflips = rng_uniform (1, static_cast<int>(deg_poly/2*deg_poly/2*deg_poly*2)); 
+	int deg_poly = static_cast<int> ( (*Polymers)[index].chain.size() );
+	int nflips = rng_uniform (1, static_cast<int>(deg_poly/2*deg_poly/2*deg_poly/2)); 
 	std::array <double,4> c_contacts = *contacts; 
-	std::vector <std::attay<int,2>> history; 
-	history.reserve(nflips); 
+	std::vector <int> indices;
+	std::vector <int> oris;  
+	indices.reserve(nflips); 
+	oris.reserve(nflips);
 
 	int r_idx {-1}; 
-
+	int s {0}; 
 	for (int i{0}; i<nflips; ++i){
-
+		// generate an index 
 		r_idx = rng_uniform (0, x*y*z-1); 
 		if ( (*LATTICE)[r_idx]->ptype[0] == 's' ){
 
+			std::vector<int>::iterator it = std::find (indices.begin(), indices.end(), r_idx);
 			// if it is a solvent, perturb orientation 
-			history.push_back ({r_idx, (*LATTICE)[r_idx]->orientation}); 
-			(*LATTICE)[r_idx]->orientation = rng_uniform(0, 25); 
+			if ( it == indices.end() ){
+				indices.push_back (r_idx); 
+				oris.push_back ((*LATTICE)[r_idx]->orientation); 
+				// generate an orientation 
+				(*LATTICE)[r_idx]->orientation = rng_uniform(0, 25); 
+				
+			}
+			else {
+				(*LATTICE)[r_idx]->orientation = rng_uniform(0, 25); 
+			}
 		}
 		else {
 			*IMP_BOOL = false; 
+			break;
 		}
 
 	}
@@ -3301,45 +3316,65 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 		else {
 			*IMP_BOOL = false; 
 			// reverse all the perturbations performed 
-			for (std::array<int,2>& h: history){
-				(*LATTICE)[h[0]]->orientation = h[1]; 
+			s = static_cast<int>(indices.size());
+			for ( int i{0}; i < s; ++i ){
+				(*LATTICE)[ indices[i] ]->orientation = oris[i];
 			}
 		}
 	}
 
 	else {
 		// reverse all the perturbations performed 
-		for (std::array<int,2>& h: history){
-			(*LATTICE)[h[0]]->orientation = h[1]; 
+		s = static_cast<int>(indices.size());
+		for ( int i{0}; i < s; ++i ){
+			(*LATTICE)[ indices[i] ]->orientation = oris[i]; 
 		}
 		// and that should do it. 
 	}
 	
+
 	return; 
 
 }
 
-void PolymerFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::array<double,4>* E, std::array<double,4>* contacts, \
-	bool* IMP_BOOL, double* sysEnergy, int deg_poly, int p_index, int x, int y, int z ){
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             End of SolventFlip_UNBIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void PolymerFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, \
+	bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z ){
 
 	// number of monomers to flip 
+	int deg_poly = static_cast<int> ( (*Polymers)[p_index].chain.size() );
 	int nflips = rng_uniform (1, static_cast<int>(deg_poly/2)); 
 	std::array <double,4> c_contacts = *contacts; 
-	std::vector <std::attay<int,2>> history; 
-	history.reserve(nflips); 
+
+	std::vector <int> indices;
+	std::vector <int> oris;  
+	indices.reserve(nflips); 
+	oris.reserve(nflips);	
 
 	int r_idx {-1}; 
+	std::vector<int>::iterator it;
 
 	for (int i{0}; i<nflips; ++i){
 
-		r_idx = rng_uniform (0, x*y*z-1); 
-		// set up the history 
-		history.push_back ({r_idx, (*Polymers)[p_index].chain[r_idx]->orientation}); 
-		(*Polymers)[p_index].chain[r_idx]->orientation = rng_uniform(0, 25); 
+		r_idx = rng_uniform (0, deg_poly-1); 
+		it = std::find (indices.begin(), indices.end(), r_idx);
+
+		if ( it == indices.end() ){
+			indices.push_back (r_idx);
+			oris.push_back ((*Polymers)[p_index].chain[r_idx]->orientation); 
+			(*Polymers)[p_index].chain[r_idx]->orientation = rng_uniform(0, 25); 
+		}
+		else {
+			(*Polymers)[p_index].chain[r_idx]->orientation = rng_uniform(0,25); 
+		}
 
 	}
 
-	double energy = CalculateEnergy ( Polymers, LATTICE, E, c_contacts, x, y, z); 
+	double energy = CalculateEnergy ( Polymers, LATTICE, E, &c_contacts, x, y, z); 
 	
 	if ( MetropolisAcceptance (*sysEnergy, energy, temperature) ){
 		*sysEnergy = energy;
@@ -3348,8 +3383,9 @@ void PolymerFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::array<double,4
 	else {
 		*IMP_BOOL = false; 
 		// reverse all the perturbations performed 
-		for (std::array<int,2>& h: history){
-			(*LATTICE)[h[0]]->orientation = h[1]; 
+		int s = static_cast<int>(indices.size());
+		for ( int i{0}; i < s; ++i ){
+			(*Polymers)[p_index].chain[ indices[i] ]->orientation = oris[i]; 
 		}
 	}
 
@@ -3358,166 +3394,40 @@ void PolymerFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::array<double,4
 }
 
 
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             End of PolymerFlip_UNBIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void SolventFlipSingular ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	int x, int y, int z, double* rweight, int Nsurr, \
-	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ){
-	
-	// std::cout << "Size of Lattice is " << (*LATTICE).size() << std::endl;
-
-	std::array <std::array<int,3>, 26> ne_list; 
-	std::vector <int> solvent_indices; 
-	// number of surrounding solvent molecules 
-	for ( Polymer& pmer: (*Polymers) ){
-		for ( Particle*& p: pmer.chain ){
-
-			ne_list = obtain_ne_list ( p->coords, x, y, z );
-			// std::cout << "Index of monomer is: ";
-			// print (p->coords);
-
-			for ( std::array<int,3>& ne: ne_list ){
-				// std::cout << "neighbor is: "; print(ne);
-				// std::cout << "lattice_index(ne , y, z) = " << lattice_index(ne, y, z) << std::endl;
-				if ( (*LATTICE)[lattice_index (ne, y, z)]->ptype[0] =='s' ){
-					solvent_indices.push_back ( lattice_index(ne, y, z) ); 
-				}
-			}
-		}
-	}
-
-
-	// get rid of duplicates 
-	std::unordered_set<int> s;
-	for ( int i: solvent_indices) {
-		s.insert(i);
-	}
-	solvent_indices.assign ( solvent_indices.begin(), solvent_indices.end() ); 
-
-	// std::cout << "Got solvent indices." << std::endl;
-
-	int Nmer  = static_cast<int>( (*Polymers)[0].chain.size() ); 
-	
-    *rweight = static_cast<double>(Nsurr)/static_cast<double>(Nmer+Nsurr); 
-
-	int ridx = rng_uniform (0, Nsurr-1);
-	// std::cout << "Nsurr is " << Nsurr << std::endl;
-	(*memory).first.push_back( { solvent_indices.at(ridx), (*LATTICE)[solvent_indices.at(ridx)]->orientation } );
-	(*LATTICE)[solvent_indices.at(ridx)]->orientation = rng_uniform (0, 25);  
-	(*memory).second.push_back( { solvent_indices.at(ridx), (*LATTICE)[solvent_indices.at(ridx)]->orientation } );	
-
-	// std::cout << "Exiting..." << std::endl;
-
-	return; 
-}
-
-void SiteFlipSingular ( std::vector <Particle*>* LATTICE, \
-	int x, int y, int z, \
-	std::pair <std::vector <std::array<int,2>>, std::vector <std::array<int,2>>>* memory ){
-
-	int flip_idx = rng_uniform (0, x*y*z-1); 
-	(*memory).first.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
-	(*LATTICE)[flip_idx]->orientation = rng_uniform (0, 25);  
-	// std::cout << "(*LATTICE)[flip_idx]->orientation = " << (*LATTICE)[flip_idx]->orientation << std::endl;
-	(*memory).second.push_back ( {flip_idx, (*LATTICE)[flip_idx]->orientation } );
-
-	return; 
-
-}
-
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-void PolymerFlip ( std::vector <Polymer>* Polymers, \
-	double* rweight, int Nsurr, \
-	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ){
-    
-	int Nmer  = static_cast<int>( (*Polymers)[0].chain.size() );     
-    int to_flip = rng_uniform (1, Nmer );
-
-    *rweight = 1; 
-
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	
-	std::vector <int> rvec (Nmer);
-	std::iota ( std::begin(rvec), std::end(rvec), 0); // this is a vector that goes from 0 to Nmer 
-	std::shuffle ( rvec.begin(), rvec.end(), std::default_random_engine(seed) );
-	rvec = std::vector<int>(rvec.begin(), rvec.begin()+to_flip); 
-
-	int j = 0;
-	for (int i: rvec) {
-		(*memory).first.push_back( { i, (*Polymers)[0].chain.at(i)->orientation } );
-		(*Polymers)[0].chain[i]->orientation = rng_uniform (0, 5); 
-		*rweight = (*rweight) * static_cast<double>(Nmer-j)/static_cast<double>(Nmer+Nsurr-j);
-		(*memory).second.push_back( { i, (*Polymers)[0].chain.at(i)->orientation } );
-		j = j+1; 
-		// std::cout << "index of monomer is " << i << ", initially orientation is " << (*memory).first[j-1][1] << std::endl;
-		// std::cout << "index of monomer is " << i << ", finally orientation is "   << (*memory).second[j-1][1] << std::endl;
-	}	
-    
-    return; 
-}
-
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-
-
-void PolymerFlipSingular ( std::vector <Polymer>* Polymers,\
-	double* rweight, int Nsurr, \
-	std::pair <std::vector<std::array<int,2>>, std::vector<std::array<int,2>>>* memory ){
-    
-	int Nmer  = static_cast<int>( (*Polymers)[0].chain.size() ); 
-    
-    *rweight = static_cast<double>(Nmer)/static_cast<double>(Nmer+Nsurr); 
-
-	int ridx = rng_uniform (0, Nmer-1);
-
-	// std::cout << "ridx = " << ridx << std::endl;
-	// std::cout << "Initial orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
-	(*memory).first.push_back ( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );
-	(*Polymers)[0].chain.at(ridx)->orientation = rng_uniform (0, 25);  
-	(*memory).second.push_back( { ridx, (*Polymers)[0].chain.at(ridx)->orientation } );	
-	// std::cout << "Final orientation is " << (*Polymers)[0].chain.at(ridx)->orientation << std::endl;
-	// std::cout << "memory first[0][1] is " << (*memory).first[0][1] << std::endl;
-	return; 
-}
-
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// 			End of unbiased orientation flipping moves 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 
 
-
-
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of PerturbSystem
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
+//==============================================================================================
+//==============================================================================================
+//
+// 
+// NAME OF FUNCTION: ChainRegrowth_BIASED, HeadRegrowth_BIASED, TailRegrowth_BIASED
+//
+// PARAMETERS: Polymers, LATTICE, and all the stuff that goes into calculating energy 
+// 
+// WHAT THE FUNCTION DOES: Performs a chain regrowth on a polymer. 
+//
+// DEPENDENCIES: metropolis, calculateenergy 
+//
+// THE CODE: 
 
 void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int p_index, int x, int y, int z){
 
-	// std::cout << "contacts = "; print(*contacts);
-	// choose an index to regrow from 
+
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
 	int m_index  = rng_uniform (1, deg_poly-2); 
-	// std::cout << "m_index = " << m_index << std::endl;
+
 
 	std::array <double,4> c1_contacts = *contacts; 
 	std::array <double,4> c2_contacts = *contacts; 
@@ -3676,6 +3586,13 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 }
 
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             End of ChainRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             Start of HeadRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
@@ -3857,7 +3774,13 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 }
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             End of HeadRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             Start of BackFlowFromHeadRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	std::vector<std::array<int,3>>* old_cut, std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
@@ -4021,6 +3944,13 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 }
 
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             End of BackflowHeadRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             Start of TailRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
@@ -4206,6 +4136,13 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 }
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             End of TailRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             Start of BackFlowFromTailRegrowth_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	std::vector<std::array<int,3>>* old_cut, std::array<double,4>* E, std::array <double,4>* contacts, \
@@ -4379,6 +4316,19 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
+//==============================================================================================
+//==============================================================================================
+//
+// 
+// NAME OF FUNCTION: ChainRegrowth_UNBIASED, HeadRegrowth_UNBIASED, TailRegrowth_UNBIASED
+//
+// PARAMETERS: Polymers, LATTICE, and all the stuff that goes into calculating energy 
+// 
+// WHAT THE FUNCTION DOES: Performs a chain regrowth on a polymer. 
+//
+// DEPENDENCIES: metropolis, calculateenergy 
+//
+// THE CODE: 
 
 void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, \
@@ -4778,14 +4728,16 @@ void acceptance_after_tail_regrowth (std::vector <Particle*>* LATTICE, \
 	return;
 }
 
-// #############################################################################################################
+// ##############################################################################################
 
+void EndRotationWithSolventFlips_BIASED(); 
+void RegrowthWithSolventFlips_BIASED(); 
 
 
 //==============================================================================================
 //==============================================================================================
 //
-// NAME OF FUNCTION: PerturbSystem
+// NAME OF FUNCTION: PerturbSystem_UNBIASED, PerturbSystem_BIASED
 //
 // PARAMETERS: Polymers, LATTICE, Energies, contacts, attempts, IMP_BOOL, v, currentenergy, temperature, 
 // move number, box dimensions  
@@ -4802,8 +4754,8 @@ void PerturbSystem_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 	bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, \
 	int* move_number, int x, int y, int z){
 
-	int index = rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = 2; //rng_uniform (1, 6); 
+	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
+	int r     = rng_uniform (0, 4); 
 
 	switch (r) {
 
@@ -4834,6 +4786,24 @@ void PerturbSystem_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 			(*attempts)[2] += 1;
 			break; 
 
+		case(3):
+			if (v) {
+				std::cout << "Performing solvent flips..." << std::endl;
+			}
+			SolventFlip_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			*move_number    = 3; 
+			(*attempts)[3] += 1; 
+			break;
+
+		case (4):
+			if (v) {
+				std::cout << "Performing monomer flips..." << std::endl;
+			}
+			PolymerFlip_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			*move_number    = 4;
+			(*attempts)[4] += 1; 
+			break; 
+
 	}
 
 	return; 
@@ -4851,7 +4821,8 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z){
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = 2; // rng_uniform (0, 2); 
+	int r     = rng_uniform (0, 4); 
+	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {
 
@@ -4880,6 +4851,24 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			ChainRegrowth_BIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
 			*move_number    = 2; 
 			(*attempts)[2] += 1;			
+			break; 
+
+		case(3):
+			if (v) {
+				std::cout << "Performing solvent flips..." << std::endl;
+			}
+			SolventFlip_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			*move_number    = 3; 
+			(*attempts)[3] += 1; 
+			break;
+
+		case (4):
+			if (v) {
+				std::cout << "Performing monomer flips..." << std::endl;
+			}
+			PolymerFlip_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			*move_number    = 4;
+			(*attempts)[4] += 1; 
 			break; 
 
 	}

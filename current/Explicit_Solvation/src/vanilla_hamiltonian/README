@@ -1,7 +1,15 @@
-Z_6 is a version of the lattice simulation with Z=6. Not the fastest implementation. 
+Date: 08/26/2022
 
-Z_26 is my version of the lattice simulation with Z=26. Again, not the fastest implementation. 
+I have not updates this thing in a while. 
 
-Z_6_impl is my vesion of the lattice simulation with Z=6, with only the solvation shell for solvent. It is FAST, but... it is not the right ensemble. 
+The HAMILTONIAN_GRAVEYARD is exactly what it sounds like. It is a whole bunch of hamiltonians and methods 
+which simply did not work. Useful for seeing how I had implemented certain ideas. 
 
-Z_6_ufe_ps stands for Z_6_ultra-fucking-efficient_physically-sound. This is my latest implementation. Hope it fucking works.
+WangLandau is me running the Wang-Landau algorithm to calculate the density of states. Not particularly useful, but neat implementation. 
+
+somewhat_real_one is an implementation of the stacking hamiltonian. 
+the_real_one is an implementation of the locking hamiltonian. 
+
+!!!!!!!!!!!!!!!!!! appropriately_sampled IS THE ONLY RIGOROUS IMPLEMENTED MONTE CARLO INTEGRATOR !!!!!!!!!!!!!!!!!!
+It has been unit tested, and one can unit test it over and over, in case you make any changes. 
+

@@ -33,6 +33,7 @@ int main (int argc, char** argv) {
     std::string lattice_file_write {"__blank__"}; // name of file where lattice will be dumped to 
     std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
+    // loop to obtain inputs and assign them to the appropriate variables 
     while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
     {
         switch (opt) 
@@ -158,6 +159,9 @@ int main (int argc, char** argv) {
     
     // EXTRACT TOPOLOGY FROM FILE 
     std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
+
+    // info_vec is the vector with all the information that constitutes the toplogy of the simulation
+    // assign values from info vec to relevant variables 
     const int x             =  info_vec[0];
     const int y             =  info_vec[1]; 
     const int z             =  info_vec[2]; 
@@ -222,6 +226,9 @@ int main (int argc, char** argv) {
 
     }
     
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+
     // THERMODYNAMICS OF SET-UP
 
     std::cout <<"\nCalculating energy..." << std::endl;
@@ -264,8 +271,7 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        // PerturbSystem_UNBIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
-        PerturbSystem (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
         if ( IMP_BOOL ) {
             (acceptances)[move_number] += 1;    

@@ -1,0 +1,110 @@
+For step 1.
+End rotations                    - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Crank shaft rotations            - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent exchange                 - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+For step 2.
+End rotations                    - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Crank shaft rotations            - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+For step 3.
+End rotations                    - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Crank shaft rotations            - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+For step 4.
+End rotations                    - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Crank shaft rotations            - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+For step 5.
+End rotations                    - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Crank shaft rotations            - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+For step 6.
+End rotations                    - attempts: 2, acceptances: 1, acceptance fraction: 0.5.
+Crank shaft rotations            - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+For step 7.
+End rotations                    - attempts: 2, acceptances: 1, acceptance fraction: 0.5.
+Crank shaft rotations            - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 1, acceptances: 1, acceptance fraction: 1.
+For step 8.
+End rotations                    - attempts: 2, acceptances: 1, acceptance fraction: 0.5.
+Crank shaft rotations            - attempts: 2, acceptances: 1, acceptance fraction: 0.5.
+Kink jumps                       - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 1, acceptances: 1, acceptance fraction: 1.
+For step 9.
+End rotations                    - attempts: 2, acceptances: 1, acceptance fraction: 0.5.
+Crank shaft rotations            - attempts: 2, acceptances: 1, acceptance fraction: 0.5.
+Kink jumps                       - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 1, acceptances: 1, acceptance fraction: 1.
+For step 10.
+End rotations                    - attempts: 3, acceptances: 1, acceptance fraction: 0.333333.
+Crank shaft rotations            - attempts: 2, acceptances: 1, acceptance fraction: 0.5.
+Kink jumps                       - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Reptation                        - attempts: 1, acceptances: 1, acceptance fraction: 1.
+Chain regrowth                   - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Solvent orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Single solvent orientation flips - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Polymer orientation flips        - attempts: 0, acceptances: 0, acceptance fraction: -nan.
+Local polymer orientation flips  - attempts: 1, acceptances: 0, acceptance fraction: 0.
+Solvent exchange                 - attempts: 1, acceptances: 1, acceptance fraction: 1.

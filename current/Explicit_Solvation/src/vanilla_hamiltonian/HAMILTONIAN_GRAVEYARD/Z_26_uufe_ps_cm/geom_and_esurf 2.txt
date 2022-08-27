@@ -1,0 +1,10 @@
+x = 10
+y = 10
+z = 10
+kT = 0.1  
+Em1m1 = -1
+Em2m2 = -1
+Em1m2 = 0 
+Em1s1 = -2
+Em2s1 = -2
+END OF FILE

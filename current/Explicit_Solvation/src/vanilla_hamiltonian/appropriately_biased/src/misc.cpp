@@ -2322,12 +2322,13 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "For step " << step << ".\n";
     
 
-    dump_file << "End rotations                      - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << std::endl; 
-    dump_file << "Reptation                          - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << std::endl; 
-    dump_file << "Chain regrowth                     - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << std::endl; 
+    dump_file << "End rotations without bias         - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << std::endl; 
+    dump_file << "Reptation without bias             - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << std::endl; 
+    dump_file << "Chain regrowth with overlap bias   - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << std::endl; 
     dump_file << "Chain regrowth with ori flip       - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << std::endl; 
-    dump_file << "Solvent flips                      - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << std::endl;
-    dump_file << "Polymer flips                      - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << std::endl;
+    dump_file << "Solvent flips without bias         - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << std::endl;
+    dump_file << "Solvation shell flip with bias     - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << std::endl;
+    dump_file << "Polymer flips                      - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << std::endl;
 
     return;
 }
@@ -3280,6 +3281,7 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 
 	int r_idx {-1}; 
 	int s {0}; 
+
 	for (int i{0}; i<nflips; ++i){
 		// generate an index 
 		r_idx = rng_uniform (0, x*y*z-1); 
@@ -3369,7 +3371,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	}
 
 	// get rid of duplicates 
-	std::unordered_set<int> s (solvent_indices.begin(), solvent_indices.end());
+	std::unordered_set <int> s (solvent_indices.begin(), solvent_indices.end());
 	solvent_indices.assign ( s.begin(), s.end() ); 
 	
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -3421,7 +3423,6 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 
     	// std::cout << "Energies are "; print(energies); 
 		Emin = *std::min_element ( energies.begin(), energies.end() ); 
-		// std::cout << "Emin = " << Emin << std::endl; 
 
 		for (int k{0}; k<ntest; ++k){
 			boltzmann[k] = std::exp (-1/temperature*( energies[k] - Emin ) ); 
@@ -5138,7 +5139,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 		return;
 	}
 
-	// std::cout << "m_index = " << m_index << std::endl; 
+	std::cout << "m_index = " << m_index << std::endl; 
 	// generate an array for energies 
 	// std::array <double,4> current_contacts = *contacts; 
 	std::array <double,25> energies; 
@@ -5157,11 +5158,16 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	// randomly select five of them 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
+
+	std::cout << "shuffled ne_list for head regrowth = "; 
+	for (std::array<int,3>& v: ne_list){
+		print (v, ", ");
+	}
 	
 
 	// start attempting jumps 
-	int block_counter       = 0; 
-	int idx_counter         = 0; 
+	int block_counter       =  0; 
+	int idx_counter         =  0; 
 	int self_swap_idx       = -1; 
 
 	while ( idx_counter < 5 ){
@@ -5177,7 +5183,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 		
 				energies    [5*idx_counter+i] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
 				
-				contacts_store[5*idx_counter] = *contacts;
+				contacts_store[5*idx_counter+i] = *contacts;
 
 				// go back to the original state
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = original_ori; 
@@ -5207,14 +5213,16 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 					// std::cout << "maintain current state..." << std::endl;
 					// std::cout << "You have run into an undoable swap. " << std::endl; 
 					// std::cout << "Selected position is "; print (ne_list[idx_counter]);	
+					orientations[5*idx_counter+i] = original_ori; 
 					energies[5*idx_counter+i] = 1e+08; 
 					contacts_store[5*idx_counter+i] = {-1,-1,-1,-1}; 
 					block_counter += 1; 
 				}
 				else {
 
-					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
-					orientations[5*idx_counter + i] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation; 
+					// (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
+					(*Polymers)[p_index].chain[m_index-1]->orientation = rng_uniform(0,25);
+					orientations[5*idx_counter + i] = (*Polymers)[p_index].chain[m_index-1]->orientation; 
 
 					// prep the swap 
 					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -5237,7 +5245,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 					(*LATTICE)[lattice_index(loc_m, y, z)]                   = (*Polymers)[p_index].chain[m_index-1];
 
 					// reset orientation 
-					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = original_ori; 
+					(*Polymers)[p_index].chain[m_index-1]->orientation = original_ori; 
 				}
 			}
 		}
@@ -5245,8 +5253,8 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 			for ( int i{0}; i < 5; ++i ){
 
-				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
-				orientations[5*idx_counter + i] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation; 
+				(*Polymers)[p_index].chain[m_index-1]->orientation = rng_uniform(0,25);
+				orientations[5*idx_counter + i] = (*Polymers)[p_index].chain[m_index-1]->orientation; 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -5269,7 +5277,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 				(*LATTICE)[lattice_index(loc_m, y, z)]                   = (*Polymers)[p_index].chain[m_index-1];
 
 				// reset orientation 
-				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = original_ori; 
+				(*Polymers)[p_index].chain[m_index-1]->orientation = original_ori; 
 
 			}
 		}
@@ -5283,11 +5291,19 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 		return; 
 	}
 
+	std::cout << std::endl;
+
+	std::cout << "contacts store = "; 
+	for (std::array <double,4>& n: contacts_store){
+		print(n, ", ");
+	}
+	std::cout << std::endl;
+
 	// now that i have all the energies, and boltzmann weights, i can choose a configuration 
-	// std::cout << "Energies are "; print(energies); 
+	std::cout << "Energies are "; print(energies); 
 
 	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
-	// std::cout << "Emin = " << Emin << std::endl; 
+	std::cout << "Emin = " << Emin << std::endl; 
 
 	for (int i{0}; i<25; ++i){
 		boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
@@ -5298,8 +5314,8 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	double rng_acc = rng_uniform (0.0, 1.0); 
 	double rsum    = 0; 
 	int e_idx      = 0; 
-	// std::cout << "normalization = " << rboltzmann << std::endl;
-	// std::cout << "rng = " << rng_acc << std::endl;
+	std::cout << "normalization = " << rboltzmann << std::endl;
+	std::cout << "rng = " << rng_acc << std::endl;
 
 	for (int j{0}; j<25; ++j){
 		rsum += boltzmann[j]/rboltzmann; 
@@ -5314,28 +5330,33 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	*frontflow_energy = energies[e_idx];
 	*contacts         = contacts_store [e_idx];
 
-	// std::cout << "e_idx = " << e_idx << std::endl;
-	// std::cout << "frontflow_energy is " << *frontflow_energy << std::endl; 
-	// std::cout << "position chosen = "; print (ne_list[e_idx]);
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << "p(o->n) = " << *prob_o_to_n << std::endl;
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << std::endl; 
+	std::cout << "e_idx = " << e_idx << std::endl;
+	std::cout << "frontflow_energy is " << *frontflow_energy << std::endl; 
+	std::cout << "position chosen = "; print (ne_list[e_idx/5]);
+	std::cout << "------------------------------" << std::endl;
+	std::cout << "p(o->n) = " << *prob_o_to_n << std::endl;
+	std::cout << "------------------------------" << std::endl;
+	std::cout << std::endl; 
+
+	std::cout << "Orientations suggested = "; print (orientations); 
+	std::cout << "Assigned orientation = " << orientations[e_idx] << std::endl;
 
 	// if { e_idx is not in the maintain index vector, perform the swap}
 		
 	// do the swap again 	
 
-	(*LATTICE)[lattice_index(ne_list[e_idx], y, z)]->coords = loc_m;
-	(*Polymers)[p_index].chain[m_index-1]->coords           = ne_list[e_idx];
-	(*Polymers)[p_index].chain[m_index-1]->orientation      = orientations[e_idx];
+	(*LATTICE)[lattice_index(ne_list[e_idx/5], y, z)]->coords = loc_m;
+	(*Polymers)[p_index].chain[m_index-1]->coords             = ne_list[e_idx/5];
+	(*Polymers)[p_index].chain[m_index-1]->orientation        = orientations[e_idx];
 	
 	// perform the swap (since coords were changed, this swap works)
-	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[e_idx], y, z)];
-	(*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
+	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[e_idx/5], y, z)];
+	(*LATTICE)[ lattice_index (ne_list[e_idx/5], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 	
-
 	// else { do nothing and maintain structure, because the suggested index is in the the maintain index vector }
+	std::cout << "m_index = " << m_index << std::endl;
+	(*Polymers)[0].printChainCoords(); 
+
 	TailRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
 
 	return; 
@@ -5357,18 +5378,18 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 		return; 
 	}
 
-	// std::cout << "m_index = " << m_index << std::endl;
+	std::cout << "m_index = " << m_index << std::endl;
 	// generate an array for energies 
 	
 	std::array <double,25> energies; 
 	std::array <double,25> boltzmann; 
-	std::array <double,4> current_contacts = *contacts; 
+	// std::array <double,4>  current_contacts = *contacts; 
 	std::array <std::array<double,4>,25> contacts_store; 
 
 	double rboltzmann = 0; // running sum for boltzmann weights 
 
-	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; // this is the key item of interest
-	int original_ori         = (*Polymers)[p_index].chain[m_index+1]->orientation; 
+	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; // this is the key item of interest
+	int original_ori         = (*Polymers)[p_index].chain[m_index-1]->orientation; 
 
 	// generate possible locations to jump to 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
@@ -5377,13 +5398,13 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle   (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
 
-	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[recursion_depth]) - ne_list.begin() ; 
+	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[m_index-1]) - ne_list.begin() ; 
 
 	std::array <int,25> test_ori; 
 
 	for (int i{0}; i<25; ++i){
 		if ( i == 0 ){
-			test_ori[i] = (*old_ori)[recursion_depth];
+			test_ori[i] = (*old_ori)[m_index-1];
 		}
 		else {
 			test_ori[i] = rng_uniform(0,25); 
@@ -5394,16 +5415,16 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 	ne_list[0]             = ne_list[ne_idx];
 	ne_list[ne_idx]        = tmp; 
 
-	// std::cout << "shuffled ne_list is "; 
-	// for (std::array <int,3>& n: ne_list){
-		// print(n, ", ");
-	// }
-	// std::cout << std::endl;
+	std::cout << "shuffled ne_list is "; 
+	for (std::array <int,3>& n: ne_list){
+		print(n, ", ");
+	}
+	std::cout << std::endl;
 
 	// i now have a vector which has the back peddling step at position index 0 
 
 	// start attempting jumps 
-	int idx_counter         = 0; 
+	int idx_counter         =  0; 
 	int self_swap_idx 		= -1; 
 
 	while ( idx_counter < 5 ){
@@ -5411,20 +5432,19 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 		if ( ne_list[idx_counter] == loc_m ){
 
 			for (int i{0}; i < 5; ++i ){
-				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = test_ori[5*idx_counter+i];
+				std::cout << "monomer self-swap: idx_counter = " << idx_counter << std::endl;
+				(*Polymers)[p_index].chain[m_index-1]->orientation = test_ori[5*idx_counter+i];
 				energies[5*idx_counter+i]       = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z);
-				contacts_store[5*idx_counter+i] = current_contacts;
+				contacts_store[5*idx_counter+i] = *contacts;
 			}
 
-			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = original_ori; 
+			(*Polymers)[p_index].chain[m_index-1]->orientation = original_ori; 
 			
-
-			// std::cout << "current_contacts = "; print(current_contacts); 
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
 
-			for ( int u{0}; u<deg_poly; ++u){
+			for ( int u{0}; u<deg_poly; ++u) {
 				if ( (*Polymers)[p_index].chain[u]->coords == ne_list [idx_counter] ){
 					self_swap_idx = u; 
 					// std::cout << "selfswap = " << self_swap_idx << ", u = " << u << std::endl;
@@ -5432,17 +5452,21 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 				}
 			}
 
-			if ( self_swap_idx < m_index ){
-				
+			if ( self_swap_idx > m_index-1 ){
+					
+				std::cout << "monomer swap: idx_counter = " << idx_counter << std::endl;
+				std::cout << "self_swap_idx = " << self_swap_idx << std::endl;				
 				// std::cout << "Selected position is "; print (ne_list[idx_counter]);
 				for (int i{0}; i<5; ++i){
+					(*Polymers)[p_index].chain[m_index-1]->orientation = test_ori[5*idx_counter+i];
 					energies [5*idx_counter+i]      = 1e+08; 
 					contacts_store[5*idx_counter+i] = {-1,-1,-1,-1}; 
 				}
 			}
 			else {
 				for (int i{0}; i<5; ++i){
-					
+
+					std::cout << "monomer swap: idx_counter = " << idx_counter << std::endl;
 					// prep the swap 
 					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 					(*Polymers)[p_index].chain[m_index-1]->coords       = ne_list[idx_counter];
@@ -5471,6 +5495,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 		else {
 			for (int i{0}; i<5; ++i){
 				// prep the swap 
+				std::cout << "solventswap: idx_counter = " << idx_counter << std::endl;
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 				(*Polymers)[p_index].chain[m_index-1]->coords  = ne_list[idx_counter];
 				
@@ -5482,6 +5507,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 				// get the energy 
 				energies [5*idx_counter+i] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
 				contacts_store [5*idx_counter+i] = *contacts;
+
 				// std::cout << "current_contacts = "; print(current_contacts); 
 
 				// revert back to original structure 
@@ -5499,26 +5525,33 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 
 	}
 
-	// std::cout << "Energies are "; print(energies); 
-	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
-	// std::cout << "Emin = " << Emin << std::endl; 
+	std::cout << std::endl;
 
-	for (int i{0}; i<5; ++i){
+	std::cout << "contact_store = ";
+	for ( std::array <double,4>& v: contacts_store) {
+		print(v, ", ");
+	}
+
+	std::cout << "Energies are "; print(energies); 
+	double Emin = *std::min_element ( energies.begin(), energies.end() ); 
+	std::cout << "Emin = " << Emin << std::endl; 
+
+	for (int i{0}; i<25; ++i){
 		boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
 		rboltzmann  += boltzmann[i]; 
 	}
 
-	// std::cout << "Boltzmann weights are: "; print(boltzmann); 
-	// std::cout << "normalization = " << rboltzmann << std::endl;
+	std::cout << "Boltzmann weights are: "; print(boltzmann); 
+	std::cout << "normalization = " << rboltzmann << std::endl;
 
 	*prob_n_to_o     = (*prob_n_to_o)*boltzmann[0]/rboltzmann;
 	*backflow_energy = energies[0]; 
 	*contacts        = contacts_store [0];
 
-	// std::cout << "position chosen = "; print (ne_list[0]);
-	// std::cout << "------------------------------" << std::endl;
-	// std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
-	// std::cout << "------------------------------" << std::endl;
+	std::cout << "position chosen = "; print (ne_list[0]);
+	std::cout << "------------------------------" << std::endl;
+	std::cout << "p(n->o) = " << *prob_n_to_o << std::endl;
+	std::cout << "------------------------------" << std::endl;
 
 
 	// do the swap again
@@ -5531,7 +5564,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 	(*Polymers)[p_index].chain[m_index-1]->orientation = test_ori[0]; 
 
 	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
-	BackFlowFromHeadRegrowth_BIASED (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
+	BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, old_cut, old_ori, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -5581,7 +5614,8 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	for (std::array<int,3>& v: ne_list){
 		print (v, ", ");
 	}
-	
+	std::cout << std::endl;
+
 	// start attempting jumps 
 
 	int block_counter       = 0 ; 
@@ -5631,15 +5665,17 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 				if ( self_swap_idx < m_index ){
 					// maintain current state, and sample another state 
 					// maintain_idx.push_back(idx_counter); 
-
-					energies[5*idx_counter+1] = 1e+08; // very unfavorable state 
+					std::cout << "In the bad zone..." << std::endl;
+					energies[5*idx_counter+i] = 1e+08; // very unfavorable state 
+					orientations[5*idx_counter+i] = original_ori; 
 					contacts_store[5*idx_counter+i] = {-1,-1,-1,-1}; 
 					block_counter += 1; 
 				}
 				else {
 
-					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
-					orientations[5*idx_counter + i] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation; 
+					// (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
+					(*Polymers)[p_index].chain[m_index+1]->orientation = rng_uniform(0,25); 
+					orientations[5*idx_counter+i] = (*Polymers)[p_index].chain[m_index+1]->orientation; 
 
 					// prep the swap 
 					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -5674,7 +5710,7 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 			for (int i{0}; i < 5; ++i ){ // 5 orientations to test 
 
 				(*Polymers)[p_index].chain[m_index+1]->orientation = rng_uniform(0,25); 
-				orientations[5*idx_counter + i] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation; 
+				orientations[5*idx_counter+i] = (*Polymers)[p_index].chain[m_index+1]->orientation; 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -5763,11 +5799,14 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	std::cout << "e_idx/5 = " << e_idx/5 << std::endl;
 	std::cout << std::endl;
 
-
+	std::cout << "Orientations suggested = "; print (orientations); 
+	std::cout << "Assigned orientation = " << orientations[e_idx] << std::endl;
+	
 	// do the swap again
-	(*LATTICE)[lattice_index(ne_list[e_idx/5], y, z)]->orientation = orientations[e_idx]; 
+	
 	(*LATTICE)[lattice_index(ne_list[e_idx/5], y, z)]->coords = loc_m;
-	(*Polymers)[p_index].chain[m_index+1]->coords           = ne_list[e_idx/5];
+	(*Polymers)[p_index].chain[m_index+1]->coords             = ne_list[e_idx/5];
+	(*Polymers)[p_index].chain[m_index+1]->orientation        = orientations[e_idx];
 
 	// perform the swap (since coords were changed, this swap works)
 	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[e_idx/5], y, z)];
@@ -5853,7 +5892,7 @@ void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 
 			for (int i{0}; i < 5; ++i ){
 				std::cout << "self-place: idx_counter = " << idx_counter << std::endl;
-				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = test_ori[5*idx_counter+i];
+				(*Polymers)[p_index].chain[m_index+1]->orientation = test_ori[5*idx_counter+i]; 
 				energies[5*idx_counter+i]       = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z);
 				contacts_store[5*idx_counter+i] = *contacts;
 			}
@@ -5880,6 +5919,7 @@ void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 				for (int i{0}; i<5; ++i){
 					std::cout << "monomer swap: idx_counter = " << idx_counter << std::endl;
 					std::cout << "self_swap_idx = " << self_swap_idx << std::endl;
+					(*Polymers)[p_index].chain[m_index+1]->orientation = test_ori[5*idx_counter+i];
 					energies [5*idx_counter+i]      = 1e+08; 
 					contacts_store[5*idx_counter+i] = {-1,-1,-1,-1}; 
 				}
@@ -5890,7 +5930,7 @@ void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 					
 					// prep the swap 
 					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
-					(*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
+					(*Polymers)[p_index].chain[m_index+1]->coords  = ne_list[idx_counter];
 					
 					// perform the swap 
 					(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
@@ -5900,6 +5940,7 @@ void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 					// get the energy
 					energies [5*idx_counter+i] = CalculateEnergy (Polymers, LATTICE, E, contacts, x, y, z); 
 					contacts_store[5*idx_counter+i] = *contacts; 
+
 					// std::cout << "current_contacts = "; print(current_contacts); 
 
 					// revert back to original structure 
@@ -5945,6 +5986,8 @@ void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 
 	}
 
+	std::cout << std::endl;
+
 	std::cout << "contact_store = ";
 	for ( std::array <double,4>& v: contacts_store) {
 		print(v, ", ");
@@ -5981,7 +6024,7 @@ void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 	(*Polymers)[p_index].chain[m_index+1]->orientation = test_ori[0]; 
 
 	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
-	BackFlowFromHeadRegrowth_BIASED (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
+	BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, old_cut, old_ori, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -6004,8 +6047,7 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 
 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
-	int m_index  = 2; //rng_uniform (1, deg_poly-2); 
-
+	int m_index  = rng_uniform (1, deg_poly/2-1); 
 
 	std::array <double,4> c1_contacts = *contacts; 
 	std::array <double,4> c2_contacts = *contacts; 
@@ -6025,6 +6067,7 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 	new_cut.reserve(deg_poly);
 	new_ori.reserve(deg_poly);  
 	 
+	std::array <std::array<int,3>,26> t_ne_list;
 
 	// regrowth will be in the direction where there are fewer monomer
 	// if m_index/deg_poly is lesser than 0.5, growth is false, otherwise growth is true 
@@ -6046,30 +6089,54 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 		
 		std::cout << "Head regrowth... " << std::endl;
 		std::cout << "OLD ENERGY = " << *sysEnergy << std::endl << std::endl;
+		std::cout << "initial orientation of final bead = " << (*Polymers)[p_index].chain[3]->orientation << std::endl;
 		// get old_cut 
 		for (int i {m_index+1}; i<deg_poly; ++i){
 			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
 			old_ori.push_back ((*Polymers)[p_index].chain[i]->orientation) ; 
 		}
 
+		std::cout << "old orientation = "; print (old_ori);
+		std::cout << "printing out neighbors with orientations..." << std::endl;
+
+		t_ne_list = obtain_ne_list ( (*Polymers)[p_index].chain[deg_poly-1]->coords, x, y, z ); 
+
+		std::cout << "orientation dump - pre regrowth... " << std::endl;
+		for ( std::array <int,3>& t: t_ne_list){
+			print (t, ", "); std::cout << "orientation = " << (*LATTICE)[ lattice_index(t, y, z) ]->orientation << std::endl;
+		}
+
 		// regrow the polymer frontwards
 		HeadRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
 		
+		CheckStructures (x, y, z, Polymers, LATTICE); 
+
+		std::cout << "orientation dump - post regrowth... " << std::endl;
+		t_ne_list = obtain_ne_list ( (*Polymers)[p_index].chain[deg_poly-1]->coords, x, y, z ); 
+
+		for ( std::array <int,3>& t: t_ne_list){
+			print (t, ", "); std::cout << "orientation = " << (*LATTICE)[ lattice_index(t, y, z) ]->orientation << std::endl;
+		}
+
+
+		std::cout << "final orientation of final bead = " << (*Polymers)[p_index].chain[3]->orientation << std::endl;
 
 		for (int i {m_index+1}; i<deg_poly; ++i){
 			new_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
 			new_ori.push_back ((*Polymers)[p_index].chain[i]->orientation) ;
 		}
 
-		if ( old_cut == new_cut ){
-			// std::cout << "------------------------------------------------------------------------"  << std::endl;
-			// std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN CONFIGURATION." << std::endl;
-			// std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
+		std::cout << "new orientation = "; print (new_ori);
+
+		if ( old_cut == new_cut && old_ori == new_ori){
+			std::cout << "-------------------------------------------------------------------------"  << std::endl;
+			std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN CONFIGURATION." << std::endl;
+			std::cout << "-------------------------------------------------------------------------"  << std::endl << std::endl;
 			return; 
 		}
 
 		if ( !(*IMP_BOOL) ){
-			// std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
+			std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
 			// revert back to the original state. 
 			// this is actually a rejection move 
 
@@ -6077,13 +6144,14 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 
 			// change orientations of polymer bead to old 
 			for (int i{m_index+1}; i<deg_poly; ++i){
-				(*Polymers)[p_index].chain[i]->orientation = old_ori[i]; 
+				(*Polymers)[p_index].chain[i]->orientation = old_ori[i-m_index-1]; 
 			}
 
 			return; 
 		}
 
 		std::cout << "frontflow energy = " << frontflow_energy << std::endl;
+		std::cout << "front flow contacts are "; print (c1_contacts);
 		std::cout << "Coordinates of perturbed polymer: " << std::endl;
 		(*Polymers)[p_index].printChainCoords(); 
 
@@ -6091,8 +6159,20 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 		std::cout << "Begin backflow... " << std::endl;
 		BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, &old_cut, &old_ori, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
+		CheckStructures (x, y, z, Polymers, LATTICE); 
+
+		t_ne_list = obtain_ne_list ( (*Polymers)[p_index].chain[deg_poly-1]->coords, x, y, z ); 
+		std::cout << "orientation dump - post backflow... " << std::endl;
+		for ( std::array <int,3>& t: t_ne_list){
+			print (t, ", "); std::cout << "orientation = " << (*LATTICE)[ lattice_index(t, y, z) ]->orientation << std::endl;
+		}
+
+		std::cout << "post backflow orientation of final bead = " << (*Polymers)[p_index].chain[deg_poly-1]->orientation << std::endl;
+
 		std::cout << "Coordinates of polymer after backflow: " << std::endl;
-		(*Polymers)[p_index].printChainCoords(); 
+		for (int j{0}; j< int((*Polymers)[0].chain.size()); ++j){
+            print((*Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (*Polymers)[0].chain[j]->orientation << std::endl;
+        }
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
@@ -6109,7 +6189,8 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 
 			acceptance_after_head_regrowth (LATTICE, &old_cut, &new_cut, y, z); 
 			for (int i{m_index+1}; i<deg_poly; ++i){
-				(*Polymers)[p_index].chain[i]->orientation = new_ori[i]; 
+				(*Polymers)[p_index].chain[i]->orientation = new_ori[i-m_index-1]; 
+				std::cout << "new_ori[" << i-m_index-1 << "] = " << new_ori[i-m_index-1] << std::endl;
 			}
 			*sysEnergy = frontflow_energy; 
 			*contacts  = c1_contacts;
@@ -6122,32 +6203,64 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 
 	}
 	else {
-		 
+		
+
+		std::cout << "Initiate tail regrowth..." << std::endl;
 		// get old cut 
 		for ( int i{0}; i<m_index; ++i){
 			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords);
 			old_ori.push_back ((*Polymers)[p_index].chain[i]->orientation);
 		}
-
+		std::cout << "old orientation = "; print (old_ori);
 		// regrow the polymer backwards
+
+		t_ne_list = obtain_ne_list ( (*Polymers)[p_index].chain[m_index-1]->coords, x, y, z ); 
+
+		std::cout << "orientation dump - pre regrowth... " << std::endl;
+		for ( std::array <int,3>& t: t_ne_list){
+			print (t, ", "); std::cout << "orientation = " << (*LATTICE)[ lattice_index(t, y, z) ]->orientation << std::endl;
+		}
+
 		TailRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
+		
+
+		std::cout << "Performed regrowth... " << std::endl;
+		for (int j{0}; j< int((*Polymers)[0].chain.size()); ++j){
+            print((*Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (*Polymers)[0].chain[j]->orientation << std::endl;
+        }
+
+		CheckStructures (x, y, z, Polymers, LATTICE); 
+
+		t_ne_list = obtain_ne_list ( (*Polymers)[p_index].chain[m_index-1]->coords, x, y, z ); 
+
+		std::cout << "orientation dump - post regrowth... " << std::endl;
+		for ( std::array <int,3>& t: t_ne_list){
+			print (t, ", "); std::cout << "orientation = " << (*LATTICE)[ lattice_index(t, y, z) ]->orientation << std::endl;
+		}
+
+		std::cout << "Performed lattice checks..." << std::endl; 
 
 		for (int i {0}; i<m_index; ++i){
 			new_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
 			new_ori.push_back ((*Polymers)[p_index].chain[i]->orientation) ;
 		}
 
-		if ( old_cut == new_cut ){
-			// std::cout << "------------------------------------------------------------------------"  << std::endl;
-			// std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN."               << std::endl;
-			// std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
+		std::cout << "new orientation = "; print (new_ori);
+
+		std::cout << "created new_cut and new_ori!" << std::endl; 
+
+		if ( old_cut == new_cut && old_ori == new_ori ){
+			std::cout << "------------------------------------------------------------------------"  << std::endl;
+			std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN."               << std::endl;
+			std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
 			return; 
 		}
 
 		
 		if ( !(*IMP_BOOL) ){
-
+			std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
 			acceptance_after_tail_regrowth ( LATTICE, &new_cut, &old_cut, y, z); 
+			
 			for (int i{0}; i<m_index; ++i){
 				(*Polymers)[p_index].chain[i]->orientation = old_ori[i]; 
 			}
@@ -6157,9 +6270,25 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 
 		backflow_energy = frontflow_energy; 
 
-		// std::cout << "BEGIN BACK FLOW! " << std::endl;
+		std::cout << "BEGIN BACK FLOW for Tail! " << std::endl;
 
 		BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, &old_cut, &old_ori, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
+
+		t_ne_list = obtain_ne_list ( (*Polymers)[p_index].chain[m_index-1]->coords, x, y, z ); 
+
+		std::cout << "orientation dump - post backflow... " << std::endl;
+		for ( std::array <int,3>& t: t_ne_list){
+			print (t, ", "); std::cout << "orientation = " << (*LATTICE)[ lattice_index(t, y, z) ]->orientation << std::endl;
+		}
+
+		std::cout << "Coordinates of polymer post backflow: " << std::endl;
+		for (int j{0}; j< int((*Polymers)[0].chain.size()); ++j){
+            print((*Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (*Polymers)[0].chain[j]->orientation << std::endl;
+        }
+
+
+
+		std::cout << "Performed BACK FLOW for Tail! " << std::endl;
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
@@ -6168,6 +6297,8 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 			std::cout << "Shit's fucked." << std::endl;
 			exit(EXIT_FAILURE);
 		}
+
+		CheckStructures (x, y, z, Polymers, LATTICE); 
 
 		// check acceptance criterion 
 		double rng_acc = rng_uniform (0.0, 1.0); 
@@ -6564,7 +6695,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z){
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = 3; // rng_uniform (0, 7); 
+	int r     = rng_uniform (0, 6); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {

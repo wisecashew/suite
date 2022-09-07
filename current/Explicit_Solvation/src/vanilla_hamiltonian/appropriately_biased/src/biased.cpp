@@ -264,7 +264,11 @@ int main (int argc, char** argv) {
 
         if ( v && (i%dfreq==0) ){
             std::cout << "Init config for step is:" << std::endl;
-            Polymers[0].printChainCoords();
+            // Polymers[0].printChainCoords();
+            for (int j{0}; j< int((Polymers)[0].chain.size()); ++j){
+                print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
+            }
+            std::cout << "Contcts = "; print (contacts);
             std::cout << " -------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;

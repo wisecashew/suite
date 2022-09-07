@@ -1,9 +1,9 @@
 Date: 08/26/2022
 
-I have not updates this thing in a while. 
+I have not updated this thing in a while. 
 
 The HAMILTONIAN_GRAVEYARD is exactly what it sounds like. It is a whole bunch of hamiltonians and methods 
-which simply did not work. Useful for seeing how I had implemented certain ideas. 
+which did not work. Useful for seeing how I had implemented certain ideas. 
 
 WangLandau is me running the Wang-Landau algorithm to calculate the density of states. Not particularly useful, but neat implementation. 
 

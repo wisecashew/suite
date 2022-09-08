@@ -7,8 +7,8 @@ which did not work. Useful for seeing how I had implemented certain ideas.
 
 WangLandau is me running the Wang-Landau algorithm to calculate the density of states. Not particularly useful, but neat implementation. 
 
-somewhat_real_one is an implementation of the stacking hamiltonian. 
-the_real_one is an implementation of the locking hamiltonian. 
+stacking_hamiltonian is an implementation of the stacking hamiltonian. 
+locking_hamiltonian is an implementation of the locking hamiltonian. 
 
 !!!!!!!!!!!!!!!!!! appropriately_sampled IS THE ONLY RIGOROUS IMPLEMENTED MONTE CARLO INTEGRATOR !!!!!!!!!!!!!!!!!!
 It has been unit tested, and one can unit test it over and over, in case you make any changes. 

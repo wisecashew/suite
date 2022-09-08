@@ -260,12 +260,12 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-    // BEGIN: main loop of simulation! yee-haw!  
+    // BEGIN: main loop of simulation! lfg  
 
     for (int i = step_number+1; i < (step_number+max_iter+1); ++i) {
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Init config for step is:" << std::endl;
+            std::cout << "Initial config for step is:" << std::endl;
             // Polymers[0].printChainCoords();
             for (int j{0}; j< int((Polymers)[0].chain.size()); ++j){
                 print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;

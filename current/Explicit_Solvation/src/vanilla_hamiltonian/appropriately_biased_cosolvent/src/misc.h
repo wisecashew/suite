@@ -138,7 +138,7 @@ bool MonomerNeighborReporter (std::vector <Polymer>* Polymers  , std::array <int
 std::vector <Particle>           CreateSolventVector     (int x, int y, int z, std::vector <Polymer>* Polymers); 
 void                             AddSolvent              (std::vector <Particle*>* LATTICE, int x, int y, int z); 
 void                             AddCosolvent            (std::vector <Particle*>* LATTICE, double frac, int dop, int x, int y, int z);
-void                             SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::string positions, double frac, int x, int y, int z, );
+void                             SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::string positions, double frac, int x, int y, int z); 
 void                             SetUpLatticeFromRestart (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int step_number, std::string lattice_file_read, std::string dfile, std::string positions); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::string type_m="m1"); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::vector<int> pmer_spins, std::string type_m="m1"); 
@@ -165,7 +165,7 @@ std::vector <Polymer>    ExtractPolymersFromTraj    (std::string trajectory, std
 int                      ExtractIndexOfFinalMove    (std::string trajectory);
 double                   ExtractEnergyOfFinalMove   (std::string energy_file); 
 int                      ExtractNumberOfPolymers    (std::string filename);
-std::array <double, 8>   ExtractTopologyFromFile    (std::string filename);
+// std::array <double, 8>   ExtractTopologyFromFile    (std::string filename);
 std::array <double, 13>  ExtractTopologyFromFile    (std::string filename);
 std::vector <Particle*>  ExtractLatticeFromRestart  (std::string rfile, int* step_num, int x, int y, int z);
 double                   NumberExtractor            (std::string s);
@@ -175,7 +175,7 @@ double                   NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, int x, int y, int z);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -184,7 +184,7 @@ bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // dump methods 
 void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, std::string filename);
-void dumpEnergy              (double sysEnergy, int step, std::array<double,4>* contacts, std::string filename);
+void dumpEnergy              (double sysEnergy, int step, std::array<double,8>* contacts, std::string filename);
 void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
 void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,9>* acceptances, int step, std::string stats_file); 

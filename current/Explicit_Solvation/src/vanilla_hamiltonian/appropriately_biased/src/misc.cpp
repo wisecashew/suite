@@ -3397,7 +3397,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
     double                              rboltzmann       = 0;  
     double                              frontflow_energy = 0; 
     double                              prob_o_to_n      = 1; 
-    std::array <std::array<double,4>,5> contacts_store; 
+	std::array<std::array<double,4>,5>  contacts_store   = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
     std::array <double,4>               c_contacts1      = *contacts; 
     double                              Emin             = 0; 
 
@@ -3561,7 +3561,7 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 	std::array<double,5>               energies         = {0,0,0,0,0}; 
 	std::array<double,5>               boltzmann        = {0,0,0,0,0};
 	std::array<int,5>                  orientations     = {0,0,0,0,0};
-	std::array<std::array<double,4>,5> contacts_store; 
+	std::array<std::array<double,4>,5> contacts_store   = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
 	double                             rboltzmann       = 0;
 	double                             frontflow_energy = 0; 
 	double                             prob_o_to_n      = 1; 
@@ -6144,9 +6144,9 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 		// std::cout << "new orientation = "; print (new_ori);
 
 		if ( old_cut == new_cut && old_ori == new_ori){
-			std::cout << "-------------------------------------------------------------------------"  << std::endl;
-			std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN CONFIGURATION." << std::endl;
-			std::cout << "-------------------------------------------------------------------------"  << std::endl << std::endl;
+			// std::cout << "-------------------------------------------------------------------------"  << std::endl;
+			// std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN CONFIGURATION." << std::endl;
+			// std::cout << "-------------------------------------------------------------------------"  << std::endl << std::endl;
 			return; 
 		}
 
@@ -6271,9 +6271,9 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 		// std::cout << "created new_cut and new_ori!" << std::endl; 
 
 		if ( old_cut == new_cut && old_ori == new_ori ){
-			std::cout << "------------------------------------------------------------------------"  << std::endl;
-			std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN."               << std::endl;
-			std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
+			// std::cout << "------------------------------------------------------------------------"  << std::endl;
+			// std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN."               << std::endl;
+			// std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
 			return; 
 		}
 

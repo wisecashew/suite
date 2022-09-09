@@ -1066,8 +1066,7 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 
 	for ( std::string& s: contents) { 
 		// std::cout << "line = "; 
-		std::cout << s << std::endl; 
-		// send content into stringstream 
+		// std::cout << s << std::endl; 
 
 		if ( std::regex_search (s, start) ) {
 			std::regex_search ( s, match, numbers ); 
@@ -1164,7 +1163,7 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
 			std::regex_token_iterator<std::string::iterator> rend; 
 			std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
 
-			std::cout << "*a is " << std::stoi(*a) << std::endl;
+			// std::cout << "*a is " << std::stoi(*a) << std::endl;
 
 			if ( std::stoi(*a) > final_step_num ){
 				// std::cout << "*a is " << std::stoi(*a) << std::endl;
@@ -1176,7 +1175,7 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
     	}
 
     	if ( std::regex_search ( s, step) ) {
-    		std::cout << s << std::endl;
+    		// std::cout << s << std::endl;
     		step_bool = true; 
     		continue; 
     	}

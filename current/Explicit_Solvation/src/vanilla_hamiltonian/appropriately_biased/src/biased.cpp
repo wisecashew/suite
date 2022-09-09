@@ -305,7 +305,7 @@ int main (int argc, char** argv) {
         IMP_BOOL = true;      
     }
 
-    dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
+    dumpMoveStatistics (&attempts, &acceptances, step_number+max_iter, stats_file);  
     
     if ( lattice_file_write != "__blank__" ) {
         dumpLATTICE ( &LATTICE, step_number+max_iter, y, z, lattice_file_write ); 

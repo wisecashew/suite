@@ -33,6 +33,7 @@ int main (int argc, char** argv) {
     std::string lattice_file_write {"__blank__"}; // name of file where lattice will be dumped to 
     std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
+    // loop to obtain inputs and assign them to the appropriate variables 
     while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
     {
         switch (opt) 
@@ -48,8 +49,8 @@ int main (int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "\n" << 
-                "Welcome to the Monte Carlo simulation engine (v0.9) for polymers and solvent on a cubic lattice (Z=26). \n" << 
-		        "Last updated: Aug 17, 2022, 14:56. \n" << 
+                "Welcome to the Monte Carlo simulation engine (v0.9.1) for polymers and solvent on a cubic lattice (Z=26). \n" << 
+		        "Last updated: Sep 8, 2022, 01:09. \n" << 
                 "Author: satyend@princeton.edu \n" <<
                 "\n" << 
                 "----------------------------------------------------------------------------------------------------------------------------------\n" << 
@@ -131,7 +132,7 @@ int main (int argc, char** argv) {
         }
     }
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // INSTANTIATE SIMULATIONS VARIABLES
 
     int    step_number    {0};
@@ -141,28 +142,32 @@ int main (int argc, char** argv) {
 
     std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
-    std::array <double,4> contacts    = {0,0,0,0}; 
+    std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
     InputParser ( dfreq, max_iter, r, positions, \
         topology, dfile, efile, mfile, stats_file, \
         lattice_file_read ); 
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // ExtractNumberOfPolymers extracts the total number of chains in the input file. used to reserve vector [line 171] 
     const int N = ExtractNumberOfPolymers(positions); 
     
     // EXTRACT TOPOLOGY FROM FILE 
-    std::array <double,8> info_vec {ExtractTopologyFromFile(topology)}; 
-    const int x             =  info_vec[0];
-    const int y             =  info_vec[1]; 
-    const int z             =  info_vec[2]; 
-    const double T          =  info_vec[3]; 
-    std::array <double,4> E = {info_vec[4], info_vec[5], info_vec[6], info_vec[7]}; 
+    std::array <double,13> info_vec {ExtractTopologyFromFile(topology)}; 
+
+    // info_vec is the vector with all the information that constitutes the toplogy of the simulation
+    // assign values from info vec to relevant variables 
+    const int x             =  info_vec[0] ;
+    const int y             =  info_vec[1] ; 
+    const int z             =  info_vec[2] ; 
+    const double T          =  info_vec[3] ; 
+    const double frac       =  info_vec[12]; 
+    std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
     
     // initialize custom data structures 
     std::vector <Polymer> Polymers; 
@@ -171,7 +176,7 @@ int main (int argc, char** argv) {
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // OPENING TILES
 
     std::cout << std::endl;
@@ -182,12 +187,13 @@ int main (int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems_a = "<< E[2] << ", Ems_n = " << E[3] <<".\n \n";  
+    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
+    std::cout << "Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ", Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     
     // set timers for simulation set-up.  
     auto start = std::chrono::high_resolution_clock::now(); 
@@ -197,7 +203,7 @@ int main (int argc, char** argv) {
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (x, y, z, &Polymers, &LATTICE, positions); 
+        SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
@@ -208,11 +214,11 @@ int main (int argc, char** argv) {
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, step_number, lattice_file_read, dfile, positions ); 
+        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions ); 
         
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
@@ -222,6 +228,9 @@ int main (int argc, char** argv) {
 
     }
     
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
     // THERMODYNAMICS OF SET-UP
 
     std::cout <<"\nCalculating energy..." << std::endl;
@@ -243,21 +252,25 @@ int main (int argc, char** argv) {
     std::cout << "Initiation complete. We are ready to go. The engine will output information every " << dfreq << " configuration(s)." << std::endl; 
     std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
 
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    //    
+    //    ALL INPUTS HAVE BEEN PROCESSED AND DATA STRUCTURES HAVE BEEN SET UP. 
+    //    
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-    // ALL INPUTS HAVE BEEN PROCESSED AND DATA STRUCTURES HAVE BEEN SET UP. 
-    
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
-    //~#~#~~#~#~#~#~#~~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~~~##~#~#~#~##~~#~#~#~#
+    // BEGIN: main loop of simulation! lfg  
 
-    // BEGIN: main loop of simulation! yee-haw!  
-
-    for (int i = step_number+1; i< (step_number+max_iter+1); ++i) {
+    for (int i = step_number+1; i < (step_number+max_iter+1); ++i) {
 
         if ( v && (i%dfreq==0) ){
-            std::cout << "Init config for step is:" << std::endl;
-            Polymers[0].printChainCoords();
+            std::cout << "Initial config for step is:" << std::endl;
+            // Polymers[0].printChainCoords();
+            for (int j{0}; j< int((Polymers)[0].chain.size()); ++j){
+                print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
+            }
+            std::cout << "Contcts = "; print (contacts);
             std::cout << " -------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;
@@ -265,7 +278,6 @@ int main (int argc, char** argv) {
 
         // perform move on the system! 
         PerturbSystem_UNBIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
-        // PerturbSystem (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
         if ( IMP_BOOL ) {
             (acceptances)[move_number] += 1;    
@@ -281,7 +293,7 @@ int main (int argc, char** argv) {
                 std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (x, y, z, &Polymers, &LATTICE);
+            CheckStructures (&Polymers, &LATTICE, x, y, z);
         }
 
         if ( ( i % dfreq == 0 ) ){

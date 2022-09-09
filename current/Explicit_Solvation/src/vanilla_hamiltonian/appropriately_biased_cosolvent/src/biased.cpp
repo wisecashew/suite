@@ -218,7 +218,7 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, step_number, lattice_file_read, dfile, positions ); 
+        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions ); 
         
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
@@ -293,7 +293,7 @@ int main (int argc, char** argv) {
                 std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (x, y, z, &Polymers, &LATTICE);
+            CheckStructures (&Polymers, &LATTICE, x, y, z);
         }
 
         if ( ( i % dfreq == 0 ) ){

@@ -1153,7 +1153,7 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
     // std::stringstream ss; 
     std::smatch match; 
 
-    std::cout << "final step number is " << final_step_num << std::endl;
+    // std::cout << "final step number is " << final_step_num << std::endl;
 
     for (std::string& s: contents){
     	

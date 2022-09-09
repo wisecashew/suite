@@ -1179,9 +1179,9 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 	std::regex numbers ("[0-9]+"); 
 	std::regex characters ("[a-z][0-9]+");
 
-	int orientation = -1; 
+	int orientation   = -1; 
 	std::string ptype = "x"; 
-	int index = -1; 
+	int index         = -1; 
 	std::smatch match; 
 
 
@@ -1213,6 +1213,7 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 					*a++;  
 				}
 				else {
+					*a++; 
 					// std::cout << "match for index is " << *a << std::endl;
 					index = std::stoi ( *a );
 					// std::cout << "match for index is " << *a << std::endl;
@@ -1321,8 +1322,8 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
 	            PolymerVector.push_back(pmer);
 	            
 	            locations.clear();
-	            // break;
-	            continue; 
+	            break;
+	            // continue; 
 	            
 	        }
 
@@ -1440,10 +1441,10 @@ void SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector<Parti
 }
 
 
-void SetUpLatticeFromRestart ( int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int step_number, std::string lattice_file_read, std::string dfile, std::string positions ){
+void SetUpLatticeFromRestart ( int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int* step_number, std::string lattice_file_read, std::string dfile, std::string positions ){
 	
-	(*LATTICE)  = ExtractLatticeFromRestart ( lattice_file_read, &step_number, x, y, z ); 
-    (*Polymers) = ExtractPolymersFromTraj   ( dfile, positions, step_number, x, y, z );
+	(*LATTICE)  = ExtractLatticeFromRestart ( lattice_file_read, step_number, x, y, z ); 
+    (*Polymers) = ExtractPolymersFromTraj   ( dfile, positions, *step_number, x, y, z );
 
     for ( Polymer& pmer: (*Polymers)) {
         for ( Particle*& p: pmer.chain){
@@ -2008,7 +2009,7 @@ bool checkPointersOnLattice (std::vector <Particle*>* LATTICE, int x, int y, int
 // THE CODE: 
 
 
-void CheckStructures ( int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE ){
+void CheckStructures (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z){
 
 	std::cout << "Checking validity of coords..." << std::endl;
     std::cout << "checkForOverlaps says: " << checkForOverlaps(*Polymers) << "." << std::endl; 
@@ -2273,10 +2274,10 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 //
 // THE CODE: 
 
-double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z){
+double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z) {
     
     double Energy {0.0};
-    (*contacts) = {0,0,0,0}; 
+    (*contacts) = {0,0,0,0,0,0,0,0}; 
     
     double             dot_product   = -2; 
     std::array <int,3> connvec       = {0,0,0}; 
@@ -2366,7 +2367,7 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
     			}
     			else {
     				locking_x  = 0.5* std::cos(theta_1+theta_2) * (std::cos(theta_1) + std::cos(theta_2) );
-    				Energy    += (locking_x*(*E)[6] + (1-locking_x)*(*E)[7])*0.5;
+    				Energy    += ( locking_x*(*E)[6] + (1-locking_x) * (*E)[7] ) * 0.5;
     			}
 
     		}
@@ -2374,8 +2375,6 @@ double CalculateEnergy(std::vector <Polymer>* Polymers, std::vector <Particle*>*
     	}
 
     }
-
-
     
     return Energy; 
 }
@@ -2512,13 +2511,21 @@ void dumpPositionOfSolvent(std::vector <Particle*>* LATTICE, int step, std::stri
 // THE CODE: 
 
 
-void dumpEnergy (double sysEnergy, int step, std::array<double,8>* contacts, std::string filename){
+void dumpEnergy (double sysEnergy, int step, std::array<double,8>* contacts, std::string filename) {
     std::ofstream dump_file(filename, std::ios::app); 
     // std::ostringstream os; 
     
-    dump_file << sysEnergy << " | " << (*contacts)[0]+(*contacts)[1] << " | " << (*contacts)[0] << " | " << (*contacts)[1] << " | " \
-            << (*contacts)[2]+(*contacts)[3] << " | " << (*contacts)[2] << " | " << (*contacts)[3] << " | " << step << "\n";
-    
+    // (mm_a + mm_n)
+    // (ms1_a+ms1_n)
+    // (ms2_a+ms2_n)
+    // (ms1s2_a+ms1s2_n)
+
+    dump_file << sysEnergy << " | " \
+			<< (*contacts)[0]+(*contacts)[1] << " | " << (*contacts)[0] << " | " << (*contacts)[1] << " | " \
+			<< (*contacts)[2]+(*contacts)[3] << " | " << (*contacts)[2] << " | " << (*contacts)[3] << " | " \
+			<< (*contacts)[4]+(*contacts)[5] << " | " << (*contacts)[4] << " | " << (*contacts)[5] << " | " \
+			<< (*contacts)[6]+(*contacts)[7] << " | " << (*contacts)[6] << " | " << (*contacts)[7] << " | " << step << "\n";
+
     return; 
 }
 
@@ -2545,7 +2552,7 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,8>* contacts, std
 //
 // THE CODE: 
 
-void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* acceptances, int step, std::string stats_file){
+void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* acceptances, int step, std::string stats_file) {
     
     std::ofstream dump_file (stats_file, std::ios::out); 
     dump_file << "At step " << step << "...\n";
@@ -2558,6 +2565,7 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "Solvent flips without bias         - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << std::endl;
     dump_file << "Solvation shell flip with bias     - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << std::endl;
     dump_file << "Polymer flips                      - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << std::endl;
+
 
     return;
 }
@@ -3055,7 +3063,7 @@ void HeadRotation_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
    	*sysEnergy = energies[count];
     *contacts  = contacts_store[count];
     
-	CheckStructures(x, y, z, Polymers, LATTICE);
+	CheckStructures(Polymers, LATTICE, x, y, z);
 	std::cerr << "Everything seems to be okay!" << std::endl;
 	// exit(EXIT_SUCCESS);
 
@@ -3575,10 +3583,10 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             Start of SolvationShellFlip_BIASED
+//             Start of FirstSolvationShellFlip_BIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+void FirstSolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
 	std::array<double,8>* E, std::array<double,8>* contacts, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z ){
 
@@ -3758,8 +3766,200 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 }
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of SolvationShellFlip_BIASED
+//             End of FirstSolvationShellFlip_BIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             Start of SecondSolvationShellFlip_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void SecondSolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	std::array<double,8>* E, std::array<double,8>* contacts, \
+	bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z ){
+
+	// find solvation shell 
+	std::array <std::array<int,3>, 26> ne_list; 
+	std::vector <int> first_shell_indices; 
+
+	// number of surrounding solvent molecules 
+	for ( Polymer& pmer: (*Polymers) ){
+		for ( Particle*& p: pmer.chain ){
+
+			ne_list = obtain_ne_list ( p->coords, x, y, z );
+			for ( std::array<int,3>& ne: ne_list ){
+				if ( (*LATTICE).at(lattice_index (ne, y, z))->ptype[0] =='s' ){
+					solvent_indices.push_back ( lattice_index(ne, y, z) ); 
+				}
+			}
+		}
+	}
+
+	// get rid of duplicates 
+	std::unordered_set <int> s (first_shell_indices.begin(), first_shell_indices.end());
+	first_shell_indices.assign ( s.begin(), s.end() ); 
+
+
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle (solvent_indices.begin(), solvent_indices.end(), std::default_random_engine(seed)); 
+
+	int Nsurr = static_cast<int>( solvent_indices.size() ); 
+
+	// set up of solvation shell has been performed 
+
+	// start setting up the flipping process 
+    int nflip = rng_uniform(1, Nsurr); 			// number of sites to be flipped 
+    std::vector <int> old_ori; 					// vector to hold old orientations 
+    std::vector <int> new_ori; 					// vector to hold new orientations 
+    old_ori.reserve(nflip); 					// reserving... 
+    new_ori.reserve(nflip); 					// reserving... 
+
+    // energy store for boltzmann sampling 
+    // instantiating a bunch of variables for the process 
+    int                                 ntest            = 5; 
+    std::array <double,5>               energies         = {0,0,0,0,0}; 
+    std::array <double,5>               boltzmann        = {0,0,0,0,0};
+    std::array <int,5>                  orientations     = {0,0,0,0,0}; 
+    double                              rboltzmann       = 0;  
+    double                              frontflow_energy = 0; 
+    double                              prob_o_to_n      = 1; 
+	std::array<std::array<double,8>,5>  contacts_store   = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
+    std::array <double,8>               c_contacts1      = *contacts; 
+    double                              Emin             = 0; 
+
+    double rng     = 0; // rng_uniform (0.0, 1.0); 
+	double rsum    = 0; 
+	int    e_idx   = 0; 
+
+
+    // loop over all solvent_indices
+    for ( int i{0}; i < nflip; ++i ) {
+
+    	rboltzmann = 0; 
+    	old_ori.push_back((*LATTICE)[ solvent_indices[i] ]->orientation);
+
+    	for ( int j{0}; j < ntest; ++j ){
+    		
+    		(*LATTICE)[ solvent_indices[i] ]->orientation = rng_uniform (0, 25); 
+    		orientations[j]    = (*LATTICE)[ solvent_indices[i] ]->orientation; 
+    		energies[j]        = CalculateEnergy (Polymers, LATTICE, E, &c_contacts1, x, y, z); 
+    		contacts_store [j] = c_contacts1; 
+
+    	}
+
+    	// std::cout << "Energies are "; print(energies); 
+		Emin = *std::min_element ( energies.begin(), energies.end() ); 
+
+		for (int k{0}; k<ntest; ++k){
+			boltzmann[k] = std::exp (-1/temperature*( energies[k] - Emin ) ); 
+			rboltzmann  += boltzmann[k]; 
+		}
+
+
+		// std::cout << "normalization = " << rboltzmann << std::endl;
+		// std::cout << "rng = " << rng_acc << std::endl;
+
+		rng = rng_uniform (0.0, 1.0); 
+		rsum    = 0; 
+		e_idx   = 0; 
+
+		for (int j{0}; j<5; ++j){
+			rsum += boltzmann[j]/rboltzmann; 
+			if ( rng < rsum ) {
+				e_idx = j; 
+				break; 
+			}	
+		}
+
+		// make the jump to the new state 
+		new_ori.push_back (orientations[e_idx]); 
+		(*LATTICE)[ solvent_indices[i] ]->orientation = orientations[e_idx]; 
+		prob_o_to_n *= boltzmann[e_idx]/rboltzmann; 
+		 
+    }
+    
+    frontflow_energy  = energies       [e_idx];
+	c_contacts1       = contacts_store [e_idx];
+
+
+    // figure out the backflow energy 
+    double prob_n_to_o     = 1; 
+    double backflow_energy = 1; 
+    std::array <double,8> c_contacts2 = {0,0,0,0,0,0,0,0};
+
+    for ( int i{0}; i < nflip; ++i ){
+
+    	rboltzmann = 0; 
+    	(*LATTICE) [ solvent_indices[i] ]->orientation = old_ori[i]; 
+    	energies[0] = CalculateEnergy (Polymers, LATTICE, E, &c_contacts2, x, y, z);
+    	contacts_store[0] = c_contacts2; 
+
+    	for ( int j{1}; j < ntest; ++j ){
+    		(*LATTICE)[ solvent_indices[i] ]->orientation = rng_uniform(0, 25); 
+    		energies[j] = CalculateEnergy (Polymers, LATTICE, E, &c_contacts2, x, y, z);
+    		contacts_store[j] = c_contacts2; 
+    	}
+
+		// std::cout << "Energies are "; print(energies); 
+
+		Emin = *std::min_element ( energies.begin(), energies.end() ); 
+		// std::cout << "Emin = " << Emin << std::endl; 
+
+		for (int k{0}; k < ntest; ++k){
+			boltzmann[k] = std::exp(-1/temperature*( energies[k] - Emin ) ); 
+			rboltzmann  += boltzmann[k]; 
+		}
+		prob_n_to_o     *= boltzmann[0]/rboltzmann; 
+		
+		// make the jump to the old state 
+		(*LATTICE) [ solvent_indices[i] ]->orientation = old_ori[i]; 
+
+    }
+
+    backflow_energy  = energies[0];
+    c_contacts2      = contacts_store[0]; 
+
+    if ( backflow_energy != *sysEnergy || c_contacts2 != *contacts ){
+    	std::cout << "Something is fucked. Energies do not match." << std::endl;
+    	std::cout << "backflow_energy = " << backflow_energy << ", sysEnergy = " << *sysEnergy << std::endl;
+    	std::cout << "c_contacts = "; print (c_contacts2, ", "); std::cout << "contacts = "; print (*contacts); 
+    	exit(EXIT_FAILURE); 
+    }
+
+    // check the acceptance criterion 
+
+	double rng_acc = rng_uniform (0.0, 1.0); 
+	if ( rng_acc < std::exp (-1/temperature * (frontflow_energy - *sysEnergy) ) ){
+		// if accepted, return to the new orientations 
+		for ( int j{0}; j < nflip; ++j ){
+			(*LATTICE)[solvent_indices[j]]->orientation = new_ori[j]; 
+		}
+		double en = CalculateEnergy(Polymers, LATTICE, E, &c_contacts2, x, y, z); 
+		
+		if ( en != frontflow_energy || c_contacts2 != c_contacts1 ){
+    		std::cout << "Something is fucked. Energies do not match." << std::endl;
+    		std::cout << "en = " << en << ", frontflow energy = " << frontflow_energy << std::endl;
+    		std::cout << "c_contacts2 = "; print (c_contacts2, ", "); std::cout << "c_contacts1 = "; print (c_contacts1); 
+    		exit(EXIT_FAILURE); 
+    	}
+
+		*sysEnergy = frontflow_energy; 
+		*contacts  = c_contacts1; 
+
+	}
+	else {
+		*IMP_BOOL = false; 
+	}
+
+	return;
+}
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//             End of SecondSolvationShellFlip_BIASED
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+
+
+
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             Start of PolymerFlip_BIASED
@@ -6351,7 +6551,7 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 		// regrow the polymer frontwards
 		HeadRegrowthPlusOrientationFlip_BIASED (Polymers, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
 		
-		CheckStructures (x, y, z, Polymers, LATTICE); 
+		CheckStructures (Polymers, LATTICE, x, y, z); 
 
 		/*
 		std::cout << "orientation dump - post regrowth... " << std::endl;
@@ -6858,6 +7058,8 @@ void RegrowthWithSolventFlips_BIASED();
 */
 
 
+
+
 //==============================================================================================
 //==============================================================================================
 //
@@ -6999,7 +7201,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			if (v) {
 				std::cout << "Performing a biased solvation shell flip..." << std::endl;
 			}
-			SolvationShellFlip_BIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z); 
+			FirstSolvationShellFlip_BIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z); 
 			*move_number    = r;
 			(*attempts)[r] += 1;
 			break;

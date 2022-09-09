@@ -139,7 +139,7 @@ std::vector <Particle>           CreateSolventVector     (int x, int y, int z, s
 void                             AddSolvent              (std::vector <Particle*>* LATTICE, int x, int y, int z); 
 void                             AddCosolvent            (std::vector <Particle*>* LATTICE, double frac, int dop, int x, int y, int z);
 void                             SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::string positions, double frac, int x, int y, int z); 
-void                             SetUpLatticeFromRestart (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int step_number, std::string lattice_file_read, std::string dfile, std::string positions); 
+void                             SetUpLatticeFromRestart (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int* step_number, std::string lattice_file_read, std::string dfile, std::string positions); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::string type_m="m1"); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::vector<int> pmer_spins, std::string type_m="m1"); 
 
@@ -147,7 +147,7 @@ Polymer                          makePolymer             (std::vector <std::arra
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // validity checks 
-void CheckStructures                      (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE);
+void CheckStructures                      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z);
 bool checkValidityOfCoords                (std::array <int,3> v, int x, int y, int z); 
 bool checkForOverlaps                     (std::vector <Polymer> Polymers);
 bool checkForOverlaps                     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE);
@@ -264,7 +264,7 @@ void                  ChainRegrowth_BIASED                (std::vector <Polymer>
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  SolvationShellFlip_BIASED           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z);
+void                  FirstSolvationShellFlip_BIASED      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z);
 void                  PolymerFlip_BIASED                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

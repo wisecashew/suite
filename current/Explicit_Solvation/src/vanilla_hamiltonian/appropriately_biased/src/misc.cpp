@@ -1057,14 +1057,16 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 	std::regex numbers ("[0-9]+"); 
 	std::regex characters ("[a-z][0-9]+");
 
-	int orientation = -1; 
+	int orientation   =  -1; 
 	std::string ptype = "x"; 
-	int index = -1; 
+	int index         =  -1; 
 	std::smatch match; 
 
+	// std::cout << "About to dive in..." << std::endl;
 
-	for ( std::string& s: contents) {
-
+	for ( std::string& s: contents) { 
+		// std::cout << "line = "; 
+		std::cout << s << std::endl; 
 		// send content into stringstream 
 
 		if ( std::regex_search (s, start) ) {
@@ -1088,9 +1090,11 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 					// std::cout << "match for orientation is " << *a << std::endl;
 					orientation = std::stoi ( *a );
 					// std::cout << "match for orientation is " << *a << std::endl;
-					*a++;  
+					*a++; // this is to move to the next iterator 
+
 				}
 				else {
+					*a++; // this is to move to the next iterator 
 					// std::cout << "match for index is " << *a << std::endl;
 					index = std::stoi ( *a );
 					// std::cout << "match for index is " << *a << std::endl;
@@ -1111,7 +1115,7 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 
 	}
 
-	std::cout << "Created lattice from file!" << std::endl;
+	// std::cout << "Created lattice from file!" << std::endl;
 	return LATTICE; 
 
 }
@@ -1150,7 +1154,7 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
     // std::stringstream ss; 
     std::smatch match; 
 
-    // std::cout << "final step number is " << final_step_num << std::endl;
+    std::cout << "final step number is " << final_step_num << std::endl;
 
     for (std::string& s: contents){
     	
@@ -1160,7 +1164,7 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
 			std::regex_token_iterator<std::string::iterator> rend; 
 			std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
 
-			// std::cout << "*a is " << std::stoi(*a) << std::endl;
+			std::cout << "*a is " << std::stoi(*a) << std::endl;
 
 			if ( std::stoi(*a) > final_step_num ){
 				// std::cout << "*a is " << std::stoi(*a) << std::endl;
@@ -1172,7 +1176,7 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
     	}
 
     	if ( std::regex_search ( s, step) ) {
-    		// std::cout << s << std::endl;
+    		std::cout << s << std::endl;
     		step_bool = true; 
     		continue; 
     	}
@@ -1195,12 +1199,14 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
 	            end_bool   = false; 
 	            step_bool  = false; 
 
+
+
 	            Polymer pmer = makePolymer(locations, spins);
 	            PolymerVector.push_back(pmer);
 	            
 	            locations.clear();
-	            // break;
-	            continue; 
+	            break;
+	            // continue; 
 	            
 	        }
 
@@ -1213,7 +1219,6 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
 	            std::regex_search ( s, match, numbers ); 
 				std::regex_token_iterator<std::string::iterator> rend; 
 				std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
-
 
 
 				for ( int i=0; i<4; ++i ){
@@ -1233,7 +1238,8 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
 						*a++;
 					}
 					else if ( i==3 ){
-						spins.push_back ( std::stoi(*a) ); 
+						// std::cout << "spin = "  << *a << std::endl;
+ 						spins.push_back ( std::stoi(*a) ); 
 					}
 				}  
 				
@@ -1316,10 +1322,12 @@ void SetUpLatticeFromScratch ( int x, int y, int z, std::vector <Polymer>* Polym
 }
 
 
-void SetUpLatticeFromRestart ( int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int step_number, std::string lattice_file_read, std::string dfile, std::string positions ){
+void SetUpLatticeFromRestart ( int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int* step_number, std::string lattice_file_read, std::string dfile, std::string positions ){
 	
-	(*LATTICE)  = ExtractLatticeFromRestart ( lattice_file_read, &step_number, x, y, z ); 
-    (*Polymers) = ExtractPolymersFromTraj   ( dfile, positions, step_number, x, y, z );
+	(*LATTICE)  = ExtractLatticeFromRestart ( lattice_file_read, step_number, x, y, z ); 
+    (*Polymers) = ExtractPolymersFromTraj   ( dfile, positions, *step_number, x, y, z );
+
+    std::cout << "Extractions have been carried out..." << std::endl;
 
     for ( Polymer& pmer: (*Polymers)) {
         for ( Particle*& p: pmer.chain){
@@ -3353,11 +3361,13 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	std::array<double,4>* E, std::array<double,4>* contacts, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z ){
 
-	// find solvation shell 
+	// find solvation shell
+	// step 1: initialize variables  
 	std::array <std::array<int,3>, 26> ne_list; 
 	std::vector <int> solvent_indices; 
 
 	// number of surrounding solvent molecules 
+	// dual loop to find the solvent molecules in the shell 
 	for ( Polymer& pmer: (*Polymers) ){
 		for ( Particle*& p: pmer.chain ){
 
@@ -3401,7 +3411,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
     std::array <double,4>               c_contacts1      = *contacts; 
     double                              Emin             = 0; 
 
-    double rng     = 0; // rng_uniform (0.0, 1.0); 
+    double rng     = 0; 
 	double rsum    = 0; 
 	int    e_idx   = 0; 
 
@@ -3545,9 +3555,7 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 	std::iota (polymer_indices.begin(), polymer_indices.end(), 0);
 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle (polymer_indices.begin(), polymer_indices.end(), std::default_random_engine(seed)); 
-
-	// std::cout << "polymer indices = "; print (polymer_indices); 
+	std::shuffle (polymer_indices.begin(), polymer_indices.end(), std::default_random_engine(seed));  
 
 	int ntest    = 5; 
 	int nflip    = rng_uniform (1, deg_poly-1); 

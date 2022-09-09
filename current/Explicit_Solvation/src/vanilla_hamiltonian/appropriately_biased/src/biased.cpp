@@ -216,11 +216,11 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, step_number, lattice_file_read, dfile, positions ); 
+        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions ); 
         
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-
+        std::cout << "Beginning from step number " << step_number << std::endl;
         std::cout << "System set-up took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Simulation cell has been made! \n\n" ;
 

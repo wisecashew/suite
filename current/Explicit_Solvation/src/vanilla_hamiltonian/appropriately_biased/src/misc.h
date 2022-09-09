@@ -138,7 +138,7 @@ bool MonomerNeighborReporter (std::vector <Polymer>* Polymers  , std::array <int
 std::vector <Particle>           CreateSolventVector     (int x, int y, int z, std::vector <Polymer>* Polymers); 
 void                             AddSolvent              (int x, int y, int z, std::vector <Particle*>* LATTICE);
 void                             SetUpLatticeFromScratch (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::string positions);
-void                             SetUpLatticeFromRestart (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int step_number, std::string lattice_file_read, std::string dfile, std::string positions); 
+void                             SetUpLatticeFromRestart (int x, int y, int z, std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int* step_number, std::string lattice_file_read, std::string dfile, std::string positions); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::string type_m="m1"); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::vector<int> pmer_spins, std::string type_m="m1"); 
 

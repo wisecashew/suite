@@ -147,9 +147,7 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser ( dfreq, max_iter, r, positions, \
-        topology, dfile, efile, mfile, stats_file, \
-        lattice_file_read ); 
+    InputParser ( dfreq, max_iter, r, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read ); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -175,6 +173,12 @@ int main (int argc, char** argv) {
 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
+
+    std::vector <int> first_solvation_shell;
+    first_solvation_shell.reserve(26*N); 
+
+    std::vector <int> solvation_shells; 
+    solvation_shells.reserve(26*26*N); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // OPENING TILES

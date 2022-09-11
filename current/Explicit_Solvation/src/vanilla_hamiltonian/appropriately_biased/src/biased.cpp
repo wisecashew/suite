@@ -24,6 +24,7 @@ int main (int argc, char** argv) {
     int max_iter{-1}; // number of iteration to perform
     bool v = false;   // boolean for verbosity of output  (default: not verbose)
     bool r = false;   // boolean for restarts (default: no restarts) 
+    bool b = false;   // boolean for biased starting 
     std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
     std::string topology           {"__blank__"}; // name of file with topology of system 
     std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -34,7 +35,7 @@ int main (int argc, char** argv) {
     std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
     // loop to obtain inputs and assign them to the appropriate variables 
-    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhrb")) != -1 )
     {
         switch (opt) 
         {
@@ -49,7 +50,7 @@ int main (int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "\n" << 
-                "Welcome to the Monte Carlo simulation engine (v0.9.1) for polymers and solvent on a cubic lattice (Z=26). \n" << 
+                "Welcome to the Monte Carlo simulation engine (v0.9.2) for polymers and solvent on a cubic lattice (Z=26). \n" << 
 		        "Last updated: Sep 8, 2022, 01:09. \n" << 
                 "Author: satyend@princeton.edu \n" <<
                 "\n" << 
@@ -58,6 +59,7 @@ int main (int argc, char** argv) {
                 "help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose flag              [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
                 "restart flag              [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
+                "bias start flag           [-b]           (NO ARG REQUIRED)              Begin a simulation where all particles are aligned in the solvation shell and polymer. \n"<<
                 "Dump Frequency            [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of maximum moves   [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
                 "Polymer coordinates       [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
@@ -107,6 +109,11 @@ int main (int argc, char** argv) {
                 std::cout << "Output to console will be verbose. " << std::endl;
                 v = true;
                 break;
+
+            case 'b':
+                std::cout << "Simulation will be initated with a bias." << std::endl;
+                b = true;
+                break; 
 
             case 'e':
                 mfile=optarg;
@@ -209,8 +216,11 @@ int main (int argc, char** argv) {
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
 
-        BiasTheStart (&Polymers, &LATTICE, x, y, z);
-    
+        if (b) {
+            std::cout << "Simulation will have a biased start..." << std::endl;
+            BiasTheStart (&Polymers, &LATTICE, x, y, z);
+        }
+
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 

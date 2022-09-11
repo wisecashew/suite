@@ -174,9 +174,6 @@ int main (int argc, char** argv) {
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
 
-    std::vector <int> first_solvation_shell;
-    first_solvation_shell.reserve(26*N); 
-
     std::vector <int> solvation_shells; 
     solvation_shells.reserve(26*26*N); 
 
@@ -239,7 +236,7 @@ int main (int argc, char** argv) {
 
     std::cout <<"\nCalculating energy..." << std::endl;
 
-    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, &E, &contacts, x, y, z); 
+    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, &solvation_shells, &E, &contacts, x, y, z); 
 
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     
@@ -281,7 +278,7 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED (&Polymers, &LATTICE, &solvation_shells, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
         if ( IMP_BOOL ) {
             (acceptances)[move_number] += 1;    

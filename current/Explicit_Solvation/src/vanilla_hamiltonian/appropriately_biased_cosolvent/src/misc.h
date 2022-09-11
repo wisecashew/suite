@@ -165,7 +165,6 @@ std::vector <Polymer>    ExtractPolymersFromTraj    (std::string trajectory, std
 int                      ExtractIndexOfFinalMove    (std::string trajectory);
 double                   ExtractEnergyOfFinalMove   (std::string energy_file); 
 int                      ExtractNumberOfPolymers    (std::string filename);
-// std::array <double, 8>   ExtractTopologyFromFile    (std::string filename);
 std::array <double, 13>  ExtractTopologyFromFile    (std::string filename);
 std::vector <Particle*>  ExtractLatticeFromRestart  (std::string rfile, int* step_num, int x, int y, int z);
 double                   NumberExtractor            (std::string s);
@@ -175,7 +174,7 @@ double                   NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
+double CalculateEnergy      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
 bool   MetropolisAcceptance (double E1, double E2, double kT); 
 bool   MetropolisAcceptance (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -212,6 +211,7 @@ std::array <std::array <int,3>,3> HingeSwingDirections (std::array <int,3>* Hing
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // Orientation flip moves 
+
 void SolventFlip_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void PolymerFlip_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
@@ -219,15 +219,15 @@ void PolymerFlip_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // End rotation moves
 
-void                  TailRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-void                  HeadRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-void                  EndRotation_UNBIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  TailRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  HeadRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  EndRotation_UNBIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  TailRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-void                  HeadRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-void                  EndRotation_BIASED           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  TailRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  HeadRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  EndRotation_BIASED           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -239,9 +239,9 @@ void                  forward_reptation_without_tail_biting     (std::vector <Po
 void                  backward_reptation_without_head_butting   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, Particle* tmp, std::array <int,3>* to_slither, std::array <int,3>* locf, int deg_poly, int index, int y, int z);
 
 // necessary perform reptation 
-void                  ForwardReptation_UNBIASED                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-void                  BackwardReptation_UNBIASED                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-void                  Reptation_UNBIASED                        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  ForwardReptation_UNBIASED                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  BackwardReptation_UNBIASED                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  Reptation_UNBIASED                        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -249,47 +249,47 @@ void                  Reptation_UNBIASED                        (std::vector <Po
 void                  acceptance_after_head_regrowth      (std::vector <Particle*>* LATTICE, std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut, int y, int z); 
 void                  acceptance_after_tail_regrowth      (std::vector <Particle*>* LATTICE, std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut, int y, int z); 
 
-void                  TailRegrowth_UNBIASED               (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, bool* IMP_BOOL, int deg_poly, int p_index, int m_index, int x, int y, int z);
-void                  HeadRegrowth_UNBIASED               (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, bool* IMP_BOOL, int deg_poly, int p_index, int m_index, int x, int y, int z);
-void                  ChainRegrowth_UNBIASED              (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z);
+void                  TailRegrowth_UNBIASED               (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, bool* IMP_BOOL, int deg_poly, int p_index, int m_index, int x, int y, int z);
+void                  HeadRegrowth_UNBIASED               (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, bool* IMP_BOOL, int deg_poly, int p_index, int m_index, int x, int y, int z);
+void                  ChainRegrowth_UNBIASED              (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  TailRegrowth_BIASED                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
-void                  HeadRegrowth_BIASED                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
-void                  BackFlowFromTailRegrowth_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array <int,3>>* old_cut, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
-void                  BackFlowFromHeadRegrowth_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array <int,3>>* old_cut, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
-void                  ChainRegrowth_BIASED                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z); 
-
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-void                  FirstSolvationShellFlip_BIASED      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z);
-void                  PolymerFlip_BIASED                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-void                  TailRotationWithSolventFlips_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
-void                  HeadRotationWithSolventFlips_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
-void                  EndRotationWithSolventFlips_BIASED      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
+void                  TailRegrowth_BIASED                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
+void                  HeadRegrowth_BIASED                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
+void                  BackFlowFromTailRegrowth_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::vector <std::array <int,3>>* old_cut, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
+void                  BackFlowFromHeadRegrowth_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::vector <std::array <int,3>>* old_cut, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z); 
+void                  ChainRegrowth_BIASED                (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
-void                  HeadRegrowthPlusOrientationFlip_BIASED  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
-void                  TailRegrowthPlusOrientationFlip_BIASED  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
+void                  FirstSolvationShellFlip_BIASED      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z);
+void                  PolymerFlip_BIASED                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array<int,3>>* old_cut, std::vector <int>* old_ori, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z);
-void                  BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <std::array<int,3>>* old_cut, std::vector <int>* old_ori, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z);
+void                  TailRotationWithSolventFlips_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
+void                  HeadRotationWithSolventFlips_BIASED     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
+void                  EndRotationWithSolventFlips_BIASED      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  PerturbSystem_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
-void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
+void                  ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
+void                  HeadRegrowthPlusOrientationFlip_BIASED  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
+void                  TailRegrowthPlusOrientationFlip_BIASED  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z); 
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void                  BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::vector <std::array<int,3>>* old_cut, std::vector <int>* old_ori, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z);
+void                  BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::vector <std::array<int,3>>* old_cut, std::vector <int>* old_ori, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z);
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void                  PerturbSystem_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
+void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector <int>* solvation_shells, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

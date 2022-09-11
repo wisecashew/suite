@@ -1342,6 +1342,48 @@ void SetUpLatticeFromRestart ( int x, int y, int z, std::vector <Polymer>* Polym
 
 }
 
+
+void BiasTheStart ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z) {
+
+	std::array <std::array<int,3>, 26> ne_list; 
+	std::vector <int> solvent_indices; 
+
+	// number of surrounding solvent molecules 
+	// dual loop to find the solvent molecules in the shell 
+	
+	// 1. get solvation shell 
+	for ( Polymer& pmer: (*Polymers) ){
+		for ( Particle*& p: pmer.chain ){
+
+			ne_list = obtain_ne_list ( p->coords, x, y, z );
+			for ( std::array<int,3>& ne: ne_list ){
+				if ( (*LATTICE).at(lattice_index (ne, y, z))->ptype[0] =='s' ){
+					solvent_indices.push_back ( lattice_index(ne, y, z) ); 
+				}
+			}
+		}
+	}
+
+	// get rid of duplicates 
+	std::unordered_set <int> s (solvent_indices.begin(), solvent_indices.end());
+	solvent_indices.assign ( s.begin(), s.end() ); 
+
+	for ( Polymer& pmer: (*Polymers) ){
+		for ( Particle*& p: pmer.chain ){
+
+			p->orientation = 0; 		
+			
+		}
+	}
+
+	for (int i: solvent_indices){
+		(*LATTICE)[i]->orientation = 0; 
+	}
+	
+
+	return; 
+}
+
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of SetUp
@@ -3437,6 +3479,96 @@ void CoordinatedSolvationShellFlip_UNBIASED ( std::vector <Polymer>* Polymers, s
 	return; 
 
 }
+
+
+void UncoordinatedSolvationShellFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,4>* E, std::array<double,4>* contacts, \
+	bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z ){
+
+	// find solvation shell
+	// step 1: initialize variables  
+	
+	std::array <std::array<int,3>, 26> ne_list; 
+	std::vector <int> solvent_indices; 
+
+	// number of surrounding solvent molecules 
+	// dual loop to find the solvent molecules in the shell 
+	
+	// 1. get solvation shell 
+	for ( Polymer& pmer: (*Polymers) ){
+		for ( Particle*& p: pmer.chain ){
+
+			ne_list = obtain_ne_list ( p->coords, x, y, z );
+			for ( std::array<int,3>& ne: ne_list ){
+				if ( (*LATTICE).at(lattice_index (ne, y, z))->ptype[0] =='s' ){
+					solvent_indices.push_back ( lattice_index(ne, y, z) ); 
+				}
+			}
+		}
+	}
+
+	// get rid of duplicates 
+	std::unordered_set <int> s (solvent_indices.begin(), solvent_indices.end());
+	solvent_indices.assign ( s.begin(), s.end() ); 
+	
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle (solvent_indices.begin(), solvent_indices.end(), std::default_random_engine(seed)); 
+
+	// 2. figure what all to flip 
+	// number of sites to flip 
+	int nflips = 1; //rng_uniform (1, static_cast<int>(solvent_indices.size())); 
+	std::array <double,4> c_contacts = *contacts; 
+	std::map<int,int>::iterator it;
+	std::map <int,int> initial_orientation_map; 
+
+	for (int i{0}; i<nflips; ++i){
+		
+		// generate an index 
+		// get neighbor list 
+		ne_list = obtain_ne_list ( location (solvent_indices[i], x, y, z), x, y, z );
+		for ( std::array <int,3>& ne: ne_list ){
+
+			initial_orientation_map.insert({lattice_index(ne, y, z), (*LATTICE)[ lattice_index(ne, y, z) ]->orientation}); 
+			(*LATTICE)[ lattice_index(ne, y, z) ]->orientation = rng_uniform(0, 25); // (*LATTICE)[ solvent_indices[i] ]->orientation; 
+
+		}
+	}
+	
+
+	if (*IMP_BOOL){
+
+		// calculate the energy 
+		double energy = CalculateEnergy (Polymers, LATTICE, E, &c_contacts, x, y, z); 
+
+		// perform the metropolis acceptance 
+		if ( MetropolisAcceptance (*sysEnergy, energy, temperature) ){
+			*sysEnergy = energy;
+			*contacts  = c_contacts; 
+		}
+		else {
+			*IMP_BOOL = false; 
+			// reverse all the perturbations performed 
+			
+			for ( it = initial_orientation_map.begin(); it != initial_orientation_map.end(); ++it ){
+				(*LATTICE)[ it->first ]->orientation = it->second; 
+			}
+
+		}
+	}
+
+	else {
+
+		*IMP_BOOL = false; 	
+		// reverse all the perturbations performed 	
+		for ( it = initial_orientation_map.begin(); it != initial_orientation_map.end(); ++it ){
+			(*LATTICE)[ it->first ]->orientation = it->second; 
+		} 
+
+	}	
+
+	return; 
+
+}
+
 
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -6814,7 +6946,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z){
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform (0, 7); 
+	int r     = rng_uniform (0, 8); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {
@@ -6882,7 +7014,8 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			(*attempts)[r] += 1; 
 			break;
 
-		default: 
+		/*
+		case (7): 
 			if (v) {
 				std::cout << "Performing a coordinated orientation flip... " << std::endl;
 			}
@@ -6891,6 +7024,16 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			(*attempts)[r] += 1; 
 			// CheckStructures (x, y, z, Polymers, LATTICE);
 			break; 
+
+		default: 
+			if (v) {
+				std::cout << "Performing a uncoordinating orientation flip..." << std::endl;
+			}
+			UncoordinatedSolvationShellFlip_UNBIASED ( Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z );
+			*move_number    = 8;
+			(*attempts)[8] += 1; 
+			break; 
+		*/
 
 	}
 

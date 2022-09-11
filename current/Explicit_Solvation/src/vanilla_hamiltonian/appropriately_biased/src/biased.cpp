@@ -208,6 +208,8 @@ int main (int argc, char** argv) {
 
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
+
+        BiasTheStart (&Polymers, &LATTICE, x, y, z);
     
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }

@@ -2284,15 +2284,14 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     double             theta_1       = 0; 
     double             theta_2       = 0; 
     double             magnitude     = 0; 
-    double             locking_x     = 0; 
+    // double             locking_x     = 0; 
 
 
     (*solvation_shells).clear(); 
 
-    std::set <int> ss1; // solvation shell the first 
     std::array <std::array <int,3>, 26> ne_list; 
-    std::vector <int> first_solvation_shell; 
-    first_solvation_shell.reserve( 26*static_cast<int>( (*Polymers)[0].chain.size() ) ); 
+    std::set <int> first_solvation_shell; 
+
 
     // run energy computations for every monomer bead 
     // m-m  = stacking interaction
@@ -2321,7 +2320,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
             		}
             	}
             	else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1" ){ 
-            		ss1.insert (lattice_index(loc, y, z)); 
+            		first_solvation_shell.insert (lattice_index(loc, y, z)); 
             		// m-s1 interactions 
             		if (dot_product > 0.54){
             			Energy += (*E)[2];
@@ -2334,7 +2333,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
             	}
 
             	else {
-            		ss1.insert (lattice_index(loc, y, z)); 
+            		first_solvation_shell.insert (lattice_index(loc, y, z)); 
 					// m-s2 interactions 
             		Energy += (*E)[4]; 
             		(*contacts)[4] += 1; 
@@ -2345,38 +2344,54 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
         }
     }
 
-    first_solvation_shell.assign(ss1.begin(), ss1.end()); 
     std::string ptype = "x"; 
+    
 
-    for (int s_index: first_solvation_shell){
-
-    	ptype   = (*LATTICE)[s_index]->ptype; 
-    	ne_list = obtain_ne_list ((*LATTICE)[s_index]->coords, x, y, z);
-
-    	for ( std::array<int,3>& loc: ne_list ){
+    for ( int s: first_solvation_shell ) { // std::set<int>::iterator& s_index = first_solvation_shell.begin(); s_index != first_solvation_shell.end(); ++s_index) {
+    	
+    	ptype   = (*LATTICE)[s]->ptype; 
+    	
+    	ne_list = obtain_ne_list ((*LATTICE)[s]->coords, x, y, z);
+    	
+    	for ( std::array<int,3>& loc: ne_list ) {
 
     		if ( (*LATTICE)[lattice_index(loc, y, z)]->ptype == "m1"){
     			continue; 
     		}
     		else if ( (*LATTICE)[lattice_index(loc, y, z)]->ptype == ptype ) {
-    			ss1.insert (lattice_index(loc, y, z)); 
+
     			continue; 
     		}
     		else {
     			// engage the locking hamiltonian 
     			// get the connection vector 
-    			ss1.insert (lattice_index(loc, y, z)); 
-    			connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(*LATTICE)[s_index]->coords ); 
+
+    			connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(*LATTICE)[s]->coords );
+    			modified_direction ( &connvec, x, y, z); 
     			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-    			theta_1 = std::acos (take_dot_product ( Dir2Or[scale_arrays(1/magnitude, &connvec)], (*LATTICE)[s_index]->orientation ) ); 
+    			theta_1 = std::acos (take_dot_product ( Dir2Or[scale_arrays(1/magnitude, &connvec)], (*LATTICE)[s]->orientation ) ); 
     			theta_2 = std::acos (take_dot_product ( Dir2Or[scale_arrays(-1/magnitude, &connvec)], (*LATTICE)[lattice_index(loc, y, z)]->orientation ) ); 
 
-    			if ( theta_1+theta_2 > M_PI/2 ){
-    				Energy += (*E)[7]*0.5; 
+    			if ( first_solvation_shell.find(lattice_index(loc, y, z) ) != first_solvation_shell.end() ){
+    				
+    				if ( theta_1+theta_2 > M_PI/2 ) {
+    					Energy += (*E)[7]*0.5; 
+    					(*contacts)[7] += 1; 
+    				}
+    				else {
+    					Energy    +=  0.5 * (*E)[6]; // ( locking_x*(*E)[6] + (1-locking_x) * (*E)[7] ) * 0.5;
+    					(*contacts)[8] += 1; 
+    				}
     			}
     			else {
-    				locking_x  = 0.5* std::cos(theta_1+theta_2) * (std::cos(theta_1) + std::cos(theta_2) );
-    				Energy    += ( locking_x*(*E)[6] + (1-locking_x) * (*E)[7] ) * 0.5;
+    				if ( theta_1+theta_2 > M_PI/2 ){
+    					Energy += (*E)[7]; 
+    					(*contacts)[7] += 1; 
+    				}
+    				else {
+    					Energy += (*E)[6]; // ( locking_x*(*E)[6] + (1-locking_x) * (*E)[7] ) * 0.5;
+    					(*contacts)[8] += 1; 
+    				}
     			}
 
     		}
@@ -2385,8 +2400,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 
     }
 
-    (*solvation_shells).assign(ss1.begin(), ss1.end()); 
-
+    (*solvation_shells).assign (first_solvation_shell.begin(), first_solvation_shell.end());
     
     return Energy; 
 }
@@ -2527,10 +2541,10 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,8>* contacts, std
     std::ofstream dump_file(filename, std::ios::app); 
     // std::ostringstream os; 
     
-    // (mm_a + mm_n)
-    // (ms1_a+ms1_n)
-    // (ms2_a+ms2_n)
-    // (ms1s2_a+ms1s2_n)
+    // (mm_a + mm_n)     0 = mm_a  , 1 = mm_n
+    // (ms1_a+ms1_n)     2 = ms1_a , 3 = ms1_n 
+    // (ms2_a+ms2_n)     4 = ms2_a , 5 = ms2_n 
+    // (s1s2_a+s1s2_n)   6 = s1s2_a, 7 = s1s2_n
 
     dump_file << sysEnergy << " | " \
 			<< (*contacts)[0]+(*contacts)[1] << " | " << (*contacts)[0] << " | " << (*contacts)[1] << " | " \
@@ -6960,7 +6974,7 @@ void RegrowthWithSolventFlips_BIASED();
 
 
 void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::vector<int>* solvation_shells, std::array <double,8>* E, \
-	std::array <double,8>* contacts, bool* IMP_BOOL, double* frontflow_energy, double* sysEnergy, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int x, int y, int z) {
 
 	// int Nsolshell = static_cast<int>((*solvation_shells).size()); 
@@ -6978,7 +6992,7 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
     double                              prob_n_to_o      = 1; 
     std::array <std::vector <int>, 5>   shells           = {*solvation_shells, *solvation_shells, *solvation_shells, *solvation_shells, *solvation_shells};
     std::vector <int>                   c_shells1        = *solvation_shells; 
-    // double                              frontflow_energy = 0; 
+    double                              frontflow_energy = 0; 
 	std::array<std::array<double,8>,5>  contacts_store   = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
     std::array <double,8>               c_contacts1      = *contacts; 
     double                              Emin             = 0; 
@@ -7061,7 +7075,7 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 	new_ori.push_back (orientations[e_idx]); 
 
 
-	*frontflow_energy    = energies[e_idx]; 
+	frontflow_energy    = energies[e_idx]; 
 	c_contacts1          = contacts_store [e_idx]; 
 	c_shells1            = shells [e_idx]; 
 
@@ -7101,7 +7115,7 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 
 	rng_acc = rng_uniform (0.0, 1.0); 
 
-	if ( rng_acc < std::exp ( -1/temperature * (*frontflow_energy - *sysEnergy) ) * prob_n_to_o/prob_o_to_n ){
+	if ( rng_acc < std::exp ( -1/temperature * (frontflow_energy - *sysEnergy) ) * prob_n_to_o/prob_o_to_n ){
 
 		// make the swap again 
 		tmp_par_ptr = (*LATTICE)[ (*solvation_shells)[i] ];
@@ -7112,7 +7126,7 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 
 		(*LATTICE)[ exc_idx ] = tmp_par_ptr; 
 		(*LATTICE)[ exc_idx ]->coords = location ( exc_idx, x, y, z ); 
-		*sysEnergy = *frontflow_energy;
+		*sysEnergy = frontflow_energy;
 		*contacts  = c_contacts1;
 		*solvation_shells = c_shells1; 
 
@@ -7214,7 +7228,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform (0, 6); 
+	int r     = 0; // rng_uniform (0, 6); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {
@@ -7281,6 +7295,15 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			*move_number    = r;
 			(*attempts)[r] += 1; 
 			break;
+
+		case (7): 
+			if (v) {
+				std::cout << "Performing an identity swap... " << std::endl;
+			}
+			SolventExchange_BIASED ( Polymers, LATTICE, solvation_shells, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z);
+			*move_number    = r;
+			(*attempts)[r] += 1; 
+			break;			
 
 	}
 

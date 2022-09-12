@@ -83,8 +83,8 @@ if __name__ == "__main__":
         Tmax.append ( np.max(temperatures) )
         
         # get num_list for each temperature 
-        master_temp_list = [] 
-        master_num_list = [] 
+        master_temp_list = []
+        master_num_list = []
         rg_dict    = {}
         ntraj_dict = {}
         for T in temperatures: 
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         for T in temperatures_excl:
             rg_list = [] 
             
-            filename = "Uexcl/DOP_" + str(dop) + "/" + str(T) + "/" +coords_files
+            filename = "Uexcl/DOP_" + str(dop) + "/" + str(T) + "/" +coords_files+".mc"
             master_dict = aux.get_pdict ( filename, 0, dop, edge, edge, edge ) 
             for key in master_dict:
                 coord_arr = aux.unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 

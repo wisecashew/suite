@@ -142,9 +142,10 @@ def edge_length(N):
 def dir2nsim (list_of_dirs):
     l = [] 
     for dir_name in list_of_dirs:
-        r = re.findall ("^energydump_[0-9]+$", dir_name) 
+        r = re.findall ("^energydump_[0-9]+.mc$", dir_name) 
         if ( r ):
-            l.append ( int (r[0][11:] ) )
+            x = re.findall("\d+", r[0] ) 
+            l.append ( int (x[0] ) )
     l.sort() 
     return l
 
@@ -436,7 +437,7 @@ def get_pdict(filename, starting_step, dop, x, y, z):
 
 def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
-    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num) 
+    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num)+".mc" 
     edge = edge_length (dop)
     master_dict = get_pdict (filename, starting_index, dop, edge, edge, edge)
 

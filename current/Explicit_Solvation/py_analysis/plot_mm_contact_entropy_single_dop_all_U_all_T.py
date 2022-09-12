@@ -41,7 +41,7 @@ if __name__=="__main__":
     # instantiate some pertinent variables
     i=0
     Tmax = []
-    mm_max  = -1
+    mm_max  = 208
     for U in U_list:
         print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True )
         mm_list = np.asarray([])
@@ -50,14 +50,13 @@ if __name__=="__main__":
         temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
         Tmax.append ( np.max(temperatures) )
         for temp in temperatures: 
+            mm_list = np.asarray([])
             num_list = np.unique ( aux.dir2nsim (os.listdir ( str(U) + "/DOP_"+str(args.dop) + "/" + str(temp) ) ) )
             # print("T =", temp)
             for num in num_list:
-                df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num), sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python', skiprows=args.s)
+                df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num) + ".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python', skiprows=args.s)
                 mm_list = np.hstack ( ( mm_list, ( df["mm_tot"].values ) - (args.dop-1) ) )
 
-            if U == "U1" and temp == 0.1:
-                mm_max = np.max( mm_list )
             mm_err  = np.hstack ( ( mm_err , np.std  ( mm_list ) / np.sqrt(80) ) ) 
             mm_mean = np.hstack ( ( mm_mean, np.mean ( mm_list ) ) )
         
@@ -75,7 +74,7 @@ if __name__=="__main__":
     contacts = np.ones ( len (temperatures) )
     
     if args.ev:
-        df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e, sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python' )
+        df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e+"_1.mc", sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python' )
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts 
         ax.errorbar ( temperatures, contacts/mm_max, yerr = np.std( df["mm_tot"].values)/(mm_max*np.sqrt(100)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, markersize=10 ) 
         # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)

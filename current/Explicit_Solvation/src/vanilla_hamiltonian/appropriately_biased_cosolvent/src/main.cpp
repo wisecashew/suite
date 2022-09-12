@@ -143,7 +143,7 @@ int main (int argc, char** argv) {
     std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
     std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
-
+    // std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
@@ -175,7 +175,7 @@ int main (int argc, char** argv) {
     LATTICE.reserve (x*y*z); 
 
     std::vector <int> solvation_shells; 
-    solvation_shells.reserve(26*26*N); 
+    solvation_shells.reserve(2*26*26*N); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // OPENING TILES
@@ -193,7 +193,7 @@ int main (int argc, char** argv) {
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
-
+    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     
     // set timers for simulation set-up.  
@@ -201,9 +201,10 @@ int main (int argc, char** argv) {
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-
+    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
+        std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
         SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
@@ -211,7 +212,7 @@ int main (int argc, char** argv) {
 
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
-    
+        std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
@@ -219,6 +220,7 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
+        std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
         SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions ); 
         
         stop = std::chrono::high_resolution_clock::now(); 
@@ -233,13 +235,13 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
     // THERMODYNAMICS OF SET-UP
-
+    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     std::cout <<"\nCalculating energy..." << std::endl;
 
     sysEnergy = CalculateEnergy(&Polymers, &LATTICE, &solvation_shells, &E, &contacts, x, y, z); 
 
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
-    
+    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
         dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
@@ -252,7 +254,9 @@ int main (int argc, char** argv) {
     
     std::cout << "Initiation complete. We are ready to go. The engine will output information every " << dfreq << " configuration(s)." << std::endl; 
     std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
-
+    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
+    acceptances[1] = 0; 
+    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //    
@@ -262,7 +266,7 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
     // BEGIN: main loop of simulation! lfg  
-
+    
     for (int i = step_number+1; i < (step_number+max_iter+1); ++i) {
 
         if ( v && (i%dfreq==0) ){
@@ -271,7 +275,7 @@ int main (int argc, char** argv) {
             for (int j{0}; j< int((Polymers)[0].chain.size()); ++j){
                 print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
             }
-            std::cout << "Contcts = "; print (contacts);
+            std::cout << "Contacts = "; print (contacts);
             std::cout << " -------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;
@@ -281,7 +285,7 @@ int main (int argc, char** argv) {
         PerturbSystem_BIASED (&Polymers, &LATTICE, &solvation_shells, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
         if ( IMP_BOOL ) {
-            (acceptances)[move_number] += 1;    
+            acceptances[move_number] += 1;          
         }
 
         if ( v ){

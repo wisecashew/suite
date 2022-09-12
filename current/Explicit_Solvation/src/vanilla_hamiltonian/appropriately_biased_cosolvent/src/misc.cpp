@@ -2376,21 +2376,21 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     				
     				if ( theta_1+theta_2 > M_PI/2 ) {
     					Energy += (*E)[7]*0.5; 
-    					(*contacts)[7] += 1; 
+    					(*contacts)[6] += 0.5; 
     				}
     				else {
     					Energy    +=  0.5 * (*E)[6]; // ( locking_x*(*E)[6] + (1-locking_x) * (*E)[7] ) * 0.5;
-    					(*contacts)[8] += 1; 
+    					(*contacts)[7] += 0.5; 
     				}
     			}
     			else {
     				if ( theta_1+theta_2 > M_PI/2 ){
     					Energy += (*E)[7]; 
-    					(*contacts)[7] += 1; 
+    					(*contacts)[6] += 1; 
     				}
     				else {
     					Energy += (*E)[6]; // ( locking_x*(*E)[6] + (1-locking_x) * (*E)[7] ) * 0.5;
-    					(*contacts)[8] += 1; 
+    					(*contacts)[7] += 1; 
     				}
     			}
 
@@ -4145,10 +4145,11 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 		BackFlowFromHeadRegrowth_BIASED (Polymers, LATTICE, &c2_solvation_shells, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
 
-		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
-			std::cout << "Energies are bad, or contacts are not right." << std::endl;
+		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts || c2_solvation_shells != *solvation_shells ){
+			std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 			std::cout << "*sysEnergy = " << *sysEnergy << ", backflow_energy = " << backflow_energy << "." << std::endl;
 			std::cout << "c2_contacts = "; print (c2_contacts, ", "); std::cout << "*contacts = "; print(*contacts);
+			std::cout << "Solvation boolean: " << (c2_solvation_shells != *solvation_shells) << std::endl;
 			std::cout << "Shit's fucked." << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -4205,10 +4206,11 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 
 		BackFlowFromTailRegrowth_BIASED (Polymers, LATTICE, &c2_solvation_shells, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
-		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
+		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts || c2_solvation_shells != *solvation_shells ){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
 			std::cout << "*sysEnergy = " << *sysEnergy << ", backflow_energy = " << backflow_energy << "." << std::endl;
 			std::cout << "c2_contacts = "; print (c2_contacts, ", "); std::cout << "*contacts = "; print(*contacts);
+			std::cout << "Solvation boolean: " << (c2_solvation_shells != *solvation_shells) << std::endl;
 			std::cout << "Shit's fucked." << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -6536,10 +6538,11 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
         }
 		*/ 
 
-		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
+		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts || c2_solvation_shells != *solvation_shells){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
 			std::cout << "*sysEnergy = " << *sysEnergy << ", backflow_energy = " << backflow_energy << "." << std::endl;
 			std::cout << "c2_contacts = "; print (c2_contacts, ", "); std::cout << "*contacts = "; print(*contacts);
+			std::cout << "solvation shell boolean: " << (c2_solvation_shells != *solvation_shells) << std::endl;
 			std::cout << "Shit's fucked." << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -6659,6 +6662,7 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
 			std::cout << "*sysEnergy = " << *sysEnergy << ", backflow_energy = " << backflow_energy << "." << std::endl;
 			std::cout << "c2_contacts = "; print (c2_contacts, ", "); std::cout << "*contacts = "; print(*contacts);
+			std::cout << "solvation shells boolean: " << (c2_solvation_shells != *solvation_shells) << std::endl;
 			std::cout << "Shit's fucked." << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -7228,7 +7232,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = 0; // rng_uniform (0, 6); 
+	int r     = 0; // rng_uniform (0, 2); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {

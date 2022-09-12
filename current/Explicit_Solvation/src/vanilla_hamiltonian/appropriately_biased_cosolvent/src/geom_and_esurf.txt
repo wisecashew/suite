@@ -9,6 +9,6 @@ Ems1_a   = -0
 Ems1_n   = -0
 Ems2_a   = 0
 Ems2_n   = 0
-Es1s2_a  = -1
+Es1s2_a  = 0
 Es1s2_n  = 0
 END OF FILE

@@ -49,7 +49,7 @@ int main (int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "\n" << 
-                "Welcome to the Monte Carlo simulation engine (v0.9.1) for polymers and solvent on a cubic lattice (Z=26). \n" << 
+                "Welcome to the Monte Carlo simulation engine (v0.9.1) for polymers and solvents on a cubic lattice (Z=26). \n" << 
 		        "Last updated: Sep 8, 2022, 01:09. \n" << 
                 "Author: satyend@princeton.edu \n" <<
                 "\n" << 

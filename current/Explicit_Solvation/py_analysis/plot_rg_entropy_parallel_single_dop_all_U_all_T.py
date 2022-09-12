@@ -72,7 +72,7 @@ if __name__ == "__main__":
     
     pool_list = [pool1, pool2]
     
-    f = open("RG_DATA_"+str(dop), "w") 
+    f = open("RG_DATA_"+str(dop)+".mc", "w") 
 
     for U in U_list:
         f.write ( "U = " + str(U) + ":\n" )
@@ -163,7 +163,7 @@ if __name__ == "__main__":
     for U in U_list:
         chi_a = aux.get_chi_entropy( str(U)+"/geom_and_esurf.txt")[0]
         rgba_color = cm.PiYG_r (divnorm (chi_a) )
-        ax.errorbar ( temperatures, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, c=rgba_color, fmt='none', color='k', label='_nolegend_')
+        ax.errorbar ( temperatures, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color=rgba_color, fmt='none', label='_nolegend_')
         ax.plot   ( temperatures, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', \
                     linestyle='-', linewidth=2, c=rgba_color, label='_nolegend_', markersize=10 ) 
         i += 1
@@ -179,7 +179,7 @@ if __name__ == "__main__":
         for T in temperatures_excl:
             rg_list = [] 
             
-            filename = "Uexcl/DOP_" + str(dop) + "/" + str(T) + "/" +coords_files+".mc"
+            filename = "Uexcl/DOP_" + str(dop) + "/" + str(T) + "/" +coords_files+"_1.mc"
             master_dict = aux.get_pdict ( filename, 0, dop, edge, edge, edge ) 
             for key in master_dict:
                 coord_arr = aux.unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 

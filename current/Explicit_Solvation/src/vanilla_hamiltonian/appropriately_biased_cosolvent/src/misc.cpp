@@ -7097,7 +7097,7 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 
 	for (int j{0}; j<5; ++j){
 		rsum += boltzmann[j]/rboltzmann; 
-		if ( rng_acc < rsum ) {
+		if ( rng < rsum ) {
 			e_idx = j;
 			break; 
 		}	

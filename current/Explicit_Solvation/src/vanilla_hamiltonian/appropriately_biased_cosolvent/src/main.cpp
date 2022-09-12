@@ -193,7 +193,6 @@ int main (int argc, char** argv) {
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
-    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     
     // set timers for simulation set-up.  
@@ -201,10 +200,8 @@ int main (int argc, char** argv) {
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
         SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
@@ -212,7 +209,6 @@ int main (int argc, char** argv) {
 
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
-        std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
@@ -220,7 +216,6 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
         SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions ); 
         
         stop = std::chrono::high_resolution_clock::now(); 
@@ -235,13 +230,11 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
     // THERMODYNAMICS OF SET-UP
-    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     std::cout <<"\nCalculating energy..." << std::endl;
 
     sysEnergy = CalculateEnergy(&Polymers, &LATTICE, &solvation_shells, &E, &contacts, x, y, z); 
 
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
-    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
         dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
@@ -254,9 +247,7 @@ int main (int argc, char** argv) {
     
     std::cout << "Initiation complete. We are ready to go. The engine will output information every " << dfreq << " configuration(s)." << std::endl; 
     std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
-    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
-    acceptances[1] = 0; 
-    std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
+    // std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //    
@@ -276,6 +267,7 @@ int main (int argc, char** argv) {
                 print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
             }
             std::cout << "Contacts = "; print (contacts);
+            std::cout << "Solvation shell = "; print (solvation_shells);
             std::cout << " -------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;
@@ -298,7 +290,7 @@ int main (int argc, char** argv) {
                 std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (&Polymers, &LATTICE, x, y, z);
+            CheckStructures (&Polymers, &LATTICE, &solvation_shells, x, y, z);
         }
 
         if ( ( i % dfreq == 0 ) ){

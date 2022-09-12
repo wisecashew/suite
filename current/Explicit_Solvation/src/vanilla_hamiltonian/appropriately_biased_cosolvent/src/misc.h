@@ -147,13 +147,14 @@ Polymer                          makePolymer             (std::vector <std::arra
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // validity checks 
-void CheckStructures                      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int x, int y, int z);
+void CheckStructures                      (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, std::vector <int>* solvation_shells, int x, int y, int z); 
 bool checkValidityOfCoords                (std::array <int,3> v, int x, int y, int z); 
 bool checkForOverlaps                     (std::vector <Polymer> Polymers);
 bool checkForOverlaps                     (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE);
 bool checkConnectivity                    (std::vector <Polymer> Polymers, int x, int y, int z); 
 bool checkForSolventMonomerOverlap        (std::vector <Polymer>* Polymers, std::vector<Particle*>* LATTICE, int y, int z); 
 bool checkPointersOnLattice               (std::vector <Particle*>* LATTICE, int x, int y, int z);
+bool checkSolvationShells                 (std::vector <Polymer> Polymers, std::vector <int>* solvation_shells, int y, int z); 
 int  IsSolvent                            (std::vector <Polymer>* Polymers, std::array <int,3>* to_check);
 int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std::array <int,3>* to_check);
 

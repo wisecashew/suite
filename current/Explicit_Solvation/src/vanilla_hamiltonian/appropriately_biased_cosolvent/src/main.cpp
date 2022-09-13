@@ -172,9 +172,14 @@ int main (int argc, char** argv) {
     std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
     
     // initialize custom data structures 
+    // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
     Polymers.reserve(N);
 
+    // this data structure will hold the coordinates of the cosolvent 
+    std::vector <Particle*> Cosolvent; 
+
+    // this data structure will hold the coordinates of the solvent 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
 
@@ -206,7 +211,7 @@ int main (int argc, char** argv) {
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, frac, x, y, z);
+        SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
@@ -219,6 +224,8 @@ int main (int argc, char** argv) {
             BiasTheStart (&Polymers, &LATTICE, x, y, z);
         }
 
+        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
@@ -226,11 +233,13 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions ); 
+        SetUpLatticeFromRestart (&Polymers, &Cosolvent, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
         
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
+        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+        
         std::cout << "System set-up took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Simulation cell has been made! \n\n" ;
 
@@ -242,7 +251,7 @@ int main (int argc, char** argv) {
     // THERMODYNAMICS OF SET-UP
     std::cout <<"\nCalculating energy..." << std::endl;
 
-    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, &solvation_shells, &E, &contacts, x, y, z); 
+    sysEnergy = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
 
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
@@ -277,14 +286,13 @@ int main (int argc, char** argv) {
                 print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
             }
             std::cout << "Contacts = "; print (contacts);
-            std::cout << "Solvation shell = "; print (solvation_shells);
             std::cout << " -------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &LATTICE, &solvation_shells, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
         if ( IMP_BOOL ) {
             acceptances[move_number] += 1;          
@@ -300,7 +308,7 @@ int main (int argc, char** argv) {
                 std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (&Polymers, &LATTICE, &solvation_shells, x, y, z);
+            CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
         }
 
         if ( ( i % dfreq == 0 ) ){

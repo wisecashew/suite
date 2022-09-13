@@ -2334,7 +2334,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     
     double Energy {0.0};
     (*contacts) = {0,0,0,0,0,0,0,0}; 
-    
+
     double             dot_product   = -2; 
     std::array <int,3> connvec       = {0,0,0}; 
     double             theta_1       = 0; 
@@ -2415,10 +2415,10 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     			continue; 
     		}
     		else if ( (*LATTICE)[lattice_index(loc, y, z)]->ptype == ptype ) {
-
     			continue; 
     		}
     		else {
+    			std::cout << "I should not be seeing this." << std::endl;
     			// engage the locking hamiltonian 
     			// get the connection vector 
 
@@ -3741,7 +3741,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
     for ( int i{0}; i < nflip; ++i ) {
 
     	rboltzmann = 0; 
-    	old_ori.push_back((*LATTICE)[ (*solvation_shells)[solvation_shell_indices[i]] ]->orientation);
+    	old_ori.push_back( (*LATTICE)[ (*solvation_shells)[solvation_shell_indices[i]] ]->orientation );
 
     	for ( int j{0}; j < ntest; ++j ){
     		
@@ -3755,7 +3755,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
     	// std::cout << "Energies are "; print(energies); 
 		Emin = *std::min_element ( energies.begin(), energies.end() ); 
 
-		for (int k{0}; k<ntest; ++k){
+		for (int k{0}; k < ntest; ++k){
 			boltzmann[k] = std::exp (-1/temperature*( energies[k] - Emin ) ); 
 			rboltzmann  += boltzmann[k]; 
 		}
@@ -3764,11 +3764,11 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 		// std::cout << "normalization = " << rboltzmann << std::endl;
 		// std::cout << "rng = " << rng_acc << std::endl;
 
-		rng = rng_uniform (0.0, 1.0); 
+		rng     = rng_uniform (0.0, 1.0); 
 		rsum    = 0; 
 		e_idx   = 0; 
 
-		for (int j{0}; j<ntest; ++j){
+		for (int j{0}; j < ntest; ++j){
 			rsum += boltzmann[j]/rboltzmann; 
 			if ( rng < rsum ) {
 				e_idx = j; 
@@ -3834,7 +3834,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
     // check the acceptance criterion 
 
 	double rng_acc = rng_uniform (0.0, 1.0); 
-	if ( rng_acc < std::exp (-1/temperature * (frontflow_energy - *sysEnergy) * prob_n_to_o/prob_o_to_n ) ) {
+	if ( rng_acc < std::exp (-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n  ) {
 		// if accepted, return to the new orientations 
 		
 		for ( int j{0}; j < nflip; ++j ) {

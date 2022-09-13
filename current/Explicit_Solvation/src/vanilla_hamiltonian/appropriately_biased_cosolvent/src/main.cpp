@@ -24,6 +24,7 @@ int main (int argc, char** argv) {
     int max_iter{-1}; // number of iteration to perform
     bool v = false;   // boolean for verbosity of output  (default: not verbose)
     bool r = false;   // boolean for restarts (default: no restarts) 
+    bool b = false;   // boolean for biased starting 
     std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
     std::string topology           {"__blank__"}; // name of file with topology of system 
     std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -34,7 +35,7 @@ int main (int argc, char** argv) {
     std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
     // loop to obtain inputs and assign them to the appropriate variables 
-    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbr")) != -1 )
     {
         switch (opt) 
         {
@@ -76,6 +77,10 @@ int main (int argc, char** argv) {
                 // std::cout <<"Option p was called with argument " << optarg << std::endl;
                 positions = optarg;
                 break;    
+
+            case 'b':
+                b = true;
+                break;
 
             case 't':
                 topology = optarg; 
@@ -120,7 +125,6 @@ int main (int argc, char** argv) {
             case 'L': 
                 // std::cout << "Name of file to write lattice down at end of simulation." << std::endl;
                 lattice_file_write=optarg; 
-
                 break;
 
             case 'R':
@@ -209,6 +213,12 @@ int main (int argc, char** argv) {
 
         std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
+
+        if (b) {
+            std::cout << "Simulation will have a biased start..." << std::endl;
+            BiasTheStart (&Polymers, &LATTICE, x, y, z);
+        }
+
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 

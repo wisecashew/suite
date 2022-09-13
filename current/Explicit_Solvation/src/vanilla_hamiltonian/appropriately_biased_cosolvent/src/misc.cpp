@@ -1460,6 +1460,43 @@ void SetUpLatticeFromRestart ( int x, int y, int z, std::vector <Polymer>* Polym
 
 }
 
+
+void BiasTheStart ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z ) {
+
+    std::array <std::array<int,3>, 26> ne_list;
+    std::vector <int> solvent_indices; 
+    
+    for ( Polymer& pmer: *Polymers ){
+        for ( Particle*& p: pmer.chain ) {
+            
+            ne_list = obtain_ne_list (p->coords, x, y, z);
+            for ( std::array<int,3>& ne: ne_list ){
+                if ( (*LATTICE).at(lattice_index(ne, y, z))->ptype[0] == 's' ) {
+                    solvent_indices.push_back (lattice_index(ne, y, z));
+                }
+            }
+        }
+    }  
+
+    // get rid of duplicates 
+    std::unordered_set <int> s (solvent_indices.begin(), solvent_indices.end() );
+    solvent_indices.assign (s.begin(), s.end() ); 
+
+    for ( Polymer& pmer: (*Polymers) ) {
+        for ( Particle*& p: pmer.chain ) {
+            p->orientation = 0;
+        }
+    }
+
+    for (int i: solvent_indices){
+        (*LATTICE)[i]->orientation = 0;
+    }
+
+    return;
+
+}
+
+
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of SetUp

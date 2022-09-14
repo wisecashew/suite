@@ -224,7 +224,7 @@ int main (int argc, char** argv) {
             BiasTheStart (&Polymers, &LATTICE, x, y, z);
         }
 
-        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+        // CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
 
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }

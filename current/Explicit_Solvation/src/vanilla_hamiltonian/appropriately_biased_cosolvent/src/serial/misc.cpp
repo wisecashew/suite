@@ -17,7 +17,8 @@
 #include <utility>
 #include <unordered_set>
 #include <algorithm>
-
+#include <omp.h>
+#define NUM_THREADS 20
 
 /* 
 =============================================================================================
@@ -1578,16 +1579,19 @@ void AddCosolvent (std::vector <Particle*>* Cosolvent, std::vector <Particle*>* 
 	std::iota (indices.begin(), indices.end(), 0); 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle ( indices.begin(), indices.end(), std::default_random_engine(seed) );
-
-	for ( int i{0}; i <nsol2; ++i ) {
+    int count = 0;
+    int i = 0; 
+	while ( count < nsol2 ) {
 
 		if ( (*LATTICE).at( indices[i] )->ptype[0] == 'm' ){
-			continue; 
+            ; //  count += 1; 
 		}
 		else {
 			(*LATTICE).at( indices[i] )->ptype = "s2"; 
 			(*Cosolvent).push_back((*LATTICE).at( indices[i] )); 
+            count += 1; 
 		}
+        i += 1; 
 			
 	}
 	
@@ -2363,6 +2367,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     // m-s1 = stacking interaction 
     // m-s2 = isotropic interaction 
 
+    auto start = std::chrono::high_resolution_clock::now(); 
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
         	// std::cout << "ploc = "; print (p->coords); 
@@ -2407,6 +2412,12 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
             }
         }
     }
+    auto stop = std::chrono::high_resolution_clock::now(); 
+    auto duration = std::chrono::duration_cast <std::chrono::microseconds> (stop-start); 
+    
+    std::cout << "monomer energy computation took " << duration.count() << " microseconds. " << std::endl;
+    
+    start = std::chrono::high_resolution_clock::now(); 
 
     for ( Particle*& p: *Cosolvent ){
 
@@ -2439,9 +2450,139 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     	}
 
     }
+    stop = std::chrono::high_resolution_clock::now(); 
+    duration = std::chrono::duration_cast <std::chrono::microseconds> (stop-start); 
+    std::cout << "solvent energy computation took " << duration.count() << " microseconds. " << std::endl;
     
     return Energy; 
 }
+
+
+
+double CalculateEnergy_parallel (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z) {
+    
+    double Energy {0.0};
+    (*contacts) = {0,0,0,0,0,0,0,0}; 
+    int NCosolvent = static_cast<int>((*Cosolvent).size()); 
+    double             dot_product   = -2; 
+    // std::array <int,3> connvec       = {0,0,0}; 
+    // double             theta_1       = 0; 
+    // double             theta_2       = 0; 
+    // double             magnitude     = 0; 
+
+    std::array <std::array <int,3>, 26> ne_list; 
+
+    // run energy computations for every monomer bead 
+    // m-m  = stacking interaction
+    // m-s1 = stacking interaction 
+    // m-s2 = isotropic interaction 
+
+    for (Polymer& pmer: (*Polymers)) {
+        for (Particle*& p: pmer.chain){
+        	// std::cout << "ploc = "; print (p->coords); 
+            ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
+            
+            // std::cout << "Particle loc is "; print (p->coords); 
+
+            for ( std::array <int, 3>& loc: ne_list){
+            	// std::cout << "l index = " << lattice_index (loc, y, z) << ", "; print(loc);
+            	dot_product = take_dot_product (  p->orientation, (*LATTICE)[ lattice_index(loc, y, z) ]->orientation );
+            	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1"){
+            		// m-m interactions
+
+            		if (dot_product > 0.54){
+            			Energy += 0.5* (*E)[0];
+            			(*contacts)[0]   += 0.5;
+            		}
+            		else {
+            			Energy += 0.5* (*E)[1];
+            			(*contacts)[1]  += 0.5;
+            		}
+            	}
+            	else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1" ){ 
+            		// m-s1 interactions 
+            		if (dot_product > 0.54){
+            			Energy += (*E)[2];
+            			(*contacts)[2] += 1;
+            		}
+            		else {
+            			Energy += (*E)[3]; 
+            			(*contacts)[3]  += 1;
+            		}
+            	}
+
+            	else {
+					// m-s2 interactions 
+            		Energy += (*E)[4]; 
+            		(*contacts)[4] += 1; 
+            		(*contacts)[5] += 1; 
+
+            	}
+            }
+        }
+    }
+    
+    // start the set up for parallelized energy computation ... 
+    
+    omp_set_num_threads (NUM_THREADS); 
+    // these need to be updated for the whole thing to work! 
+    double energy_chunks[NUM_THREADS]; 
+    double contacts_aligned [NUM_THREADS]; 
+    double contacts_naligned [NUM_THREADS]; 
+
+    #pragma omp parallel 
+    { // start of pragma
+    int id, dummy_idx, nthrds;
+    id = omp_get_thread_num();  
+    nthrds = omp_get_num_threads();  
+    
+    // reinitializing a bunch of new variables for locking interaction 
+    std::array <int, 3> connvec_p; 
+    double magnitude_p {0}; 
+    double theta_1_p   {0}; 
+    double theta_2_p   {0}; 
+    double naligned_energy {(*E)[7]}; 
+    double aligned_energy  {(*E)[6]}; 
+    std::array <std::array <int,3>, 26> ne_list; 
+    
+    // end of reinitialization
+    for (dummy_idx=id, energy_chunks[id]=0.0, contacts_naligned[id]=0, contacts_aligned[id]=0; dummy_idx<NCosolvent; dummy_idx = dummy_idx+nthrds) {
+        ne_list = obtain_ne_list ((*Cosolvent)[dummy_idx]->coords, x, y, z);
+        for ( std::array <int,3>& loc: ne_list ) {
+            
+            if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2" ) {
+                continue; 
+            }
+            else {
+    			connvec_p   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &( (*Cosolvent)[dummy_idx]->coords) );
+    			modified_direction ( &connvec_p, x, y, z); 
+    			magnitude_p = std::sqrt (connvec_p[0]*connvec_p[0]+connvec_p[1]*connvec_p[1]+connvec_p[2]*connvec_p[2]); 
+    			theta_1_p = std::acos (take_dot_product ( Dir2Or[scale_arrays(1/magnitude_p, &connvec_p)] , (*Cosolvent)[dummy_idx]->orientation ) ); 
+    			theta_2_p = std::acos (take_dot_product ( Dir2Or[scale_arrays(-1/magnitude_p, &connvec_p)], (*LATTICE)[lattice_index(loc, y, z)]->orientation ) ); 
+                
+                if ( theta_1_p + theta_2_p > M_PI/2 ) {
+                    energy_chunks [id] += naligned_energy;
+                    contacts_naligned [id] += 1;
+                }
+                else {
+                    energy_chunks [id] += aligned_energy;
+                    contacts_aligned [id] += 1; 
+                }
+            }
+        }
+
+    }
+    } // end of pragma
+    
+    for ( int i{0}; i<NUM_THREADS; ++i) {
+        Energy += energy_chunks[i];
+        (*contacts)[7] += contacts_naligned[i]; 
+        (*contacts)[6] += contacts_aligned [i]; 
+    }
+    
+    return Energy; 
+}
+
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -3820,7 +3961,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 			(*LATTICE)[ solvation_shell_indices[j] ]->orientation = new_ori[j]; 
 		}
 
-		double en = CalculateEnergy(Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
+		double en = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
 		
 		if ( en != frontflow_energy || c_contacts2 != c_contacts1 ){
     		std::cout << "Something is fucked. Energies do not match." << std::endl;
@@ -3999,7 +4140,7 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
     		(*Polymers)[index].chain[polymer_indices[j]]->orientation = new_ori[j];
     	}
 
-		double en = CalculateEnergy(Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
+		double en = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
 		
 		if ( en != frontflow_energy || c_contacts2 != c_contacts1 ){
     		std::cout << "Something is fucked. Energies do not match." << std::endl;
@@ -4057,7 +4198,7 @@ void PolymerFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 
 	}
 
-	double energy = CalculateEnergy ( Polymers, Cosolvent, LATTICE, E, &c_contacts, x, y, z); 
+	double energy = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts, x, y, z); 
 	
 	if ( MetropolisAcceptance (*sysEnergy, energy, temperature) ){
 		

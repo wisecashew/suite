@@ -1,10 +1,10 @@
 CC = g++
 
 # use this set of flags if on Linux 
-# CFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -march=native
+CFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -march=native -fopenmp
 
 # use this set of flags if on MacOS M1
-CFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -mcpu=apple-a10
+# CFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -mcpu=apple-a10
 
 all: clean main unbiased
 	@echo "All simulation objects should be compiled."

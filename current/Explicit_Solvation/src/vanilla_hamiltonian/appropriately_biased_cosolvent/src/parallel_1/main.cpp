@@ -142,6 +142,7 @@ int main (int argc, char** argv) {
     int    step_number    {0};
     int    move_number    {0};  
     double sysEnergy      {0};
+    double sysEnergy_p    {0}; 
     bool   IMP_BOOL       {true}; 
 
     std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
@@ -207,16 +208,16 @@ int main (int argc, char** argv) {
     // set timers for simulation set-up.  
     auto start = std::chrono::high_resolution_clock::now(); 
     auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
         SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
-        duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+        duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
-        std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
+        std::cout << "Solvation took " << duration.count () << " microseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
 
         if (b) {
@@ -236,11 +237,11 @@ int main (int argc, char** argv) {
         SetUpLatticeFromRestart (&Polymers, &Cosolvent, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
         
         stop = std::chrono::high_resolution_clock::now(); 
-        duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+        duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
         CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
         
-        std::cout << "System set-up took " << duration.count () << " milliseconds." << std::endl;
+        std::cout << "System set-up took " << duration.count () << " microseconds." << std::endl;
         std::cout << "Simulation cell has been made! \n\n" ;
 
     }
@@ -250,10 +251,32 @@ int main (int argc, char** argv) {
 
     // THERMODYNAMICS OF SET-UP
     std::cout <<"\nCalculating energy..." << std::endl;
-
-    sysEnergy = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
-
+    
+    start = std::chrono::high_resolution_clock::now(); 
+    sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
+    stop = std::chrono::high_resolution_clock::now(); 
+    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+    std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
+    std::array <double,8> c_contacts = contacts; 
+    start = std::chrono::high_resolution_clock::now(); 
+    sysEnergy_p = CalculateEnergy_parallel(&Polymers, &Cosolvent, &LATTICE, &E, &c_contacts, x, y, z);  
+    stop = std::chrono::high_resolution_clock::now(); 
+    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+    std::cout << "Time required for parallel computation = " << duration.count() << " microseconds. " << std::endl;
+    
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
+    std::cout << "Energy_p of system is " << sysEnergy_p << ".\n" << std::endl;
+    
+    if (sysEnergy == sysEnergy_p && contacts == c_contacts) {
+        std::cout << "MATCH!" << std::endl;
+        // exit(EXIT_SUCCESS);
+    }
+    else {
+        std::cerr << "Nope. Exiting..." << std::endl;
+        std::cout << "contacts = "; print (contacts, ", "); std::cout << "c_contacts = "; print (c_contacts);
+        exit (EXIT_FAILURE); 
+    }
+
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
         dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
@@ -293,6 +316,17 @@ int main (int argc, char** argv) {
 
         // perform move on the system! 
         PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        /*    
+        sysEnergy_p = CalculateEnergy_parallel(&Polymers, &Cosolvent, &LATTICE, &E, &c_contacts, x, y, z);  
+        
+        if (sysEnergy == sysEnergy_p && contacts == c_contacts ) {
+            std::cout << "MATCH!" << std::endl;
+        }
+        else {
+            std::cerr << "Nope. Exiting..." << std::endl;
+            exit (EXIT_FAILURE); 
+        }
+        */ 
 
         if ( IMP_BOOL ) {
             acceptances[move_number] += 1;          
@@ -329,9 +363,9 @@ int main (int argc, char** argv) {
     }
 
     stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 	
-    std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
+    std::cout << "\n\nTime taken for simulation: " << duration.count()/1e+06 << " seconds.\n"; 
     std::cout << "That is all she wrote. Hope it worked." << std::endl;
     std::cout << "--------------------------------------------------------------------\n\n";
 

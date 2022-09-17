@@ -1,0 +1,14 @@
+x = 34
+y = 34
+z = 34
+frac = 0.2
+kT = 1.0
+Emm_a    = -1
+Emm_n    = -1
+Ems1_a   = -1
+Ems1_n   = -1
+Ems2_a   = -0
+Ems2_n   = -0
+Es1s2_a  = -0
+Es1s2_n  = 0
+END OF FILE

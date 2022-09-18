@@ -18,7 +18,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include <omp.h>
-#define NUM_THREADS 20
+#define NUM_THREADS 48
 
 /* 
 =============================================================================================
@@ -2405,7 +2405,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 					// m-s2 interactions 
             		Energy += (*E)[4]; 
             		(*contacts)[4] += 1; 
-            		(*contacts)[5] += 1; 
+            		// (*contacts)[5] += 1; 
 
             	}
             }
@@ -2455,65 +2455,6 @@ double CalculateEnergy_parallel (std::vector <Polymer>* Polymers, std::vector <P
     double Energy {0.0};
     (*contacts) = {0,0,0,0,0,0,0,0}; 
     int NCosolvent = static_cast<int>((*Cosolvent).size()); 
-    /*
-    double             dot_product   = -2; 
-    // std::array <int,3> connvec       = {0,0,0}; 
-    // double             theta_1       = 0; 
-    // double             theta_2       = 0; 
-    // double             magnitude     = 0; 
-
-    std::array <std::array <int,3>, 26> ne_list; 
-
-    // run energy computations for every monomer bead 
-    // m-m  = stacking interaction
-    // m-s1 = stacking interaction 
-    // m-s2 = isotropic interaction 
-
-    for (Polymer& pmer: (*Polymers)) {
-        for (Particle*& p: pmer.chain){
-        	// std::cout << "ploc = "; print (p->coords); 
-            ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
-            
-            // std::cout << "Particle loc is "; print (p->coords); 
-
-            for ( std::array <int, 3>& loc: ne_list){
-            	// std::cout << "l index = " << lattice_index (loc, y, z) << ", "; print(loc);
-            	dot_product = take_dot_product (  p->orientation, (*LATTICE)[ lattice_index(loc, y, z) ]->orientation );
-            	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1"){
-            		// m-m interactions
-
-            		if (dot_product > 0.54){
-            			Energy += 0.5* (*E)[0];
-            			(*contacts)[0]   += 0.5;
-            		}
-            		else {
-            			Energy += 0.5* (*E)[1];
-            			(*contacts)[1]  += 0.5;
-            		}
-            	}
-            	else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1" ){ 
-            		// m-s1 interactions 
-            		if (dot_product > 0.54){
-            			Energy += (*E)[2];
-            			(*contacts)[2] += 1;
-            		}
-            		else {
-            			Energy += (*E)[3]; 
-            			(*contacts)[3]  += 1;
-            		}
-            	}
-
-            	else {
-					// m-s2 interactions 
-            		Energy += (*E)[4]; 
-            		(*contacts)[4] += 1; 
-            		(*contacts)[5] += 1; 
-
-            	}
-            }
-        }
-    }
-    */     
     // start the set up for parallelized energy computation ... 
     
     omp_set_num_threads (NUM_THREADS); 
@@ -2574,7 +2515,7 @@ double CalculateEnergy_parallel (std::vector <Polymer>* Polymers, std::vector <P
 					    // m-s2 interactions 
             		    energy_chunks[0] += (E_)[4]; 
             		    (c_contacts)[4] += 1; 
-            		    (c_contacts)[5] += 1; 
+            		    // (c_contacts)[5] += 1; 
             	    }
                 }
             }
@@ -2808,8 +2749,8 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "End rotations without bias         - attempts: " << (*attempts)[0] <<", acceptances: " << (*acceptances)[0] << ", acceptance fraction: " << static_cast<double>((*acceptances)[0])/static_cast<double>((*attempts)[0]) << std::endl; 
     dump_file << "Reptation without bias             - attempts: " << (*attempts)[1] <<", acceptances: " << (*acceptances)[1] << ", acceptance fraction: " << static_cast<double>((*acceptances)[1])/static_cast<double>((*attempts)[1]) << std::endl; 
     dump_file << "Chain regrowth with overlap bias   - attempts: " << (*attempts)[2] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[2])/static_cast<double>((*attempts)[2]) << std::endl; 
-    dump_file << "Chain regrowth with ori flip       - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[2] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << std::endl; 
-    dump_file << "Solvent flips without bias         - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << std::endl;
+    dump_file << "Chain regrowth with ori flip       - attempts: " << (*attempts)[3] <<", acceptances: " << (*acceptances)[3] << ", acceptance fraction: " << static_cast<double>((*acceptances)[3])/static_cast<double>((*attempts)[3]) << std::endl; 
+    dump_file << "Solvent flips without bias         - attempts: " << (*attempts)[4] <<", acceptances: " << (*acceptances)[4] << ", acceptance fraction: " << static_cast<double>((*acceptances)[4])/static_cast<double>((*attempts)[4]) << std::endl;
     dump_file << "Solvation shell flip with bias     - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << std::endl;
     dump_file << "Polymer flips                      - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << std::endl;
     dump_file << "Solvent exchange with bias         - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << std::endl;
@@ -3852,6 +3793,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	std::array <std::array<int,3>, 26> ne_list; 
 
 	// get the first solvation shell 
+        auto start = std::chrono::high_resolution_clock::now(); 
 	for ( Polymer& pmer: *Polymers){
 		for ( Particle*& p: pmer.chain ){
 
@@ -3863,6 +3805,9 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 			}
 		}
 	}
+        auto stop = std::chrono::high_resolution_clock::now(); 
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+        std::cout << "Time to find solvation shell = " << duration.count() << " microseconds." << std::endl;
 
 
 	std::vector <int> solvation_shell_indices (solvation_shell_set.begin(), solvation_shell_set.end()); 
@@ -3874,7 +3819,7 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	// set up of solvation shell has been performed 
 
 	// start setting up the flipping process 
-    int nflip = rng_uniform(1, static_cast<int>(solvation_shell_indices.size() ) ); 			// number of sites to be flipped 
+    int nflip = rng_uniform(1, static_cast<int>(solvation_shell_indices.size()/2 ) ); 			// number of sites to be flipped 
 
     std::vector <int> old_ori; 					// vector to hold old orientations 
     std::vector <int> new_ori; 					// vector to hold new orientations 
@@ -3890,28 +3835,31 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
     double                              rboltzmann       = 0;  
     double                              frontflow_energy = 0; 
     double                              prob_o_to_n      = 1; 
-	std::array<std::array<double,8>,5>  contacts_store   = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
+    std::array<std::array<double,8>,5>  contacts_store   = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
     std::array <double,8>               c_contacts1      = *contacts; 
     double                              Emin             = 0; 
 
     double rng     = 0; // rng_uniform (0.0, 1.0); 
-	double rsum    = 0; 
-	int    e_idx   = 0; 
+    double rsum    = 0; 
+    int    e_idx   = 0; 
+    
+    int r_monomer_idx = -1; 
+    int r_neighbor    = -1; 
 
-	// std::cout << "solvent_indices = "; print((*solvation_shells));
-
+    // std::cout << "solvent_indices = "; print((*solvation_shells));
     // loop over all solvent_indices
     for ( int i{0}; i < nflip; ++i ) {
+        // get the flip index 
 
     	rboltzmann = 0; 
     	old_ori.push_back( (*LATTICE)[ solvation_shell_indices[i] ]->orientation );
 
     	for ( int j{0}; j < ntest; ++j ){
-    		
-    		(*LATTICE)[ solvation_shell_indices[i] ]->orientation = rng_uniform (0, 25); 
-    		orientations [j]    = (*LATTICE) [ solvation_shell_indices [i] ]->orientation; 
-    		energies [j]        = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &c_contacts1, x, y, z); 
-    		contacts_store [j]  = c_contacts1; 
+    	    
+    	    (*LATTICE)[ solvation_shell_indices[i] ]->orientation = rng_uniform (0, 25); 
+    	    orientations [j]    = (*LATTICE) [ solvation_shell_indices [i] ]->orientation; 
+    	    energies [j]        = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &c_contacts1, x, y, z); 
+    	    contacts_store [j]  = c_contacts1; 
 
     	}
 
@@ -3943,11 +3891,11 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 		new_ori.push_back (orientations[e_idx]); 
 		(*LATTICE)[ solvation_shell_indices[i] ]->orientation = orientations[e_idx]; 
 		prob_o_to_n *= boltzmann[e_idx]/rboltzmann; 
-		 
+		
     }
     
     frontflow_energy  = energies       [e_idx];
-	c_contacts1       = contacts_store [e_idx];
+    c_contacts1       = contacts_store [e_idx];
 
 
     // figure out the backflow energy 
@@ -3999,7 +3947,6 @@ void SolvationShellFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	double rng_acc = rng_uniform (0.0, 1.0); 
 	if ( rng_acc < std::exp (-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n  ) {
 		// if accepted, return to the new orientations 
-		
 		for ( int j{0}; j < nflip; ++j ) {
 			(*LATTICE)[ solvation_shell_indices[j] ]->orientation = new_ori[j]; 
 		}
@@ -4520,10 +4467,6 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 					break; 
 				}
 			}
-
-			// if it is with other head units, do the swap 
-			// if not, discourage it 
-			// std::cout << "self_swap_idx = " << self_swap_idx << std::endl; 
 
 			if ( self_swap_idx < m_index ){
 
@@ -7429,7 +7372,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform (0, 7); 
+	int r     = 5; // rng_uniform (0, 7); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {

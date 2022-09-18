@@ -5,7 +5,7 @@ Chemical information:
 Number of polymers is 1.
 
 Geometric information about simulation cell: 
-x = 10, y = 10, z = 10.
+x = 34, y = 34, z = 34.
 
 Thermodynamic and energetic information about simulation: 
 Temperature = 1.
@@ -20,24 +20,44 @@ Running some more checks on input...
 Setting up the lattice from scratch! 
 Input file has no overlaps!
 Input polymers are well-connected!
-Number of particles of cosolvent is 198.
-Solvation took 1480 microseconds.
+Number of particles of cosolvent is 7854.
+Solvation took 50684 microseconds.
 Cell has been solvated! 
 
 
 Calculating energy...
-Time required for serial computation = 1299 microseconds. 
-Time required for parallel computation = 818 microseconds. 
-Energy of system is -164.
+Time required for serial computation = 38429 microseconds. 
+Time required for parallel computation = 9510 microseconds. 
+Energy of system is -634.
 
-Energy_p of system is -164.
+Energy_p of system is -634.
 
 MATCH!
 Initiation complete. We are ready to go. The engine will output information every 1 configuration(s).
-Number of iteration to perform: 100.
+Number of iteration to perform: 20.
+Time to find solvation shell = 76 microseconds.
+Time to find solvation shell = 77 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 75 microseconds.
+Time to find solvation shell = 77 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 77 microseconds.
+Time to find solvation shell = 76 microseconds.
+Time to find solvation shell = 76 microseconds.
+Time to find solvation shell = 80 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 79 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 79 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 78 microseconds.
+Time to find solvation shell = 85 microseconds.
 
 
-Time taken for simulation: 3.32611 seconds.
+Time taken for simulation: 192.547 seconds.
 That is all she wrote. Hope it worked.
 --------------------------------------------------------------------
 

@@ -259,9 +259,7 @@ int main (int argc, char** argv) {
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
     std::array <double,8> c_contacts = contacts; 
     start = std::chrono::high_resolution_clock::now(); 
-    //for (int y{0}; y<1; ++y) {
     sysEnergy_p = CalculateEnergy_parallel(&Polymers, &Cosolvent, &LATTICE, &E, &c_contacts, x, y, z);  
-    // }
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for parallel computation = " << duration.count() << " microseconds. " << std::endl;

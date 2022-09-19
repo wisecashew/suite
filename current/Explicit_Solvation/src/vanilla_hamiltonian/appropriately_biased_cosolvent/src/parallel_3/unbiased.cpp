@@ -24,7 +24,6 @@ int main (int argc, char** argv) {
     int max_iter{-1}; // number of iteration to perform
     bool v = false;   // boolean for verbosity of output  (default: not verbose)
     bool r = false;   // boolean for restarts (default: no restarts) 
-    bool b = false;   // boolean for biased starting 
     std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
     std::string topology           {"__blank__"}; // name of file with topology of system 
     std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -35,7 +34,7 @@ int main (int argc, char** argv) {
     std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
     // loop to obtain inputs and assign them to the appropriate variables 
-    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbr")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
     {
         switch (opt) 
         {
@@ -50,7 +49,7 @@ int main (int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "\n" << 
-                "Welcome to the Monte Carlo simulation engine (v0.9.1) for polymers and solvents on a cubic lattice (Z=26). \n" << 
+                "Welcome to the Monte Carlo simulation engine (v0.9.1) for polymers and solvent on a cubic lattice (Z=26). \n" << 
 		        "Last updated: Sep 8, 2022, 01:09. \n" << 
                 "Author: satyend@princeton.edu \n" <<
                 "\n" << 
@@ -77,10 +76,6 @@ int main (int argc, char** argv) {
                 // std::cout <<"Option p was called with argument " << optarg << std::endl;
                 positions = optarg;
                 break;    
-
-            case 'b':
-                b = true;
-                break;
 
             case 't':
                 topology = optarg; 
@@ -125,6 +120,7 @@ int main (int argc, char** argv) {
             case 'L': 
                 // std::cout << "Name of file to write lattice down at end of simulation." << std::endl;
                 lattice_file_write=optarg; 
+
                 break;
 
             case 'R':
@@ -142,17 +138,18 @@ int main (int argc, char** argv) {
     int    step_number    {0};
     int    move_number    {0};  
     double sysEnergy      {0};
-    double sysEnergy_p    {0}; 
     bool   IMP_BOOL       {true}; 
 
     std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
     std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
-    // std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
+
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser ( dfreq, max_iter, r, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read ); 
+    InputParser ( dfreq, max_iter, r, positions, \
+        topology, dfile, efile, mfile, stats_file, \
+        lattice_file_read ); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -173,19 +170,11 @@ int main (int argc, char** argv) {
     std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
     
     // initialize custom data structures 
-    // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
     Polymers.reserve(N);
 
-    // this data structure will hold the coordinates of the cosolvent 
-    std::vector <Particle*> Cosolvent; 
-
-    // this data structure will hold the coordinates of the solvent 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
-
-    std::vector <int> solvation_shells; 
-    solvation_shells.reserve(2*26*26*N); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // OPENING TILES
@@ -203,30 +192,25 @@ int main (int argc, char** argv) {
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
+
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     
     // set timers for simulation set-up.  
     auto start = std::chrono::high_resolution_clock::now(); 
     auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
+
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, frac, x, y, z);
+        SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
-        duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+        duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-        std::cout << "Solvation took " << duration.count () << " microseconds." << std::endl;
+        std::cout << "Solvation took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
-
-        if (b) {
-            std::cout << "Simulation will have a biased start..." << std::endl;
-            BiasTheStart (&Polymers, &LATTICE, x, y, z);
-        }
-
-        // CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
-
+    
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
@@ -234,14 +218,12 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (&Polymers, &Cosolvent, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
+        SetUpLatticeFromRestart (x, y, z, &Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions ); 
         
         stop = std::chrono::high_resolution_clock::now(); 
-        duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+        duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 
-        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
-        
-        std::cout << "System set-up took " << duration.count () << " microseconds." << std::endl;
+        std::cout << "System set-up took " << duration.count () << " milliseconds." << std::endl;
         std::cout << "Simulation cell has been made! \n\n" ;
 
     }
@@ -250,35 +232,13 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
     // THERMODYNAMICS OF SET-UP
-    std::cout <<"\nCalculating energy..." << std::endl;
-    
-    start = std::chrono::high_resolution_clock::now(); 
-    sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
-    stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-    std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
-    std::array <double,8> c_contacts = contacts; 
-    start = std::chrono::high_resolution_clock::now(); 
-    //for (int y{0}; y<1; ++y) {
-    sysEnergy_p = CalculateEnergy_parallel(&Polymers, &Cosolvent, &LATTICE, &E, &c_contacts, x, y, z);  
-    // }
-    stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-    std::cout << "Time required for parallel computation = " << duration.count() << " microseconds. " << std::endl;
-    
-    std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
-    std::cout << "Energy_p of system is " << sysEnergy_p << ".\n" << std::endl;
-    
-    if (sysEnergy == sysEnergy_p && contacts == c_contacts) {
-        std::cout << "MATCH!" << std::endl;
-        // exit(EXIT_SUCCESS);
-    }
-    else {
-        std::cerr << "Nope. Exiting..." << std::endl;
-        std::cout << "contacts = "; print (contacts, ", "); std::cout << "c_contacts = "; print (c_contacts);
-        exit (EXIT_FAILURE); 
-    }
 
+    std::cout <<"\nCalculating energy..." << std::endl;
+
+    sysEnergy = CalculateEnergy(&Polymers, &LATTICE, &E, &contacts, x, y, z); 
+
+    std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
+    
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
         dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
@@ -291,7 +251,7 @@ int main (int argc, char** argv) {
     
     std::cout << "Initiation complete. We are ready to go. The engine will output information every " << dfreq << " configuration(s)." << std::endl; 
     std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
-    // std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
+
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //    
@@ -301,7 +261,7 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
     // BEGIN: main loop of simulation! lfg  
-    
+
     for (int i = step_number+1; i < (step_number+max_iter+1); ++i) {
 
         if ( v && (i%dfreq==0) ){
@@ -310,28 +270,17 @@ int main (int argc, char** argv) {
             for (int j{0}; j< int((Polymers)[0].chain.size()); ++j){
                 print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
             }
-            std::cout << "Contacts = "; print (contacts);
+            std::cout << "Contcts = "; print (contacts);
             std::cout << " -------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
-        /*    
-        sysEnergy_p = CalculateEnergy_parallel(&Polymers, &Cosolvent, &LATTICE, &E, &c_contacts, x, y, z);  
-        
-        if (sysEnergy == sysEnergy_p && contacts == c_contacts ) {
-            std::cout << "MATCH!" << std::endl;
-        }
-        else {
-            std::cerr << "Nope. Exiting..." << std::endl;
-            exit (EXIT_FAILURE); 
-        }
-        */ 
+        PerturbSystem_UNBIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
         if ( IMP_BOOL ) {
-            acceptances[move_number] += 1;          
+            (acceptances)[move_number] += 1;    
         }
 
         if ( v ){
@@ -344,7 +293,7 @@ int main (int argc, char** argv) {
                 std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+            CheckStructures (&Polymers, &LATTICE, x, y, z);
         }
 
         if ( ( i % dfreq == 0 ) ){
@@ -365,9 +314,9 @@ int main (int argc, char** argv) {
     }
 
     stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+    duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
 	
-    std::cout << "\n\nTime taken for simulation: " << duration.count()/1e+06 << " seconds.\n"; 
+    std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds.\n"; 
     std::cout << "That is all she wrote. Hope it worked." << std::endl;
     std::cout << "--------------------------------------------------------------------\n\n";
 

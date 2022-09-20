@@ -142,13 +142,12 @@ int main (int argc, char** argv) {
     int    step_number    {0};
     int    move_number    {0};  
     double sysEnergy      {0};
-    double sysEnergy_p    {0}; 
     bool   IMP_BOOL       {true}; 
 
     std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
     std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
-    // std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
+    
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
@@ -257,25 +256,8 @@ int main (int argc, char** argv) {
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
-    std::array <double,8> c_contacts = contacts; 
-    start = std::chrono::high_resolution_clock::now(); 
-    sysEnergy_p = CalculateEnergy_parallel(&Polymers, &Cosolvent, &LATTICE, &E, &c_contacts, x, y, z);  
-    stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-    std::cout << "Time required for parallel computation = " << duration.count() << " microseconds. " << std::endl;
-    
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
-    std::cout << "Energy_p of system is " << sysEnergy_p << ".\n" << std::endl;
     
-    if (sysEnergy == sysEnergy_p && contacts == c_contacts) {
-        std::cout << "MATCH!" << std::endl;
-        // exit(EXIT_SUCCESS);
-    }
-    else {
-        std::cerr << "Nope. Exiting..." << std::endl;
-        std::cout << "contacts = "; print (contacts, ", "); std::cout << "c_contacts = "; print (c_contacts);
-        exit (EXIT_FAILURE); 
-    }
 
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
@@ -316,17 +298,7 @@ int main (int argc, char** argv) {
 
         // perform move on the system! 
         PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
-        /*    
-        sysEnergy_p = CalculateEnergy_parallel(&Polymers, &Cosolvent, &LATTICE, &E, &c_contacts, x, y, z);  
-        
-        if (sysEnergy == sysEnergy_p && contacts == c_contacts ) {
-            std::cout << "MATCH!" << std::endl;
-        }
-        else {
-            std::cerr << "Nope. Exiting..." << std::endl;
-            exit (EXIT_FAILURE); 
-        }
-        */ 
+
 
         if ( IMP_BOOL ) {
             acceptances[move_number] += 1;          

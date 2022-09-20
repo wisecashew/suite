@@ -68,11 +68,17 @@ std::vector <int>      add_vectors (std::vector <int>* v1, std::vector <int>* v2
 std::array  <int,3>    add_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
 std::array  <double,3> add_arrays  (std::array <int,3>* a1, std::array <double,3>* a2);
 std::array  <double,3> add_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
+std::array  <double,8> add_arrays  (std::array <double,8>* a1, std::array <double,8>* a2);
+std::array <double,8>  add_arrays (std::array<double,8> a1, std::array <double,8> a2); 
+
 
 // subtracting the two 
 std::vector <int>      subtract_vectors (std::vector <int>* v1, std::vector <int>* v2); 
 std::array  <int,3>    subtract_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
+std::array  <int,8>    subtract_arrays  (std::array <int,8>* a1, std::array <int,8>* a2);
 std::array  <double,3> subtract_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
+std::array  <double,8> subtract_arrays  (std::array <double,8>* a1, std::array <double,8>* a2);
+std::array  <double,8> subtract_arrays  (std::array<double,8> a1, std::array <double,8> a2); 
 
 // scaling arrays 
 std::array <double,3>  scale_arrays ( double scalar, std::array <double,3>* array );
@@ -177,6 +183,7 @@ double                   NumberExtractor            (std::string s);
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 double CalculateEnergy               (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
 double CalculateEnergy_parallel      (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
+double NeighborEnergy                (std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, int ss_index, int x, int y, int z); 
 bool   MetropolisAcceptance          (double E1, double E2, double kT); 
 bool   MetropolisAcceptance          (double E1, double E2, double kT, double rweight); 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -229,6 +236,12 @@ void                  EndRotation_UNBIASED         (std::vector <Polymer>* Polym
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+void                  TailRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  HeadRotation_UNBIASED        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  EndRotation_UNBIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
 void                  TailRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  HeadRotation_BIASED          (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 void                  EndRotation_BIASED           (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
@@ -269,7 +282,12 @@ void                  ChainRegrowth_BIASED                (std::vector <Polymer>
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 void                  FirstSolvationShellFlip_BIASED      (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z);
+void                  SolvationShellFlip_BIASED_remake2   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z );
 void                  PolymerFlip_BIASED                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+void                  PolymerFlip_BIASED                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 

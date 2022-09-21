@@ -1,2 +1,0 @@
-slurmstepd: error: *** JOB 206863 ON stellar-i06n3 CANCELLED AT 2022-09-18T15:00:03 ***
-"./cosolv_ani -f 1 -M 100 -p 32mer.txt -t geom_and_esurf.txt -o coords.mc -L lattice_dump.mc -u energydump.mc -e orientation.mc -s stats.mc > output.mc 2>&1" command filed with exit code 0.

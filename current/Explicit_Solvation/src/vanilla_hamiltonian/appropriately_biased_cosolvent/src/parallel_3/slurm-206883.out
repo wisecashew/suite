@@ -1,3 +1,0 @@
-/var/spool/slurmd/job206883/slurm_script: line 28: 841938 Killed                  ./cosolv_ani -f 1 -M 20 -p 32mer.txt -t geom_and_esurf.txt -o coords.mc -L lattice_dump.mc -u energydump.mc -e orientation.mc -s stats.mc > output.mc 2>&1
-"./cosolv_ani -f 1 -M 20 -p 32mer.txt -t geom_and_esurf.txt -o coords.mc -L lattice_dump.mc -u energydump.mc -e orientation.mc -s stats.mc > output.mc 2>&1" command filed with exit code 137.
-slurmstepd: error: Detected 1 oom-kill event(s) in StepId=206883.batch. Some of your processes may have been killed by the cgroup out-of-memory handler.

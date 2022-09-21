@@ -2483,7 +2483,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     			continue; 
     		}
     		else {
-
+    			// std::cout << "location of s1 neighbor is "; print ( loc, ", " );
     			connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(p->coords) );
     			modified_direction ( &connvec, x, y, z); 
     			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
@@ -2493,11 +2493,13 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     			if ( theta_1+theta_2 > M_PI/2 ){
 					Energy += (*E)[7]; 
 					(*contacts)[7] += 1; 
+					// std::cout << "misaligned\n";
 				}
 				else {
 					// locked or aligned
 					Energy += (*E)[6]; 
 					(*contacts)[6] += 1; 
+					// std::cout << "aligned\n";
 				}
 
     		}
@@ -2633,38 +2635,35 @@ double CalculateEnergy_parallel (std::vector <Polymer>* Polymers, std::vector <P
 
 double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, int ss_index, int x, int y, int z){
 
-	// get neighbor list 
+	// reinitialize contacts 
 	(*contacts) = {0,0,0,0,0,0,0,0}; 
-	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ( (*LATTICE)[ss_index]->coords, x, y, z ); 
-	std::array <int,3> ploc = (*LATTICE)[ss_index]->coords; 
-	std::string particle_type = (*LATTICE)[ss_index]->ptype; 
-	int orientation = (*LATTICE)[ss_index]->orientation; 
+
+	// information of particle whose neighbor list is being calculated 
+	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ( (*LATTICE).at(ss_index)->coords, x, y, z ); 
+	std::array <int,3> ploc                    = (*LATTICE).at(ss_index)->coords; 
+	std::string particle_type                  = (*LATTICE).at(ss_index)->ptype; 
+	int orientation                            = (*LATTICE).at(ss_index)->orientation; 
 	
 	double Ei       = 0; 
 	double dot_prod = -2; 
 	double theta_1 (0), theta_2 (0), magnitude (0);
 	std::array <int,3> connvec = {0,0,0};  
 
-
-	// DELETE THIS LATER 
-	// if ( particle_type[0] != 's' ){
-	//	std::cout << "BAD SOLVATION SHELL!!" << std::endl;
-	//	exit (EXIT_FAILURE); 
-	// }
+	// std::cout << "Coords of particle of interest = "; print ( ploc );
 	// start of neighbor loop 
 	for ( std::array <int,3>& loc: ne_list) {
-
+		// print (*contacts);
 		// if particle in question is s1... 
 		if ( particle_type == "s1" ) {
-			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" ){
-				dot_prod = take_dot_product ( orientation, (*LATTICE)[ lattice_index(loc, y, z) ]->orientation );
+			if ( (*LATTICE).at(lattice_index(loc, y, z))->ptype == "m1" ){
+				dot_prod = take_dot_product ( orientation, (*LATTICE).at(lattice_index(loc, y, z) )->orientation) ;
 				if ( dot_prod > 0.54 ){
-					Ei += (*E)[2];
-					(*contacts)[2] += 1; 
+					Ei += (*E).at(2);
+					(*contacts).at(2) += 1; 
 				}
 				else {
-					Ei += (*E)[3]; 
-					(*contacts)[3] += 1; 
+					Ei += (*E).at(3); 
+					(*contacts).at(3) += 1; 
 				}
 			}
 
@@ -2672,16 +2671,16 @@ double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,8>*
 				connvec = subtract_arrays ( &loc, &ploc ); 
 				modified_direction ( &connvec, x, y, z); 
 				magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-    			theta_1 = std::acos (take_dot_product ( Dir2Or[scale_arrays(1/magnitude, &connvec)], orientation ) ); 
-    			theta_2 = std::acos (take_dot_product ( Dir2Or[scale_arrays(-1/magnitude, &connvec)], (*LATTICE)[lattice_index(loc, y, z)]->orientation ) ); 
+    			theta_1 = std::acos (take_dot_product ( Dir2Or.at(scale_arrays(1/magnitude, &connvec)), orientation ) ); 
+    			theta_2 = std::acos (take_dot_product ( Dir2Or.at(scale_arrays(-1/magnitude, &connvec)), (*LATTICE).at(lattice_index(loc, y, z))->orientation ) ); 
 
     			if ( theta_1 + theta_2 > M_PI/2 ) {
-    				Ei += (*E)[7]; 
-    				(*contacts)[7] += 1;
+    				Ei += (*E).at(7); 
+    				(*contacts).at(7) += 1;
     			}
     			else {
-    				Ei += (*E)[6]; 
-    				(*contacts)[6] += 1; 
+    				Ei += (*E).at(6); 
+    				(*contacts).at(6) += 1; 
     			}
 			}
 		}
@@ -2689,25 +2688,28 @@ double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,8>*
 		// if particle in question is s2... 
 		else if ( particle_type == "s2" ) {
 			// if neighbor is m1
-			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" ){
-				Ei += (*E)[4];
-				(*contacts)[4] += 1; 
+			if ( (*LATTICE).at(lattice_index(loc, y, z) )->ptype == "m1" ){
+				Ei += (*E).at(4);
+				(*contacts).at(4) += 1; 
 			}
 			// if neighbor is s1
-			else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1") {
+			else if ( (*LATTICE).at(lattice_index(loc, y, z) )->ptype == "s1") {
+				// std::cout << "location of s1 neighbor is "; print ( loc );
 				connvec = subtract_arrays ( &loc, &ploc ); 
 				modified_direction ( &connvec, x, y, z); 
 				magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-    			theta_1 = std::acos (take_dot_product ( Dir2Or[scale_arrays(1/magnitude, &connvec)], orientation ) ); 
-    			theta_2 = std::acos (take_dot_product ( Dir2Or[scale_arrays(-1/magnitude, &connvec)], (*LATTICE)[lattice_index(loc, y, z)]->orientation ) ); 
+    			theta_1 = std::acos (take_dot_product ( Dir2Or.at(scale_arrays(1/magnitude, &connvec)), orientation ) ); 
+    			theta_2 = std::acos (take_dot_product ( Dir2Or.at(scale_arrays(-1/magnitude, &connvec)), (*LATTICE).at(lattice_index(loc, y, z))->orientation ) ); 
 
     			if ( theta_1 + theta_2 > M_PI/2 ) {
-    				Ei += (*E)[7]; 
-    				(*contacts)[7] += 1; 
+    				Ei += (*E).at(7); 
+    				(*contacts).at(7) += 1; 
+    				std::cout << "misaligned." << std::endl;
     			}
     			else {
-    				Ei += (*E)[6]; 
-    				(*contacts)[6] += 1; 
+    				Ei += (*E).at(6); 
+    				(*contacts).at(6) += 1; 
+    				std::cout << "aligned." << std::endl;
     			}
 			}
 		}
@@ -2715,36 +2717,35 @@ double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,8>*
 		// if particle in question is m1... 
 		else {
 			// if neighbor is m1
-			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" ) {
-				dot_prod = take_dot_product ( orientation, (*LATTICE)[ lattice_index (loc, y, z) ]->orientation ); 
+			if ( (*LATTICE).at( lattice_index(loc, y, z) )->ptype == "m1" ) {
+				dot_prod = take_dot_product ( orientation, (*LATTICE).at( lattice_index (loc, y, z) )->orientation ); 
 				if ( dot_prod > 0.54){
-					Ei += (*E)[0];
-					(*contacts)[0] += 1; 
+					Ei += (*E).at(0);
+					(*contacts).at(0) += 1; 
 				}
 				else {
-					Ei += (*E)[1]; 
-					(*contacts)[1] += 1;
+					Ei += (*E).at(1); 
+					(*contacts).at(1) += 1;
 				}
 			}
 			// if neighbor is s1
-			else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1" ) {
-				dot_prod = take_dot_product ( orientation, (*LATTICE)[ lattice_index (loc, y, z) ]->orientation ); 
+			else if ( (*LATTICE).at( lattice_index(loc, y, z) )->ptype == "s1" ) {
+				dot_prod = take_dot_product ( orientation, (*LATTICE).at( lattice_index (loc, y, z) )->orientation ); 
 				if (dot_prod > 0.54){
-        			Ei += (*E)[2];
-        			(*contacts)[2] += 1;
+        			Ei += (*E).at(2);
+        			(*contacts).at(2) += 1;
         		}
         		else {
-        			Ei += (*E)[3]; 
-        			(*contacts)[3]  += 1;
+        			Ei += (*E).at(3); 
+        			(*contacts).at(3)  += 1;
         		}
 			}
 			// if neighbor is s2
 			else {
-				Ei += (*E)[4]; 
-            	(*contacts)[4] += 1; 
+				Ei += (*E).at(4); 
+            	(*contacts).at(4) += 1; 
 			}
 		}
-
 	} // end of neighbor loop 
 
 	return Ei; 
@@ -4779,7 +4780,8 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 
 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
-	int m_index  = rng_uniform (1, deg_poly-2); 
+	std::cout << "deg_poly = " << deg_poly << std::endl;
+	int m_index  = rng_uniform (deg_poly/2, deg_poly-2); 
 
 
 	std::array <double,8> c1_contacts     = *contacts; 
@@ -4816,20 +4818,22 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	
 	if ( growth ){
 		
-		// std::cout << "Head regrowth... " << std::endl;
+		std::cout << "Head regrowth... " << std::endl;
 		// std::cout << "OLD ENERGY = " << *sysEnergy << std::endl << std::endl;
 		// get old_cut 
 		
 		for (int i {m_index+1}; i<deg_poly; ++i){
-			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
+			old_cut.push_back ((*Polymers).at(p_index).chain.at(i)->coords) ;
 		}
 
 		// regrow the polymer frontwards
+		std::cout << "Regrowth time!" << std::endl;
 		HeadRegrowth_BIASED (Polymers, Cosolvent, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
-		
+		std::cout << "Worked!" << std::endl;
+		exit (EXIT_SUCCESS);
 
 		for (int i {m_index+1}; i<deg_poly; ++i){
-			new_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
+			new_cut.push_back ((*Polymers).at(p_index).chain.at(i)->coords) ;
 		}
 
 		if ( old_cut == new_cut ){
@@ -4848,7 +4852,12 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			return; 
 		}
 
+		c2_contacts = c1_contacts; 
+		// std::cout << "c2_contacts = "; print (c2_contacts);
 		backflow_energy = frontflow_energy; 
+
+		std::cout << "-------------------" << std::endl;
+		std::cout << "Backflow time!" << std::endl;
 		BackFlowFromHeadRegrowth_BIASED (Polymers, Cosolvent, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
@@ -4877,7 +4886,7 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	}
 	else {
 
-		// std::cout << "Tail regrowth..." << std::endl;
+		std::cout << "Tail regrowth..." << std::endl;
 		// get old cut 
 		for ( int i{0}; i<m_index; ++i){
 			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords);
@@ -4960,28 +4969,38 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 	// std::cout << "m_index = " << m_index << std::endl;
 	// generate an array for energies 
-	std::array <double,8> current_contacts = *contacts; 
-        std::array <double,8> frontflow_contacts = {0,0,0,0,0,0,0,0}; 
-        std::array <double,8> backflow_contacts  = {0,0,0,0,0,0,0,0}; 
-	std::array <double,5> energies; 
+	std::array <double,8>               current_contacts = *contacts; 
+	std::array <double,8>				copy_contacts    = *contacts; // this is only for the checks with brute force calculation
+
+	// current contacts will be perturbed, and eventually merged with *contacts. 
+
+	std::array <double,5>               energies; 
 	std::array <std::array<double,8>,5> contacts_store; 
-	std::array <double,5> boltzmann; 
-
-	double rboltzmann = 0; // running sum for boltzmann weights 
-
-	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; 
+	std::array <double,5>               boltzmann; 
+	std::array <int,3>                  loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; 
 
 	// generate possible locations to jump to. 
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
-        
-        std::array <double,8> cm, cs, cm_n, cs_n; 
-        double Esys = *sysEnergy;
-        double Em = 0, Es = 0, Es_n = 0, Em_n = 0, energy_n = 0; 
 
 	// randomly select five of them 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
 	
+	// doubles
+	double rboltzmann = 0; // running sum for boltzmann weights 
+	double Em   = 0;
+	double Es   = 0; 
+	double Em_n = 0; 
+	double Es_n = 0; 
+	double Esys = *frontflow_energy; 
+
+	double Etest   = 0;
+
+	std::array <double,8> cm   = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs   = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm_n = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs_n = {0,0,0,0,0,0,0,0};
+
 	// start attempting jumps 
 
 	int block_counter       = 0 ; 
@@ -4995,14 +5014,12 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 		if ( ne_list[idx_counter] == loc_m ){ 
 			// current position
-			energies[idx_counter]       = *frontflow_energy; 
+			energies[idx_counter]       = Esys; 
 			contacts_store[idx_counter] = current_contacts;
 			block_counter += 1; 
 		}
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
-
-			// check which region of the polymer the swap is taking place 
 
 			for ( int u{0}; u<deg_poly; ++u ) {
 				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ) {
@@ -5025,11 +5042,12 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 				block_counter += 1; 
 			}
 			else {
-                                // initial neighoring interactions
-                                Em = NeighborEnergy ( LATTICE, E, &cm, lattice_index((*Polymers)[p_index].chain[m_index]->coords, x, y, z), x, y, z);
-                                Es = NeighborEnergy ( LATTICE, E, &cs, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z);
-				// prep the swap 
+				std::cout << "monomer swap time." << std::endl;
+				// get the initial neighboring energies. 
+				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
+				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 				(*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
 				
@@ -5037,20 +5055,22 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 				(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
+				// get the new energies
+				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+
+				energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
+				contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
+				
 				// get the energy
-                                Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index((*Polymers)[p_index].chain[m_index+1]->coords, x, y, z), x, y, z); 
-                                Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z); 
-                                energies [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); 
-                                contacts_store [idx_counter] = add_arrays ( subtract_arrays (*contacts, add_arrays (cs, cm)), add_arrays (cm_n, cs_n) );
-                                
-				energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &current_contacts, x, y, z);
-				if (energies[idx_counter] != energy_n || contacts_store[idx_counter] != current_contacts){
-                                    
-				    std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
-				    std::cout << "energies["<<idx_counter<<"] = " << energies[idx_counter] << ", energy_n = " << energy_n << ". " << std::endl; 
-				    std::cout << "contacts_store[" <<idx_counter<< "] = "; print (contacts_store[idx_counter], ", "); std::cout << "c_contacts = "; print(current_contacts);
-				    exit(EXIT_FAILURE);
-                                }
+				Etest  = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
+				if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+					std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
+					std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
+					std::cout << "Shit's fucked." << std::endl;
+					exit(EXIT_FAILURE);
+				}
 
 				// revert back to original structure 
 				(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
@@ -5063,10 +5083,10 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 			
 		}
 		else {
-                        // initial neighboring interactions 
-                        Em = NeighborEnergy ( LATTICE, E, &cm, lattice_index((*Polymers)[p_index].chain[m_index+1]->coords, x, y, z), x, y, z);
-                        Es = NeighborEnergy ( LATTICE, E, &cs, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z);
-                        
+			std::cout << "solvent swap time." << std::endl;
+			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 			(*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
@@ -5075,19 +5095,22 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 			(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
-			// get the energy
-                        Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index((*Polymers)[p_index].chain[m_index+1]->coords, x, y, z), x, y, z); 
-                        Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z); 
-                        energies [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); 
-                        contacts_store [idx_counter] = add_arrays ( subtract_arrays (*contacts, add_arrays (cs, cm)), add_arrays (cm_n, cs_n) );
+			// get the new energies
+			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
-			energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &current_contacts, x, y, z);
-			if (energies[idx_counter] != energy_n || contacts_store[idx_counter] != current_contacts){
-			    std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
-			    std::cout << "energies["<<idx_counter<<"] = " << energies[idx_counter] << ", energy_n = " << energy_n << ". " << std::endl; 
-			    std::cout << "contacts_store[" <<idx_counter<< "] = "; print (contacts_store[idx_counter], ", "); std::cout << "c_contacts = "; print(current_contacts);
-			    exit(EXIT_FAILURE);
-                        }
+			energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
+			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
+
+			// get the energy
+			Etest  = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
+			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+				std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
+				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
+				std::cout << "Shit's fucked." << std::endl;
+				exit(EXIT_FAILURE);
+			}
 
 			// revert back to original structure 
 			(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
@@ -5135,9 +5158,9 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 	}
 	
 	// now that I have chosen a configuration, go with it
-	*prob_o_to_n      *= boltzmann[e_idx]/rboltzmann; 
-	*frontflow_energy  = energies[e_idx];
-	*contacts          = contacts_store [e_idx]; 
+	*prob_o_to_n     *= boltzmann[e_idx]/rboltzmann; 
+	*frontflow_energy = energies[e_idx];
+	*contacts         = contacts_store [e_idx]; 
 	// std::cout << "e_idx = " << e_idx << std::endl;
 	// std::cout << "maintain_idx = "; print(maintain_idx);
 	// std::cout << "frontflow_energy is " << *frontflow_energy << std::endl; 
@@ -5188,10 +5211,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	std::array <double,5> boltzmann; 
 	std::array <double,8> current_contacts = *contacts; 
 	std::array <std::array<double,8>,5> contacts_store; 
-    
-        std::array <double,8> cs1, cs2, cs1_n, cs2_n; 
-        double Esys = *sysEnergy; 
-        double Es = 0, Em = 0, Es_n = 0, Em_n = 0;
+
 
 	double rboltzmann = 0; // running sum for boltzmann weights 
 
@@ -5249,9 +5269,6 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 				contacts_store[idx_counter] = {-1,-1,-1,-1}; 
 			}
 			else {
-                                // initial neighoring interactions
-                                Em = NeighborEnergy ( LATTICE, E, &cm, lattice_index((*Polymers)[p_index].chain[m_index+1]->coords, x, y, z), x, y, z);
-                                Es = NeighborEnergy ( LATTICE, E, &cs, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z);
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 				(*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
@@ -5261,18 +5278,10 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 				
 				// get the energy
-                                Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index((*Polymers)[p_index].chain[m_index+1]->coords, x, y, z), x, y, z); 
-                                Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z); 
-                                energies [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); 
-                                contacts_store [idx_counter] = add_arrays ( subtract_arrays (*contacts, add_arrays (cs, cm)), add_arrays (cm_n, cs_n) );
-			        energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
-			        if (energies[idx_counter] != energy_n || contacts_store[idx_counter] != current_contacts){
-			            std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
-			            std::cout << "energies["<<idx_counter<<"] = " << energies[idx_counter] << ", energy_n = " << energy_n << ". " << std::endl; 
-			            std::cout << "contacts_store[" <<idx_counter<< "] = "; print (contacts_store[idx_counter], ", "); std::cout << "c_contacts = "; print(current_contacts);
-			            exit(EXIT_FAILURE);
-                                }
-				
+				energies [idx_counter] = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
+				contacts_store[idx_counter] = *contacts; 
+				// std::cout << "current_contacts = "; print(current_contacts); 
+
 				// revert back to original structure 
 				(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
 				(*Polymers)[p_index].chain[m_index+1]->coords  = loc_m;
@@ -5283,9 +5292,6 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 			}
 		}
 		else {
-                        // initial neighoring interactions
-                        Em = NeighborEnergy ( LATTICE, E, &cm, lattice_index((*Polymers)[p_index].chain[m_index+1]->coords, x, y, z), x, y, z);
-                        Es = NeighborEnergy ( LATTICE, E, &cs, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z);
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 			(*Polymers)[p_index].chain[m_index+1]->coords  = ne_list[idx_counter];
@@ -5295,18 +5301,8 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] =  (*Polymers)[p_index].chain[m_index+1];
 
 			// get the energy 
-                        Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index((*Polymers)[p_index].chain[m_index+1]->coords, x, y, z), x, y, z); 
-                        Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index((*Polymers)[p_index].chain[self_swap_idx]->coords, x, y, z), x, y, z); 
-                        energies [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); 
-                        contacts_store [idx_counter] = add_arrays ( subtract_arrays (*contacts, add_arrays (cs, cm)), add_arrays (cm_n, cs_n) );
-			energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
-			if (energies[idx_counter] != energy_n || contacts_store[idx_counter] != current_contacts){
-			    std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
-			    std::cout << "energies["<<idx_counter<<"] = " << energies[idx_counter] << ", energy_n = " << energy_n << ". " << std::endl; 
-			    std::cout << "contacts_store[" <<idx_counter<< "] = "; print (contacts_store[idx_counter], ", "); std::cout << "c_contacts = "; print(current_contacts);
-			    exit(EXIT_FAILURE);
-                        }
-			
+			energies [idx_counter] = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
+			contacts_store [idx_counter] = *contacts; 
 
 			// revert back to original structure 
 			(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
@@ -5783,7 +5779,7 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 	}
 	
 	if ( growth ){
-
+		std::cout << "Head regrowth time..." << std::endl;
 		for (int i {m_index+1}; i<deg_poly; ++i){
 			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
 		}
@@ -5820,7 +5816,7 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 	}
 	else {
 
-		// std::cout << "Tail regrowth... " << std::endl;
+		std::cout << "Tail regrowth... " << std::endl;
 		for ( int i{0}; i<m_index; ++i){
 			old_cut.push_back ((*Polymers)[p_index].chain[i]->coords);
 		}
@@ -7770,23 +7766,41 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
         std::cout << "exc_idx = " << exc_idx << ", coords = "; print ( (*LATTICE)[exc_idx]->coords, ", " ); std::cout << "ptype = " << (*LATTICE)[exc_idx]->ptype << ", or = " << (*LATTICE)[exc_idx]->orientation << std::endl;
 	*/ 
         if ( (*LATTICE)[exc_idx]->ptype[0] == 's' ){
-                // std::cout << "Inside loop..." << std::endl;
-                // made a copy of the particle in the solvation shell
-                // 
-		// swap particles
-		// initial neighbor energies and contacts
-		Es1 = NeighborEnergy (LATTICE, E, &cs1, solvation_shell_indices[my_idx], x, y, z);
-		Es2 = NeighborEnergy (LATTICE, E, &cs2, exc_idx, x, y, z);
+	        // std::cout << "Inside loop..." << std::endl;
+	        // made a copy of the particle in the solvation shell
+	        // 
+			// swap particles
+			// initial neighbor energies and contacts
+			Es1 = NeighborEnergy (LATTICE, E, &cs1, solvation_shell_indices[my_idx], x, y, z);
+			Es2 = NeighborEnergy (LATTICE, E, &cs2, exc_idx, x, y, z);
 
-		tmp_par_ptr = (*LATTICE)[ solvation_shell_indices[ my_idx ] ];
-		old_ori.push_back ((*LATTICE)[ exc_idx ]->orientation);
-		
-		(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ] = (*LATTICE)[ exc_idx ];
-		(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ]->coords = location ( (solvation_shell_indices)[ my_idx ], x, y, z);
+			tmp_par_ptr = (*LATTICE)[ solvation_shell_indices[ my_idx ] ];
+			old_ori.push_back ((*LATTICE)[ exc_idx ]->orientation);
+			
+			(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ] = (*LATTICE)[ exc_idx ];
+			(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ]->coords = location ( (solvation_shell_indices)[ my_idx ], x, y, z);
 
-		(*LATTICE)[ exc_idx ] = tmp_par_ptr; 
-		(*LATTICE)[ exc_idx ]->coords = location ( exc_idx, x, y, z ); 
-                /* 
+			(*LATTICE)[ exc_idx ] = tmp_par_ptr; 
+			(*LATTICE)[ exc_idx ]->coords = location ( exc_idx, x, y, z ); 
+            /* 
+            std::cout << " ------------------------------------" << std::endl;
+            std::cout << "solvation_shell_indices[0] = " << solvation_shell_indices[0] << ", coords = "; 
+            print ( (*LATTICE)[solvation_shell_indices[0]]->coords, ", " ); std::cout << "ptype = " <<  (*LATTICE)[solvation_shell_indices[0]]->ptype << ", or = " << (*LATTICE)[solvation_shell_indices[0]]->orientation << std::endl; 
+            std::cout << "exc_idx = " << exc_idx << ", coords = "; print ( (*LATTICE)[exc_idx]->coords, ", " ); std::cout << "ptype = " << (*LATTICE)[exc_idx]->ptype << ", or = " << (*LATTICE)[exc_idx]->orientation << std::endl;
+            std::cout << " ------------------------------------" << std::endl;
+            */ 
+
+			// flip the particle newly added to the solvation shell 
+			for (int j{0}; j < ntest; ++j) { 
+	            // std::cout << " j = " << j << std::endl;
+				(*LATTICE)[ solvation_shell_indices[ my_idx ] ]->orientation = rng_uniform (0, 25); 
+				orientations   [ j ] = (*LATTICE)[ solvation_shell_indices[ my_idx ] ]->orientation; 
+				Es2_n                = NeighborEnergy  (LATTICE, E, &cs2_n, solvation_shell_indices[my_idx], x, y, z);
+				Es1_n                = NeighborEnergy  (LATTICE, E, &cs1_n, exc_idx, x, y, z);
+				energies       [ j ] = Esys - (Es1 + Es2) + (Es1_n + Es2_n);  
+				contacts_store [ j ] = add_arrays ( subtract_arrays (*contacts, add_arrays (cs1, cs2) ), add_arrays (cs1_n, cs2_n) );
+
+                /*
                 std::cout << " ------------------------------------" << std::endl;
                 std::cout << "solvation_shell_indices[0] = " << solvation_shell_indices[0] << ", coords = "; 
                 print ( (*LATTICE)[solvation_shell_indices[0]]->coords, ", " ); std::cout << "ptype = " <<  (*LATTICE)[solvation_shell_indices[0]]->ptype << ", or = " << (*LATTICE)[solvation_shell_indices[0]]->orientation << std::endl; 
@@ -7794,36 +7808,18 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
                 std::cout << " ------------------------------------" << std::endl;
                 */ 
 
-		// flip the particle newly added to the solvation shell 
-		for (int j{0}; j < ntest; ++j) { 
-                        // std::cout << " j = " << j << std::endl;
-			(*LATTICE)[ solvation_shell_indices[ my_idx ] ]->orientation = rng_uniform (0, 25); 
-			orientations   [ j ] = (*LATTICE)[ solvation_shell_indices[ my_idx ] ]->orientation; 
-			Es2_n                = NeighborEnergy  (LATTICE, E, &cs2_n, solvation_shell_indices[my_idx], x, y, z);
-			Es1_n                = NeighborEnergy  (LATTICE, E, &cs1_n, exc_idx, x, y, z);
-			energies       [ j ] = Esys - (Es1 + Es2) + (Es1_n + Es2_n);  
-			contacts_store [ j ] = add_arrays ( subtract_arrays (*contacts, add_arrays (cs1, cs2) ), add_arrays (cs1_n, cs2_n) );
-
-                        /*
-                        std::cout << " ------------------------------------" << std::endl;
-                        std::cout << "solvation_shell_indices[0] = " << solvation_shell_indices[0] << ", coords = "; 
-                        print ( (*LATTICE)[solvation_shell_indices[0]]->coords, ", " ); std::cout << "ptype = " <<  (*LATTICE)[solvation_shell_indices[0]]->ptype << ", or = " << (*LATTICE)[solvation_shell_indices[0]]->orientation << std::endl; 
-                        std::cout << "exc_idx = " << exc_idx << ", coords = "; print ( (*LATTICE)[exc_idx]->coords, ", " ); std::cout << "ptype = " << (*LATTICE)[exc_idx]->ptype << ", or = " << (*LATTICE)[exc_idx]->orientation << std::endl;
-                        std::cout << " ------------------------------------" << std::endl;
-                        */ 
-
 			
-			// DELETE THIS LATER 
-                        /*
-			energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts1, x, y, z);
-			if (energies[j] != energy_n || contacts_store[j] != c_contacts1) {
-				std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
-				std::cout << "energies["<<j<<"] = " << energies[j] << ", energy_n = " << energy_n << ". " << std::endl; 
-				std::cout << "contacts_store[" <<j<< "] = "; print (contacts_store[j], ", "); std::cout << "c_contacts = "; print(c_contacts1);
-				exit(EXIT_FAILURE);
-			}
-                        */ 
-			// DELETE ABOVE LATER 
+				// DELETE THIS LATER 
+                /*
+				energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts1, x, y, z);
+				if (energies[j] != energy_n || contacts_store[j] != c_contacts1) {
+					std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
+					std::cout << "energies["<<j<<"] = " << energies[j] << ", energy_n = " << energy_n << ". " << std::endl; 
+					std::cout << "contacts_store[" <<j<< "] = "; print (contacts_store[j], ", "); std::cout << "c_contacts = "; print(c_contacts1);
+					exit(EXIT_FAILURE);
+				}
+                */ 
+				// DELETE ABOVE LATER 
 			
 		}
 		
@@ -8060,7 +8056,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = 7; // rng_uniform (0, 7); 
+	int r     = 2; // rng_uniform (5, 7); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {

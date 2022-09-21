@@ -244,7 +244,7 @@ int main (int argc, char** argv) {
         std::cout << "Simulation cell has been made! \n\n" ;
 
     }
-
+    
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -272,7 +272,7 @@ int main (int argc, char** argv) {
     
     std::cout << "Initiation complete. We are ready to go. The engine will output information every " << dfreq << " configuration(s)." << std::endl; 
     std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
-    // std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
+    
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //    
@@ -281,52 +281,47 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-    // BEGIN: main loop of simulation! lfg  
+    std::cout << "sysEnergy = " << sysEnergy << std::endl;
+    std::cout << "Contacts  = "; print (contacts);
+
+    // BEGIN: main loop of simulation! lfg 
+    std::array <int,3> s_loc = {1,1,0}; 
+    std::array <int,3> m_loc = {3,0,0}; 
+
+    // LATTICE[lattice_index(s_loc, y, z)]->ptype = "s2"; 
+    // Cosolvent.push_back ( LATTICE[lattice_index(s_loc, y, z)] ); 
+    sysEnergy = CalculateEnergy (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
+
+    std::array <double,8> cm, cs, cm_n, cs_n; 
     
-    for (int i = step_number+1; i < (step_number+max_iter+1); ++i) {
+    double Em = NeighborEnergy ( &LATTICE, &E, &cm, lattice_index (m_loc, y, z), x, y, z); 
+    double Es = NeighborEnergy ( &LATTICE, &E, &cs, lattice_index (s_loc, y, z), x, y, z); 
 
-        if ( v && (i%dfreq==0) ){
-            std::cout << "Initial config for step is:" << std::endl;
-            // Polymers[0].printChainCoords();
-            for (int j{0}; j< int((Polymers)[0].chain.size()); ++j){
-                print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
-            }
-            std::cout << "Contacts = "; print (contacts);
-            std::cout << " -------------------------- " << std::endl;
-            std::cout << "Step number: " << i << "." << std::endl; 
-            std::cout << "Executing..." << std::endl << std::endl;
-        }
+    // do the exchange
+    LATTICE[ lattice_index(m_loc, y, z) ]->coords = s_loc; 
+    LATTICE[ lattice_index(s_loc, y, z) ]->coords = m_loc; 
+    
+    LATTICE[ lattice_index(m_loc, y, z) ] = LATTICE[ lattice_index(s_loc, y, z) ]; 
+    LATTICE[ lattice_index(s_loc, y, z) ] = Polymers[0].chain[3]; 
 
-        // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+    double Em_n = NeighborEnergy ( &LATTICE, &E, &cm_n, lattice_index (m_loc, y, z), x, y, z); 
+    double Es_n = NeighborEnergy ( &LATTICE, &E, &cs_n, lattice_index (s_loc, y, z), x, y, z); 
+    
+    double sysEnergy_ = sysEnergy - (Em+Es) + (Em_n+Es_n); 
+    std::array <double,8> contacts_ = add_arrays ( subtract_arrays (contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) );
 
+    sysEnergy = CalculateEnergy (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
 
-        if ( IMP_BOOL ) {
-            acceptances[move_number] += 1;          
-        }
-
-        if ( v ){
-            if (IMP_BOOL){
-                std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
-                std::cout << "Accepted!" << std::endl;
-            }
-            else {
-                std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
-                std::cout << "Rejected..." << std::endl;   
-            }
-            std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
-        }
-
-        if ( ( i % dfreq == 0 ) ){
-            dumpPositionsOfPolymers (&Polymers, i, dfile); 
-            if ( i % (dfreq*10) == 0 ) {
-                dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
-            }
-            dumpEnergy (sysEnergy, i, &contacts, efile);
-        }
-
-        IMP_BOOL = true;      
+    if ( sysEnergy != sysEnergy_ || contacts != contacts_ ){
+        std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
+        std::cout << "sysenergy = " << sysEnergy << ", sysenergy_ = " << sysEnergy_ << ". " << std::endl; 
+        std::cout << "contacts = "; print (contacts, ", "); std::cout << "contacts_ = "; print(contacts_); 
+        exit(EXIT_FAILURE);
+    }
+    else {
+        std::cout << "%%%%%%%%%%%%%%% Checks out. %%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << "sysenergy = " << sysEnergy << ", sysenergy_ = " << sysEnergy_ << ". " << std::endl; 
+        std::cout << "contacts = "; print (contacts, ", "); std::cout << "contacts_ = "; print(contacts_); 
     }
 
     dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
@@ -341,7 +336,12 @@ int main (int argc, char** argv) {
     std::cout << "\n\nTime taken for simulation: " << duration.count()/1e+06 << " seconds.\n"; 
     std::cout << "That is all she wrote. Hope it worked." << std::endl;
     std::cout << "--------------------------------------------------------------------\n\n";
-
+    if (v){
+        if (IMP_BOOL){
+            ;
+        }
+    }
+    move_number ++;
     return 0;
 
 }

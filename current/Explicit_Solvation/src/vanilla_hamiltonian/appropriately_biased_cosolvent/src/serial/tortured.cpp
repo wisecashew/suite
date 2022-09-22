@@ -183,9 +183,6 @@ int main (int argc, char** argv) {
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
 
-    std::vector <int> solvation_shells; 
-    solvation_shells.reserve(2*26*26*N); 
-
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // OPENING TILES
 
@@ -209,43 +206,17 @@ int main (int argc, char** argv) {
     auto stop = std::chrono::high_resolution_clock::now(); 
     auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
-    if ( !r ){
-        std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, frac, x, y, z);
-    
-        stop = std::chrono::high_resolution_clock::now(); 
-        duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-
-        std::cout << "Solvation took " << duration.count () << " microseconds." << std::endl;
-        std::cout << "Cell has been solvated! \n\n" ;
-
-        if (b) {
-            std::cout << "Simulation will have a biased start..." << std::endl;
-            BiasTheStart (&Polymers, &LATTICE, x, y, z);
-        }
-
-        // CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
-
-        dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
-    }
-
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-    else {
-        std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (&Polymers, &Cosolvent, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
-        
-        stop = std::chrono::high_resolution_clock::now(); 
-        duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-
-        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
-        
-        std::cout << "System set-up took " << duration.count () << " microseconds." << std::endl;
-        std::cout << "Simulation cell has been made! \n\n" ;
-
-    }
     
+    std::cout << "Setting up system from a restart file!" << std::endl;
 
+    SetUpLatticeFromRestart (&Polymers, &Cosolvent, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
+    Polymers[0].printChainCoords();
+    stop = std::chrono::high_resolution_clock::now(); 
+    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+
+    CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+    
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -258,21 +229,77 @@ int main (int argc, char** argv) {
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
     std::cout << "Energy of system is " << sysEnergy << ".\n" << std::endl;
-    
 
-    // if i am not restarting, i do not need to dump anything. All the information is already present. 
-    if (!r) {
-        dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
-        dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
-    }
-    
-    else {
-        dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z);    
-    }
-    
     std::cout << "Initiation complete. We are ready to go. The engine will output information every " << dfreq << " configuration(s)." << std::endl; 
     std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
     
+    std::array <int,3> s_loc = {3,0,0};
+    std::array <int,3> m_loc = (Polymers)[0].chain[3]->coords; 
+    double Em = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index((Polymers)[0].chain[3]->coords, y, z), x, y, z);
+    std::cout << "Em = " << Em << std::endl;
+
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+
+    double Es = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index(s_loc, y, z), x, y, z);
+    std::cout << "Es = " << Es << std::endl;
+
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    // do a switch 
+    // prep the swap 
+    (LATTICE)[lattice_index(s_loc, y, z)]->coords = m_loc;
+    (Polymers)[0].chain[3]->coords                = s_loc;
+            
+    // perform the swap (since coords were changed, this swap works)
+    (LATTICE)[ lattice_index (m_loc, y, z) ] = (LATTICE)[lattice_index(s_loc, y, z)];
+    (LATTICE)[ lattice_index (s_loc, y, z) ] = (Polymers)[0].chain[3];    
+
+    Polymers[0].printChainCoords();
+
+    double Em_n = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index(s_loc, y, z), x, y, z);
+    std::cout << "Em_n = " << Em_n << std::endl;
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+
+    double Es_n = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index(m_loc, y, z), x, y, z);
+    std::cout << "Es_n = " << Es_n << std::endl;
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    double Ef = sysEnergy - (Em+Es) + (Em_n + Es_n); 
+    sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
+    std::cout << "Energy of pert system is " << sysEnergy << std::endl;
+    std::cout << "Ef = " << Ef << std::endl;
+
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    std::cout << std::endl;
+
+    Em = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index((Polymers)[0].chain[3]->coords, y, z), x, y, z);
+    std::cout << "Em = " << Em << std::endl;
+    Es = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index(m_loc, y, z), x, y, z);
+    std::cout << "Es = " << Es << std::endl;
+
+    (LATTICE)[lattice_index(m_loc, y, z)]->coords = s_loc;
+    (Polymers)[0].chain[3]->coords                = m_loc;
+            
+    // perform the swap (since coords were changed, this swap works)
+    (LATTICE)[ lattice_index (s_loc, y, z) ] = (LATTICE)[lattice_index(m_loc, y, z)];
+    (LATTICE)[ lattice_index (m_loc, y, z) ] = (Polymers)[0].chain[3];   
+
+    Em_n = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index(s_loc, y, z), x, y, z);
+    std::cout << "Em_n = " << Em_n << std::endl;
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+
+    Es_n = NeighborEnergy (&LATTICE, &E, &contacts, lattice_index(m_loc, y, z), x, y, z);
+    std::cout << "Es_n = " << Es_n << std::endl;
+    
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+    
+    Ef = sysEnergy - (Em+Es) + (Em_n + Es_n); 
+    sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
+    std::cout << "Energy of pert system is " << sysEnergy << std::endl;
+    std::cout << "Ef = " << Ef << std::endl;
+
+
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //    
@@ -280,49 +307,6 @@ int main (int argc, char** argv) {
     //    
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-    std::cout << "sysEnergy = " << sysEnergy << std::endl;
-    std::cout << "Contacts  = "; print (contacts);
-
-    // BEGIN: main loop of simulation! lfg 
-    std::array <int,3> s_loc = {1,1,0}; 
-    std::array <int,3> m_loc = {3,0,0}; 
-
-    // LATTICE[lattice_index(s_loc, y, z)]->ptype = "s2"; 
-    // Cosolvent.push_back ( LATTICE[lattice_index(s_loc, y, z)] ); 
-    sysEnergy = CalculateEnergy (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
-
-    std::array <double,8> cm, cs, cm_n, cs_n; 
-    
-    double Em = NeighborEnergy ( &LATTICE, &E, &cm, lattice_index (m_loc, y, z), x, y, z); 
-    double Es = NeighborEnergy ( &LATTICE, &E, &cs, lattice_index (s_loc, y, z), x, y, z); 
-
-    // do the exchange
-    LATTICE[ lattice_index(m_loc, y, z) ]->coords = s_loc; 
-    LATTICE[ lattice_index(s_loc, y, z) ]->coords = m_loc; 
-    
-    LATTICE[ lattice_index(m_loc, y, z) ] = LATTICE[ lattice_index(s_loc, y, z) ]; 
-    LATTICE[ lattice_index(s_loc, y, z) ] = Polymers[0].chain[3]; 
-
-    double Em_n = NeighborEnergy ( &LATTICE, &E, &cm_n, lattice_index (m_loc, y, z), x, y, z); 
-    double Es_n = NeighborEnergy ( &LATTICE, &E, &cs_n, lattice_index (s_loc, y, z), x, y, z); 
-    
-    double sysEnergy_ = sysEnergy - (Em+Es) + (Em_n+Es_n); 
-    std::array <double,8> contacts_ = add_arrays ( subtract_arrays (contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) );
-
-    sysEnergy = CalculateEnergy (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
-
-    if ( sysEnergy != sysEnergy_ || contacts != contacts_ ){
-        std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
-        std::cout << "sysenergy = " << sysEnergy << ", sysenergy_ = " << sysEnergy_ << ". " << std::endl; 
-        std::cout << "contacts = "; print (contacts, ", "); std::cout << "contacts_ = "; print(contacts_); 
-        exit(EXIT_FAILURE);
-    }
-    else {
-        std::cout << "%%%%%%%%%%%%%%% Checks out. %%%%%%%%%%%%%%%%" << std::endl;
-        std::cout << "sysenergy = " << sysEnergy << ", sysenergy_ = " << sysEnergy_ << ". " << std::endl; 
-        std::cout << "contacts = "; print (contacts, ", "); std::cout << "contacts_ = "; print(contacts_); 
-    }
 
     dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
     
@@ -338,10 +322,13 @@ int main (int argc, char** argv) {
     std::cout << "--------------------------------------------------------------------\n\n";
     if (v){
         if (IMP_BOOL){
-            ;
+            if (b){
+                ;
+            }
         }
     }
     move_number ++;
+    move_number = frac +1;
     return 0;
 
 }

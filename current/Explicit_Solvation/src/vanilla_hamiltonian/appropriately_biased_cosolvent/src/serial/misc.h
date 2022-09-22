@@ -90,6 +90,7 @@ std::array <double,3>  scale_arrays ( double scalar, std::array <int,3>*    arra
 double              distance_between_points (std::array <int,3>*    a1, std::array <int,3>* a2   , int xlen, int ylen, int zlen);
 double              distance_between_points (std::array <double,3>* a1, std::array <double,3>* a2, int xlen, int ylen, int zlen);
 double              take_dot_product        (int o1, int o2); 
+double              take_dot_product        (std::array <double,3> o1, std::array <double,3> o2); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
@@ -184,8 +185,13 @@ double                   NumberExtractor            (std::string s);
 double CalculateEnergy               (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
 double CalculateEnergy_parallel      (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
 double NeighborEnergy                (std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, int ss_index, int x, int y, int z); 
+double PairEnergy                    (Particle* p1, Particle* p2, std::array <double,8>* E, int* c_idx, int x, int y, int z);
+
+// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 bool   MetropolisAcceptance          (double E1, double E2, double kT); 
 bool   MetropolisAcceptance          (double E1, double E2, double kT, double rweight); 
+
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 

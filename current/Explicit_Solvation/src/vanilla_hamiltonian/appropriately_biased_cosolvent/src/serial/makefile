@@ -5,7 +5,7 @@ LINUXFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic 
 
 # use this set of flags if on MacOS M1
 MACFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -mcpu=apple-a10 -fopenmp
-OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Wnonnull -Wnull-dereference -Wno-self-move -Wno-return-local-addr -Wreturn-type
+OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Wnonnull -Wnull-dereference -Wno-return-local-addr -Wreturn-type
 
 all: clean linux unbiased mac
 	@echo "All simulation objects should be compiled."
@@ -25,9 +25,9 @@ mac: main.cpp misc.cpp classes.cpp
 	@$(OMPCC) $(OMPFLAGS) main.cpp misc.cpp classes.cpp -o cosolv_ani
 	@echo "Compiled!"
 
-debug: tortured.cpp misc.cpp classes.cpp
+debug: debug2.cpp misc.cpp classes.cpp
 	@echo "Compiling parallel simulation..."
-	@$(OMPCC) $(OMPFLAGS) tortured.cpp misc.cpp classes.cpp -o debug
+	@$(OMPCC) $(OMPFLAGS) debug2.cpp misc.cpp classes.cpp -o debug
 	@echo "Compiled!"
 
 clean: 

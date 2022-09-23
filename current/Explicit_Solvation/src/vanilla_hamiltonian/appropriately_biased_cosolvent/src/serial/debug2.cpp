@@ -286,7 +286,7 @@ int main (int argc, char** argv) {
     double sysEnergy_ = 0, Ef = 0; 
     double Em = 0, Es = 0, Em_n = 0, Es_n = 0, Epair = 0, Epair_n = 0; 
     std::array <double,8> cs, cm, cs_n, cm_n; 
-    std::array <int,3> s_loc = {2,1,0}; 
+    std::array <int,3> s_loc = {1,1,0}; 
     std::array <int,3> m_loc = {3,0,0}; 
 
     Es    = NeighborEnergy (&LATTICE, &E, &cs, lattice_index(s_loc, y, z), x, y, z); 

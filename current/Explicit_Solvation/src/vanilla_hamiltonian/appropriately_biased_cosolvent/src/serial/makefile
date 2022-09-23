@@ -15,9 +15,9 @@ linux: main.cpp misc.cpp classes.cpp
 	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o cosolv_ani
 	@echo "Compiled!" 
 
-unbiased: unbiased.cpp misc.cpp classes.cpp 
+home: main.cpp misc.cpp classes.cpp 
 	@echo "Compiling unbiased simulation..."
-	@$(CC) $(CFLAGS) unbiased.cpp misc.cpp classes.cpp -o ub_cosolv_ani 
+	@$(CC) $(CFLAGS) main.cpp misc.cpp classes.cpp -o cosolv_ani
 	@echo "Compiled!"
 
 mac: main.cpp misc.cpp classes.cpp

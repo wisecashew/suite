@@ -3188,7 +3188,7 @@ void dumpLATTICE ( std::vector <Particle*> *LATTICE, int step, int y, int z, std
 //
 // THE CODE: 
 
-void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
@@ -3269,7 +3269,83 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	return; 
 }
 
+//==============================================================================================
+//==============================================================================================
 
+void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
+	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	double temperature, int index, int x, int y, int z) {
+
+	
+    // get the neighborlist of particle at index 1 
+    std::array <int,3> loc_0 = (*Polymers)[index].chain[0]->coords; 
+    std::array <int,3> loc_1 = (*Polymers)[index].chain[1]->coords;
+
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
+
+    std::array <double,8> cs;  
+    std::array <double,8> cm; 
+    std::array <double,8> cs_n; 
+    std::array <double,8> cm_n; 
+    std::array <double,8> final_contacts; 
+
+	int choice = rng_uniform(0, 25); 
+
+	// make the change on the lattice 
+	// make the change only to the SOLVENT site... 
+	double Es   = 0; 
+	double Es_n = 0; 
+	double Em   = 0; 
+	double Em_n = 0; 
+	double Ef   = 0; 
+
+	if ( (*LATTICE)[lattice_index (ne_list[choice], y, z)]->ptype[0] == 's' ){
+
+		// find the energetic interaction for the solvent molecule 
+		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
+		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_0, y, z), x, y, z);  
+
+		(*Polymers)[index].chain[0]->coords = ne_list[choice]; 
+		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]->coords = loc_0; 
+		
+		// do the switch 
+		// take the pointer of the solvent, and put it where the monomer was on the lattice 
+		(*LATTICE)[ lattice_index (loc_0, y, z) ]           = (*LATTICE)[ lattice_index (ne_list[choice], y, z)]; 
+		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]  = (*Polymers)[index].chain[0]; 
+		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
+		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
+
+	}
+	else {
+		*IMP_BOOL = false; 
+		return; 
+	}
+
+	Ef = *sysEnergy - (Es + Em) + (Em_n + Es_n); 
+	final_contacts = add_arrays( subtract_arrays(*contacts, add_arrays (cs, cm)), add_arrays(cs_n, cm_n) );
+
+
+	if ( MetropolisAcceptance (*sysEnergy, Ef, temperature)){
+		*sysEnergy        = Ef; 
+		*contacts         = final_contacts; 
+	}
+
+	else {
+
+		// revert the polymer 
+		(*Polymers)[index].chain[0]->coords = loc_0; 
+		(*LATTICE) [ lattice_index (loc_0, y, z) ]->coords  = ne_list[choice];
+
+		// do the switch 
+		// take the pointer of the solvent and put it where the monomer was on the lattice 
+
+		(*LATTICE) [ lattice_index(ne_list[choice], y, z) ] = (*LATTICE)[ lattice_index (loc_0, y, z) ];
+		(*LATTICE) [ lattice_index(loc_0, y, z) ]           = (*Polymers)[index].chain[0];  
+		*IMP_BOOL = false; 
+	}
+	
+	return; 
+}
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of TailRotation_UNBIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -3423,7 +3499,7 @@ void TailRotation_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 //
 // THE CODE: 
 
-void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
@@ -3482,6 +3558,84 @@ void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 		exit (EXIT_FAILURE); 
 	}
 	// DELETE ABOVE LATER 
+
+	if ( MetropolisAcceptance (*sysEnergy, Ef, temperature) ){
+		// std::cout << "accepted." << std::endl;
+		*sysEnergy = Ef; 
+		*contacts  = final_contacts; 
+	}
+
+	else {
+		// std::cout << "rejected." << std::endl;
+		// revert the polymer 
+		(*Polymers)[index].chain[dop-1]->coords = loc_0; 
+		(*LATTICE) [ lattice_index (loc_0, y, z) ]->coords  = ne_list[choice]; 
+		
+		// do the switch 
+		// take the pointer of the solvent and put it where the monomer was on the lattice 
+		
+		(*LATTICE) [ lattice_index(ne_list[choice], y, z) ] = (*LATTICE)[ lattice_index (loc_0, y, z) ];
+		(*LATTICE) [ lattice_index(loc_0, y, z) ]           = (*Polymers)[index].chain[dop-1];  
+		*IMP_BOOL = false; 
+	}
+
+	return; 
+}
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
+	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	double temperature, int index, int x, int y, int z) {
+
+    // get the neighborlist of particle at index 1 
+    int dop = (*Polymers)[index].deg_poly; 
+    std::array <int,3> loc_0 = (*Polymers)[index].chain[dop-1]->coords; 
+    std::array <int,3> loc_1 = (*Polymers)[index].chain[dop-2]->coords; 
+
+    // these are contacts arrays which are necessary to check validity of code 
+    std::array <double,8> cs;
+    std::array <double,8> cm;
+    std::array <double,8> cs_n;
+    std::array <double,8> cm_n;
+    std::array <double,8> final_contacts; 
+
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
+	int choice = rng_uniform(0, 25); 
+
+	// made the change to the polymer
+	// make the change on the lattice 
+	// make the change only to the SOLVENT site... 
+	double Es   = 0; 
+	double Es_n = 0; 
+	double Em   = 0; 
+	double Em_n = 0; 
+	double Ef   = 0; 
+
+	if ( (*LATTICE)[lattice_index (ne_list[choice], y, z)]->ptype[0] == 's' ){
+		
+		// find the energetic interactions for the solvent molecule 
+		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
+		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_0, y, z), x, y, z);  
+
+		(*Polymers)[index].chain[dop-1]->coords = ne_list[choice]; 
+		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]->coords = loc_0; 
+
+		// do the switch 
+		// take the pointer of the solvent, and put it where the monomer was on the lattice 
+		(*LATTICE)[ lattice_index (loc_0, y, z) ]    = (*LATTICE)[ lattice_index (ne_list[choice], y, z)]; 
+		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]  = (*Polymers)[index].chain[dop-1]; 
+		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
+		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
+	
+	}
+	else {
+		*IMP_BOOL = false; 
+		return; 
+	}
+
+	Ef = *sysEnergy - (Es + Em) + (Em_n + Es_n);
+	final_contacts = add_arrays( subtract_arrays(*contacts, add_arrays (cs, cm)), add_arrays(cs_n, cm_n) );
 
 	if ( MetropolisAcceptance (*sysEnergy, Ef, temperature) ){
 		// std::cout << "accepted." << std::endl;
@@ -3664,7 +3818,7 @@ void HeadRotation_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 //
 // THE CODE: 
 
-void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+void EndRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
 	std::array <double,8>* E, std::array <double,8>* contacts, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, \
 	int index, int x, int y, int z){
@@ -3676,17 +3830,40 @@ void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particl
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         std::cout << "Zero index rotation!" << std::endl;
-        TailRotation_UNBIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        TailRotation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
     else {
         std::cout << "Final index rotation!" << std::endl;
-        HeadRotation_UNBIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        HeadRotation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
 
 }
 
+
+void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	std::array <double,8>* E, std::array <double,8>* contacts, \
+	bool* IMP_BOOL, double* sysEnergy, double temperature, \
+	int index, int x, int y, int z){
+
+	unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = 0; // distribution(generator); 
+    // std::cout << "rng is " << num << std::endl;
+    if (num==0){
+        std::cout << "Zero index rotation!" << std::endl;
+        TailRotation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        return; 
+    }
+    else {
+        std::cout << "Final index rotation!" << std::endl;
+        HeadRotation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        return; 
+    }
+
+}
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of EndRotation_UNBIASED
@@ -3763,6 +3940,58 @@ void forward_reptation_with_tail_biting (std::vector <Polymer>* Polymers, std::v
 	return;
 }
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
+
+	// start performing exchanges 
+	// doubles for energy transfer 
+	double Em1         = 0;
+	double Em2         = 0; 
+	double Em1_n       = 0; 
+	double Em2_n       = 0; 
+	double Esys        = *frontflow_energy; 
+
+	std::array <double,8> cm1               = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm2               = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm1_n             = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm2_n             = {0,0,0,0,0,0,0,0};
+	std::array <double,8> current_contacts  = *contacts;
+	std::array <int,3>    loc_m1             = {0,0,0}; 
+	std::array <int,3>    loc_m2             = {0,0,0}; 
+
+	for (int i{0}; i<deg_poly-1; ++i){
+		
+		loc_m1 = (*Polymers)[index].chain[i]->coords;
+		loc_m2 = (*Polymers)[index].chain[i+1]->coords;
+		
+		// find energies 
+		Em1 = NeighborEnergy (LATTICE, E, &cm1, lattice_index (loc_m1, y, z), x, y, z);
+		Em2 = NeighborEnergy (LATTICE, E, &cm2, lattice_index (loc_m2, y, z), x, y, z);
+
+		(*LATTICE)[ lattice_index(loc_m1, y, z) ] = (*LATTICE)[ lattice_index (loc_m2, y, z) ]; 
+		(*LATTICE)[ lattice_index(loc_m2, y, z) ] = (*Polymers)[index].chain[i]; 
+		(*LATTICE)[ lattice_index(loc_m1, y, z) ]->coords = loc_m1; 
+		(*LATTICE)[ lattice_index(loc_m2, y, z) ]->coords = loc_m2; 
+
+		Em1_n = NeighborEnergy (LATTICE, E, &cm1_n, lattice_index (loc_m1, y, z), x, y, z);
+		Em2_n = NeighborEnergy (LATTICE, E, &cm2_n, lattice_index (loc_m2, y, z), x, y, z);
+
+		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cm1, cm2)), add_arrays (cm1_n, cm2_n) ); 
+
+		Esys = Esys - (Em1+Em2) + (Em1_n+Em2_n); 
+
+	}
+	*frontflow_energy = Esys; 
+	*contacts         = current_contacts; 
+
+	return; 
+}
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of forward_reptation_with_tail_biting
@@ -3789,6 +4018,58 @@ void forward_reptation_without_tail_biting (std::vector <Polymer>* Polymers, std
 	return; 
 }
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void forward_reptation_without_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
+
+	// start performing exchanges 
+	// doubles for energy transfer 
+	double Em         = 0;
+	double Es         = 0; 
+	double Em_n       = 0; 
+	double Es_n       = 0; 
+	double Esys       = *frontflow_energy; 
+
+	std::array <double,8> cm               = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs               = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm_n             = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs_n             = {0,0,0,0,0,0,0,0};
+	std::array <double,8> current_contacts = *contacts;
+	std::array <int,3>    loc_s            = *to_slither; 
+	std::array <int,3>    loc_m            = {0,0,0}; 
+
+	for (int i{0}; i<deg_poly; ++i){
+		
+		loc_s = *to_slither; 
+		loc_m = (*Polymers)[index].chain[deg_poly-1-i]->coords;
+		
+		// find energies 
+		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (loc_s, y, z), x, y, z);
+		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_m, y, z), x, y, z);
+
+		(*LATTICE)[ lattice_index(loc_m, y, z) ] = (*LATTICE)[ lattice_index (loc_s, y, z) ]; 
+		(*LATTICE)[ lattice_index(loc_s, y, z) ] = (*Polymers)[index].chain[deg_poly-1-i]; 
+		(*LATTICE)[ lattice_index(loc_m, y, z) ]->coords = loc_m; 
+		(*LATTICE)[ lattice_index(loc_s, y, z) ]->coords = loc_s; 
+
+		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_s, y, z), x, y, z);
+		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+
+		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
+
+		Esys = Esys - (Es+Em) + (Es_n+Em_n); 
+
+		// the particle is now at the old position of the monomer bead 
+		*to_slither = loc_m;
+
+	}
+
+	*frontflow_energy = Esys; 
+	*contacts         = current_contacts; 
+
+	return; 
+}
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of forward_reptation_without_tail_biting
@@ -3809,6 +4090,57 @@ void backward_reptation_with_head_butting (std::vector <Polymer>* Polymers, std:
 			(*LATTICE)[ lattice_index ((*Polymers)[index].chain[deg_poly-1-i]->coords, y, z) ] = (*Polymers)[index].chain[deg_poly-1-i]; 
 		}
 	}
+
+	return;
+}
+
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+
+void backward_reptation_with_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
+
+	// start performing exchanges 
+	// doubles for energy transfer 
+	double Em1         = 0;
+	double Em2         = 0; 
+	double Em1_n       = 0; 
+	double Em2_n       = 0; 
+	double Esys        = *frontflow_energy; 
+
+	std::array <double,8> cm1                = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm2                = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm1_n              = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm2_n              = {0,0,0,0,0,0,0,0};
+	std::array <double,8> current_contacts   = *contacts;
+	std::array <int,3>    loc_m1             = {0,0,0}; 
+	std::array <int,3>    loc_m2             = {0,0,0}; 
+
+	for (int i{0}; i<deg_poly-1; ++i){
+		
+		loc_m1 = (*Polymers)[index].chain[deg_poly-(i+1)]->coords;
+		loc_m2 = (*Polymers)[index].chain[deg_poly-(i+2)]->coords;
+		
+		// find energies 
+		Em1 = NeighborEnergy (LATTICE, E, &cm1, lattice_index (loc_m1, y, z), x, y, z);
+		Em2 = NeighborEnergy (LATTICE, E, &cm2, lattice_index (loc_m2, y, z), x, y, z);
+
+		(*LATTICE)[ lattice_index(loc_m1, y, z) ] = (*LATTICE)[ lattice_index (loc_m2, y, z) ]; 
+		(*LATTICE)[ lattice_index(loc_m2, y, z) ] = (*Polymers)[index].chain[deg_poly-(i+1)]; 
+		(*LATTICE)[ lattice_index(loc_m1, y, z) ]->coords = loc_m1; 
+		(*LATTICE)[ lattice_index(loc_m2, y, z) ]->coords = loc_m2; 
+
+		Em1_n = NeighborEnergy (LATTICE, E, &cm1_n, lattice_index (loc_m1, y, z), x, y, z);
+		Em2_n = NeighborEnergy (LATTICE, E, &cm2_n, lattice_index (loc_m2, y, z), x, y, z);
+
+		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cm1, cm2)), add_arrays (cm1_n, cm2_n) ); 
+
+		Esys = Esys - (Em1+Em2) + (Em1_n+Em2_n); 
+
+	}
+	*frontflow_energy = Esys; 
+	*contacts         = current_contacts;
 
 	return;
 }
@@ -3841,6 +4173,59 @@ void backward_reptation_without_head_butting (std::vector <Polymer>* Polymers, s
 }
 
 
+
+
+void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z) {
+
+	// start performing exchanges 
+	// doubles for energy transfer 
+	double Em         = 0;
+	double Es         = 0; 
+	double Em_n       = 0; 
+	double Es_n       = 0; 
+	double Esys       = *frontflow_energy; 
+
+	std::array <double,8> cm               = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs               = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cm_n             = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs_n             = {0,0,0,0,0,0,0,0};
+	std::array <double,8> current_contacts = *contacts;
+	std::array <int,3>    loc_s            = *to_slither; 
+	std::array <int,3>    loc_m            = {0,0,0}; 
+
+	for (int i{0}; i<deg_poly; ++i){
+		
+		loc_s = *to_slither; 
+		loc_m = (*Polymers)[index].chain[i]->coords;
+		
+		// find energies 
+		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (loc_s, y, z), x, y, z);
+		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_m, y, z), x, y, z);
+
+		(*LATTICE)[ lattice_index(loc_m, y, z) ] = (*LATTICE)[ lattice_index (loc_s, y, z) ]; 
+		(*LATTICE)[ lattice_index(loc_s, y, z) ] = (*Polymers)[index].chain[i]; 
+		(*LATTICE)[ lattice_index(loc_m, y, z) ]->coords = loc_m; 
+		(*LATTICE)[ lattice_index(loc_s, y, z) ]->coords = loc_s; 
+
+		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_s, y, z), x, y, z);
+		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+
+		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
+
+		Esys = Esys - (Es+Em) + (Es_n+Em_n); 
+
+		// the particle is now at the old position of the monomer bead 
+		*to_slither = loc_m;
+
+	}
+
+	*frontflow_energy = Esys; 
+	*contacts         = current_contacts; 
+
+	return; 
+}
+
+
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of backward_reptation_without_head_butting
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -3866,6 +4251,95 @@ void backward_reptation_without_head_butting (std::vector <Polymer>* Polymers, s
 //
 // THE CODE: 
 
+void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
+	double* sysEnergy, double temperature, int index, int x, int y, int z){
+
+	std::cout << "In forward reptation unbiased." <<std::endl;
+
+	int                   deg_poly         = (*Polymers)[index].deg_poly; 
+	std::array <int,3>    loc0             = (*Polymers)[index].chain[0]->coords; 
+	std::array <int,3>    locf             = (*Polymers)[index].chain[deg_poly-1]->coords; 
+	std::array <double,8> current_contacts = *contacts; 
+	std::array <double,8> copy_contacts    = *contacts; 
+	double                Esys             = *sysEnergy; 
+
+
+	// first check if tail rotation can be performed at all 	
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( locf, x, y, z ); 
+    int choice = rng_uniform (0, 25);	
+
+	std::array <int,3> to_slither      = ne_list [choice]; 
+	std::array <int,3> to_slither_copy = to_slither; 
+	Particle* tmp {nullptr}; 
+	
+
+	std::cout << "Suggested location is "; print (ne_list[choice]);
+	std::cout << "to_slither = "; print (to_slither);
+	if ( to_slither == loc0 ){
+		std::cout << "With tail biting..." << std::endl;
+		// if you are performing tail biting, you need neighborhood information about all monomer beads 
+		forward_reptation_with_tail_biting_new    (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
+	}
+	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
+		// IMPORTANT STEP 
+		std::cout << "Without tail biting... " << std::endl;
+		forward_reptation_without_tail_biting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
+	}
+
+	else {
+		*IMP_BOOL = false; 
+		return; 
+	}
+	(*Polymers)[0].printChainCoords(); 
+	std::cout << "First check structures..." << std::endl;
+	CheckStructures (Polymers, Cosolvent, LATTICE, x, y, z);
+	std::cout << "PASSED!" << std::endl; 
+	// calculate energy of current state 
+	// delete later 
+
+	double energy_n = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z);
+	if ( Esys != energy_n || current_contacts != copy_contacts){
+		std::cout << "Either energy or contacts is messed up in forward reptation... " << std::endl; 
+		std::cout << "Esys = " << Esys << ", energy_n = " << energy_n << ". " << std::endl; 
+		std::cout << "current_contacts = "; print (current_contacts, ", "); std::cout << "copy_contacts = "; print(copy_contacts); 
+		exit (EXIT_FAILURE); 
+	}
+	// delete above 
+
+	if ( MetropolisAcceptance (*sysEnergy, energy_n, temperature) ){
+		std::cout << "Accepted!" << std::endl;
+		*sysEnergy = Esys;
+		*contacts  = current_contacts; 
+
+	}
+	else {
+		// revert back to old state 
+		std::cout << "Rejected..." << std::endl;
+		if ( to_slither_copy == loc0 ) {
+			std::cout << "with head_butting... " << std::endl;
+			backward_reptation_with_head_butting (Polymers, LATTICE, &to_slither_copy, deg_poly, index, y, z); 
+		}
+		else {
+			// IMPORTANT STEP 
+			std::cout << "without head_butting... " << std::endl;
+			tmp = (*LATTICE)[ lattice_index (loc0, y, z) ]; 
+			backward_reptation_without_head_butting (Polymers, LATTICE, tmp, &loc0, &to_slither_copy, deg_poly, index, y, z); 
+
+		}
+		*IMP_BOOL = false; 
+	}
+
+	std::cout << "Second check structures..." << std::endl;
+	CheckStructures (Polymers, Cosolvent, LATTICE, x, y, z);
+	std::cout << "PASSED!" << std::endl; 
+
+	return; 
+}
+
+//==============================================================================================
+//==============================================================================================
+
 void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
@@ -3886,7 +4360,7 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	if ( to_slither == loc0 ){
 		forward_reptation_with_tail_biting (Polymers, LATTICE, &to_slither, deg_poly, index, y, z); 
 	}
-	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
+	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ) {
 		tmp = (*LATTICE)[ lattice_index (to_slither, y, z) ]; 
 		forward_reptation_without_tail_biting (Polymers, LATTICE, tmp, &to_slither, &loc0, deg_poly, index, y, z);
 	}
@@ -3921,7 +4395,6 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	return; 
 }
 
-
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of ForwardReptation. 
@@ -3944,7 +4417,94 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 //
 // THE CODE: 
 
-void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
+	double* sysEnergy, double temperature, int index, int x, int y, int z){
+
+	std::cout << "In backward reptation unbiased." <<std::endl;
+
+	int                   deg_poly         = (*Polymers)[index].deg_poly; 
+	std::array <int,3>    loc0             = (*Polymers)[index].chain[0]->coords; 
+	std::array <int,3>    locf             = (*Polymers)[index].chain[deg_poly-1]->coords; 
+	std::array <double,8> current_contacts = *contacts; 
+	std::array <double,8> copy_contacts    = *contacts;
+	double                Esys             = *sysEnergy; 
+
+	// first check if tail rotation can be performed at all 
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( loc0, x, y, z ); 
+    int choice = rng_uniform (0, 25);	
+
+	std::array <int,3> to_slither = ne_list[choice]; 
+	std::array <int,3> to_slither_copy = to_slither; 
+	Particle* tmp {nullptr}; 
+
+	std::cout << "Suggested location is "; print (ne_list[choice]);
+	std::cout << "to_slither = "; print (to_slither);
+
+	if ( to_slither == locf ){
+		std::cout << "With head butting..." << std::endl;
+		backward_reptation_with_head_butting_new (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
+	}
+	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
+		std::cout << "Without head butting... " << std::endl;
+		backward_reptation_without_head_butting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
+	}
+
+	else {
+		*IMP_BOOL = false; 
+		return; 
+	}
+
+	(*Polymers)[0].printChainCoords();
+
+	std::cout << "First check structures..." << std::endl;
+	CheckStructures (Polymers, Cosolvent, LATTICE, x, y, z);
+	std::cout << "PASSED!" << std::endl;
+
+	// delete later 
+	
+	double energy_n = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z);
+	if ( Esys != energy_n || current_contacts != copy_contacts){
+		std::cout << "Either energy or contacts is messed up in forward reptation... " << std::endl; 
+		std::cout << "Esys = " << Esys << ", energy_n = " << energy_n << ". " << std::endl; 
+		std::cout << "current_contacts = "; print (current_contacts, ", "); std::cout << "copy_contacts = "; print(copy_contacts); 
+		exit (EXIT_FAILURE); 
+	}
+	
+	// delete above 
+	if ( MetropolisAcceptance (*sysEnergy, Esys, temperature) ){
+		std::cout << "Accepted!" << std::endl;
+		*sysEnergy       = Esys;
+		*contacts        = current_contacts; 
+
+	}
+	else {
+		// revert back to old state 
+		std::cout << "Rejected..." << std::endl;
+		if ( to_slither_copy == locf ) {
+			std::cout << "with head_butting... " << std::endl;
+			forward_reptation_with_tail_biting (Polymers, LATTICE, &to_slither_copy, deg_poly, index, y, z); 
+		}
+		else {
+			std::cout << "without head_butting... " << std::endl;
+			tmp = (*LATTICE)[ lattice_index (locf, y, z) ]; 
+			forward_reptation_without_tail_biting (Polymers, LATTICE, tmp, &locf, &to_slither_copy, deg_poly, index, y, z); 
+		}
+		*IMP_BOOL = false; 
+	}
+
+	std::cout << "Second check structures..." << std::endl;
+	CheckStructures (Polymers, Cosolvent, LATTICE, x, y, z);
+	std::cout << "PASSED!" << std::endl;
+
+	return; 
+}
+
+//==============================================================================================
+//==============================================================================================
+
+
+void BackwardReptation_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
@@ -3996,8 +4556,6 @@ void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <P
 	}
 
 	return; 
-
-
 }
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -4021,7 +4579,7 @@ void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <P
 // THE CODE: 
 
 
-void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void Reptation_UNBIASED_debug (std::vector<Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
@@ -4029,6 +4587,30 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
     std::mt19937 generator(seed); 
     std::uniform_int_distribution<int> distribution (0,1); 
     int num = 0; // distribution(generator); 
+
+    if (num==0){
+        std::cout << "Backward reptation only!" << std::endl;
+        BackwardReptation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+        return; 
+    }
+    else {
+        std::cout << "Forward reptation!" << std::endl;
+        ForwardReptation_UNBIASED_debug  (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        return; 
+    }
+    
+}
+
+
+
+void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
+	double* sysEnergy, double temperature, int index, int x, int y, int z){
+
+    unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
+    std::mt19937 generator(seed); 
+    std::uniform_int_distribution<int> distribution (0,1); 
+    int num = distribution(generator); 
 
     if (num==0){
         std::cout << "Backward reptation only!" << std::endl;
@@ -4042,7 +4624,6 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
     }
     
 }
-
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -4067,14 +4648,19 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
 //
 // THE CODE: 
 
-void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void SolventFlip_UNBIASED_debug ( std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::array<double,8>* E, std::array<double,8>* contacts, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z ){
 
 	// number of sites to flip 
 	int deg_poly = static_cast<int> ( (*Polymers)[index].chain.size() );
 	int nflips = rng_uniform (1, static_cast<int>(std::ceil(deg_poly/2.0*deg_poly/2.0*deg_poly/2.0) ) ); 
-	std::array <double,8> c_contacts         = *contacts; 
+	
+	std::array <double,8> copy_contacts            = *contacts; 
+	std::array <double,8> current_contacts         = *contacts; 
 
 
 	std::vector <int> indices;
@@ -4085,22 +4671,34 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 	int r_idx {-1}; 
 	int s {0}; 
 
+	std::array <double,8> cs; 
+	std::array <double,8> cs_n; 
+
+	double Es   = 0;
+	double Es_n = 0;
+	double Ef   = *sysEnergy; 
+
 	for (int i{0}; i<nflips; ++i){
 		// generate an index 
 		r_idx = rng_uniform (0, x*y*z-1); 
 		if ( (*LATTICE)[r_idx]->ptype[0] == 's' ){
-
+			Es = NeighborEnergy (LATTICE, E, &cs, r_idx, x, y, z); 
 			std::vector<int>::iterator it = std::find (indices.begin(), indices.end(), r_idx);
 			// if it is a solvent, perturb orientation 
-			if ( it == indices.end() ){
+			if ( it == indices.end() ){ 
 				indices.push_back (r_idx); 
 				oris.push_back ((*LATTICE)[r_idx]->orientation); 
-				// generate an orientation 
+				// generate an orientation  
 				(*LATTICE)[r_idx]->orientation = rng_uniform(0, 25); 
-				
-			}
-			else {
+				Es_n = NeighborEnergy (LATTICE, E, &cs_n, r_idx, x, y, z); 
+				current_contacts = add_arrays( subtract_arrays(current_contacts, cs), cs_n ); 
+				Ef += Es_n - Es; 
+			} 
+			else { 
 				(*LATTICE)[r_idx]->orientation = rng_uniform(0, 25); 
+				Es_n = NeighborEnergy (LATTICE, E, &cs_n, r_idx, x, y, z); 
+				current_contacts = add_arrays( subtract_arrays(current_contacts, cs), cs_n ); 
+				Ef += Es_n - Es; 
 			}
 		}
 		else {
@@ -4112,12 +4710,23 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 	// std::cout << "Does it reach here 2" << std::endl;
 	if (*IMP_BOOL){
 		// calculate the energy 
-		double energy = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &c_contacts, x, y, z); 
+		// delete later 
+		
+		double energy = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
+		std::cout << "Ef = " << Ef << ", energy = " << energy << ". " << std::endl; 
+		if (Ef != energy || current_contacts != copy_contacts) {
+			std::cout << "Either energy or contacts is messed up in end rotation... " << std::endl;
+			std::cout << "Ef = " << Ef << ", energy = " << energy << ". " << std::endl; 
+			std::cout << "final_contacts = "; print (current_contacts, ", "); std::cout << "copy_contacts = "; print(copy_contacts);
+			exit(EXIT_FAILURE);
+		} 
+	
+		// delete later 
 
 		// perform the metropolis acceptance 
-		if ( MetropolisAcceptance (*sysEnergy, energy, temperature) ){
-			*sysEnergy = energy;
-			*contacts  = c_contacts; 
+		if ( MetropolisAcceptance (*sysEnergy, Ef, temperature) ){
+			*sysEnergy = Ef;
+			*contacts  = current_contacts; 
 		}
 		else {
 			*IMP_BOOL = false; 
@@ -4133,6 +4742,92 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 		// reverse all the perturbations performed 
 		s = static_cast<int>(indices.size());
 		for ( int i{0}; i < s; ++i ){
+			(*LATTICE)[ indices[i] ]->orientation = oris[i]; 
+		}
+		// and that should do it. 
+	}
+
+	return; 
+
+}
+
+
+
+void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
+	std::array<double,8>* E, std::array<double,8>* contacts, \
+	bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z ){
+
+	// number of sites to flip 
+	int deg_poly = static_cast<int> ( (*Polymers)[index].chain.size() );
+	int nflips = rng_uniform (1, static_cast<int>(std::ceil(deg_poly/2.0*deg_poly/2.0*deg_poly/2.0) ) ); 
+	
+	std::array <double,8> current_contacts         = *contacts; 
+
+
+	std::vector <int> indices;
+	std::vector <int> oris;  
+	indices.reserve(nflips); 
+	oris.reserve(nflips);
+
+	int r_idx {-1}; 
+
+	std::array <double,8> cs; 
+	std::array <double,8> cs_n; 
+
+	double Es   = 0;
+	double Es_n = 0;
+	double Ef   = *sysEnergy; 
+
+	for (int i{0}; i<nflips; ++i){
+		// generate an index 
+		r_idx = rng_uniform (0, x*y*z-1); 
+		if ( (*LATTICE)[r_idx]->ptype[0] == 's' ){
+			Es = NeighborEnergy (LATTICE, E, &cs, r_idx, x, y, z); 
+			std::vector<int>::iterator it = std::find (indices.begin(), indices.end(), r_idx);
+			// if it is a solvent, perturb orientation 
+			if ( it == indices.end() ){ 
+				indices.push_back (r_idx); 
+				oris.push_back ((*LATTICE)[r_idx]->orientation); 
+				// generate an orientation  
+				(*LATTICE)[r_idx]->orientation = rng_uniform(0, 25); 
+				Es_n = NeighborEnergy (LATTICE, E, &cs_n, r_idx, x, y, z); 
+				current_contacts = add_arrays( subtract_arrays(current_contacts, cs), cs_n ); 
+				Ef += Es_n - Es; 
+			} 
+			else { 
+				(*LATTICE)[r_idx]->orientation = rng_uniform(0, 25); 
+				Es_n = NeighborEnergy (LATTICE, E, &cs_n, r_idx, x, y, z); 
+				current_contacts = add_arrays( subtract_arrays(current_contacts, cs), cs_n ); 
+				Ef += Es_n - Es; 
+
+			}
+		}
+		else {
+			*IMP_BOOL = false; 
+			break;
+		}
+
+	}
+	// std::cout << "Does it reach here 2" << std::endl;
+	if (*IMP_BOOL){
+
+		// perform the metropolis acceptance 
+		if ( MetropolisAcceptance (*sysEnergy, Ef, temperature) ){
+			*sysEnergy = Ef;
+			*contacts  = current_contacts; 
+		}
+		else {
+			*IMP_BOOL = false; 
+			// reverse all the perturbations performed 
+			for ( int i{0}; i < static_cast<int>(indices.size()); ++i ){
+				(*LATTICE)[ indices[i] ]->orientation = oris[i];
+			}
+		}
+	}
+
+	else {
+		// reverse all the perturbations performed 
+		for ( int i{0}; i < static_cast<int>(indices.size()); ++i ){
 			(*LATTICE)[ indices[i] ]->orientation = oris[i]; 
 		}
 		// and that should do it. 
@@ -5095,7 +5790,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 	// std::cout << "m_index = " << m_index << std::endl;
 	// generate an array for energies 
 	std::array <double,8>               current_contacts = *contacts; 
-	// std::array <double,8>				copy_contacts    = *contacts; // this is only for the checks with brute force calculation
+	std::array <double,8>				copy_contacts    = *contacts; // this is only for the checks with brute force calculation
 
 	// current contacts will be perturbed, and eventually merged with *contacts. 
 
@@ -5113,13 +5808,12 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 	
 	// doubles for energy transfer 
 	double rboltzmann = 0; // running sum for boltzmann weights 
-	double Em   = 0;
-	double Es   = 0; 
-	double Em_n = 0; 
-	double Es_n = 0; 
-	double Esys = *frontflow_energy; 
-
-	// double Etest   = 0;
+	double Em         = 0;
+	double Es         = 0; 
+	double Em_n       = 0; 
+	double Es_n       = 0; 
+	double Esys       = *frontflow_energy; 
+	double Etest      = 0;
 
 	std::array <double,8> cm   = {0,0,0,0,0,0,0,0};
 	std::array <double,8> cs   = {0,0,0,0,0,0,0,0};
@@ -5193,7 +5887,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 				
 				// get the energy
 				// delete later 
-				/*
+				
 				Etest  = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
 				if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
 					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
@@ -5202,7 +5896,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 					std::cout << "Shit's fucked." << std::endl;
 					exit(EXIT_FAILURE);
 				}
-				*/ 
+				 
 				// delete above later 
 
 				// revert back to original structure 
@@ -5240,7 +5934,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 			// get the energy
 			// delete later 
-			/*
+			
 			Etest  = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
 			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
 				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
@@ -5253,7 +5947,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 				dumpPositionsOfPolymers (Polymers, 1, "debug.coords");
 				exit(EXIT_FAILURE);
 			}
-			*/
+			
 			// delete above 
 
 			// revert back to original structure 
@@ -5353,7 +6047,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	
 	std::array <double,5>               energies; 
 	std::array <double,5>               boltzmann; 
-	// std::array <double,8>               copy_contacts    = *contacts; 
+	std::array <double,8>               copy_contacts    = *contacts; 
 	std::array <double,8>               current_contacts = *contacts; 
 	std::array <std::array<double,8>,5> contacts_store; 
 	double                              rboltzmann       = 0; // running sum for boltzmann weights 
@@ -5375,12 +6069,12 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 
 
 	// these are doubles for energies 
-	double Em   = 0;
-	double Es   = 0; 
-	double Em_n = 0; 
-	double Es_n = 0; 
-	double Esys = *backflow_energy; 
-	// double Etest = 0;
+	double Em      = 0;
+	double Es      = 0; 
+	double Em_n    = 0; 
+	double Es_n    = 0; 
+	double Esys    = *backflow_energy; 
+	double Etest   = 0;
 
 	std::array <double,8> cm   = {0,0,0,0,0,0,0,0};
 	std::array <double,8> cs   = {0,0,0,0,0,0,0,0};
@@ -5441,7 +6135,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 				contacts_store[idx_counter] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
 				
 				// delete later 
-				/*
+				
 				Etest  = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
 				if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
 					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
@@ -5450,7 +6144,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 					std::cout << "Shit's fucked." << std::endl;
 					exit(EXIT_FAILURE);
 				}
-				*/ 
+				
 				// delete above 
 
 				// revert back to original structure 
@@ -5484,7 +6178,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
 			
 			// delete later
-			/*
+			
 			Etest  = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
 			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
 				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
@@ -5497,7 +6191,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 				// dumpPositionsOfPolymers (Polymers, 1, "debug.coords");
 				exit(EXIT_FAILURE);
 			}
-			*/ 
+			
 			// delete above later
 
 			// revert back to original structure 
@@ -6046,7 +6740,7 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 
 void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
-	double* sysEnergy, double temperature, int p_index, int x, int y, int z){
+	double* sysEnergy, double temperature, int p_index, int x, int y, int z) {
 
 	// choose an index to regrow from 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
@@ -7538,10 +8232,10 @@ void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
 
-	if (m_index == deg_poly-1){
+	if (m_index == deg_poly-1){ 
 		*IMP_BOOL = true; 
 		return; 
-	}
+	} 
 
 	// std::cout << "m_index = " << m_index << std::endl;
 	// generate an array for energies 
@@ -7881,7 +8575,7 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 
 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
-	int m_index  = rng_uniform (1, deg_poly/2-1); 
+	int m_index  = rng_uniform (deg_poly/2, deg_poly-2); 
 
 	std::array <double,8> c1_contacts = *contacts; 
 	std::array <double,8> c2_contacts = *contacts; 
@@ -7944,7 +8638,7 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 		HeadRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
 		std::cout << "Completed regrowth!" << std::endl;
 		// exit (EXIT_SUCCESS);
-		CheckStructures (Polymers, Cosolvent, LATTICE, x, y, z); 
+		// CheckStructures (Polymers, Cosolvent, LATTICE, x, y, z); 
 
 		/*
 		std::cout << "orientation dump - post regrowth... " << std::endl;
@@ -8180,278 +8874,11 @@ void ChainRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, s
 //             Start of end rotation with solvent flips with a bias 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-/*
-void TailRotationWithSolventFlips_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, \
-	double temperature, int p_index, int x, int y, int z){
 
-	// get the neighborlist of particles at index 1 
-	std::array <int,3> loc_0 = (*Polymers)[p_index].chain[0]->coords;
-	std::array <int,3> loc_1 = (*Polymers)[p_index].chain[1]->coords; 
-
-	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list (loc_1, x, y, z); 
-
-	// std::array <double,4> current_contacts = *contacts; 
-	std::array <double,5>               energies; 
-	std::array <std::array<double,4>,5> contacts_store; 
-	std::array <double,5>               boltzmann;
-	std::array <int,5>				    old_orientations; 
-	std::array <int,5>				    new_orientations; 
-	double rboltzmann   = 0; 
-	double prob_o_to_n  = 1; 
-	double prob_n_to_o  = 1; 
-	
-	double Emin  = 0; 
-	double rng   = 0; 
-	double rsum  = 0; 
-	int    e_idx = 0; 
-
-	// randomly select five of them 
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
-
-	// start checking your choices
-	
-	int block_counter = 0 ;
-	int self_swap_idx = -1; 
-
-	for (int i{0}; i < 5; ++i){
-
-		if ( (*LATTICE)[ lattice_index (ne_list[i], y, z) ]->ptype[0] == 's' ){
-
-			// prep the swap 
-			(*LATTICE)[lattice_index(ne_list[i], y, z)]->coords = loc_0;
-			(*Polymers)[p_index].chain[0]->coords               = ne_list[i];
-			
-			// perform the swap (since coords were changed, this swap works)
-			(*LATTICE)[ lattice_index (loc_0, y, z) ] = (*LATTICE)[lattice_index(ne_list[i], y, z)];
-			(*LATTICE)[ lattice_index (ne_list[i], y, z) ] = (*Polymers)[p_index].chain[0];
-
-
-			// start evaluating boltzmann factors for each position, much like for regular tail rotation 
-			energies[i] = CalculateEnergy (Polymers, LATTICE, E, &(contacts_store[i]), x, y, z);  
-
-			// revert the polymer to original structure 
-			(*LATTICE)[lattice_index(loc_0, y, z)]->coords = ne_list[i];
-			(*Polymers)[p_index].chain[0]->coords  = loc_0;
-			
-			// perform the swap (since coords were changed, this swap works)
-			(*LATTICE)[lattice_index(ne_list[i], y, z)]    = (*LATTICE)[lattice_index (loc_0, y, z)];
-			(*LATTICE)[lattice_index(loc_0, y, z)]         = (*Polymers)[p_index].chain[0];	
-
-
-		}
-
-		else {
-			// do nothing 
-			energies[i] = 1e+08;        // very unfavorable state 
-			contacts_store[i] = {-1,-1,-1,-1}; 
-			block_counter += 1; 
-
-		}
-
-	}
-
-	Emin = *std::min_element ( energies.begin(), energies.end() ); 
-
-	for ( int k{0}; k<5; ++k ){
-		boltzmann [k] = std::exp (-1/temperature* (energies[k] - Emin) ); 
-		rboltzmann   += boltzmann [k]; 
-	}
-
-	rng   = rng_uniform (0.0, 1.0); 
-	// pick a location 
-	for ( int j{0}; j<5; ++j){
-		rsum += boltzmann[j]/rboltzmann;
-		if ( rng < rsum ){
-			e_idx = j; 
-			break; 
-		}
-	}
-
-	// prep the swap 
-	(*LATTICE)[lattice_index(ne_list[e_idx], y, z)]->coords = loc_0;
-	(*Polymers)[p_index].chain[0]->coords               = ne_list[e_idx];
-	
-	// perform the swap (since coords were changed, this swap works)
-	(*LATTICE)[ lattice_index (loc_0, y, z) ] = (*LATTICE)[lattice_index(ne_list[e_idx], y, z)];
-	(*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ] = (*Polymers)[p_index].chain[0];
-
-	prob_o_to_n *= boltzmann[e_idx]/rboltzmann; 
-
-	// now perform the solvent flips 
-	new_orientations = {0,0,0,0,0}; 
-	std::array <int,5> solvent_indices = {0,0,0,0,0}; 
-	std::array <int,4> new_contacts = {0,0,0,0};
-	double new_energy = 0; 
-
-	SolventFlip_BIASED (Polymers, LATTICE, E, &new_contacts, &solvent_indices, &new_orientations, IMP_BOOL, sysEnergy, &new_energy, &prob_o_to_n, &prob_n_to_o, temperature, 1, p_index, x, y, z); 
-
-	// now do the backtracking wrt monomer swinging 
-	// *contacts = new_contacts; // 
-
-
-	// I AM NOT SURE WHAT IS GOING ON HERE 
-	// int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*Polymers)[p_index].chain[0]->coords) - ne_list.begin() ; 
-	// std::array <int,3> tmp = ne_list[0]; 
-	// ne_list[0]             = ne_list[ne_idx];
-	// ne_list[ne_idx]        = tmp; 
-
-	return; 
-}
-*/
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of acceptance_after_tail_regrowth
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-/*
-void SolventFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,4>* E, std::array <double,4>* new_contacts, std::array<int,5>* solvent_indices, std::array <int,5>* new_orientations, \
-	bool* IMP_BOOL, double* sysEnergy, double* new_energy, \
-	double* prob_o_to_n, double* prob_n_to_o, double temperature, \
-	int m_index, int p_index,  int x, int y, int z){
-
-	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z); 
-
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
-	
-	// to get rid of! 
-	// temporary variables, to delete later 
-	std::array <double,4> c_contacts = *new_contacts; 
-
-	// #################################################
-
-	std::array <std::array <double,4>, 5> contacts_store_1;
-	std::array <int,5> old_orientations;				// need this for the unflipping process
-	std::array <int,5> suggested_orientations; 			// need this for holding orientations before assigning them 
-	std::array <double,5> energies; 
-	std::array <double,5> boltzmann;
-	// std::array <int,5> new_orientations; 				// holds the best possible orientations 
-	double Emin       = 0; 
-	double rboltzmann = 0; 
-	double rng        = 0; 
-	int    rsum       = 0;
-	int    e_idx      = -1;
-
-	for (int i{0}; i<5; ++i){
-
-		(*solvent_indices)[i] = lattice_index (ne_list[i], y, z); // assignment, in case this move gets accepted, i need this information 
-		old_orientations[i]  = (*LATTICE)[ lattice_index (ne_list[i], y, z) ]->orientation; 
-
-		for (int j{0}; j<5; ++j){
-			(*LATTICE)[ lattice_index (ne_list[i], y, z) ]->orientation = rng_uniform(0, 25); 
-			energies[j] = CalculateEnergy (Polymers, LATTICE, E, &(contacts_store_1[i]), x, y, z); 
-			suggested_orientations [j] = (*LATTICE)[ lattice_index (ne_list[i], y, z) ]->orientation; 
-		}
-
-		// revert back to old orientation for index i 
-		// (*LATTICE)[ lattice_index (ne_list[i], y, z) ]->orientation = old_orientations[i]; 
-
-		// calculate boltzmann weights 
-		Emin = *std::min_element (energies.begin(), energies.end()); 
-		rboltzmann = 0; 
-		rsum = 0; 
-
-		for ( int k{0}; k<5; ++k ){
-			boltzmann [k] = std::exp (-1/temperature* (energies[k] - Emin) ); 
-			rboltzmann   += boltzmann [k]; 
-		}
-
-		rng   = rng_uniform (0.0, 1.0); 
-	
-		// pick a location 
-		for ( int k{0}; k<5; ++k){
-			rsum += boltzmann[k]/rboltzmann;
-			if ( rng < rsum ){
-				e_idx = k; 
-				break; 
-			}
-		}
-		*prob_o_to_n *= boltzmann[e_idx]/rboltzmann; 
-
-		// make the jump 
-		(*LATTICE)[ lattice_index (ne_list[i], y, z) ]->orientation = suggested_orientations[e_idx]; 
-		(*new_orientations) [i] = suggested_orientations[e_idx]; 
-		
-	}
-
-	(*new_contacts) = contacts_store_1[e_idx]; 
-	(*new_energy)   = energies[e_idx]; 
-
-	// i now have prob_o_to_n 
-	// time to get prob_n_to_o 
-
-	for (int i{0}; i < 5; ++i){
-
-		(*LATTICE)[ lattice_index(ne_list[i], y, z) ]->orientation = old_orientations[i]; 
-		energies[0] = CalculateEnergy (Polymers, LATTICE, E, &(contacts_store_1[0]), x, y, z);
-
-		for (int j{1}; j < 5; ++j){
-			(*LATTICE)[ lattice_index (ne_list[i], y, z) ]->orientation = rng_uniform(0, 25); 
-			energies[j] = CalculateEnergy (Polymers, LATTICE, E, &(contacts_store_1[j]), x, y, z); 
-		}
-
-		// calculate boltzmann weights 
-		Emin = *std::min_element (energies.begin(), energies.end()); 
-		rboltzmann = 0; 
-
-		for ( int k{0}; k<5; ++k ){
-			boltzmann [k] = std::exp (-1/temperature * (energies[k] - Emin ) );
-			rboltzmann   += boltzmann [k]; 
-		}
-
-		*prob_n_to_o *= boltzmann[0]/rboltzmann;
-
-	}
-
-	// TO GET RID OF
-	// can get rid of sysenergy and c_contacts
-
-	if ( *sysEnergy != energies[0] || c_contacts != contacts_store_1[0] ){
-		std::cout << "Energies are bad, or contacts are not right. " << std::endl;
-		std::cout << "*sysEnergy = " << *sysEnergy << ", energies[0] = " << energies[0] << "." << std::endl;
-		std::cout << "*contacts = "; print(*new_contacts, ", "); std::cout << "contacts_store_1[0] = "; print (contacts_store_1[0]); 
-		exit(EXIT_FAILURE);
-	}
-
-	return; 
-
-}
-*/
-
-/*
-void HeadRotationWithSolventFlips_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,4>* E, std::array <double,4>* contacts, bool* IMP_BOOL, double* sysEnergy, \
-	double temperature, int p_index, int x, int y, int z);
-
-void EndRotationWithSolventFlips_BIASED(std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,4>* E, std::array <double,4>* contacts, \
-	bool* IMP_BOOL, double* sysEnergy, double temperature, \
-	int p_index, int x, int y, int z){
-
-	unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
-    std::mt19937 generator(seed); 
-    std::uniform_int_distribution<int> distribution (0,1); 
-    int num = 1; // distribution(generator); 
-    // std::cout << "rng is " << num << std::endl;
-    if (num==0){
-        // std::cout << "Zero index rotation!" << std::endl;
-        TailRotationWithSolventFlips_BIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-        return; 
-    }
-    else {
-        // std::cout << "Final index rotation!" << std::endl;
-        HeadRotationWithSolventFlips_BIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-        return; 
-    }
-
-
-	return;
-} 
-
-void RegrowthWithSolventFlips_BIASED(); 
-*/
 
 
 void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, \
@@ -8812,7 +9239,7 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 //==============================================================================================
 //==============================================================================================
 //
-// NAME OF FUNCTION: PerturbSystem_UNBIASED, PerturbSystem_BIASED
+// NAME OF FUNCTION: PerturbSystem_BIASED
 //
 // PARAMETERS: Polymers, LATTICE, Energies, contacts, attempts, IMP_BOOL, v, currentenergy, temperature, 
 // move number, box dimensions  
@@ -8823,68 +9250,6 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 // DEPENDENCIES: every move used above. 
 // 
 // THE CODE: 
-
-void PerturbSystem_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, \
-	bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, \
-	int* move_number, int x, int y, int z){
-
-	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = 2; // rng_uniform (0, 4); 
-
-	switch (r) {
-
-		case(0):
-			if (v) {
-				std::cout << "Performing end rotations..." << std::endl; 
-			}
-			EndRotation_UNBIASED  (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-			*move_number    = 0; 
-			(*attempts)[0] += 1; 
-			break; 
-
-		case (1):
-			if (v) {
-				std::cout << "Performing reptation..." << std::endl; 
-			}
-			Reptation_UNBIASED    (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-			*move_number    = 1;
-			(*attempts)[1] += 1; 
-			break;
-
-		case (2):
-			if (v) {
-				std::cout << "Performing chain regrowth..." << std::endl;
-			}
-			ChainRegrowth_UNBIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
-			*move_number    = 2; 
-			(*attempts)[2] += 1;
-			break; 
-
-		case(3):
-			if (v) {
-				std::cout << "Performing solvent flips..." << std::endl;
-			}
-			SolventFlip_UNBIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
-			*move_number    = 3; 
-			(*attempts)[3] += 1; 
-			break;
-
-		case (4):
-			if (v) {
-				std::cout << "Performing monomer flips..." << std::endl;
-			}
-			PolymerFlip_UNBIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-			*move_number    = 4;
-			(*attempts)[4] += 1; 
-			break; 
-
-	}
-
-	return; 
-
-}
-
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //			End of PerturbSystem_UNBIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -8896,7 +9261,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = 7; // rng_uniform (5, 7); 
+	int r     = 1; // rng_uniform (5, 7); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {
@@ -8905,7 +9270,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			if (v) {
 				std::cout << "Performing end rotations..." << std::endl; 
 			}
-			EndRotation_UNBIASED  (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			EndRotation_UNBIASED  (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
 			*move_number    = r; 
 			(*attempts)[r] += 1; 
 			break; 
@@ -8914,7 +9279,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			if (v) {
 				std::cout << "Performing reptation..." << std::endl; 
 			}
-			Reptation_UNBIASED    (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			Reptation_UNBIASED_debug    (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
 			*move_number    = r;
 			(*attempts)[r] += 1; 
 			break;
@@ -8941,7 +9306,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			if (v) {
 				std::cout << "Performing solvent flips..." << std::endl;
 			}
-			SolventFlip_UNBIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			SolventFlip_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
 			*move_number    = r; 
 			(*attempts)[r] += 1; 
 			break;

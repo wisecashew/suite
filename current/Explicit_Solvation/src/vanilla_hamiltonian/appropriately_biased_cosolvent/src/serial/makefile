@@ -5,7 +5,7 @@ LINUXFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic 
 
 # use this set of flags if on MacOS M1
 MACFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -mcpu=apple-a10 -fopenmp
-OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Wnonnull -Wnull-dereference -Wno-return-local-addr -Wreturn-type
+OMPFLAGS = -fopenmp -Ofast -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Wnonnull -Wnull-dereference -Wno-return-local-addr -Wreturn-type
 
 all: clean linux unbiased mac
 	@echo "All simulation objects should be compiled."

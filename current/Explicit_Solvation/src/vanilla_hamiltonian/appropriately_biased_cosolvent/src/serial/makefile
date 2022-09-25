@@ -21,13 +21,13 @@ home: main.cpp misc.cpp classes.cpp
 	@echo "Compiled!"
 
 mac: main.cpp misc.cpp classes.cpp
-	@echo "Compiling parallel simulation..."
+	@echo "Compiling simulation..."
 	@$(OMPCC) $(OMPFLAGS) main.cpp misc.cpp classes.cpp -o cosolv_ani
 	@echo "Compiled!"
 
-debug: debug2.cpp misc.cpp classes.cpp
-	@echo "Compiling parallel simulation..."
-	@$(OMPCC) $(OMPFLAGS) debug2.cpp misc.cpp classes.cpp -o debug
+debug: debug.cpp misc.cpp classes.cpp
+	@echo "Compiling simulation in debug mode..."
+	@$(OMPCC) $(OMPFLAGS) debug.cpp misc.cpp classes.cpp -o debug
 	@echo "Compiled!"
 
 clean: 

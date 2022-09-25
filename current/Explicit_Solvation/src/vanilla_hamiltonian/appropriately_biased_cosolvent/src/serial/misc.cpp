@@ -4340,29 +4340,39 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 //==============================================================================================
 //==============================================================================================
 
-void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
-	int deg_poly = (*Polymers)[index].deg_poly; 
-	std::array <int,3> loc0 = (*Polymers)[index].chain[0]->coords; 
-	std::array <int,3> locf = (*Polymers)[index].chain[deg_poly-1]->coords; 
-	std::array <double,8> c_contacts = *contacts; 
+	std::cout << "In forward reptation unbiased." <<std::endl;
 
-	// first check if tail rotation can be performed at all 
+	int                   deg_poly         = (*Polymers)[index].deg_poly; 
+	std::array <int,3>    loc0             = (*Polymers)[index].chain[0]->coords; 
+	std::array <int,3>    locf             = (*Polymers)[index].chain[deg_poly-1]->coords; 
+	std::array <double,8> current_contacts = *contacts; 
+	double                Esys             = *sysEnergy; 
+
+
+	// first check if tail rotation can be performed at all 	
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( locf, x, y, z ); 
     int choice = rng_uniform (0, 25);	
 
-	std::array <int,3> to_slither = ne_list [choice]; 
-
+	std::array <int,3> to_slither      = ne_list [choice]; 
+	std::array <int,3> to_slither_copy = to_slither; 
 	Particle* tmp {nullptr}; 
 	
+
+	std::cout << "Suggested location is "; print (ne_list[choice]);
+	std::cout << "to_slither = "; print (to_slither);
 	if ( to_slither == loc0 ){
-		forward_reptation_with_tail_biting (Polymers, LATTICE, &to_slither, deg_poly, index, y, z); 
+		std::cout << "With tail biting..." << std::endl;
+		// if you are performing tail biting, you need neighborhood information about all monomer beads 
+		forward_reptation_with_tail_biting_new    (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
 	}
-	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ) {
-		tmp = (*LATTICE)[ lattice_index (to_slither, y, z) ]; 
-		forward_reptation_without_tail_biting (Polymers, LATTICE, tmp, &to_slither, &loc0, deg_poly, index, y, z);
+	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
+		// IMPORTANT STEP 
+		std::cout << "Without tail biting... " << std::endl;
+		forward_reptation_without_tail_biting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
 	}
 
 	else {
@@ -4371,22 +4381,27 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	}
 
 	// calculate energy of current state 
-	double energy_n = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &c_contacts, x, y, z);
+	// delete later 
 
-	if ( MetropolisAcceptance (*sysEnergy, energy_n, temperature) ){
-
-		*sysEnergy = energy_n;
-		*contacts  = c_contacts; 
+	
+	if ( MetropolisAcceptance (*sysEnergy, Esys, temperature) ){
+		std::cout << "Accepted!" << std::endl;
+		*sysEnergy = Esys;
+		*contacts  = current_contacts; 
 
 	}
 	else {
 		// revert back to old state 
-		if ( to_slither == loc0 ) {
-			backward_reptation_with_head_butting (Polymers, LATTICE, &to_slither, deg_poly, index, y, z); 
+		std::cout << "Rejected..." << std::endl;
+		if ( to_slither_copy == loc0 ) {
+			std::cout << "with head_butting... " << std::endl;
+			backward_reptation_with_head_butting (Polymers, LATTICE, &to_slither_copy, deg_poly, index, y, z); 
 		}
 		else {
+			// IMPORTANT STEP 
+			std::cout << "without head_butting... " << std::endl;
 			tmp = (*LATTICE)[ lattice_index (loc0, y, z) ]; 
-			backward_reptation_without_head_butting (Polymers, LATTICE, tmp, &loc0, &to_slither, deg_poly, index, y, z); 
+			backward_reptation_without_head_butting (Polymers, LATTICE, tmp, &loc0, &to_slither_copy, deg_poly, index, y, z); 
 
 		}
 		*IMP_BOOL = false; 
@@ -4504,29 +4519,36 @@ void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vec
 //==============================================================================================
 
 
-void BackwardReptation_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
-	int deg_poly = (*Polymers)[index].deg_poly; 
-	std::array <int,3> loc0 = (*Polymers)[index].chain[0]->coords; 
-	std::array <int,3> locf = (*Polymers)[index].chain[deg_poly-1]->coords; 
-	std::array <double,8> c_contacts = *contacts; 
+	std::cout << "In backward reptation unbiased." <<std::endl;
+
+	int                   deg_poly         = (*Polymers)[index].deg_poly; 
+	std::array <int,3>    loc0             = (*Polymers)[index].chain[0]->coords; 
+	std::array <int,3>    locf             = (*Polymers)[index].chain[deg_poly-1]->coords; 
+	std::array <double,8> current_contacts = *contacts; 
+	double                Esys             = *sysEnergy; 
 
 	// first check if tail rotation can be performed at all 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( loc0, x, y, z ); 
     int choice = rng_uniform (0, 25);	
 
 	std::array <int,3> to_slither = ne_list[choice]; 
-
+	std::array <int,3> to_slither_copy = to_slither; 
 	Particle* tmp {nullptr}; 
-	
+
+	std::cout << "Suggested location is "; print (ne_list[choice]);
+	std::cout << "to_slither = "; print (to_slither);
+
 	if ( to_slither == locf ){
-		backward_reptation_with_head_butting (Polymers, LATTICE, &to_slither, deg_poly, index, y, z); 
+		std::cout << "With head butting..." << std::endl;
+		backward_reptation_with_head_butting_new (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
 	}
 	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
-		tmp = (*LATTICE)[ lattice_index (to_slither, y, z) ]; 
-		backward_reptation_without_head_butting (Polymers, LATTICE, tmp, &to_slither, &locf, deg_poly, index, y, z);
+		std::cout << "Without head butting... " << std::endl;
+		backward_reptation_without_head_butting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
 	}
 
 	else {
@@ -4534,23 +4556,23 @@ void BackwardReptation_UNBIASED       (std::vector <Polymer>* Polymers, std::vec
 		return; 
 	}
 
-	// calculate energy of current state 
-	double energy_n = CalculateEnergy_parallel (Polymers, Cosolvent, LATTICE, E, &c_contacts, x, y, z);
-
-	if ( MetropolisAcceptance (*sysEnergy, energy_n, temperature) ){
-
-		*sysEnergy       = energy_n;
-		*contacts        = c_contacts; 
+	if ( MetropolisAcceptance (*sysEnergy, Esys, temperature) ){
+		std::cout << "Accepted!" << std::endl;
+		*sysEnergy       = Esys;
+		*contacts        = current_contacts; 
 
 	}
 	else {
 		// revert back to old state 
-		if ( to_slither == locf ) {
-			forward_reptation_with_tail_biting (Polymers, LATTICE, &to_slither, deg_poly, index, y, z); 
+		std::cout << "Rejected..." << std::endl;
+		if ( to_slither_copy == locf ) {
+			std::cout << "with head_butting... " << std::endl;
+			forward_reptation_with_tail_biting (Polymers, LATTICE, &to_slither_copy, deg_poly, index, y, z); 
 		}
 		else {
+			std::cout << "without head_butting... " << std::endl;
 			tmp = (*LATTICE)[ lattice_index (locf, y, z) ]; 
-			forward_reptation_without_tail_biting (Polymers, LATTICE, tmp, &locf, &to_slither, deg_poly, index, y, z); 
+			forward_reptation_without_tail_biting (Polymers, LATTICE, tmp, &locf, &to_slither_copy, deg_poly, index, y, z); 
 		}
 		*IMP_BOOL = false; 
 	}
@@ -4601,9 +4623,10 @@ void Reptation_UNBIASED_debug (std::vector<Polymer>* Polymers, std::vector <Part
     
 }
 
+//==============================================================================================
+//==============================================================================================
 
-
-void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
@@ -4614,12 +4637,12 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
 
     if (num==0){
         std::cout << "Backward reptation only!" << std::endl;
-        BackwardReptation_UNBIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+        BackwardReptation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
         return; 
     }
     else {
         std::cout << "Forward reptation!" << std::endl;
-        ForwardReptation_UNBIASED  (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        ForwardReptation_UNBIASED  (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
     
@@ -5726,8 +5749,7 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 		}
 
 		
-		if ( !(*IMP_BOOL) ){
-
+		if ( !(*IMP_BOOL) ) {
 			acceptance_after_tail_regrowth ( LATTICE, &new_cut, &old_cut, y, z); 
 			
 			return; 
@@ -5751,7 +5773,7 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 		// check acceptance criterion 
 		double rng_acc = rng_uniform (0.0, 1.0); 
 	
-		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n ){
+		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy - *sysEnergy)) * prob_n_to_o/prob_o_to_n ) {
 
 			acceptance_after_tail_regrowth (LATTICE, &old_cut, &new_cut, y, z); 
 
@@ -8134,12 +8156,8 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 				// reset orientation
 				(*Polymers)[p_index].chain[m_index+1]->orientation = original_ori; 
 			}
-			// std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"<< std::endl;
-		
 		}
-
 		idx_counter += 1; 
-		
 	}
 
 	/*
@@ -9279,7 +9297,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			if (v) {
 				std::cout << "Performing reptation..." << std::endl; 
 			}
-			Reptation_UNBIASED_debug    (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			Reptation_UNBIASED    (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
 			*move_number    = r;
 			(*attempts)[r] += 1; 
 			break;
@@ -9348,6 +9366,96 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //			End of PerturbSystem_BIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+
+void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, \
+	bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, \
+	int* move_number, int x, int y, int z) {
+
+	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
+	int r     = 1; // rng_uniform (5, 7); 
+	// std::array <double,4> c_contacts = *contacts; 
+
+	switch (r) {
+
+		case(0):
+			if (v) {
+				std::cout << "Performing end rotations..." << std::endl; 
+			}
+			EndRotation_UNBIASED_debug  (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			*move_number    = r; 
+			(*attempts)[r] += 1; 
+			break; 
+
+		case (1):
+			if (v) {
+				std::cout << "Performing reptation..." << std::endl; 
+			}
+			Reptation_UNBIASED_debug    (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			*move_number    = r;
+			(*attempts)[r] += 1; 
+			break;
+
+		case (2):
+			if (v) {
+				std::cout << "Performing biased chain regrowth..." << std::endl;
+			}
+			ChainRegrowth_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			*move_number    = r; 
+			(*attempts)[r] += 1;			
+			break; 
+
+		case (3):
+			if (v) {
+				std::cout << "Performing biased chain regrowth with orientation flip..." << std::endl; 
+			}
+			ChainRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			*move_number    = r; 
+			(*attempts)[r] += 1;			
+			break; 
+
+		case (4):
+			if (v) {
+				std::cout << "Performing solvent flips..." << std::endl;
+			}
+			SolventFlip_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			*move_number    = r; 
+			(*attempts)[r] += 1; 
+			break;
+
+		case (5):
+			if (v) {
+				std::cout << "Performing a biased solvation shell flip..." << std::endl;
+			}
+			SolvationShellFlip_BIASED_remake2 (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z); 
+			*move_number    = r;
+			(*attempts)[r] += 1;
+			break;
+
+		case (6):
+			if (v) {
+				std::cout << "Performing a biased polymer flip..." << std::endl;
+			}
+			PolymerFlip_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			*move_number    = r;
+			(*attempts)[r] += 1; 
+			break;
+
+		case (7): 
+			if (v) {
+				std::cout << "Performing an identity swap... " << std::endl;
+			}
+			SolventExchange_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z);
+			*move_number    = r;
+			(*attempts)[r] += 1; 
+			break;			
+
+	}
+
+	return; 
+
+}
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~

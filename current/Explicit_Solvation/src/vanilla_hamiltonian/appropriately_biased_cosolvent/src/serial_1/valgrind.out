@@ -1,0 +1,202 @@
+==3751276== Memcheck, a memory error detector
+==3751276== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
+==3751276== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==3751276== Command: ./debug -f 1 -M 1000 -p 8mer.txt -t geom_and_esurf_uni.txt -u energydump.mc -e orientation.mc -s stats.mc -o coords.mc
+==3751276== Parent PID: 3741649
+==3751276== 
+vex amd64->IR: unhandled instruction bytes: 0x62 0xF1 0xFD 0x8 0x6F 0x55 0x0 0x62 0xF1 0xFD
+vex amd64->IR:   REX=0 REX.W=0 REX.R=0 REX.X=0 REX.B=0
+vex amd64->IR:   VEX=0 VEX.L=0 VEX.nVVVV=0x0 ESC=NONE
+vex amd64->IR:   PFX.66=0 PFX.F2=0 PFX.F3=0
+==3751276== valgrind: Unrecognised instruction at address 0x408f0e.
+==3751276==    at 0x408F0E: construct<std::pair<int const, std::array<double, 3> >, const std::pair<int const, std::array<double, 3> >&> (new:169)
+==3751276==    by 0x408F0E: construct<std::pair<int const, std::array<double, 3> >, const std::pair<int const, std::array<double, 3> >&> (alloc_traits.h:475)
+==3751276==    by 0x408F0E: _M_construct_node<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:626)
+==3751276==    by 0x408F0E: _M_create_node<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:643)
+==3751276==    by 0x408F0E: operator()<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:556)
+==3751276==    by 0x408F0E: _M_insert_<const std::pair<int const, std::array<double, 3> >&, std::_Rb_tree<int, std::pair<int const, std::array<double, 3> >, std::_Select1st<std::pair<int const, std::array<double, 3> > >, std::less<int>, std::allocator<std::pair<int const, std::array<double, 3> > > >::_Alloc_node> (stl_tree.h:1776)
+==3751276==    by 0x408F0E: _M_insert_unique_<const std::pair<int const, std::array<double, 3> >&, std::_Rb_tree<int, std::pair<int const, std::array<double, 3> >, std::_Select1st<std::pair<int const, std::array<double, 3> > >, std::less<int>, std::allocator<std::pair<int const, std::array<double, 3> > > >::_Alloc_node> (stl_tree.h:2229)
+==3751276==    by 0x408F0E: _M_insert_unique<const std::pair<int const, std::array<double, 3> >*> (stl_tree.h:2475)
+==3751276==    by 0x408F0E: map (stl_map.h:230)
+==3751276==    by 0x408F0E: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:40)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== Your program just tried to execute an instruction that Valgrind
+==3751276== did not recognise.  There are two possible reasons for this.
+==3751276== 1. Your program has a bug and erroneously jumped to a non-code
+==3751276==    location.  If you are running Memcheck and you just saw a
+==3751276==    warning about a bad jump, it's probably your program's fault.
+==3751276== 2. The instruction is legitimate but Valgrind doesn't handle it,
+==3751276==    i.e. it's Valgrind's fault.  If you think this is the case or
+==3751276==    you are not sure, please let us know and we'll try to fix it.
+==3751276== Either way, Valgrind will now raise a SIGILL signal which will
+==3751276== probably kill your program.
+==3751276== 
+==3751276== Process terminating with default action of signal 4 (SIGILL)
+==3751276==  Illegal opcode at address 0x408F0E
+==3751276==    at 0x408F0E: construct<std::pair<int const, std::array<double, 3> >, const std::pair<int const, std::array<double, 3> >&> (new:169)
+==3751276==    by 0x408F0E: construct<std::pair<int const, std::array<double, 3> >, const std::pair<int const, std::array<double, 3> >&> (alloc_traits.h:475)
+==3751276==    by 0x408F0E: _M_construct_node<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:626)
+==3751276==    by 0x408F0E: _M_create_node<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:643)
+==3751276==    by 0x408F0E: operator()<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:556)
+==3751276==    by 0x408F0E: _M_insert_<const std::pair<int const, std::array<double, 3> >&, std::_Rb_tree<int, std::pair<int const, std::array<double, 3> >, std::_Select1st<std::pair<int const, std::array<double, 3> > >, std::less<int>, std::allocator<std::pair<int const, std::array<double, 3> > > >::_Alloc_node> (stl_tree.h:1776)
+==3751276==    by 0x408F0E: _M_insert_unique_<const std::pair<int const, std::array<double, 3> >&, std::_Rb_tree<int, std::pair<int const, std::array<double, 3> >, std::_Select1st<std::pair<int const, std::array<double, 3> > >, std::less<int>, std::allocator<std::pair<int const, std::array<double, 3> > > >::_Alloc_node> (stl_tree.h:2229)
+==3751276==    by 0x408F0E: _M_insert_unique<const std::pair<int const, std::array<double, 3> >*> (stl_tree.h:2475)
+==3751276==    by 0x408F0E: map (stl_map.h:230)
+==3751276==    by 0x408F0E: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:40)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== HEAP SUMMARY:
+==3751276==     in use at exit: 73,064 bytes in 16 blocks
+==3751276==   total heap usage: 23 allocs, 7 frees, 105,952 bytes allocated
+==3751276== 
+==3751276== 8 bytes in 1 blocks are still reachable in loss record 1 of 11
+==3751276==    at 0x4C37135: malloc (vg_replace_malloc.c:381)
+==3751276==    by 0x5794DAC: ??? (in /usr/lib64/libgomp.so.1.0.0)
+==3751276==    by 0x57A698A: ??? (in /usr/lib64/libgomp.so.1.0.0)
+==3751276==    by 0x5793274: ??? (in /usr/lib64/libgomp.so.1.0.0)
+==3751276==    by 0x4014E09: call_init.part.0 (dl-init.c:72)
+==3751276==    by 0x4014F09: call_init (dl-init.c:118)
+==3751276==    by 0x4014F09: _dl_init (dl-init.c:119)
+==3751276==    by 0x4006019: ??? (in /usr/lib64/ld-2.28.so)
+==3751276==    by 0x10: ???
+==3751276==    by 0x1FFEFFC5DE: ???
+==3751276==    by 0x1FFEFFC5E6: ???
+==3751276==    by 0x1FFEFFC5E9: ???
+==3751276==    by 0x1FFEFFC5EB: ???
+==3751276== 
+==3751276== 12 bytes in 1 blocks are still reachable in loss record 2 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x40890E: allocate (new_allocator.h:111)
+==3751276==    by 0x40890E: allocate (alloc_traits.h:436)
+==3751276==    by 0x40890E: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x40890E: _M_range_initialize<int const*> (stl_vector.h:1466)
+==3751276==    by 0x40890E: std::vector<int, std::allocator<int> >::vector(std::initializer_list<int>, std::allocator<int> const&) [clone .constprop.1155] (stl_vector.h:519)
+==3751276==    by 0x4089A1: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:31)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 12 bytes in 1 blocks are still reachable in loss record 3 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x40890E: allocate (new_allocator.h:111)
+==3751276==    by 0x40890E: allocate (alloc_traits.h:436)
+==3751276==    by 0x40890E: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x40890E: _M_range_initialize<int const*> (stl_vector.h:1466)
+==3751276==    by 0x40890E: std::vector<int, std::allocator<int> >::vector(std::initializer_list<int>, std::allocator<int> const&) [clone .constprop.1155] (stl_vector.h:519)
+==3751276==    by 0x4089D8: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:31)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 12 bytes in 1 blocks are still reachable in loss record 4 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x40890E: allocate (new_allocator.h:111)
+==3751276==    by 0x40890E: allocate (alloc_traits.h:436)
+==3751276==    by 0x40890E: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x40890E: _M_range_initialize<int const*> (stl_vector.h:1466)
+==3751276==    by 0x40890E: std::vector<int, std::allocator<int> >::vector(std::initializer_list<int>, std::allocator<int> const&) [clone .constprop.1155] (stl_vector.h:519)
+==3751276==    by 0x408A14: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:31)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 12 bytes in 1 blocks are still reachable in loss record 5 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x40890E: allocate (new_allocator.h:111)
+==3751276==    by 0x40890E: allocate (alloc_traits.h:436)
+==3751276==    by 0x40890E: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x40890E: _M_range_initialize<int const*> (stl_vector.h:1466)
+==3751276==    by 0x40890E: std::vector<int, std::allocator<int> >::vector(std::initializer_list<int>, std::allocator<int> const&) [clone .constprop.1155] (stl_vector.h:519)
+==3751276==    by 0x408A50: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:31)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 12 bytes in 1 blocks are still reachable in loss record 6 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x40890E: allocate (new_allocator.h:111)
+==3751276==    by 0x40890E: allocate (alloc_traits.h:436)
+==3751276==    by 0x40890E: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x40890E: _M_range_initialize<int const*> (stl_vector.h:1466)
+==3751276==    by 0x40890E: std::vector<int, std::allocator<int> >::vector(std::initializer_list<int>, std::allocator<int> const&) [clone .constprop.1155] (stl_vector.h:519)
+==3751276==    by 0x408A86: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:31)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 12 bytes in 1 blocks are still reachable in loss record 7 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x40890E: allocate (new_allocator.h:111)
+==3751276==    by 0x40890E: allocate (alloc_traits.h:436)
+==3751276==    by 0x40890E: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x40890E: _M_range_initialize<int const*> (stl_vector.h:1466)
+==3751276==    by 0x40890E: std::vector<int, std::allocator<int> >::vector(std::initializer_list<int>, std::allocator<int> const&) [clone .constprop.1155] (stl_vector.h:519)
+==3751276==    by 0x408ABC: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:31)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 64 bytes in 1 blocks are definitely lost in loss record 8 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x408F0D: allocate (new_allocator.h:111)
+==3751276==    by 0x408F0D: allocate (alloc_traits.h:436)
+==3751276==    by 0x408F0D: _M_get_node (stl_tree.h:588)
+==3751276==    by 0x408F0D: _M_create_node<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:642)
+==3751276==    by 0x408F0D: operator()<const std::pair<int const, std::array<double, 3> >&> (stl_tree.h:556)
+==3751276==    by 0x408F0D: _M_insert_<const std::pair<int const, std::array<double, 3> >&, std::_Rb_tree<int, std::pair<int const, std::array<double, 3> >, std::_Select1st<std::pair<int const, std::array<double, 3> > >, std::less<int>, std::allocator<std::pair<int const, std::array<double, 3> > > >::_Alloc_node> (stl_tree.h:1776)
+==3751276==    by 0x408F0D: _M_insert_unique_<const std::pair<int const, std::array<double, 3> >&, std::_Rb_tree<int, std::pair<int const, std::array<double, 3> >, std::_Select1st<std::pair<int const, std::array<double, 3> > >, std::less<int>, std::allocator<std::pair<int const, std::array<double, 3> > > >::_Alloc_node> (stl_tree.h:2229)
+==3751276==    by 0x408F0D: _M_insert_unique<const std::pair<int const, std::array<double, 3> >*> (stl_tree.h:2475)
+==3751276==    by 0x408F0D: map (stl_map.h:230)
+==3751276==    by 0x408F0D: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:40)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 72 bytes in 6 blocks are still reachable in loss record 9 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x44F117: allocate (new_allocator.h:111)
+==3751276==    by 0x44F117: allocate (alloc_traits.h:436)
+==3751276==    by 0x44F117: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x44F117: _M_create_storage (stl_vector.h:311)
+==3751276==    by 0x44F117: _Vector_base (stl_vector.h:260)
+==3751276==    by 0x44F117: std::vector<int, std::allocator<int> >::vector(std::vector<int, std::allocator<int> > const&) (stl_vector.h:460)
+==3751276==    by 0x408B82: _Construct<std::vector<int>, const std::vector<int, std::allocator<int> >&> (stl_construct.h:75)
+==3751276==    by 0x408B82: __uninit_copy<const std::vector<int>*, std::vector<int>*> (stl_uninitialized.h:83)
+==3751276==    by 0x408B82: uninitialized_copy<const std::vector<int>*, std::vector<int>*> (stl_uninitialized.h:134)
+==3751276==    by 0x408B82: __uninitialized_copy_a<const std::vector<int>*, std::vector<int>*, std::vector<int> > (stl_uninitialized.h:289)
+==3751276==    by 0x408B82: _M_range_initialize<const std::vector<int>*> (stl_vector.h:1469)
+==3751276==    by 0x408B82: vector (stl_vector.h:519)
+==3751276==    by 0x408B82: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:32)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 144 bytes in 1 blocks are still reachable in loss record 10 of 11
+==3751276==    at 0x4C378C3: operator new(unsigned long) (vg_replace_malloc.c:422)
+==3751276==    by 0x408B4E: allocate (new_allocator.h:111)
+==3751276==    by 0x408B4E: allocate (alloc_traits.h:436)
+==3751276==    by 0x408B4E: _M_allocate (stl_vector.h:296)
+==3751276==    by 0x408B4E: _M_range_initialize<const std::vector<int>*> (stl_vector.h:1466)
+==3751276==    by 0x408B4E: vector (stl_vector.h:519)
+==3751276==    by 0x408B4E: __static_initialization_and_destruction_0(int, int) [clone .constprop.1145] (misc.cpp:32)
+==3751276==    by 0x4686FC: __libc_csu_init (in /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/src/vanilla_hamiltonian/appropriately_biased_cosolvent/src/serial/debug)
+==3751276==    by 0x5E33C7D: (below main) (in /usr/lib64/libc-2.28.so)
+==3751276== 
+==3751276== 72,704 bytes in 1 blocks are still reachable in loss record 11 of 11
+==3751276==    at 0x4C37135: malloc (vg_replace_malloc.c:381)
+==3751276==    by 0x4ED9C19: ??? (in /usr/lib64/libstdc++.so.6.0.25)
+==3751276==    by 0x4014E09: call_init.part.0 (dl-init.c:72)
+==3751276==    by 0x4014F09: call_init (dl-init.c:118)
+==3751276==    by 0x4014F09: _dl_init (dl-init.c:119)
+==3751276==    by 0x4006019: ??? (in /usr/lib64/ld-2.28.so)
+==3751276==    by 0x10: ???
+==3751276==    by 0x1FFEFFC5DE: ???
+==3751276==    by 0x1FFEFFC5E6: ???
+==3751276==    by 0x1FFEFFC5E9: ???
+==3751276==    by 0x1FFEFFC5EB: ???
+==3751276==    by 0x1FFEFFC5EE: ???
+==3751276==    by 0x1FFEFFC5F3: ???
+==3751276== 
+==3751276== LEAK SUMMARY:
+==3751276==    definitely lost: 64 bytes in 1 blocks
+==3751276==    indirectly lost: 0 bytes in 0 blocks
+==3751276==      possibly lost: 0 bytes in 0 blocks
+==3751276==    still reachable: 73,000 bytes in 15 blocks
+==3751276==         suppressed: 0 bytes in 0 blocks
+==3751276== 
+==3751276== For lists of detected and suppressed errors, rerun with: -s
+==3751276== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

@@ -1637,7 +1637,7 @@ void AddSolvent (std::vector <Particle*>* LATTICE, int x, int y, int z){
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 
-void AddCosolvent (std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, double frac, int Nmonomer, int x, int y, int z){
+void AddCosolvent (std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, double frac, int Nmonomer, int x, int y, int z) {
 
 	int nsol2         = std::floor ((x*y*z-Nmonomer)*frac); 
 	std::cout << "Number of particles of cosolvent is " << nsol2 << "." << std::endl;
@@ -1646,20 +1646,20 @@ void AddCosolvent (std::vector <Particle*>* Cosolvent, std::vector <Particle*>* 
 	std::iota (indices.begin(), indices.end(), 0); 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle ( indices.begin(), indices.end(), std::default_random_engine(seed) );
-    int count = 0;
-    int i = 0; 
+	int count = 0;
+	int i = 0; 
 	while ( count < nsol2 ) {
 
 		if ( (*LATTICE).at( indices[i] )->ptype[0] == 'm' ){
-            ; //  count += 1; 
+		; //  count += 1; 
 		}
 		else {
 			(*LATTICE).at( indices[i] )->ptype = "s2"; 
 			(*Cosolvent).push_back((*LATTICE).at( indices[i] )); 
-            count += 1; 
+			count += 1; 
 		}
-        i += 1; 
-			
+		i += 1; 
+		
 	}
 	
 	return; 
@@ -1715,7 +1715,7 @@ bool MetropolisAcceptance(double E1, double E2, double kT, double rweight){
 	double prob = std::exp(-1/kT*dE) * rweight; 
 	double r = rng_uniform(0.0, 1.0); 
 	// std::cout << "Probability is " << prob <<"." << std::endl;
-    // std::cout << "rweight is " << rweight << "." << std::endl;
+	// std::cout << "rweight is " << rweight << "." << std::endl;
 	// std::cout << "E1 is " << E1 << std::endl;
 	// std::cout << "E2 is " << E2 << std::endl;
 	// std::cout << "Probability of acceptance is " << prob << "." << std::endl;
@@ -1758,34 +1758,34 @@ void InputParser(int dfreq, int max_iter, bool r, \
 	
 	if (!r) {
 
-	    if (dfreq == -1 || max_iter == -1) {
-	        std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-	        exit (EXIT_FAILURE);
-	    }
-	    
-	    if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
-	    	mfile == "__blank__" || stats_file == "__blank__" ){
-	        std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
-	        << efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << "." << std::endl;
-	        std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
-	        "for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
-	        "for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
-	        exit (EXIT_FAILURE);    
-	    }
-	    
-	    // set up these files 
-	    std::ofstream polymer_dump_file (dfile);
-	    std::ofstream energy_dump_file (efile);
-	    std::ofstream orientation_dump_file (mfile); 
-	    std::ofstream statistics_dump_file (stats_file); 
+		if (dfreq == -1 || max_iter == -1) {
+			std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+			exit (EXIT_FAILURE);
+		}
+	
+		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
+			mfile == "__blank__" || stats_file == "__blank__" ){
+			std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
+			<< efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << "." << std::endl;
+			std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
+			"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
+			"for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+			exit (EXIT_FAILURE);    
+		}
+		
+		// set up these files 
+		std::ofstream polymer_dump_file (dfile);
+		std::ofstream energy_dump_file (efile);
+		std::ofstream orientation_dump_file (mfile); 
+		std::ofstream statistics_dump_file (stats_file); 
 
-	    if ( lattice_file_read != "__blank__" ){
-	    	std::cerr << "Restart has not been requested. Do not provide a restart file to read. Exiting..." << std::endl;
-	    	exit (EXIT_FAILURE);
-	    } 
-	    
+		if ( lattice_file_read != "__blank__" ){
+			std::cerr << "Restart has not been requested. Do not provide a restart file to read. Exiting..." << std::endl;
+			exit (EXIT_FAILURE);
+		} 
+		
 
-	}     
+	}
 
 	else {
 
@@ -1797,19 +1797,16 @@ void InputParser(int dfreq, int max_iter, bool r, \
 		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
 			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
 			std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
-	        << efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << ", " << \
-	        "\nlattice file to read is " << lattice_file_read << "." << std::endl;
-	        std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\n" << 
-	        "for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
-	        "for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
-	        exit (EXIT_FAILURE);    
-
+		<< efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << ", " << \
+		"\nlattice file to read is " << lattice_file_read << "." << std::endl;
+		std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\n" << 
+		"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
+		"for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+		exit (EXIT_FAILURE);    
 		}
 
 	}
-
-
-	return; 
+	return;
 
 }
 
@@ -1835,12 +1832,12 @@ void InputParser(int dfreq, int max_iter, bool r, \
 // THE CODE: 
 
 bool checkValidityOfCoords(std::array <int,3> v, int x, int y, int z){
-    if (v.at(0)> x || v.at(0) < 0 || v.at(1)> y || v.at(1)<0 || v.at(2)> z || v.at(2)<0){
-        return false;
-    }
-    else {
-        return true;
-    }
+	if (v.at(0)> x || v.at(0) < 0 || v.at(1)> y || v.at(1)<0 || v.at(2)> z || v.at(2)<0){
+		return false;
+	}
+	else {
+	    return true;
+	}
 }
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -1866,28 +1863,25 @@ bool checkValidityOfCoords(std::array <int,3> v, int x, int y, int z){
 
 bool checkForOverlaps(std::vector <Polymer> Polymers){
     
-    std::vector <std::array <int,3>> loc_list; 
+	std::vector <std::array <int,3>> loc_list; 
 
-    for (Polymer& pmer: Polymers){
-        for (Particle*& p: pmer.chain){
-            // check if element exists in vector 
-                if (std::find(loc_list.begin(), loc_list.end(), p->coords) != loc_list.end() ){
-                    std::cerr << "you have a repeated element." << std::endl;
-                    // std::cout << "current element is: " << std::endl;
-                    print(p->coords); 
-                    print(loc_list);
-                    return false; 
-                    }
-            
-                else{
-                    loc_list.push_back(p->coords);  
-                }
-            }
-        }    
-    
-    std::cout << "Input file has no overlaps!" << std::endl;
-    return true;
-
+	for (Polymer& pmer: Polymers){
+		for (Particle*& p: pmer.chain){
+		// check if element exists in vector 
+			if (std::find(loc_list.begin(), loc_list.end(), p->coords) != loc_list.end() ){
+			std::cerr << "you have a repeated element." << std::endl;
+			// std::cout << "current element is: " << std::endl;
+			print(p->coords); 
+			print(loc_list);
+			return false; 
+			}
+			else{
+			loc_list.push_back(p->coords);  
+			}
+		}
+	}
+	std::cout << "Input file has no overlaps!" << std::endl;
+	return true;
 }
 
 bool checkForOverlaps ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE){
@@ -11253,7 +11247,7 @@ void SolventExchange_BIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 	// switch positions, of exc idx and solvation_shell[i], then perturb orientation of exc_idx on switch         
     
     if ( exc_idx == solvation_shell_indices[my_idx] ){
-    	std::cout << "same particle selected." << std::endl;
+    	// std::cout << "same particle selected." << std::endl;
     	return;
     }
 

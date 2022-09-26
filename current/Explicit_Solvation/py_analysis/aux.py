@@ -82,16 +82,18 @@ def get_chi_cosolvent (topology):
     Emm_a = "Emm_a"
     Ems1_a = "Ems1_a" 
     Ems2_a = "Ems2_a"
-
     for line in f:
         if re.findall ( Emm_a, line):
-            mm_a = float( line[8:] )
+            r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
+            mm_a = float( r[0] )
         elif re.findall (Ems1_a, line):
-            ms1_a = float( line[9:] ) 
+            r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
+            ms1_a = float( r[1] ) 
         elif re.findall ( Ems2_a, line):
-            ms2_a = float ( line[9:] ) 
+            r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
+            ms2_a = float ( r[1] ) 
 
-    f.close() 
+    f.close()
     chi_1 = ms1_a - 0.5*mm_a 
     chi_2 = ms2_a - 0.5*mm_a 
 

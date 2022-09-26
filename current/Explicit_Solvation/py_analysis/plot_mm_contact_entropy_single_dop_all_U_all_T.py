@@ -77,7 +77,6 @@ if __name__=="__main__":
         df = pd.read_csv ( "Uexcl/DOP_"+str(args.dop)+"/0.1/"+args.e+"_1.mc", sep= ' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python' )
         contacts = np.mean ( df["mm_tot"].values - (args.dop-1) ) * contacts 
         ax.errorbar ( temperatures, contacts/mm_max, yerr = np.std( df["mm_tot"].values)/(mm_max*np.sqrt(100)), fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, markersize=10 ) 
-        # ax.legend (["Athermal solvent"], bbox_to_anchor=(90, 1), fontsize=12)
         ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.3), fontsize=15)
 
     my_cmap = cm.PiYG_r
@@ -85,9 +84,6 @@ if __name__=="__main__":
     
     ax = plt.axes()
 
-    # plt.ylabel("$\\langle M_C \\rangle/\\langle M_C \\rangle _{\\mathrm{max}}$", fontsize=18)
-    # plt.xlabel("Temperature (reduced)", fontsize=18)
-    # plt.xticks( temperatures, fontsize=12 )
     cbar = plt.colorbar(sm, orientation='vertical')
     cbar.set_ticks( [-0.1, 0.1] )
     cbar.set_ticklabels( [-0.1, 0.1] )

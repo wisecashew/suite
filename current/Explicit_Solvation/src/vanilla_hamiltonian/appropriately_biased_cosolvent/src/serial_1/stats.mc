@@ -1,9 +1,9 @@
 At step 1000...
-End rotations without bias         - attempts: 121, acceptances: 77, acceptance fraction: 0.636364
-Reptation without bias             - attempts: 122, acceptances: 19, acceptance fraction: 0.155738
-Chain regrowth with overlap bias   - attempts: 142, acceptances: 68, acceptance fraction: 0.478873
-Chain regrowth with ori flip       - attempts: 121, acceptances: 63, acceptance fraction: 0.520661
-Solvent flips without bias         - attempts: 116, acceptances: 20, acceptance fraction: 0.172414
-Solvation shell flip with bias     - attempts: 144, acceptances: 91, acceptance fraction: 0.631944
-Polymer flips                      - attempts: 108, acceptances: 39, acceptance fraction: 0.361111
-Solvent exchange with bias         - attempts: 126, acceptances: 68, acceptance fraction: 0.539683
+End rotations without bias         - attempts: 134, acceptances: 1, acceptance fraction: 0.00746269
+Reptation without bias             - attempts: 119, acceptances: 13, acceptance fraction: 0.109244
+Chain regrowth with overlap bias   - attempts: 129, acceptances: 17, acceptance fraction: 0.131783
+Chain regrowth with ori flip       - attempts: 131, acceptances: 19, acceptance fraction: 0.145038
+Solvent flips without bias         - attempts: 118, acceptances: 95, acceptance fraction: 0.805085
+Solvation shell flip with bias     - attempts: 138, acceptances: 138, acceptance fraction: 1
+Polymer flips                      - attempts: 129, acceptances: 129, acceptance fraction: 1
+Solvent exchange with bias         - attempts: 102, acceptances: 47, acceptance fraction: 0.460784

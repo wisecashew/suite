@@ -11151,7 +11151,284 @@ void ChainRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polym
 //             Start of end rotation with solvent flips with a bias 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//
 
+void SolventExchange_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	double temperature, int x, int y, int z) {
+
+	std::set   <int>                   solvation_shell_set; 
+	std::array <std::array<int,3>, 26> ne_list, ne_list_; 
+
+	// get the first solvation shell 
+	for ( Polymer& pmer: *Polymers ){
+		for ( Particle*& p: pmer.chain ) {
+			ne_list = obtain_ne_list ( p->coords, x, y, z );
+			for ( std::array <int,3>& loc: ne_list ){
+				if ( (*LATTICE) [ lattice_index (loc, y, z) ]->ptype[0] == 's' ) {
+					solvation_shell_set.insert (lattice_index (loc, y, z));
+					ne_list_ = obtain_ne_list (loc, x, y, z);
+					for ( std::array <int,3>& loc_: ne_list_){
+						if ( (*LATTICE)[ lattice_index (loc_, y, z) ]->ptype[0] == 's' ){
+							solvation_shell_set.insert ( lattice_index (loc_, y, z) ); 
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::vector <int> solvation_shell_indices (solvation_shell_set.begin(), solvation_shell_set.end()); 
+
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle ( solvation_shell_indices.begin(), solvation_shell_indices.end(), std::default_random_engine(seed));
+
+	int exc_idx   = -1; 
+
+	double                frontflow_energy   = 0;
+	std::array <double,8> frontflow_contacts = *contacts;
+	std::array <double,8> copy_contacts      = *contacts;
+	std::array <double,8> cs1                = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs2                = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs1_n              = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs2_n              = {0,0,0,0,0,0,0,0};
+	std::array <int,3>    difference         = {0,0,0};
+
+	int c_idx       = 0;
+	int c_idx_n     = 0;
+
+	double Esys          = *sysEnergy;
+	double Es1           = 0;
+	double Es1_n         = 0;
+	double Es2           = 0;
+	double Es2_n         = 0;
+	double Epair         = 0;
+	double Epair_n       = 0;
+	bool   neighbor_bool = true;
+
+	Particle* tmp_par_ptr {nullptr};
+	exc_idx = rng_uniform (0, x*y*z-1);
+	int my_idx = 0; 
+
+	if ( exc_idx == solvation_shell_indices[my_idx] ){
+		// 
+		return;
+	}
+
+	if ( (*LATTICE) [exc_idx]->ptype[0] == 's' ) {
+
+		Es1 = NeighborEnergy (LATTICE, E, &cs1, solvation_shell_indices [my_idx], x, y, z);
+		Es2 = NeighborEnergy (LATTICE, E, &cs2, exc_idx, x, y, z);
+
+		difference = subtract_arrays (&((*LATTICE)[solvation_shell_indices [my_idx]]->coords), &((*LATTICE)[exc_idx]->coords)); 
+		modified_direction (&difference, x, y, z);
+
+		if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ) {
+			neighbor_bool = true;
+			Epair = PairEnergy  ((*LATTICE)[solvation_shell_indices[my_idx] ], (*LATTICE)[exc_idx], E, &c_idx, x, y, z); 
+		}
+		else {
+			neighbor_bool = false;
+			Epair = 0;
+		}
+
+		tmp_par_ptr = (*LATTICE)[ solvation_shell_indices[ my_idx ] ];
+		
+		(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ] = (*LATTICE)[ exc_idx ];
+		(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ]->coords = location ( (solvation_shell_indices)[ my_idx ], x, y, z);
+
+		(*LATTICE)[ exc_idx ] = tmp_par_ptr; 
+		(*LATTICE)[ exc_idx ]->coords = location ( exc_idx, x, y, z ); 
+
+		// flip the particle newly added to the solvation shell 
+		Es2_n                = NeighborEnergy  (LATTICE, E, &cs2_n, solvation_shell_indices[my_idx], x, y, z);
+		Es1_n                = NeighborEnergy  (LATTICE, E, &cs1_n, exc_idx, x, y, z);
+		if (neighbor_bool){
+			Epair_n = PairEnergy  ((*LATTICE)[solvation_shell_indices[my_idx] ], (*LATTICE)[exc_idx], E, &c_idx_n, x, y, z); 
+		}
+		else {
+			Epair_n = 0;
+		}
+
+		frontflow_energy   = Esys - (Es1 + Es2-Epair) + (Es1_n + Es2_n-Epair_n);  
+		frontflow_contacts = add_arrays ( subtract_arrays (*contacts, add_arrays (cs1, cs2) ), add_arrays (cs1_n, cs2_n) );
+
+		if (neighbor_bool) {
+			frontflow_contacts [c_idx]   += 1;
+			frontflow_contacts [c_idx_n] -= 1;
+		}
+
+		// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+		double energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
+		if ( energy_n != frontflow_energy || copy_contacts != frontflow_contacts ){
+			std::cout << "Either energy of contacts is messed up in id swap..." << std::endl;
+			std::cout << "energy_n = " << energy_n << ", frontflow_energy = " << frontflow_energy << "." << std::endl;
+			std::cout << "copy_contacts = "; print (copy_contacts, ", "); std::cout << "frontflow_contacts = "; print (frontflow_contacts);
+			exit (EXIT_FAILURE);
+		}
+		// %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	}
+
+	else if ( (*LATTICE) [exc_idx]->ptype == "m1" ) {
+		(*IMP_BOOL) = false;
+		return;
+	}
+	
+	double rng_acc = rng_uniform (0.0, 1.0); 
+	if ( rng_acc < std::exp (-1 / temperature * (frontflow_energy - *sysEnergy) ) ) {
+		*sysEnergy = frontflow_energy;
+		*contacts  = frontflow_contacts;
+	}
+	else {
+		tmp_par_ptr = (*LATTICE) [ solvation_shell_indices [ my_idx ] ];
+		(*LATTICE)[ solvation_shell_indices [ my_idx ] ]         = (*LATTICE)[ exc_idx ]; 
+		(*LATTICE)[ solvation_shell_indices [ my_idx ] ]->coords = location( solvation_shell_indices[ my_idx ], x, y, z); 
+
+		(*LATTICE)[ exc_idx ]         = tmp_par_ptr;
+		(*LATTICE)[ exc_idx ]->coords = location (exc_idx, x, y, z);
+		
+	}
+	CheckStructures (Polymers, Cosolvent, LATTICE, x, y ,z);
+
+	return;
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void SolventExchange_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	double temperature, int x, int y, int z) {
+
+	std::set   <int>                   solvation_shell_set;
+	std::array <std::array<int,3>, 26> ne_list, ne_list_  ;
+
+	// get the first solvation shell
+	for ( Polymer& pmer: *Polymers ){
+		for ( Particle*& p: pmer.chain ) {
+			ne_list = obtain_ne_list ( p->coords, x, y, z );
+			for ( std::array <int,3>& loc: ne_list ){
+				if ( (*LATTICE) [ lattice_index (loc, y, z) ]->ptype[0] == 's' ) {
+					solvation_shell_set.insert (lattice_index (loc, y, z));
+					ne_list_ = obtain_ne_list (loc, x, y, z);
+					for ( std::array <int,3>& loc_: ne_list_){
+						if ( (*LATTICE)[ lattice_index (loc_, y, z) ]->ptype[0] == 's' ){
+							solvation_shell_set.insert ( lattice_index (loc_, y, z) );
+						}
+					}
+				}
+			}
+		}
+	}
+
+	std::vector <int> solvation_shell_indices (solvation_shell_set.begin(), solvation_shell_set.end());
+
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle ( solvation_shell_indices.begin(), solvation_shell_indices.end(), std::default_random_engine(seed));
+
+	int exc_idx   = -1;
+
+	double                frontflow_energy   = 0;
+	std::array <double,8> frontflow_contacts = *contacts;
+	std::array <double,8> cs1                = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs2                = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs1_n              = {0,0,0,0,0,0,0,0};
+	std::array <double,8> cs2_n              = {0,0,0,0,0,0,0,0};
+	std::array <int,3>    difference         = {0,0,0};
+
+	int c_idx       = 0;
+	int c_idx_n     = 0;
+
+	double Esys           = *sysEnergy;
+	double Es1            = 0;
+	double Es1_n          = 0;
+	double Es2            = 0;
+	double Es2_n          = 0;
+	double Epair          = 0;
+	double Epair_n        = 0;
+	bool   neighbor_bool  = true;
+
+	Particle* tmp_par_ptr {nullptr};
+	exc_idx = rng_uniform (0, x*y*z-1);
+	int my_idx = 0; 
+
+	if ( exc_idx == solvation_shell_indices[my_idx] ){
+		return;
+	}
+
+	if ( (*LATTICE) [exc_idx]->ptype[0] == 's' ) {
+
+		Es1 = NeighborEnergy (LATTICE, E, &cs1, solvation_shell_indices [my_idx], x, y, z);
+		Es2 = NeighborEnergy (LATTICE, E, &cs2, exc_idx, x, y, z);
+
+		difference = subtract_arrays (&((*LATTICE)[solvation_shell_indices [my_idx]]->coords), &((*LATTICE)[exc_idx]->coords)); 
+		modified_direction (&difference, x, y, z);
+
+		if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ) {
+			neighbor_bool = true;
+			Epair = PairEnergy  ((*LATTICE)[solvation_shell_indices[my_idx] ], (*LATTICE)[exc_idx], E, &c_idx, x, y, z); 
+		}
+		else {
+			neighbor_bool = false;
+			Epair = 0;
+		}
+
+		tmp_par_ptr = (*LATTICE)[ solvation_shell_indices[ my_idx ] ];
+		
+		(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ] = (*LATTICE)[ exc_idx ];
+		(*LATTICE)[ (solvation_shell_indices)[ my_idx ] ]->coords = location ( (solvation_shell_indices)[ my_idx ], x, y, z);
+
+		(*LATTICE)[ exc_idx ] = tmp_par_ptr;
+		(*LATTICE)[ exc_idx ]->coords = location ( exc_idx, x, y, z );
+
+		// flip the particle newly added to the solvation shell
+		Es2_n                = NeighborEnergy  (LATTICE, E, &cs2_n, solvation_shell_indices[my_idx], x, y, z);
+		Es1_n                = NeighborEnergy  (LATTICE, E, &cs1_n, exc_idx, x, y, z);
+		if (neighbor_bool) {
+			Epair_n = PairEnergy  ((*LATTICE)[solvation_shell_indices[my_idx] ], (*LATTICE)[exc_idx], E, &c_idx_n, x, y, z);
+		}
+		else {
+			Epair_n = 0;
+		}
+
+		frontflow_energy   = Esys - (Es1 + Es2-Epair) + (Es1_n + Es2_n-Epair_n);  
+		frontflow_contacts = add_arrays ( subtract_arrays (*contacts, add_arrays (cs1, cs2) ), add_arrays (cs1_n, cs2_n) );
+
+		if (neighbor_bool) {
+			frontflow_contacts [c_idx]   += 1;
+			frontflow_contacts [c_idx_n] -= 1;
+		}
+	}
+
+	else if ( (*LATTICE) [exc_idx]->ptype == "m1" ) {
+		(*IMP_BOOL) = false;
+		return;
+	}
+	
+	double rng_acc = rng_uniform (0.0, 1.0); 
+	if ( rng_acc < std::exp (-1 / temperature * (frontflow_energy - *sysEnergy) ) ) {
+		*sysEnergy = frontflow_energy;
+		*contacts  = frontflow_contacts;
+	}
+	else {
+		tmp_par_ptr = (*LATTICE) [ solvation_shell_indices [ my_idx ] ];
+		(*LATTICE)[ solvation_shell_indices [ my_idx ] ]         = (*LATTICE)[ exc_idx ]; 
+		(*LATTICE)[ solvation_shell_indices [ my_idx ] ]->coords = location( solvation_shell_indices[ my_idx ], x, y, z); 
+
+		(*LATTICE)[ exc_idx ]         = tmp_par_ptr;
+		(*LATTICE)[ exc_idx ]->coords = location (exc_idx, x, y, z);
+		
+	}
+	
+	return;
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of acceptance_after_tail_regrowth
@@ -11926,7 +12203,7 @@ void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform (0, 7); 
+	int r     = 8; // rng_uniform (0, 7); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {
@@ -12001,7 +12278,16 @@ void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 			SolventExchange_BIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z);
 			*move_number    = r;
 			(*attempts)[r] += 1; 
-			break;			
+			break;
+
+		case (8):
+			if (v) {
+				std::cout << "Performing an unbiased identity swap..." << std::endl;
+			}
+			SolventExchange_UNBIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z); 
+			*move_number    = r; 
+			(*attempts)[r] += 1; 
+			break; 
 
 	}
 

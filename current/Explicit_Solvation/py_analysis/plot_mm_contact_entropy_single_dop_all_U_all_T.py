@@ -41,7 +41,7 @@ if __name__=="__main__":
     # instantiate some pertinent variables
     i=0
     Tmax = []
-    mm_max  = 208
+    mm_max  = 28
     for U in U_list:
         print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True )
         mm_list = np.asarray([])
@@ -88,9 +88,7 @@ if __name__=="__main__":
     cbar.set_ticks( [-0.1, 0.1] )
     cbar.set_ticklabels( [-0.1, 0.1] )
     cbar.ax.tick_params(labelsize=14)
-    # cbar.ax.set_ylabel ( "$\chi ^a$", fontsize=18, rotation=270, labelpad=15 ) 
     ax.set_xscale('log')
-    # ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
     ax.set_yticks ( np.linspace (0, 1, 11) )
     plt.savefig("DOP_"+str(args.dop)+"_multiple_mmcorr.png", dpi=1000)
 

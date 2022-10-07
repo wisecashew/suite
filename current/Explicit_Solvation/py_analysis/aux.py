@@ -32,10 +32,25 @@ shebang for homemachine: #!/usr/bin/env python3
 def extract_loc_from_string(a_string):
     loc = [int(word) for word in a_string.split() if word.isdigit()]
     
-    return np.asarray(loc)     
+    return loc     
 
 # End of function. 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+def get_frac (topology):
+    
+    f = open (topology)
+    frac = "frac"
+    
+
+    for line in f:
+        if re.findall (frac, line):
+            r = re.findall("[0-9]+\.[0-9]+", line)
+            break 
+
+    f.close()
+    
+    return float(r[0])
 
 def get_chi_fh (topology):
     
@@ -80,6 +95,7 @@ def get_chi_entropy (topology):
 def get_chi_cosolvent (topology):
     f = open (topology) 
     Emm_a = "Emm_a"
+    Emm_n = "Emm_n"
     Ems1_a = "Ems1_a" 
     Ems2_a = "Ems2_a"
     for line in f:
@@ -92,12 +108,16 @@ def get_chi_cosolvent (topology):
         elif re.findall ( Ems2_a, line):
             r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
             ms2_a = float ( r[1] ) 
+        elif re.findall ( Emm_n, line):
+            r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
+            mm_n = float ( r[0] ) 
 
     f.close()
     chi_1 = ms1_a - 0.5*mm_a 
     chi_2 = ms2_a - 0.5*mm_a 
+    chi_3 = ms1_a - 0.5*mm_n
 
-    return (chi_1, chi_2)
+    return (chi_1, chi_2, chi_3)
 
 # End of function
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -260,7 +280,7 @@ def dir2U (list_of_dirs):
 # Description: Given the dictionary which contains the coordinates of a polymer at all time points 
 # in a trajectory, this function gives me the MEAN radius of gyration FOR THAT TRAJECTORY. 
 
-def get_Rg(master_dict, xlen, ylen, zlen):
+def get_Rg (master_dict, xlen, ylen, zlen):
     
     N = master_dict [ next(iter(master_dict)) ][0].shape[0] 
     
@@ -308,13 +328,7 @@ def get_Rg_components ( coords_arr, xlen, ylen, zlen):
     rsumy = np.sum( (coords_arr[:,1] - r_com[1])**2 )/N
     rsumz = np.sum( (coords_arr[:,2] - r_com[2])**2 )/N
     
-    # print ("rsumx = ", rsumx)
-    # print ("rsumy = ", rsumy)
-    # print ("rsumz = ", rsumz)
-
     comp_delta = ((rsumx**2) * (rsumy**2) + (rsumy**2) * (rsumz**2) + (rsumx**2) * (rsumz**2))/(rsumx**2+rsumy**2+rsumz**2)**2
-
-    # print(comp_delta) 
 
     return comp_delta
 
@@ -383,7 +397,7 @@ def get_pdict(filename, starting_step, dop, x, y, z):
     for line in f:
         if ( re.search(st_b_str, line) ):
             
-            step_num = int ( ( extract_loc_from_string ( line.replace('.', ' ') ) ) )
+            step_num = int ( ( extract_loc_from_string ( line.replace('.', ' ') ) )[0] )
             
             if ( step_num == starting_step ) or starting_bool :
                 starting_bool = True
@@ -464,7 +478,7 @@ def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
 def infiltrate_coords_get_rh ( U, T, num, dop, coords_files, starting_index ):
 
-    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num) 
+    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num) + ".mc" 
     # print (filename, flush=True)
     edge = edge_length (dop)
     master_dict = get_pdict (filename, starting_index, dop, edge, edge, edge) 
@@ -576,7 +590,7 @@ def plot_rg_parallelized_singletrajectory ( U, T, dop, starting_index, traj_num,
     edge = edge_length(dop)
 
     print ("Inside U = " + str(U) + ", and N = " + str(dop), flush=True) 
-    filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(traj_num)  
+    filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(traj_num)+".mc"  
     master_dict = get_pdict ( filename, starting_index, dop, edge, edge, edge )
 
     rg_mean = get_Rg_list ( master_dict, edge, edge, edge )
@@ -586,8 +600,9 @@ def plot_rg_parallelized_singletrajectory ( U, T, dop, starting_index, traj_num,
     ax.plot ( range(0, len(rg_mean)), rg_mean, marker='o', markeredgecolor='k', \
             markeredgewidth=1.5, linestyle='-', linewidth=0.5, label='_no_lengend') 
     ax.set_xscale('log')
-    plt.savefig( "DOP_"+str(dop)+U+"_rg.png", dpi=800 ) 
-    plt.show() 
+    print ("mean rg = ", np.mean(rg_mean))
+    # plt.savefig( "DOP_"+str(dop)+U+"_rg.png", dpi=800 ) 
+    # plt.show() 
 
     return None
 
@@ -2008,6 +2023,23 @@ def shape_factor ( U, T, num, dop, coords_file, starting_index ):
 
     return delta 
     
+##########################################################################
+##########################################################################
+
+def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
+    
+	filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(num)+".mc"
+	edge     = edge_length (dop)
+	master_dict  = get_pdict( filename, starting_index, dop, edge, edge, edge) 
+	offset_list = []
+
+	for key in master_dict:
+		coord_arr    = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
+		delta_coords = coord_arr [0:dop-delta] - coord_arr [delta:]
+		offset = list(np.linalg.norm ( delta_coords, axis=1 ) **2 )
+		offset_list.extend(offset) 
+
+	return np.mean (offset_list) 
 
 ##########################################################################
 ##########################################################################
@@ -2112,63 +2144,52 @@ def plot_fh_shape_parameter_parallelized_single_dop_all_U_all_T ( dop, starting_
 
 def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
     
-    pi = np.pi 
-
+    Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \
+            3: np.asarray([-1,0,0]), 4: np.asarray([0,-1,0]), 5: np.asarray([0,0,-1]), \
+            6: np.asarray([1/np.sqrt(2),1/np.sqrt(2),0]), 7: np.asarray([1/np.sqrt(2), 0, 1/np.sqrt(2)]), 8: np.asarray ([1/np.sqrt(2),-1/np.sqrt(2),0]), \
+            9: np.asarray([1/np.sqrt(2),0,-1/np.sqrt(2)]), 10: np.asarray([-1/np.sqrt(2),1/np.sqrt(2),0]), 11: np.asarray([-1/np.sqrt(2),0,1/np.sqrt(2)]), \
+            12: np.asarray([-1/np.sqrt(2),-1/np.sqrt(2),0]), 13: np.asarray([-1/np.sqrt(2),0,-1/np.sqrt(2)]), 14: np.asarray([0,1/np.sqrt(2),1/np.sqrt(2)]), \
+            15: np.asarray([0,1/np.sqrt(2),-1/np.sqrt(2)]), 16: np.asarray([0,-1/np.sqrt(2),1/np.sqrt(2)]), 17: np.asarray([0,-1/np.sqrt(2),-1/np.sqrt(2)]), \
+            18: np.asarray([1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 19: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 20: np.asarray([1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            21: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]), 22: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 23: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            24: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 25: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]) }
     start_str = "START for Step"
     end_str   = "END" 
 
-    f = open(U+"/DOP_"+str(N)+"/"+str(T)+"/"+ortn_file_name+"_"+str(idx), 'r')
+    f = open(U+"/DOP_"+str(N)+"/"+str(T)+"/"+ortn_file_name+"_"+str(idx)+".mc", 'r')
 
-    order_parameter_list1 = [] 
-    order_parameter_list2 = [] 
-    extract_orr = False 
-    start_bool  = False 
+    extract_orr = False
+    start_bool  = False
+    
+    oparam_list    = []
+    
     for line in f:
 
         if re.match ( start_str, line ):
             a = re.search ("\d+", line)
             extract_orr = True
             if int( a.group(0) ) == starting_index:
-                start_bool = True 
-            # oparam1 = []
-            # oparam2 = []
-            # count1  = 0
-            # count2  = 0
-            oparam    = []
-            oparam_list    = [] 
-            count     = 0 
+                start_bool = True
+            oparam         = np.asarray([0.,0.,0.])
+            count          = 0
 
         elif re.match ( end_str, line ) and start_bool:
             # print ( line )
+            # print (oparam)
+            # print ( count)
             extract_orr = False
-            oparam_list.append ( np.sum(oparam)/count )
-            # order_parameter_list1.extend (oparam1)
-            # order_parameter_list2.extend (oparam2)
-            # order_parameter_list1.append( oparam1/count1 )
-            # order_parameter_list2.append( oparam2/count2 ) 
+            oparam_list.append ( np.linalg.norm( oparam/count ) )
+            # print (oparam_list)
 
-        elif extract_orr and start_bool: 
-            # or1_list = [ extract_loc_from_string( line )[0] ]
-            # or2_list = extract_loc_from_string( line )[1:]
-            or_list    = [extract_loc_from_string ( line ) [0] ]
+        elif extract_orr and start_bool:
+            or_list    = extract_loc_from_string ( line ) [1:] # these takes all the orientations of the solvent molecules 
+            # print (or_list)
             
             for cnum in or_list:
-                oparam.append( complex (np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) )
+                oparam += Or2Dir[cnum] 
                 count += 1
-            
-            # for cnum in or1_list:
-                # oparam1 += complex ( np.cos(2*pi*cnum/6 ), np.sin (2*pi*cnum/6) )
-                # oparam1.append ( complex (np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) )
-                # count1  += 1 
-            
-            # for cnum in or2_list:
-                # oparam2 += complex ( np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) 
-                # oparam2.append ( complex (np.cos (2*pi*cnum/6), np.sin (2*pi*cnum/6) ) )
-                # count2+=1 
-
+    
     f.close()
-
-    # return (abs( np.mean (order_parameter_list1) ), abs( np.mean (order_parameter_list2) ) )
-    # return ( abs(np.mean(order_parameter_list1)), abs(np.mean(order_parameter_list2 ) ), abs(np.std(order_parameter_list1)), abs(np.std(order_parameter_list2)) )
-    return abs( np.mean (oparam_list) ) 
+    print (np.mean(oparam_list))
+    return np.mean (oparam_list)
 

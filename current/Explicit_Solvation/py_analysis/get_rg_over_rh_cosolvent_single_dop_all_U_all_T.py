@@ -22,6 +22,7 @@ parser.add_argument('--rg-file', dest='frg', metavar='RG_DATA', action='store', 
 parser.add_argument('--rh-file', dest='frh', metavar='RH_DATA', action='store', type=str, help='Name of RH file.') 
 parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include if you want the image to be rendered on screen.', default=False)
 parser.add_argument('--excl-vol', dest='ev', action='store_true', help='Flag to include excluded volume simulations.', default=False) 
+parser.add_argument('--png-name', dest='pn', action='store', help='Name of image.')
 
 args = parser.parse_args()   
 
@@ -55,7 +56,7 @@ if __name__=="__main__":
         print ("U = " + U + "...", flush=True)
         U_str  = "U = " + U + ":"
         match_flag=False
-        f = open (args.frg+"_"+str(N), 'r') 
+        f = open (args.frg, 'r') 
         for line in f:
             if re.match ( U_str, line ):
                 # print ("N is : " + str(N))
@@ -84,7 +85,7 @@ if __name__=="__main__":
             quit()
     
         match_flag = False 
-        f = open (args.frh + "_" + str(N), 'r' )
+        f = open (args.frh, 'r' )
         for line in f:
             if re.match ( U_str, line ):
                 match_flag = True 
@@ -129,7 +130,7 @@ if __name__=="__main__":
     cbar.ax.set_ylabel ( "Strength of better solvent", fontsize=18, rotation=270 ) 
     plt.yticks (fontsize=16)
     plt.xticks (fontsize=16) 
-    plt.savefig ( "DOP_"+str(args.dop)+"_rg_over_rh.png", dpi=1000)
+    plt.savefig ( args.pn + ".png", dpi=1000)
     
     if args.sp:
         plt.show()

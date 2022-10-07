@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('Agg') 
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm
+from matplotlib.ticker import StrMethodFormatter
 import argparse 
 import aux 
 import os 
@@ -16,19 +17,19 @@ parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide 
 parser.add_argument('-s', dest='s', action='store', type=int, help='Provide a starting index from when to sample.', default=100)
 parser.add_argument('--excl-vol', dest='ev', action='store_true', help='flag to include excluded volume forcefield.', default=0) 
 parser.add_argument('--dump-file', dest='e', metavar='energydump', action='store', type=str, help='Name of energy dump file to parse information.', default='energydump') 
+parser.add_argument('--path-to-excl', dest='pte', metavar='add/ress', action='store', type=str, help='Path to file.')
+parser.add_argument('--png-name', dest='pn', metavar='png name', action='store', type=str, help='Name of image.', default='ms_plot')
 parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include if you want the image to be rendered on screen.', default=False) 
 
 args = parser.parse_args()
 
-divnorm = matplotlib.colors.SymLogNorm ( 0.005, vmin=-0.1, vmax=0.1 ) 
+divnorm = matplotlib.colors.SymLogNorm ( 0.005, vmin=-0.5, vmax=0.5 ) 
 
 if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
     U_list = aux.dir2U ( os.listdir(".") ) 
-    # U_list = ["U1", "U5", "U8", "U11"]
-    # U_list = U_list[0:4]
-    # instantiate plt figure 
+    
     plt.figure( figsize=(8,6) )
     
     PLOT_DICT = {}
@@ -64,22 +65,23 @@ if __name__=="__main__":
         print("done!", flush=True)
     
     i=0
-    for U in U_list: 
-        chi_1 = aux.get_chi_cosolvent ( str(U)+"/geom_and_esurf.txt" )[0]
+    ymin = 1
+    for U in U_list:
+        chi_1 = aux.get_chi_cosolvent ( str(U)+"/geom_and_esurf.txt" )[2]
         # print ("chi_1 = ", chi_1)
         rgba_color = cm.PiYG (divnorm (chi_1) )
         plt.errorbar ( temperatures, PLOT_DICT[U][0] / ms_max, yerr=PLOT_DICT[U][1]/ms_max, linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
         plt.plot     ( temperatures, PLOT_DICT[U][0] / ms_max, linestyle='-', marker='o',  markeredgecolor='k', linewidth=2, color=rgba_color, label="_nolabel_", markersize=10)
+        if ymin > np.min( PLOT_DICT[U][0]/ms_max ):
+            ymin = np.min( PLOT_DICT[U][0]/ms_max ) 
         i += 1
 
     # plot excluded volume
     contacts =  np.ones ( len(temperatures) ) 
     if args.ev:
-        df = pd.read_csv("Uexcl/DOP_"+str(args.dop)+"/0.1/energydump.mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms_tot", "ms_aligned", "ms_naligned", "time_step"], engine='python')
-        contacts = np.mean ( df["ms_tot"].values ) * contacts
-        plt.errorbar ( temperatures, contacts/ms_max, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0)
-        # plt.legend( ["Athermal solvent"] )
-        # plt.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.1), fontsize=12)
+        df = pd.read_csv(args.pte+"/energydump_1.mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "s1s2_tot", "s1s2_aligned", "s1s2_naligned", "time_step"], engine='python')
+        contacts = np.mean ( df["ms1_tot"].values + df["ms2_tot"].values ) * contacts
+        plt.errorbar ( temperatures, contacts/ms_max, yerr=0, fmt='^', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, markersize=10)
 
     
     ####
@@ -94,13 +96,10 @@ if __name__=="__main__":
     cbar.set_ticks( [-0.1, 0.1] )
     cbar.ax.tick_params (labelsize=14)
     cbar.set_ticklabels( [-0.1, 0.1] )
-    # cbar.ax.set_ylabel ( "Strength of better solvent \n", fontsize=16, rotation=270 ) 
     ax.set_xscale('log')
-    # ax.yaxis.set_major_locator( matplotlib.ticker.MaxNLocator(10) ) 
-    # ax.yaxis.get_major_locator().set_params(integer=True)
-    ax.set_yticks (np.linspace (0.7,1,6))
-    # plt.legend(U_list)
-    plt.savefig("DOP_"+str(args.dop)+"_cosolvent_multiple_ms.png", dpi=1000)
+    plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:,.2f}'))
+    ax.set_yticks (np.linspace (ymin,1,6))
+    plt.savefig   (args.pn + ".png", dpi=1000)
 
     if args.sp:
         plt.show()

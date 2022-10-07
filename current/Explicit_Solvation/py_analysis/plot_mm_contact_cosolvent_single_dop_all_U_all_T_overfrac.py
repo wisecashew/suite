@@ -21,13 +21,13 @@ parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to
 
 args = parser.parse_args()
 
-divnorm = matplotlib.colors.SymLogNorm ( 0.005, vmin=-0.1, vmax=0.1 ) 
+divnorm = matplotlib.colors.SymLogNorm ( 0.25, vmin=0, vmax=0.5 ) 
 
 if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
     U_list = aux.dir2U ( os.listdir(".") ) 
-    
+    U_list = U_list[::3]
     # instantiate plt figure 
     plt.figure( figsize=(8,6) )
     
@@ -62,8 +62,8 @@ if __name__=="__main__":
     
     i=0
     for U in U_list:
-        chi_1 = aux.get_chi_cosolvent ( str(U)+"/geom_and_esurf.txt" )[0]
-        rgba_color = cm.PiYG(divnorm (chi_1))
+        frac = aux.get_frac ( str(U)+"/geom_and_esurf.txt" )
+        rgba_color = cm.PiYG(divnorm (frac))
         plt.errorbar ( temperatures, PLOT_DICT[U][0]/mm_max, yerr=PLOT_DICT[U][1]/mm_max, linewidth=1, fmt='none', capsize=2, color='k', label='_nolegend_')
         plt.plot ( temperatures, PLOT_DICT[U][0]/mm_max, linestyle='-', marker='o', color=rgba_color,  markeredgecolor='k', linewidth=2, label='_nolegend_', markersize=10)
         i += 1
@@ -79,16 +79,16 @@ if __name__=="__main__":
     
     # # # # 
     my_cmap = cm.PiYG
-    sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) ) 
+    sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=0, vmax=0.5) ) 
     ax = plt.axes() 
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
     ax.tick_params ( axis='x', labelsize=16, direction="in", left="off", labelleft="on" )
     ax.tick_params ( axis='y', labelsize=16, direction="in", left="off", labelleft="on" )
     
     cbar = plt.colorbar(sm, orientation='vertical')
-    cbar.set_ticks( [-0.1, 0.1] )
+    cbar.set_ticks( [0, 0.5] )
     cbar.ax.tick_params (labelsize=14)
-    cbar.set_ticklabels( [-0.1, 0.1] )
+    cbar.set_ticklabels( [0, 0.5] )
     ax.set_xscale('log')
     ax.set_yticks (np.linspace (0,1,11))
     plt.savefig(args.pn+".png", dpi=1000)

@@ -39,34 +39,20 @@ if __name__=="__main__":
 					energy_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc"
 					coords_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/coords_"+str(num)+".mc"
 					lattice_dump = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/lattice_dump_"+str(num)+".mc"
-
-
-	print ("Minimum energy found in \"" + energy_dump +"\"")
-	print ("Emin = " + str(min_energy) )
-
-	# get the coords, and copy them over
-
-	source_energy_dump   = energy_dump
-	source_coords_dump   = coords_dump
-	source_lattice_dump  = lattice_dump
-
-	for U in U_list:
-		for temp in temperatures: 
-			num_list = np.unique ( aux.dir2nsim ( os.listdir ( str(U) + "/DOP_" + str(args.dop) + "/" + str(temp) ) ) )
-
+			new_energy = 0
 			for num in num_list: 
 
 				destination_energy_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc"
 				destination_coords_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/coords_"+str(num)+".mc"
 				destination_lattice_dump = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/lattice_dump_"+str(num)+".mc" 
 
-				if source_energy_dump == destination_energy_dump or source_coords_dump == destination_coords_dump or source_lattice_dump == destination_lattice_dump:
+				if energy_dump == destination_energy_dump or coords_dump == destination_coords_dump or lattice_dump == destination_lattice_dump:
 					continue
 				else:
 					try:
-						shutil.copyfile(source_energy_dump,  destination_energy_dump  )
-						shutil.copyfile(source_coords_dump,  destination_coords_dump  )
-						shutil.copyfile(source_lattice_dump, destination_lattice_dump )
+						shutil.copyfile(energy_dump,  destination_energy_dump)
+						shutil.copyfile(coords_dump,  destination_coords_dump)
+						shutil.copyfile(lattice_dump, destination_lattice_dump)
 						print("File copied successfully.")
 				 
 					# If source and destination are same
@@ -84,6 +70,3 @@ if __name__=="__main__":
 					# For other errors
 					except:
 					    print("Error occurred while copying file.")
-
-
-

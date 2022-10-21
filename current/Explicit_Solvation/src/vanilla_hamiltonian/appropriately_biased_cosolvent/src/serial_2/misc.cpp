@@ -1488,23 +1488,21 @@ std::vector <Polymer> ExtractPolymersFromTraj(std::string trajectory, std::strin
 // 
 // THE CODE: 
 
-void SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector<Particle*>* LATTICE, std::string positions, double frac, int x, int y, int z){
+void SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector<Particle*>* LATTICE, std::string positions, bool solvation, double frac, int x, int y, int z){
 
 	(*Polymers) = ExtractPolymersFromFile (positions, x, y, z); 
+	
 	AddSolvent (LATTICE, x, y, z); 
 
 	// populate the lattice 
 	for (Polymer& pmer: (*Polymers)) {
 		for (Particle*& p: pmer.chain){
-
 			// now that I have my polymer coordinates, time to create the grand lattice 
 			(*LATTICE).at(lattice_index (p->coords, y, z) ) = p; 
-		
 		}
 	}
-
-	AddCosolvent ( Cosolvent, LATTICE, frac, static_cast<int>((*Polymers)[0].chain.size()), x, y, z ); 
-
+	
+	AddCosolvent (Polymers, Cosolvent, LATTICE, solvation, frac, static_cast<int>((*Polymers)[0].chain.size()), x, y, z ); 
 	return;
 }
 
@@ -1637,21 +1635,56 @@ void AddSolvent (std::vector <Particle*>* LATTICE, int x, int y, int z){
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 
-void AddCosolvent (std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, double frac, int Nmonomer, int x, int y, int z) {
+void AddCosolvent (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, bool solvation, double frac, int Nmonomer, int x, int y, int z) {
 
 	int nsol2         = std::floor ((x*y*z-Nmonomer)*frac); 
 	std::cout << "Number of particles of cosolvent is " << nsol2 << "." << std::endl;
-
 	std::vector <int> indices (x*y*z);
 	std::iota (indices.begin(), indices.end(), 0); 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	// get indices to loop through 
 	std::shuffle ( indices.begin(), indices.end(), std::default_random_engine(seed) );
 	int count = 0;
 	int i = 0; 
+	// find solvation shell indices 
+	if ( solvation ) {
+		std::set <int> solvation_shell_set;
+		std::array <std::array<int,3>, 26> ne_list; 
+		// get the first solvation shell 
+		// auto start = std::chrono::high_resolution_clock::now(); 
+		for ( Polymer& pmer: *Polymers){
+			for ( Particle*& p: pmer.chain ){
+				ne_list = obtain_ne_list ( p->coords, x, y, z); 
+				for ( std::array <int,3>& loc: ne_list ){
+					if ( (*LATTICE).at(lattice_index (loc, y, z))->ptype[0] == 's' ){
+						// std::cout << "loc = "; print (loc); 
+						solvation_shell_set.insert (lattice_index (loc, y, z)); 
+					}
+				}
+			}
+		}
+		std::vector <int> solvation_shell_indices (solvation_shell_set.begin(), solvation_shell_set.end());
+		// std::cout << "#ss = " << solvation_shell_indices.size() << std::endl;
+		while ( (count < nsol2) && (count < static_cast <int> (solvation_shell_indices.size()) ) ) {
+			// std::cout << "solvation_shell_indices[" << i << "] = " << solvation_shell_indices[i] << std::endl;
+			// std::cout << "loc = "; print ( location(solvation_shell_indices[i], x, y, z) ); 
+			// std::cout << "ptype = " << (*LATTICE).at( solvation_shell_indices.at(i) )->ptype << std::endl; 
+			(*LATTICE).at( solvation_shell_indices.at(i) )->ptype = "s2"; 
+			// std::cout << "ptype = " << (*LATTICE).at( solvation_shell_indices.at(i) )->ptype << std::endl; 
+			(*Cosolvent).push_back ( (*LATTICE).at( solvation_shell_indices.at(i) ) );
+			count += 1;
+			i     += 1;
+		}
+	}
+	// std::cout << "count = " << count << std::endl;
+	i = 0; 
 	while ( count < nsol2 ) {
 
 		if ( (*LATTICE).at( indices[i] )->ptype[0] == 'm' ){
-		; //  count += 1; 
+			; 
+		}
+		else if ( (*LATTICE).at(indices[i])->ptype == "s2" ) {
+			;
 		}
 		else {
 			(*LATTICE).at( indices[i] )->ptype = "s2"; 
@@ -1659,7 +1692,6 @@ void AddCosolvent (std::vector <Particle*>* Cosolvent, std::vector <Particle*>* 
 			count += 1; 
 		}
 		i += 1; 
-		
 	}
 	
 	return; 
@@ -2428,22 +2460,17 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     // m-m  = stacking interaction
     // m-s1 = stacking interaction 
     // m-s2 = isotropic interaction 
-
-    auto start = std::chrono::high_resolution_clock::now(); 
+	std::cout << "Is this being hit?" << std::endl;
+    // auto start = std::chrono::high_resolution_clock::now(); 
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
-        	// std::cout << "ploc = "; print (p->coords); 
             ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
-            
-            // std::cout << "Particle loc is "; print (p->coords); 
 
             for ( std::array <int, 3>& loc: ne_list){
-            	// std::cout << "l index = " << lattice_index (loc, y, z) << ", "; print(loc);
             	dot_product = take_dot_product (  p->orientation, (*LATTICE)[ lattice_index(loc, y, z) ]->orientation );
-            	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1"){
+            	if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" ) {
             		// m-m interactions
-
-            		if (dot_product > 0.54){
+            		if (dot_product > 0.54) {
             			Energy += 0.5* (*E)[0];
             			(*contacts)[0]   += 0.5;
             		}
@@ -2454,35 +2481,28 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
             	}
             	else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1" ){ 
             		// m-s1 interactions 
-            		if (dot_product > 0.54){
-            			Energy += (*E)[2];
-            			(*contacts)[2] += 1;
-            		}
-            		else {
-            			Energy += (*E)[3]; 
-            			(*contacts)[3]  += 1;
-            		}
-            	}
-
-            	else {
-					// m-s2 interactions 
-            		Energy += (*E)[4]; 
-            		(*contacts)[4] += 1; 
-            		// (*contacts)[5] += 1; 
-            	}
+			if ( dot_product > 0.54 ) {
+				Energy += (*E)[2];
+				(*contacts)[2] += 1;
+			}
+			else {
+				Energy += (*E)[3];
+				(*contacts)[3] += 1;
+			}
+		}
+		else {
+			Energy += (*E)[4]; 
+			(*contacts)[4] += 1; 
+			// (*contacts)[5] += 1; 
+		}
             }
         }
     }
-    auto stop = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast <std::chrono::microseconds> (stop-start); 
     
-    // std::cout << "monomer energy computation took " << duration.count() << " microseconds. " << std::endl;
     
-    start = std::chrono::high_resolution_clock::now(); 
-
     for ( Particle*& p: *Cosolvent ){
 
-    	ne_list = obtain_ne_list ( p->coords, x, y, z ); 
+    	ne_list = obtain_ne_list ( p->coords, x, y, z );
     	for ( std::array <int,3>& loc: ne_list ){
 
     		if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
@@ -2496,7 +2516,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     			theta_1 = std::acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[p->orientation] ) ); 
     			theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
 
-    			if ( theta_1+theta_2 > M_PI/2 ){
+			if ( theta_1+theta_2 > M_PI/2 ){
 					Energy += (*E)[7]; 
 					(*contacts)[7] += 1; 
 					
@@ -2505,18 +2525,13 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 					// locked or aligned
 					Energy += (*E)[6]; 
 					(*contacts)[6] += 1;
-					
-					// std::cout << "aligned\n";
 				}
-
-    		}
-
-    	}
-
+		}
+	}
     }
 
-    stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast <std::chrono::microseconds> (stop-start); 
+    // stop = std::chrono::high_resolution_clock::now(); 
+    // duration = std::chrono::duration_cast <std::chrono::microseconds> (stop-start); 
     // std::cout << "solvent energy computation took " << duration.count() << " microseconds. " << std::endl;
     
     return Energy; 
@@ -2746,23 +2761,23 @@ double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,8>*
 			else if ( (*LATTICE).at( lattice_index(loc, y, z) )->ptype == "s1" ) {
 				dot_prod = take_dot_product ( orientation, (*LATTICE).at( lattice_index (loc, y, z) )->orientation ); 
 				if (dot_prod > 0.54){
-        			Ei += (*E).at(2);
-        			(*contacts).at(2) += 1;
-        			// std::cout << "m1-s1 neighbor loc = "; print (loc); 
-        			// std::cout << "aligned." << std::endl;
-        		}
-        		else {
-        			Ei += (*E).at(3); 
-        			(*contacts).at(3)  += 1;
-        			// std::cout << "m1-s1 neighbor loc = "; print (loc); 
-        			// std::cout << "misaligned." << std::endl;
-        		}
+        				Ei += (*E).at(2);
+        				(*contacts).at(2) += 1;
+        				// std::cout << "m1-s1 neighbor loc = "; print (loc); 
+        				// std::cout << "aligned." << std::endl;
+        			}
+        			else {
+        				Ei += (*E).at(3); 
+        				(*contacts).at(3)  += 1;
+        				// std::cout << "m1-s1 neighbor loc = "; print (loc); 
+        				// std::cout << "misaligned." << std::endl;
+        			}
 			}
 			// if neighbor is s2
 			else {
 				Ei += (*E).at(4); 
-            	(*contacts).at(4) += 1; 
-            	// std::cout << "s2-m1 neighbor loc = "; print (loc);
+            			(*contacts).at(4) += 1; 
+            			// std::cout << "s2-m1 neighbor loc = "; print (loc);
 			}
 		}
 	} // end of neighbor loop 
@@ -3062,6 +3077,7 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
     dump_file << "Solvation shell flip with bias     - attempts: " << (*attempts)[5] <<", acceptances: " << (*acceptances)[5] << ", acceptance fraction: " << static_cast<double>((*acceptances)[5])/static_cast<double>((*attempts)[5]) << std::endl;
     dump_file << "Polymer flips                      - attempts: " << (*attempts)[6] <<", acceptances: " << (*acceptances)[6] << ", acceptance fraction: " << static_cast<double>((*acceptances)[6])/static_cast<double>((*attempts)[6]) << std::endl;
     dump_file << "Solvent exchange with bias         - attempts: " << (*attempts)[7] <<", acceptances: " << (*acceptances)[7] << ", acceptance fraction: " << static_cast<double>((*acceptances)[7])/static_cast<double>((*attempts)[7]) << std::endl;
+    dump_file << "Solvent exchange without bias      - attempts: " << (*attempts)[8] <<", acceptances: " << (*acceptances)[8] << ", acceptance fraction: " << static_cast<double>((*acceptances)[8])/static_cast<double>((*attempts)[8]) << std::endl;
 
     return;
 }
@@ -4880,14 +4896,14 @@ void SolvationShellFlip_BIASED_remake2 (std::vector <Polymer>* Polymers, std::ve
     // auto start = std::chrono::high_resolution_clock::now(); 
     for ( Polymer& pmer: *Polymers){
 		for ( Particle*& p: pmer.chain ){
-	    	ne_list = obtain_ne_list ( p->coords, x, y, z); 
-	    	for ( std::array <int,3>& loc: ne_list ){
+		ne_list = obtain_ne_list ( p->coords, x, y, z); 
+			for ( std::array <int,3>& loc: ne_list ){
 				if ( (*LATTICE)[ lattice_index (loc, y, z) ]->ptype[0] == 's' ){
-		    		solvation_shell_set.insert (lattice_index (loc, y, z)); 
+				solvation_shell_set.insert (lattice_index (loc, y, z)); 
 				}
-	    	}
+			}
 		}
-    }
+	}
 
     std::vector <int> solvation_shell_indices (solvation_shell_set.begin(), solvation_shell_set.end()); 
     int nflip = rng_uniform(1, static_cast<int>(solvation_shell_indices.size()/2 ) ); 			// number of sites to be flipped 
@@ -4922,7 +4938,6 @@ void SolvationShellFlip_BIASED_remake2 (std::vector <Polymer>* Polymers, std::ve
     double rng     = 0; // rng_uniform (0.0, 1.0); 
     double rsum    = 0; 
     int    e_idx   = 0; 
-
     
     
     double Esys    = *sysEnergy; 
@@ -11420,7 +11435,6 @@ void SolventExchange_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Par
 
 		(*LATTICE)[ exc_idx ]         = tmp_par_ptr;
 		(*LATTICE)[ exc_idx ]->coords = location (exc_idx, x, y, z);
-		
 	}
 	
 	return;
@@ -11734,9 +11748,8 @@ void SolventExchange_BIASED_debug (std::vector <Polymer>* Polymers, std::vector 
 	double temperature, int x, int y, int z) {
 
 	// int deg_poly = static_cast<int>( (*Polymers)[0].chain.size() ); 
-
-	
 	// solvation_shell_indices.reserve (26*26*deg_poly); 
+	
 	std::set <int> solvation_shell_set; 
 	std::array <std::array<int,3>, 26> ne_list, ne_list_; 
 
@@ -12108,7 +12121,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform (0, 7); 
+	int r     = rng_uniform (4, 8); 
 	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {
@@ -12149,7 +12162,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			(*attempts)[r] += 1;			
 			break; 
 
-		case (4):
+		case (6):
 			if (v) {
 				std::cout << "Performing solvent flips..." << std::endl;
 			}
@@ -12158,7 +12171,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			(*attempts)[r] += 1; 
 			break;
 
-		case (5):
+		case (7):
 			if (v) {
 				std::cout << "Performing a biased solvation shell flip..." << std::endl;
 			}
@@ -12167,7 +12180,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			(*attempts)[r] += 1;
 			break;
 
-		case (6):
+		case (8):
 			if (v) {
 				std::cout << "Performing a biased polymer flip..." << std::endl;
 			}
@@ -12176,7 +12189,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			(*attempts)[r] += 1; 
 			break;
 
-		case (7): 
+		case (4): 
 			if (v) {
 				std::cout << "Performing an identity swap... " << std::endl;
 			}
@@ -12184,6 +12197,15 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			*move_number    = r;
 			(*attempts)[r] += 1; 
 			break;			
+
+		case (5):
+			if (v) {
+				std::cout << "Performing an unbiased identity swap..." << std::endl;
+			}
+			SolventExchange_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z);
+			*move_number = r;
+			(*attempts)[r] += 1; 
+			break; 
 
 	}
 

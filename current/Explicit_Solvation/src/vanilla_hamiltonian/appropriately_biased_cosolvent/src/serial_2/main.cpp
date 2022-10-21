@@ -25,6 +25,7 @@ int main (int argc, char** argv) {
 	bool v = false;   // boolean for verbosity of output  (default: not verbose)
 	bool r = false;   // boolean for restarts (default: no restarts) 
 	bool b = false;   // boolean for biased starting 
+	bool s = false;   // boolean for solvation 
 	std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 	std::string topology           {"__blank__"}; // name of file with topology of system 
 	std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -35,7 +36,7 @@ int main (int argc, char** argv) {
 	std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
 	// loop to obtain inputs and assign them to the appropriate variables 
-	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbr")) != -1 )
+	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbyr")) != -1 )
 	{
 	    switch (opt) 
 	    {
@@ -59,6 +60,8 @@ int main (int argc, char** argv) {
 			"help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
 			"verbose flag              [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
 			"restart flag              [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
+			"solvation bias flag       [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
+			"orientation bias flag     [-b]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
 			"Dump Frequency            [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
 			"Number of maximum moves   [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
 			"Polymer coordinates       [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
@@ -80,6 +83,10 @@ int main (int argc, char** argv) {
 
 		case 'b':
 			b = true;
+			break;
+
+		case 'y': 
+			s = true;
 			break;
 
 		case 't':
@@ -211,7 +218,7 @@ int main (int argc, char** argv) {
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, frac, x, y, z);
+        SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, s, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 

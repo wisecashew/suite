@@ -144,8 +144,8 @@ bool MonomerNeighborReporter (std::vector <Polymer>* Polymers  , std::array <int
 // creation methods 
 std::vector <Particle>           CreateSolventVector     (int x, int y, int z, std::vector <Polymer>* Polymers); 
 void                             AddSolvent              (std::vector <Particle*>* LATTICE, int x, int y, int z); 
-void                             AddCosolvent            (std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, double frac, int dop, int x, int y, int z);
-void                             SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector<Particle*>* LATTICE, std::string positions, double frac, int x, int y, int z); 
+void                             AddCosolvent            (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, bool solvation, double frac, int dop, int x, int y, int z);
+void                             SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector<Particle*>* LATTICE, std::string positions, bool solvation, double frac, int x, int y, int z); 
 void                             SetUpLatticeFromRestart (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector<Particle*>* LATTICE, int* step_number, std::string lattice_file_read, std::string dfile, std::string positions, int x, int y, int z); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::string type_m="m1"); 
 Polymer                          makePolymer             (std::vector <std::array <int,3>> locations, std::vector<int> pmer_spins, std::string type_m="m1"); 

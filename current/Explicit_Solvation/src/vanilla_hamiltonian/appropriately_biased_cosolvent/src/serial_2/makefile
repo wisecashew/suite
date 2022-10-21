@@ -11,6 +11,11 @@ OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror
 all: clean linux unbiased mac
 	@echo "All simulation objects should be compiled."
 
+isotropic: main.cpp misc.cpp classes.cpp 
+	@echo "Compiling an isotropic simulation..."
+	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o isotropic
+	@echo "Compiled!"
+
 clinux: main.cpp misc.cpp classes.cpp
 	@echo "Compiling main for cosolvent_regime simulation..."
 	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o cosolv_ani

@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
     for U in U_list:
         f.write ( "U = " + str(U) + ":\n" )
-        print("Inside U = " + U + ", and N = " + str(dop), flush=True )
+        print("Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
         # temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
         temperatures = [args.T]
         # get num_list for each temperature 

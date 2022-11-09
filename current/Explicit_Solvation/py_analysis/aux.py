@@ -94,10 +94,11 @@ def get_chi_entropy (topology):
 
 def get_chi_cosolvent (topology):
     f = open (topology) 
-    Emm_a = "Emm_a"
-    Emm_n = "Emm_n"
+    Emm_a  = "Emm_a"
+    Emm_n  = "Emm_n"
     Ems1_a = "Ems1_a" 
     Ems2_a = "Ems2_a"
+    frac   = "frac" 
     for line in f:
         if re.findall ( Emm_a, line):
             r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
@@ -111,13 +112,16 @@ def get_chi_cosolvent (topology):
         elif re.findall ( Emm_n, line):
             r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
             mm_n = float ( r[0] ) 
+        elif re.findall ( frac, line): 
+            r = re.findall( "-[0-9]+\.[0-9]+|[0-9]+\.[0-9]+|-[0-9]+|[0-9]+", line)
+            frac_float = float ( r[0] ) 
 
     f.close()
     chi_1 = ms1_a - 0.5*mm_a 
     chi_2 = ms2_a - 0.5*mm_a 
     chi_3 = ms1_a - 0.5*mm_n
 
-    return (chi_1, chi_2, chi_3)
+    return (chi_1, chi_2, chi_3, frac_float)
 
 # End of function
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -236,6 +240,22 @@ def unfuck_polymer(polymer, x, y, z):
     
     return unfucked_polymer         
 
+
+def unfuck_polymer_modified (polymer, x, y, z): 
+    unfucked_polymer = copy.copy(polymer) # np.asarray([polymer[0,:]])
+    oris = []
+    # print ("polymer = ",polymer)
+    for i in range ( polymer.shape[0]-1 ) :
+        diff = polymer[i+1,:] - polymer[i,:]
+        oris.append (int(polymer[i][3]))
+        for j in range(3):
+            diff[j] = diff[j] if np.abs(diff[j])==1 else -1*np.sign(diff[j])
+        
+        unfucked_polymer[i+1] = unfucked_polymer[i]+diff # np.vstack( (unfucked_polymer, unfucked_polymer[i]+diff ) )
+    oris.append (int(polymer[polymer.shape[0]-1][3]))
+    # print (oris)
+    # quit()
+    return (unfucked_polymer, oris)
 # End of function.
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -291,10 +311,30 @@ def get_Rg (master_dict, xlen, ylen, zlen):
         coord_arr = unfuck_polymer ( master_dict[key][0], xlen, ylen, zlen )
         r_com = np.mean( coord_arr, axis=0) # get center of mass 
         offset = coord_arr - r_com 
-        rg += np.sum ( np.square (offset) )/ N 
+        rg += np.sqrt(np.sum ( np.square (offset) )/ N) # added the np.sqrt
         count += 1
 
     return rg/count
+
+#############################################################################
+#############################################################################
+
+def get_Rg2 (master_dict, xlen, ylen, zlen):
+    
+    N = master_dict [ next(iter(master_dict)) ][0].shape[0] 
+    
+    count = 0
+    rg    = 0
+
+    for key in master_dict: 
+        coord_arr = unfuck_polymer ( master_dict[key][0], xlen, ylen, zlen )
+        r_com = np.mean( coord_arr, axis=0) # get center of mass 
+        offset = coord_arr - r_com 
+        rg += np.sum (np.square (offset))/N # added the np.sqrt
+        count += 1
+
+    return rg/count
+
 
 # End of function. 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -445,6 +485,76 @@ def get_pdict(filename, starting_step, dop, x, y, z):
 # End of function.
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+def get_pdict_modified (filename, starting_step, dop, x, y, z):
+    
+    st_b_str = "Dumping coordinates at step" 
+    pmer_num_str = "Dumping coordinates of Polymer"
+    start_str = "START"
+    end_str_1 = "END" 
+    end_str_2 = "~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#\n" 
+    
+    starting_bool = False 
+    # master_dict will be the dictionary which will contain polymer coordinates at each step     
+    master_dict = {} 
+    xlen, ylen, zlen = x, y, z
+    
+    step_flag     = 0
+    pmer_flag     = 0
+    end_step_flag = 0
+    step_num      = 0
+
+    # given a string, it will extract all numbers out in chronological order 
+    # and put them in a numpy array 
+    m_index = 0 
+    f = open (filename, 'r')
+    for line in f:
+        if ( re.search(st_b_str, line) ):
+            
+            step_num = int ( ( extract_loc_from_string ( line.replace('.', ' ') ) )[0] )
+            
+            if ( step_num == starting_step ) or starting_bool :
+                starting_bool = True
+            else: 
+                continue 
+            # print ("in first if step_num is " + str(step_num) )
+            
+            master_dict [step_num] = {}
+            
+            step_flag     = 1
+            pmer_flag     = -1
+            end_step_flag = 0
+            continue 
+
+        elif ( re.search(start_str, line) ) and starting_bool:
+            # print ("inside elif1, step_num is " + str(step_num) )
+            continue
+
+        elif ( re.search(pmer_num_str, line) ) and starting_bool:
+            pmer_flag += 1
+            master_dict[step_num][pmer_flag] = np.empty ( (dop,4) ) 
+            continue 
+
+        elif ( re.search(end_str_1, line) ) and starting_bool: 
+            end_step_flag = 1
+            step_flag     = 0
+            pmer_flag     = -1 
+            continue 
+
+        elif ( re.search(end_str_2, line) ) and starting_bool:
+            m_index = 0 
+            # print ("index completed: ", step_num)
+            continue 
+
+        elif ( starting_bool ):
+            # print ( "step_num is " + str(step_num) )
+            monomer_coords                   = extract_loc_from_string ( line ) 
+            master_dict[step_num][pmer_flag][m_index] = monomer_coords 
+            m_index += 1
+            continue
+    
+    f.close() 
+    return master_dict
+
 #############################################################################
 #############################################################################
 # Description: This function is meant for the parallelism of plot_rg_parallel. 
@@ -455,15 +565,17 @@ def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
     filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num)+".mc" 
     edge = edge_length (dop)
-    master_dict = get_pdict (filename, starting_index, dop, edge, edge, edge)
+    # if T < 2.0:
+    #     starting_index = 55000000
+    # elif T == 2.5 or T == 5.0:
+    #     starting_index = 90000000
 
+    master_dict = get_pdict (filename, starting_index, dop, edge, edge, edge)
     # for key in master_dict:
     #    print ("key is ", key)
     #    print ("coordinates are: \n", master_dict[key][0] )
     # print ("Inside " + filename)
     rg = get_Rg(master_dict, edge, edge, edge) 
-
-
     return rg 
 
 # End of function.
@@ -506,7 +618,7 @@ def get_flory(U, T, dop_list):
         steps = np.asarray([]) 
         
         for key in master_dict: 
-            rg = np.hstack ( (rg, get_Rg (master_dict[key][0], dop+2, dop+2, dop+2) ) ) 
+            rg = np.hstack ( (rg, get_Rg2 (master_dict[key][0], dop+2, dop+2, dop+2) ) ) 
             steps = np.hstack ( steps, key )
         rg_mean = np.hstack ( rg_mean, np.mean(rg[args.s:] ) )
 
@@ -2142,7 +2254,7 @@ def plot_fh_shape_parameter_parallelized_single_dop_all_U_all_T ( dop, starting_
 # c. In a single plot 
 # d. For a given degree of polymerization 
 
-def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
+def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index, norm ):
     
     Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \
             3: np.asarray([-1,0,0]), 4: np.asarray([0,-1,0]), 5: np.asarray([0,0,-1]), \
@@ -2154,42 +2266,134 @@ def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index ):
             21: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]), 22: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 23: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
             24: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 25: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]) }
     start_str = "START for Step"
-    end_str   = "END" 
+    end_str   = "END"
 
     f = open(U+"/DOP_"+str(N)+"/"+str(T)+"/"+ortn_file_name+"_"+str(idx)+".mc", 'r')
 
     extract_orr = False
     start_bool  = False
-    
+    monomer_order  = []
     oparam_list    = []
+    alignment      = [] 
     
-    for line in f:
+    if T < 2:
+        starting_index = 60000000
 
+    for line in f:
         if re.match ( start_str, line ):
             a = re.search ("\d+", line)
             extract_orr = True
-            if int( a.group(0) ) == starting_index:
+            if int ( a.group(0) ) == starting_index:
                 start_bool = True
-            oparam         = np.asarray([0.,0.,0.])
             count          = 0
 
         elif re.match ( end_str, line ) and start_bool:
-            # print ( line )
-            # print (oparam)
-            # print ( count)
             extract_orr = False
-            oparam_list.append ( np.linalg.norm( oparam/count ) )
-            # print (oparam_list)
+            oparam_list.append ( np.mean(monomer_order) )
+            monomer_order.clear()
+            alignment.clear() 
 
         elif extract_orr and start_bool:
-            or_list    = extract_loc_from_string ( line ) [1:] # these takes all the orientations of the solvent molecules 
-            # print (or_list)
-            
+            or_list    = extract_loc_from_string ( line ) [1:] # [1:]  these takes all the orientations of the solvent molecules
+            monomer_or = extract_loc_from_string ( line ) [0]
+            count = 0
             for cnum in or_list:
-                oparam += Or2Dir[cnum] 
-                count += 1
-    
-    f.close()
-    print (np.mean(oparam_list))
-    return np.mean (oparam_list)
+                alignment.append( np.dot (Or2Dir[monomer_or], Or2Dir[cnum]) )
+                # count += 1
+            if len(alignment) == 0:
+                # monomer_order.append (0)
+                continue
+            else:
+                # if norm == 'z':
+                    # monomer_order.append (alignment/26)
+                # elif norm == 'mm':
+                    # monomer_order.append (alignment/count)
+                monomer_order.append (  np.mean( np.asarray(alignment)**2  ) - (np.mean(alignment))**2 ) 
 
+    f.close()
+    fluctuation = np.mean(oparam_list) 
+    return fluctuation 
+
+##########################################################################
+##########################################################################
+
+def obtain_monomer_alignment ( U, N, T, coords_files, idx, starting_index, norm ):
+
+    Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \
+            3: np.asarray([-1,0,0]), 4: np.asarray([0,-1,0]), 5: np.asarray([0,0,-1]), \
+            6: np.asarray([1/np.sqrt(2),1/np.sqrt(2),0]), 7: np.asarray([1/np.sqrt(2), 0, 1/np.sqrt(2)]), 8: np.asarray ([1/np.sqrt(2),-1/np.sqrt(2),0]), \
+            9: np.asarray([1/np.sqrt(2),0,-1/np.sqrt(2)]), 10: np.asarray([-1/np.sqrt(2),1/np.sqrt(2),0]), 11: np.asarray([-1/np.sqrt(2),0,1/np.sqrt(2)]), \
+            12: np.asarray([-1/np.sqrt(2),-1/np.sqrt(2),0]), 13: np.asarray([-1/np.sqrt(2),0,-1/np.sqrt(2)]), 14: np.asarray([0,1/np.sqrt(2),1/np.sqrt(2)]), \
+            15: np.asarray([0,1/np.sqrt(2),-1/np.sqrt(2)]), 16: np.asarray([0,-1/np.sqrt(2),1/np.sqrt(2)]), 17: np.asarray([0,-1/np.sqrt(2),-1/np.sqrt(2)]), \
+            18: np.asarray([1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 19: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 20: np.asarray([1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            21: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]), 22: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 23: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            24: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 25: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]) }
+
+    filename = U + "/DOP_" + str (N) + "/" + str(T) + "/" + coords_files + "_" + str(idx) + ".mc"
+    edge = edge_length (N)
+    master_dict = get_pdict_modified ( filename, starting_index, N, edge, edge, edge )
+    alignment_lists = []
+    monomer_alignment = []
+    monomer_monomer = 0
+    count = 0
+    
+    for key in master_dict:
+        (coord_arr, orientations) = unfuck_polymer_modified ( master_dict[key][0], edge, edge, edge)
+        # print (master_dict[key])
+        # print (len(orientations))
+        # exit()
+        monomer_alignment.clear() 
+        monomer_monomer   = 0
+        # identify all neighbors
+        for i in range(N-1):
+            for j in range(i+1, N):
+                diff = coord_arr[j][:-1]-coord_arr[i][:-1]
+                # print ("diff = ",diff)
+                if (np.abs(int(diff[0])) == 1 or int(diff[0]) == 0) and (np.abs(int(diff[1])) == 1 or int(diff[1]) == 0) and (np.abs(int(diff[2])) == 1 or int(diff[2]) == 0):
+                    monomer_alignment.append( np.dot (Or2Dir[orientations[i]], Or2Dir[orientations[j]]) )
+                    # 
+        if len(monomer_alignment) == 0: # monomer_monomer == 0:
+            continue
+        else:
+            # if norm == 'z':
+            #     alignment_lists.append ( monomer_alignment/26 )
+            # elif norm == 'mm':
+            #    alignment_lists.append ( monomer_alignment/monomer_monomer )
+            alignment_lists.append (np.mean( np.asarray(monomer_alignment)**2) - (np.mean(monomer_alignment))**2  )
+
+    fluctuations = np.mean (alignment_lists) 
+    return fluctuations
+
+
+###############################################################################
+###############################################################################
+
+def get_neighbors (polymer):
+    v = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [1, 1, 0], [-1, 1, 0], [1, -1, 0], \
+    [-1, -1, 0], [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1], \
+    [1, 0, 1], [-1, 0, 1], [1, 0, -1], \
+    [-1, 0, -1], [1, 1, 1], \
+    [-1, 1, 1], [1, -1, 1], \
+    [1, 1, -1], [-1, -1, 1], \
+    [-1, 1, -1], [1, -1, -1], [-1, -1, -1]]
+    v = [np.asarray(u) for u in v] 
+    v = np.asarray (v) 
+    # print (polymer)
+    fss_solvent_set = set()
+    for p in polymer:
+        for v_ in v:
+            check = v_ + p
+            if np.any(np.all(check == polymer, axis=1)):
+                pass
+            else: 
+                fss_solvent_set.add(tuple( check ))
+    sss_solvent_set = set() 
+    for s in fss_solvent_set:
+        for v_ in v:
+            check = v_ + np.asarray (s) 
+            if np.any(np.all(check==polymer, axis=1)) or (tuple(check) in fss_solvent_set):
+                pass
+            else:
+                sss_solvent_set.add(tuple( check ))
+
+    return list(fss_solvent_set), list(sss_solvent_set)

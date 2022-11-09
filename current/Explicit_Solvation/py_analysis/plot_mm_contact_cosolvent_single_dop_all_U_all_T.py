@@ -48,8 +48,12 @@ if __name__=="__main__":
             num_list = np.unique ( aux.dir2nsim ( os.listdir ( str(U)+"/DOP_"+str(args.dop)+"/"+str(temp) ) ) )
 
             for num in num_list: 
+                if temp == 0.01:
+                    skip = 1500
+                else:
+                    skip = args.s
 
-                df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/energydump_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned","s1s2_tot", "s1s2_aligned", "s1s2_naligned", "time_step"], engine='python', skiprows=args.s) 
+                df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/energydump_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned","s1s2_tot", "s1s2_aligned", "s1s2_naligned", "time_step"], engine='python', skiprows=skip)
                 mm_list = np.hstack( (mm_list, df["mm_tot"].values - (args.dop-1) ) )
                 # print (df)
 

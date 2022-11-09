@@ -83,10 +83,10 @@ if __name__ == "__main__":
 	
 	##################################
 	for U in U_list:
-		chi = aux.get_chi_cosolvent ( str(U)+"/geom_and_esurf.txt" )[2]
+		chi = aux.get_chi_cosolvent ( str(U)+"/geom_and_esurf.txt" )[0]
 		print (chi)
 		rgba_color = cm.PiYG ( divnorm (chi) ) 
-		ax.plot (np.asarray(temp_list), np.asarray(PLOT_DICT[U])/2, marker='o', linewidth=2, markeredgecolor='k', linestyle='-', c=rgba_color, label='_nolegend_', markersize=10 ) 
+		ax.plot (np.asarray(temp_list), np.asarray(PLOT_DICT[U])/2, marker='o', linewidth=3, markeredgecolor='k', linestyle='-', c=rgba_color, label='_nolegend_', markersize=10 ) 
 
 
 	stop = time.time() 
@@ -98,15 +98,13 @@ if __name__ == "__main__":
 	cbar.ax.tick_params(labelsize=14)
 	# cbar.ax.set_ylabel ("$\chi ^a$", fontsize=18, rotation=270, labelpad=15)
 	ax.set_xscale('log')
-	# ax.set_yscale('log')
-	ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
-	ax.set_ylabel ( "Flory exponent $\\nu$", fontsize=18) 
 	yticks = np.linspace(0.2, 0.8, 7) 
 	yticks = np.hstack ((yticks, 0.57))
 	yticks[0] = 0.25 
 	yticks[-2] = 0.75
 	yticks = np.hstack((yticks, 0.33))
 	ax.set_yticks ( yticks ) 
+	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	plt.savefig   ( args.pn+".png", dpi=1000)
 
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)

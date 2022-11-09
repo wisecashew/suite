@@ -29,8 +29,12 @@ if args.cs == 3:
     divnorm = matplotlib.colors.SymLogNorm ( 0.5, vmin=0.0, vmax=1.0 ) 
 elif args.cs == 0:
     if args.ss == 'flory-huggins':
+        # skip = args.s
         divnorm = matplotlib.colors.SymLogNorm ( 0.0001, vmin=-0.2, vmax=0.1 ) # this is for flory-huggins  
     elif args.ss == 'entropy':
+        # skip = args.s
+        # if temp < 2:
+        #   skip = 5500
         divnorm = matplotlib.colors.SymLogNorm ( 0.02, vmin=-0.2, vmax=0.1 ) # this is for entropy 
     else:
         print ("Bad simstyle.", flush=True)
@@ -41,14 +45,15 @@ if __name__=="__main__":
     # get the entire list of potential energy surfaces 
     U_list = aux.dir2U ( os.listdir(".") ) 
     U_list.remove("U8")
-    # U_list = ["U6"]
+    # U_list = ["U1"]
     plt.figure( figsize=(8,6) )
     
     PLOT_DICT = {}
 
     i=0
     Tmax = []
-    ms_max = 25*2+(args.dop-2)*24
+    # ms_max = 25*2+(args.dop-2)*24
+    ms_max = -1
     for U in U_list:
         print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True)
         ms_list = np.asarray([])
@@ -59,31 +64,35 @@ if __name__=="__main__":
         
         for temp in temperatures: 
             skip = args.s
-            #if temp < 2:
-            #    skip = 5500
+            # if temp < 2:
+            #     skip = 5500
             #elif temp == 2.5 or temp == 5.0:
             #    skip = 9000
-            # else:
-            #     skip = args.s
+            #else:
+            #    skip = args.s
             ms_list = np.asarray ([]) 
             num_list = np.unique ( aux.dir2nsim ( os.listdir ( str(U)+"/DOP_"+str(args.dop)+"/"+str(temp) ) ) )
 
             for num in num_list: 
-                # print (str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc") 
                 df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=skip)
-                ms_list = np.hstack ( (ms_list, df["ms1_tot"].values + df["ms2_tot"].values ) )
+                f = df["mm_aligned"].values/df["mm_tot"].values
+                ms_list = np.hstack ( (ms_list, np.mean( f )  ) )
                 
             ms_err  = np.hstack ( (ms_err,  (np.std(ms_list)/np.sqrt(30) ) ) )
             ms_mean = np.hstack ( (ms_mean, np.mean(ms_list) ) )
-
-        # if ms_max < np.max (ms_mean):
-        #    ms_max = np.max (ms_mean)
 
         PLOT_DICT[U] = ( ms_mean, ms_err ) 
         i += 1
         # mm_max.append( np.max(ms_list) ) 
         print("done!", flush=True)
     
+    # get the maximum value of fluctuation
+    for key in PLOT_DICT:
+        if ms_max < np.max(PLOT_DICT[key][0]):
+            ms_max = np.max(PLOT_DICT[key][0])
+
+    print ("ms_max = ",ms_max)
+    ms_max = 1
     i=0
     ymin = 1
     for U in U_list:
@@ -107,15 +116,15 @@ if __name__=="__main__":
         contacts = np.mean ( df["ms1_tot"].values + df["ms2_tot"].values ) * contacts
         plt.errorbar ( temperatures, contacts/ms_max, yerr=0, fmt='-', markeredgecolor='k', linestyle='-', elinewidth=1, capsize=0, markersize=10, linewidth=3)
 
-    
+
     # if args.cs == 0:
     #     my_cmap = cm.PiYG
     #     sm = plt.cm.ScalarMappable( cmap=my_cmap, norm=plt.Normalize(vmin=-0.2, vmax=0.1) )
     # else:
     #     my_cmap = cm.PiYG
     #     sm = plt.cm.ScalarMappable(cmap=my_cmap, norm=plt.Normalize(vmin=-0.5, vmax=0.5 ) )
-    ax = plt.axes() 
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=16)
+    ax = plt.axes ()
+    ax.tick_params ( direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=16)
     ax.tick_params ( axis='x', labelsize=16, direction="in", left="off", labelleft="on" )
     ax.tick_params ( axis='y', labelsize=16, direction="in", left="off", labelleft="on" )
     
@@ -124,14 +133,13 @@ if __name__=="__main__":
     # cbar.ax.tick_params (labelsize=14)
     # cbar.set_ticklabels( ["-$10^{-1}$", "-$10^{-2}$","-$10^{-3}$",  0, "$10^{-3}$", "$10^{-2}$", "$10^{-1}$" ] )
     ax.set_xscale('log')
-    ax.set_ylim((0.48 , 1.06))
-    plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.2f}'))
-    ax.set_yticks (np.linspace (0.50,1,6))
+    # ax.set_ylim((-0.1 , 1))
+    plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.1f}'))
+    # ax.set_yticks (np.linspace (0.50,1,6))
     ax.minorticks_on()
     ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
     plt.savefig (args.pn + ".png", bbox_inches='tight', dpi=1200)
 
     if args.sp:
         plt.show()
-
 

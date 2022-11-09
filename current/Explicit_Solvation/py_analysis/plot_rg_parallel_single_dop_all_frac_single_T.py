@@ -158,19 +158,18 @@ if __name__ == "__main__":
         i = i + 1
 
     ########################################
-    # my_cmap = cm.PiYG
-    # sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) )
-    # cbar = plt.colorbar(sm, orientation='vertical') 
-    # cbar.set_ticks ( [-0.1, 0.1] )
-    # cbar.set_ticklabels( [-0.1, 0.1] ) 
+    my_cmap = cm.coolwarm
+    sm = plt.cm.ScalarMappable ( cmap=my_cmap, norm=plt.Normalize(vmin=-0.1, vmax=0.1) )
+    cbar = plt.colorbar(sm, orientation='vertical') 
+    cbar.set_ticks ( [] )
+    cbar.set_ticklabels( [] ) 
     # cbar.ax.tick_params(labelsize=14)
     # cbar.ax.set_ylabel ("$\chi ^a$", fontsize=18, rotation=270, labelpad=15)
     # ax.set_xscale('log')
     # ax.set_yscale('log')
     # ax.set_xlabel ( "Temperature (reduced)", fontsize=18) 
     # ax.set_ylabel ( "$\\langle R_g^2 \\rangle/ \\langle R_g ^2 \\rangle _{\\mathrm{max}}$", fontsize=18)
-    plt.legend(args.T)
-    ax.set_yticks (np.linspace(0, 1, 11))
+    # plt.legend(args.T)
     plt.savefig   (args.pn+".png", dpi=1000)
     ##################################
     

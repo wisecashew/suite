@@ -231,7 +231,7 @@ if (np.max(ss_z) > zmax):
 
 
 
-ax.scatter ( ss_x, ss_y, ss_z, marker='o', c='g', alpha=0.1 )
+ax.scatter ( ss_x[::3], ss_y[::3], ss_z[::3], marker='o', c='g', alpha=0.2 )
 
 ax.set_xlabel("X")
 ax.set_ylabel("Y")

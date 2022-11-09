@@ -17,7 +17,7 @@ parser.add_argument('-T', metavar='T', dest='T', type=float, action='store', hel
 parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
 parser.add_argument('-n', metavar='n', dest='n', type=int, action='store', help='enter a trajectory number.')
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this index.', default=100)
-parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
+parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.')
 args = parser.parse_args() 
 
 

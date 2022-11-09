@@ -23,7 +23,7 @@ if __name__=="__main__":
 
 	# instantiate plt figure 
 	# plt.figure ( figsize=(8,6) )
-	temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 1.0]
+	temperatures = [0.01]
 	name_list    = ["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"]
 	for U in U_list:
 		min_energy = +1
@@ -31,7 +31,7 @@ if __name__=="__main__":
 			# find the trajectory with the most contacts 
 			num_list = np.unique ( aux.dir2nsim ( os.listdir ( str(U) + "/DOP_" + str(args.dop) + "/" + str(temp) ) ) )
 
-			for num in num_list: 
+			for num in num_list:
 				df = pd.read_csv( str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names = name_list, engine='python', skiprows=args.s) 
 				net_energy = df["energy"].values[-1]
 				if  net_energy < min_energy:
@@ -49,7 +49,7 @@ if __name__=="__main__":
 	source_energy_dump   = energy_dump
 	source_coords_dump   = coords_dump
 	source_lattice_dump  = lattice_dump
-
+	temperatures = [2.5, 5.0]
 	for U in U_list:
 		for temp in temperatures: 
 			num_list = np.unique ( aux.dir2nsim ( os.listdir ( str(U) + "/DOP_" + str(args.dop) + "/" + str(temp) ) ) )
@@ -84,6 +84,4 @@ if __name__=="__main__":
 					# For other errors
 					except:
 					    print("Error occurred while copying file.")
-
-
 

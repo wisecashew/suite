@@ -172,7 +172,7 @@ step_to_extract = args.p
 ###############
 
 ############# define colormaps 
-cmap = plt.cm.jet 
+cmap = plt.cm.hsv 
 cmaplist = [cmap(i) for i in range(cmap.N)]
 
 # create the new map 
@@ -217,7 +217,7 @@ for key in master_dict[step_to_extract]:
         zmax = np.max(z_coords)
         
     ax.plot(x_coords, y_coords, z_coords, c='C1')
-    ax.scatter(x_coords, y_coords, z_coords, marker='o', cmap=cmap, norm=norm, c=polymer_random, edgecolors='k', depthshade=False )
+    ax.scatter(x_coords, y_coords, z_coords, marker='o', cmap=cmap, norm=norm, c=polymer_random, edgecolors='k', depthshade=False, s=50 )
 
 
 # get the solvation shell... 
@@ -252,7 +252,8 @@ if (np.max(ss_z) > zmax):
 nsolv_shell = len (solvation_shell)
 solvation_random = np.random.randint (1, 6, nsolv_shell)
 
-ax.scatter ( ss_x, ss_y, ss_z, marker='o', cmap=cmap, c=solvation_random, norm=norm, edgecolors='k', alpha=0.2 )
+differ = 5
+ax.scatter ( ss_x[::differ], ss_y[::differ], ss_z[::differ], marker='o', cmap=cmap, c=solvation_random[::differ], norm=norm, edgecolors='k', alpha=0.2, s=30 )
 
 ax.set_xlabel("X")
 ax.set_ylabel("Y")

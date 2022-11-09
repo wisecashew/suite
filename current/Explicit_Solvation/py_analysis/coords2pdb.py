@@ -7,6 +7,7 @@ import aux
 import time 
 import sys 
 import itertools
+import copy
 
 sys.stdout.flush() 
 
@@ -21,7 +22,7 @@ shebang for homemachine: #!/usr/bin/env python3
 
 
 import argparse 
-parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration plot given a degree of polymerization over a range of temperatures and potential energy surfaces.")
+parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the pdb file for the polymer.")
 parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this index.', default=100)
 parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
@@ -37,19 +38,32 @@ if __name__ == "__main__":
 
     start = time.time() 
     
-    master_dict = aux.get_pdict ( args.c, args.s, args.dop, args.x, args.y, args.z )
-    polymer = aux.unfuck_polymer (master_dict[args.s][0], args.x, args.y, args.z ) 
-
+    master_dict = aux.get_pdict  (args.c, args.s, args.dop, args.x, args.y, args.z)
+    polymer     = aux.unfuck_polymer (master_dict[args.s][0], args.x, args.y, args.z)
+    polymer = polymer + 34
+    # print (polymer+34)
     f = open (args.pdb, 'w')
 
     f.write("COMPND    MY_POLYMER\n")
     f.write("AUTHOR    SAT\n")
-
+    fss, sss = aux.get_neighbors (polymer)
+    # print ("fss = ", fss)
+    # print ("sss = ", sss)
     count = 1 
     for row in polymer:
-        f.write ("ATOM  {:>5} {:>2}{:<2} POL P{:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( count, "M", count, 1, row[0]*10, row[1]*10, row[2]*10, 1.00, 1.00, "M", "M" ) )
+        f.write ("ATOM  {:>5} {:>2}{:<2} POL P{:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( count, "M", " ", 1, row[0]*10, row[1]*10, row[2]*10, 1.00, 1.00, "M", "M" ) )
         count+=1
 
+    j = 2
+    scount = copy.copy(count)
+    for sol in fss:
+        f.write ("ATOM  {:>5} {:>2}{:<2} SOL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( scount, "F", "S", j, sol[0]*10, sol[1]*10, sol[2]*10, 1.00, 1.00, "F", "S" ) )
+        scount += 1
+        j += 1
+    for sol in sss:
+        f.write ("ATOM  {:>5} {:>2}{:<2} SOL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( scount, "S", "S", j, sol[0]*10, sol[1]*10, sol[2]*10, 1.00, 1.00, "S", "S" ) )
+        scount += 1
+        j += 1
 
     for i in range(1, count):
         if i == 1:

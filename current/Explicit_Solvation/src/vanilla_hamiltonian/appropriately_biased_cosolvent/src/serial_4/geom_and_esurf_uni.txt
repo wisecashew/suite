@@ -1,0 +1,14 @@
+x = 10
+y = 10
+z = 10
+frac = 0.5
+kT = 0.01
+Emm_a    = -1
+Emm_n    = -1
+Ems1_a   = -0
+Ems1_n   = 0
+Ems2_a   = -0
+Ems2_n   = 0
+Es1s2_a  = -0
+Es1s2_n  = 0
+END OF FILE

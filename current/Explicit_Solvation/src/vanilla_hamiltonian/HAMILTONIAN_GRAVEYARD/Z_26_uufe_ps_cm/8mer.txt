@@ -1,0 +1,10 @@
+START POLYMER 0
+m1: 4 1 1 
+m2: 4 0 1
+m1: 5 0 1
+m2: 5 1 1
+m1: 6 1 1
+m2: 7 1 1
+m1: 8 1 1
+m2: 9 1 1
+END POLYMER 0

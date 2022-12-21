@@ -1,0 +1,15 @@
+Date: 08/26/2022
+
+I have not updated this thing in a while. 
+
+The HAMILTONIAN_GRAVEYARD is exactly what it sounds like. It is a whole bunch of hamiltonians and methods 
+which did not work. Useful for seeing how I had implemented certain ideas. 
+
+WangLandau is me running the Wang-Landau algorithm to calculate the density of states. Not particularly useful, but neat implementation. 
+
+stacking_hamiltonian is an implementation of the stacking hamiltonian. 
+locking_hamiltonian is an implementation of the locking hamiltonian. 
+
+!!!!!!!!!!!!!!!!!! appropriately_sampled IS THE ONLY RIGOROUS IMPLEMENTED MONTE CARLO INTEGRATOR !!!!!!!!!!!!!!!!!!
+It has been unit tested, and one can unit test it over and over, in case you make any changes. 
+

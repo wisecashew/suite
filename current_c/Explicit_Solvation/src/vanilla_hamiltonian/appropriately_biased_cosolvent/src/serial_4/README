@@ -1,0 +1,4 @@
+This is a simulation engine which incorporates directional bonding between monomer and solvent. 
+Here, each particle is given a discrete orientation. This orientation affects the energy of interaction two neighboring particles experience. All moves are performed with Boltzmann biasing. 
+In this implementation, I have employed reversing moves to avoid copying. Did wonders for efficiency. 
+There are two versions of this simulation. One is biased, the other one is unbiased. 

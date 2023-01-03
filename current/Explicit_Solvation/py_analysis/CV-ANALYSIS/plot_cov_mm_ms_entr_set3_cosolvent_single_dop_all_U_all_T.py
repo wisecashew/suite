@@ -54,6 +54,7 @@ if __name__=="__main__":
                 df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=skip)
                 f = df["mm_aligned" ].values[-2000:]*Emm_a  + df["mm_naligned" ].values[-2000: ]*Emm_n
                 g = df["ms1_aligned"].values[-2000:]*Ems1_a + df["ms1_naligned"].values[-2000: ]*Ems1_n
+                f = f/np.mean(f); g = g/np.mean(g)
                 ms_list = np.hstack ( ( ms_list, np.mean ( f*g ) - np.mean(f)*np.mean(g) ) )
                 
             ms_err  = np.hstack ( (ms_err,  (np.std(ms_list)/np.sqrt(30) ) ) )
@@ -85,7 +86,7 @@ if __name__=="__main__":
     
     ax.set_xscale('log')
     # ax.set_ylim((0.0 , 1.06))
-    plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.0f}'))
+    # plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.0f}'))
     # ax.set_yticks (np.linspace (0.0,1,6))
     ax.minorticks_on()
     # ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())

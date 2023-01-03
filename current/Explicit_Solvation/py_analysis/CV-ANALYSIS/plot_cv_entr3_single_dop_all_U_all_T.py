@@ -53,9 +53,6 @@ if __name__=="__main__":
             for num in num_list: 
                 df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
                 f = df["energy"].values[-700:]
-                # if (np.mean(f**2) - np.mean(f)**2)/temp**2 > 1:
-                #     print ("num = ",num,", T = ",temp)
-                #     print ("fluc = ",(np.mean(f**2)-np.mean(f)**2)/temp**2)
                 ms_list = np.hstack ( (ms_list, (np.mean( f**2 ) - np.mean (f)**2)/temp**2  ) )
                 
             # print (ms_list)
@@ -112,6 +109,6 @@ if __name__=="__main__":
     plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.1f}'))
     ax.minorticks_on()
     ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-    plt.savefig (args.pn + ".png", bbox_inches='tight', dpi=1200)
+    plt.savefig (args.pn, bbox_inches='tight', dpi=1200)
 
 

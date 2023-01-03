@@ -19,7 +19,6 @@ parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide 
 parser.add_argument('-s', dest='s', action='store', type=int, help='Provide a starting index from when to sample.', default=100)
 parser.add_argument('--dump-file', dest='e', metavar='energydump', action='store', type=str, help='Name of energy dump file to parse information.', default='energydump') 
 parser.add_argument('--png-name', dest='pn', metavar='png name', action='store', type=str, help='Name of image.', default='ms_plot')
-parser.add_argument('--show-plot', dest='sp', action='store_true', help='Flag to include if you want the image to be rendered on screen.', default=False) 
 
 args = parser.parse_args()
 
@@ -28,8 +27,7 @@ divnorm = matplotlib.colors.SymLogNorm (0.0001, vmin=-0.2, vmax=0.1 ) # this is 
 if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
-    # U_list = aux.dir2U ( os.listdir(".") ) 
-    U_list = ["U1", "U2", "U3"]
+    U_list = aux.dir2U ( os.listdir(".") ) 
     plt.figure( figsize=(8,6) )
 
     PLOT_DICT = {}
@@ -44,7 +42,7 @@ if __name__=="__main__":
         ms_err  = np.asarray([])
         ms_mean = np.asarray([])
         # temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
-        temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
+        temperatures = [0.01, 0.1, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
         
         for temp in temperatures: 
             skip = 0
@@ -54,8 +52,9 @@ if __name__=="__main__":
             for num in num_list: 
                 # print (str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc") 
                 df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=skip)
-                f = df["mm_aligned" ].values[-700:]*Emm_a  + df["mm_naligned" ].values[-700: ]*Emm_n
-                g = df["ms1_aligned"].values[-700:]*Ems1_a + df["ms1_naligned"].values[-700: ]*Ems1_n
+                f = df["mm_aligned" ].values[-1500:]*Emm_a  + df["mm_naligned" ].values[-1500: ]*Emm_n
+                g = df["ms1_aligned"].values[-1500:]*Ems1_a + df["ms1_naligned"].values[-1500: ]*Ems1_n
+                f = f/np.mean(f); g = g/np.mean(g);
                 ms_list = np.hstack ( ( ms_list, np.mean ( f*g ) - np.mean(f)*np.mean(g) ) )
                 
             ms_err  = np.hstack ( (ms_err,  (np.std(ms_list)/np.sqrt(30) ) ) )
@@ -86,11 +85,11 @@ if __name__=="__main__":
     
     ax.set_xscale('log')
     # ax.set_ylim((0.0 , 1.06))
-    plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.0f}'))
+    # plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.0f}'))
     # ax.set_yticks (np.linspace (0.0,1,6))
     ax.minorticks_on()
     # ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-    plt.savefig (args.pn + ".png", bbox_inches='tight', dpi=1200)
+    plt.savefig (args.pn, bbox_inches='tight', dpi=1200)
 
 
 

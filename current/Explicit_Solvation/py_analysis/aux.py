@@ -2854,4 +2854,38 @@ def extract_s1s2_aligned_solvation_shell (U, N, T, num):
 	# print ("time = {:.2f} seconds.".format(time.time()-start), flush=True)
 	return aligned_count
 
+######################################################################
+######################################################################
 
+
+def gradient_image(ax, extent, direction, cmap_range=(0, 1), **kwargs):
+    divnorm = matplotlib.colors.TwoSlopeNorm (vcenter=0.33, vmin=0.2, vmax=0.8)
+    """
+    Draw a gradient image based on a colormap.
+
+    Parameters
+    ----------
+    ax : Axes
+        The axes to draw on.
+    extent
+        The extent of the image as (xmin, xmax, ymin, ymax).
+        By default, this is in Axes coordinates but may be
+        changed using the *transform* keyword argument.
+    direction : float
+        The direction of the gradient. This is a number in
+        range 0 (=vertical) to 1 (=horizontal).
+    cmap_range : float, float
+        The fraction (cmin, cmax) of the colormap that should be
+        used for the gradient, where the complete colormap is (0, 1).
+    **kwargs
+        Other parameters are passed on to `.Axes.imshow()`.
+        In particular useful is *cmap*.
+    """
+    phi = direction * np.pi / 2
+    v = np.array([np.cos(phi), np.sin(phi)])
+    X = np.array([[v @ [1, 0], v @ [1, 1]],
+                  [v @ [0, 0], v @ [0, 1]]])
+    a, b = cmap_range
+    X = a + (b - a) / X.max() * X
+    im = ax.imshow(X, extent=extent, interpolation='bicubic', norm=divnorm, **kwargs)
+    return im

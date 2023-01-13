@@ -9,9 +9,11 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 import pandas as pd
 import os
-import aux 
+# import aux 
 import time 
 import sys 
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+import aux 
 import multiprocessing 
 import itertools
 from sklearn.linear_model import LinearRegression 
@@ -37,7 +39,7 @@ shebang for homemachine: #!/usr/bin/env python3
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('--dop', dest='dop', action='store', type=int, help='Size of polymer.')
-parser.add_argument('--flory-dump', dest='fd', metavar='df', action='store', type=str, help='Name of dump file.')
+parser.add_argument('--integrated-database', dest='fd', metavar='df', action='store', type=str, help='Name of dump file.')
 parser.add_argument('--energy-dump', dest='ed', metavar='ed', action='store', type=str, help='Name of energy dump file.')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
 args = parser.parse_args() 
@@ -68,14 +70,14 @@ if __name__ == "__main__":
 		
 	U_list = ["U1", "U5", "U10"]
 	PLOT_DICT = {}
-	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
+	fig = plt.figure   ( figsize=(4/1.6,4/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	ax.tick_params(axis='x', labelsize=8, labelrotation=0)
 	ax.tick_params(axis='y', labelsize=8)
 	ax.ticklabel_format(axis='x', style='sci', scilimits=(0,0))
 	ax.set (autoscale_on=False)
-	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.Spectral_r, cmap_range=(0.2, 0.8), alpha=1)
+	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0 
 
 	##################################
@@ -84,7 +86,6 @@ if __name__ == "__main__":
 	
 	for U in U_list:
 		temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
-		df = df[df["T"].isin (temperatures)]
 		print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True)
 		Emm_a, Emm_n, Ems1_a, Ems1_n, Ems2_a, Ems2_n, Es1s2_a, Es1s2_n = aux.get_energy (str(U)+"/geom_and_esurf.txt")
 		ms_list = np.asarray([])
@@ -115,8 +116,7 @@ if __name__ == "__main__":
 		print ("color = ",col_dict[U])
 		rgba_color = cm.PiYG (divnorm(col_dict[U]))
 		nu = df.loc[df["U"] == U]
-		# ax.errorbar(nu["nu_mean"]/2, PLOT_DICT[U][0], yerr=PLOT_DICT[U][1], xerr=nu["nu_err"]/2, linewidth=0, capsize=2, color=rgba_color, \
-		# ecolor='k', fmt='none', label='_nolegend_')
+		ax.errorbar (PLOT_DICT[U][0], nu["nu_mean"]/2, yerr=nu["nu_err"]/2, xerr=PLOT_DICT[U][1], linewidth=0, ecolor='k')
 		ax.plot(PLOT_DICT[U][0], nu["nu_mean"]/2, linewidth=0, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-.', c=rgba_color)
 		y = nu["nu_mean"]/2
@@ -124,12 +124,12 @@ if __name__ == "__main__":
 		arrowplot (ax, list(x), list(y))
 		i += 1
 	stop = time.time() 
-	ax.set_yticks (np.arange (0.2, 0.9, 0.1))
-	ax.set_ylim (0.2, 0.8)
+	ax.set_yticks (np.arange (0.0, 0.9, 0.1))
+	ax.set_ylim (0.0, 0.8)
 	ax.set_xlim (-2000, 100)
 	ax.set_xticks (np.arange (-2000, 400, 400))
 	# ax.set_xticklabels (ax.get_xticks(), weight='bold')
-	ax.xaxis.get_offset_text().set_fontsize(8)
+	ax.xaxis.get_offset_text().set_fontsize(6)
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	# plt.gca().xaxis.set_major_formatter (tck.StrMethodFormatter('{x:1.1e}'))

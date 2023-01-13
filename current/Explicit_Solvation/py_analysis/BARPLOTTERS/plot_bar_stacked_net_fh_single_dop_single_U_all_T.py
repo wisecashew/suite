@@ -26,12 +26,8 @@ if __name__=="__main__":
 
 	# get the entire list of potential energy surfaces 
 	U_list = args.U
-	fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(1.8,1.5)) # , constrained_layout=True)
-	fig.subplots_adjust (hspace=0.3)
+	fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(4.6,2.0), constrained_layout=True)
 	rc('font', weight='bold')
-	# ax[0].get_shared_x_axes().join(ax[0], ax[1])
-	# instantiate plt figure 
-	# fig.figure( figsize=(8,6) )
 
 	PLOT_DICT  = {}
 	ERROR_DICT = {}
@@ -42,7 +38,6 @@ if __name__=="__main__":
 	ms_max = 25*2+(args.dop-2)*24
 	for U in U_list:
         
-        # temperatures = aux.dir2float (os.listdir(str(U)+"/DOP_32"))
 		temperatures = [0.01, 0.1, 0.5, 1.0, 2.5, 10.0, 25.0, 50.0, 100.0]
 		temperatures.sort()
 		mm_list = np.asarray([])
@@ -80,17 +75,14 @@ if __name__=="__main__":
 		g.write ("{}	{}\n".format(PLOT_DICT[U][0][i], PLOT_DICT[U][1][i] ) )
 	g.close()
 	for j in range(len(U_list)):
-		if j == 0:
-			ax[j].legend(["$i \\rightarrow m$", "$i \\rightarrow s$"], ncol=2, bbox_to_anchor=(0.45, 1.25), loc="upper left", frameon=False, fontsize=4) # , bbox_to_anchor=(0.5, 1.13))
+		# if j == 0:
+		# 	ax[j].legend(["$i \\rightarrow m$", "$i \\rightarrow s$"], ncol=2, bbox_to_anchor=(0.45, 1.25), loc="upper left", frameon=False, fontsize=4) # , bbox_to_anchor=(0.5, 1.13))
 		ax[j].tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both' )
-		ax[j].tick_params ( axis='x', labelsize=4, direction="in", left="off", labelleft="on", labelrotation=45, pad=1 )
-		ax[j].tick_params ( axis='y', labelsize=4, direction="in", left="off", labelleft="on" )
+		ax[j].tick_params ( axis='x', labelsize=6.0, direction="in", left="off", labelleft="on", labelrotation=45, pad=1 )
+		ax[j].tick_params ( axis='y', labelsize=8.0, direction="in", left="off", labelleft="on" )
 		ax[j].axhline (y=0, c='k', linewidth=1)
-		ax[j].minorticks_on()
-		if j == 0:
-			ax[j].set_ylim((0 , 1))
-		else:
-			ax[j].set_ylim((0 , 1))
+		# ax[j].minorticks_on()
+		ax[j].set_ylim((-0.01 , 1.01))
 		ax[j].set_xlim((-0.5, len(temperatures)-0.5))
 		ax[j].set_xticks (np.arange(len(temperatures)))
 		ax[j].set_xticklabels ([str(i) for i in temperatures], weight='bold')

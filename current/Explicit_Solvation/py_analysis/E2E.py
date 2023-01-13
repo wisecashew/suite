@@ -18,16 +18,13 @@ parser.add_argument('-e', metavar=': edge length of the box in which the simulat
 args = parser.parse_args() 
 
 def get_e2e(coord_arr, xlen, ylen, zlen): 
-    coord_arr = unfuck_polymer(coord_arr, xlen, ylen, zlen) 
+    coord_arr = aux.unfuck_polymer(coord_arr, xlen, ylen, zlen) 
     
     e2e = coord_arr[-1] - coord_arr[0] 
     return e2e 
 
 
 if __name__ == "__main__":
-    
-
-    
     
     f = open( args.i , "r")
     # f = open("coords.txt", 'r')
@@ -56,8 +53,8 @@ if __name__ == "__main__":
     
     for line in coord_file: 
         if (re.search(st_b_str, line)):
-            
-            step_num = int((aux.extract_loc_from_string(line.replace('.', ' ')) ) )            
+            print (line)
+            step_num = int(re.findall(r'\d+', line)[0])
             master_dict[step_num] = {}
             step_flag = 1
             pmer_flag = -1

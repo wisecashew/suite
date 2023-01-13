@@ -8,9 +8,11 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
 import pandas as pd
 import os
-import aux 
+# import aux 
 import time 
 import sys 
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+import aux 
 import multiprocessing 
 import itertools
 from sklearn.linear_model import LinearRegression 

@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(description="Get the contacts for simulation fo
 parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide degree of polymerization.') 
 parser.add_argument('-U', dest='U', action='store', nargs='+', type=str, help='Provide energy surface.') 
 parser.add_argument('--dump-file', dest='e', metavar='energydump', action='store', type=str, help='Name of energy dump file to parse information.', default='energydump') 
-parser.add_argument('--png-name', dest='pn', metavar='png name', action='store', type=str, help='Name of image.', default='ms_plot')
+parser.add_argument('--png-name', dest='pn', metavar='png name', action='store', type=str, help='Name of image.')
 
 args = parser.parse_args()
 
@@ -27,7 +27,7 @@ if __name__=="__main__":
 
 	# get the entire list of potential energy surfaces 
 	U_list = args.U
-	fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(4.6,1.5), constrained_layout=True)
+	fig, ax = plt.subplots(nrows=1, ncols=2, figsize=(4.6,2.0), constrained_layout=True)
 	rc ('font', weight='bold')
 
 	PLOT_DICT  = {}
@@ -93,13 +93,13 @@ if __name__=="__main__":
 	# 		ax[j].set_ylabel ("$P(i|m)$", fontsize=12)
 	# 	else:
 	# 		ax[j].text (x=-0.5, y=1.03, s="$\eta ^{a}$=0.1\n$\eta^{a'}$=-0.1", fontsize=7)
-		if j == 1:
-			ax[j].legend(["$i \\rightarrow m$ (aligned)", "$i \\rightarrow m$ (misaligned)", "$i \\rightarrow s$ (aligned)", "$i \\rightarrow s$ (misaligned)"], ncol=1, loc="upper left", bbox_to_anchor=(1,1), frameon=False, fontsize=4) 
+	# 	if j == 1:
+	# 		ax[j].legend(["$i \\rightarrow m$ (aligned)", "$i \\rightarrow m$ (misaligned)", "$i \\rightarrow s$ (aligned)", "$i \\rightarrow s$ (misaligned)"], ncol=1, loc="upper left", bbox_to_anchor=(1,1), frameon=False, fontsize=4) 
 		ax[j].tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 		ax[j].tick_params ( axis='x', labelsize=6.0, direction="in", left="off", labelleft="on", pad=3, labelrotation=45 )
 		ax[j].tick_params ( axis='y', labelsize=8.0, direction="in", left="off", labelleft="on" )
 		ax[j].axhline (y=0, c='k', linewidth=1)
-		ax[j].minorticks_on()
+		# ax[j].minorticks_on()
 		ax[j].set_ylim((-0.01 , 1.01))
 		ax[j].set_xlim((-0.5, len(temperatures)-0.5))
 		ax[j].set_xticks (np.arange(len(temperatures)))

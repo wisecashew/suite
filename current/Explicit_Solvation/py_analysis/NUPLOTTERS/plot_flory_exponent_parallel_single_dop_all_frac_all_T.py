@@ -8,9 +8,10 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
 import pandas as pd
 import os
-import aux 
 import time 
 import sys 
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+import aux 
 import multiprocessing 
 import itertools
 from sklearn.linear_model import LinearRegression 
@@ -63,7 +64,7 @@ def get_flory (U, T, num, dop, coords_file, starting_index, d1, d2):
 
     x = np.asarray (np.log(x)).reshape((-1,1))
     y = np.asarray (np.log(y))
-    print (y, flush=True)
+    # print (y, flush=True)
     model = LinearRegression()
     model.fit(x, y)
     r2 = model.score (x, y)
@@ -72,7 +73,6 @@ def get_flory (U, T, num, dop, coords_file, starting_index, d1, d2):
 
 
 if __name__ == "__main__":
-
     start = time.time() 
     ##################################
 
@@ -106,9 +106,9 @@ if __name__ == "__main__":
     
     pool_list = [pool1]
     
-    temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
+    temperatures = [0.01, 0.1 ,0.5, 1.0, 5.0, 10.0, 50.0, 100.0]
     for temp in temperatures:
-        # print ( "Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
+        print ( "In T = " + str(temp) + ", and N = " + str(dop) + "...", flush=True )
         
         frac_list = [] 
         # get num_list for each temperature
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         r2_dict.clear()
         ntraj_dict.clear()
         for U in U_list:
-            # print ("T is " + str(T), flush=True)
+            print ("U is " + str(U) + "...", flush=True)
             frac_list.append ( aux.get_frac (str(U)+"/geom_and_esurf.txt") )
             num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(temp) ) ) ) )
             master_num_list.extend ( num_list )

@@ -1,0 +1,152 @@
+#!/usr/licensed/anaconda3/2020.7/bin/python
+
+import time
+import numpy as np
+import re 
+import matplotlib.pyplot as plt
+import matplotlib 
+matplotlib.use('Agg')
+import scipy 
+import scipy.spatial
+import sys 
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+import aux 
+import pandas as pd
+import argparse
+import itertools
+import multiprocessing
+import os
+
+os.system("taskset -p 0xfffff %d" % os.getpid())
+os.environ['MKL_NUM_THREADS'] = '1'
+os.environ['NUMEXPR_NUM_THREADS'] = '1'
+os.environ['OMP_NUM_THREADS'] = '1'
+sys.stdout.flush()
+
+parser = argparse.ArgumentParser(description="Go into lattice dump and get contacts.")
+parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
+parser.add_argument('-H', dest='H', action='store', nargs='+', type=float, help='Enter enthalpies you want plotted.')
+parser.add_argument('-nproc', metavar='N', type=int, dest='nproc', action='store', help='Request these many proccesses.')
+args = parser.parse_args() 
+
+######################################################
+
+v = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [1, 1, 0], [-1, 1, 0], [1, -1, 0], \
+[-1, -1, 0], [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1], \
+[1, 0, 1], [-1, 0, 1], [1, 0, -1], [-1, 0, -1], \
+[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1], [-1, -1, 1], \
+[-1, 1, -1], [1, -1, -1], [-1, -1, -1]]
+v = [np.asarray(u) for u in v]
+
+#######################################################
+
+def get_starting_ind ( U, E, num, dop, dumpfile):
+	filename = U + "/DOP_" + str(dop) + "/E_" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
+	df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+	L = len(df["energy"])
+	return int(df["time_step"].values[L-2000])
+
+def mysorter_f (x):
+	new_str = ""
+	for m in x:
+		if m.isdigit():
+			new_str = new_str+m
+	return float(new_str)
+
+def lat2loc (lattice_index, x, y, z):
+	zc = lattice_index // (z*z)
+	yc = (lattice_index % (z*z)) // y
+	xc = ( ( lattice_index % (z*z) ) % y ) % x
+
+	return np.array([int(xc), int(yc), int(zc)])
+
+def loc2lat (location, x, y, z):
+	lat_vec = (location[:,0]%x)+(location[:,1]%y)*y+(location[:,2]%z)*(z*z)
+	return lat_vec
+
+
+# create a dictionary of all locations 
+def get_contacts (U, dop, H, num):
+
+	
+	df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/E_"+str(H)+"/energydump_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0) 
+	mm_contacts   = df["mm_tot"].values[-2000:]
+	ms1_contacts  = df["ms1_tot"].values[-2000:]
+	ms2_contacts  = df["ms2_tot"].values[-2000:]
+	s1s2_contacts = df["ms1s2_tot"].values[-2000:]
+
+	return np.array([np.mean(mm_contacts), np.mean(ms1_contacts), np.mean(ms2_contacts), np.mean(s1s2_contacts)])
+
+#######################################################################
+#######################################################################
+
+
+if __name__=="__main__":
+	
+	start = time.time()
+	U_list = aux.dir2U (os.listdir("."))
+	dop = args.dop
+	enthalpies = [float(elem) for elem in args.H]
+	enthalpies.sort()
+
+	i = 0
+	nproc = args.nproc
+	pool= multiprocessing.Pool (processes=nproc)
+	CONTACTS_DICT = {}
+	CONTACTS_DICT["H"] = []
+	CONTACTS_DICT["x"] = []
+	CONTACTS_DICT["M1-M1"] = []
+	CONTACTS_DICT["M1-S1"] = []
+	CONTACTS_DICT["M1-S2"] = []
+	CONTACTS_DICT["S1-S2"] = []
+
+	for H in enthalpies:
+		print ( "We are in H = "+str(H)+", and N = " + str(dop) + "...", flush=True)
+		frac_list         = []
+		master_U_list     = []
+		master_num_list   = []
+		ntraj_dict        = {}
+		contacts_dict     = {}
+		for U in U_list:
+			frac_list.append ( aux.get_frac(U+"/geom_and_esurf.txt") )
+			num_list = list ( np.unique ( aux.dir2nsim (os.listdir (U + "/DOP_" + str(dop) + "/E_" + str(H) ) ) ) )
+			master_num_list.extend ( num_list )
+			master_U_list.extend ([U]*len(num_list))
+			ntraj_dict[U] = len(num_list)
+			contacts_dict [U] = []
+
+		# start multiprocessing... keeping in mind that each node only has 96 cores
+		# start splitting up master_num_list and master_U_list
+
+		idx_range = len(master_num_list)//nproc + 1
+		for u_idx in range(idx_range):
+			if u_idx == idx_range-1:
+				results = pool.starmap ( get_contacts, zip( master_U_list[u_idx*nproc:], itertools.repeat(dop), itertools.repeat(H), master_num_list[u_idx*nproc:] ) )
+			else:
+				results = pool.starmap ( get_contacts, zip( master_U_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(dop), itertools.repeat(H), master_num_list[u_idx*nproc:(u_idx+1)*nproc] ) )
+			
+			print ( "Pool has been closed. This pool had {} threads.".format (len(results) ), flush=True )
+		
+			for k in range( len( master_U_list[u_idx*nproc:(u_idx+1)*nproc] ) ):
+				contacts_dict[master_U_list[u_idx*nproc+k]].append (results[k])
+
+		sorted_U_list = list (np.unique (master_U_list))
+		sorted_U_list.sort(key=mysorter_f)
+		CONTACTS_DICT["H"].extend( [H]*len(sorted_U_list) )
+		CONTACTS_DICT["x"].extend( frac_list )
+		for U in sorted_U_list:
+			CONTACTS_DICT["M1-M1"].append ( np.mean( np.array (contacts_dict[U])[:,0] ) )
+			CONTACTS_DICT["M1-S1"].append ( np.mean( np.array (contacts_dict[U])[:,1] ) )
+			CONTACTS_DICT["M1-S2"].append ( np.mean( np.array (contacts_dict[U])[:,2] ) )
+			CONTACTS_DICT["S1-S2"].append ( np.mean( np.array (contacts_dict[U])[:,3] ) )
+
+	pool.close()
+	pool.join ()
+
+	df = pd.DataFrame.from_dict (CONTACTS_DICT)
+	df.to_csv ("INTEGRATED-CONTACTS-TYPE2.csv", sep='|', index=False)
+	stop = time.time()
+	print ("Time to get the contacts database is " + str(stop-start) + " seconds.", flush=True)
+
+
+

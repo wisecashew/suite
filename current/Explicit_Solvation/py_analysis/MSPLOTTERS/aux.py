@@ -326,16 +326,6 @@ def dir2float (list_of_dirs):
     l.sort()
     return l 
 
-def dir2enthalpies (list_of_dirs):
-	l = []
-	for dir_name in list_of_dirs:
-		try:
-			l.append (float(dir_name[2:]))
-		except ValueError:
-			continue
-	l.sort()
-	return l
-
 # End of function.
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -537,14 +527,7 @@ def get_pdict(filename, starting_step, dop, x, y, z):
         elif ( starting_bool ):
             # print ( "step_num is " + str(step_num) )
             monomer_coords                   = extract_loc_from_string ( line ) 
-            
-            try:
-                master_dict[step_num][pmer_flag][m_index] = monomer_coords[0:-1] 
-            except KeyError: 
-                print ("filename =", filename)
-                print ("coords = ",monomer_coords)
-                print ("step num =", step_num)
-                exit()
+            master_dict[step_num][pmer_flag][m_index] = monomer_coords[0:-1] 
             m_index += 1
             continue
     
@@ -2211,19 +2194,6 @@ def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
 
 	return np.mean (offset_list)
 
-def single_sim_flory_exp_energetic_variation ( U, H, num, dop, coords_file, starting_index, delta ):
-	filename = U+"/DOP_"+str(dop)+"/E_"+str(H)+"/"+coords_file+"_"+str(num)+".mc"
-	edge     = edge_length (dop)
-	master_dict  = get_pdict( filename, starting_index, dop, edge, edge, edge) 
-	offset_list = []
-
-	for key in master_dict:
-		coord_arr    = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
-		delta_coords = coord_arr [0:dop-delta] - coord_arr [delta:]
-		offset = list(np.linalg.norm ( delta_coords, axis=1 ) **2 )
-		offset_list.extend(offset)
-
-	return np.mean (offset_list)
 ##########################################################################
 ##########################################################################
 
@@ -2907,7 +2877,7 @@ class PiecewiseNormalize(Normalize):
 
 def gradient_image(ax, extent, direction, cmap_range=(0, 1), **kwargs):
     # divnorm = matplotlib.colors.TwoSlopeNorm (vcenter=0.33, vmin=0.2, vmax=0.8)
-    divnorm = PiecewiseNormalize ([0.2, 0.3, 0.7, 0.8], [0.1, 0.2, 0.9, 1.0])
+    divnorm = PiecewiseNormalize ([0.2, 0.33, 0.5, 0.8], [0.1, 0.2, 0.9, 1.0])
     """
     Draw a gradient image based on a colormap.
 

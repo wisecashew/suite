@@ -6,12 +6,13 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
-import matplotlib.ticker as tck 
+import matplotlib.ticker as tck
 import pandas as pd
 import os
-import aux 
 import time 
 import sys 
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+import aux 
 import multiprocessing 
 import itertools
 from sklearn.linear_model import LinearRegression 
@@ -35,14 +36,13 @@ shebang for homemachine: #!/usr/bin/env python3
 
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
-parser.add_argument('--dump-file', dest='df', metavar='df', action='store', type=str, help='Name of dump file.')
+parser.add_argument('--integrated-database', dest='df', metavar='df', action='store', type=str, help='Name of dump file.')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
 args = parser.parse_args() 
 
 divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
 
 if __name__ == "__main__":
-	print ("File for this script is FLORY-INFO-1-6.mc", flush=True)
 	start = time.time()
 	##################################
 
@@ -50,12 +50,12 @@ if __name__ == "__main__":
 	
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
-	plt.rcParams["axes.labelweight"]="bold"
+	plt.rcParams["axes.labelweight"] = "bold"
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	ax.tick_params(axis='x', labelsize=8)
 	ax.tick_params(axis='y', labelsize=8)
 	ax.set (autoscale_on=False)
-	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.Spectral_r, cmap_range=(0.2, 0.8), alpha=1)
+	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0 
 
 	##################################
@@ -65,33 +65,26 @@ if __name__ == "__main__":
 	for U in U_list:
 		rgba_color = cm.PiYG (divnorm(chi_list[i]))
 		nu = df.loc[df["U"] == U]
-		ax.errorbar(nu["T"], nu["nu_mean"]/2, yerr=nu["nu_err"]/2, linewidth=1/1.3, capsize=2, color=rgba_color, \
-		ecolor='k', fmt='none', label='_nolegend_')
-		ax.plot(nu["T"], nu["nu_mean"]/2, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
+		nu_averaged = nu["nu_mean"]/2
+		nu_err      = nu["nu_err" ]/2
+		temperatures = nu["T"]
+		ax.errorbar (temperatures, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
+		ax.plot(temperatures, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-', c=rgba_color)
 		i += 1
 	stop = time.time() 
-	# plot excluded volume nu
-	temperatures = nu["T"]
-	nu = df.loc[df["U"]=="Uexcl"]
-	ax.plot (temperatures, list(nu["nu_mean"]/2)*len(temperatures), linewidth=2/1.3, label='_nolegend_')
 	
-	# print (temperatures)
-	my_cmap = cm.PiYG
-	# ax.axhline (y=0.58, color='b', linestyle='-')
-	ax.axhline (y=0.33, color='r', linewidth=2/1.3, linestyle='--')
 	ax.set_xscale('log')
-	yticks = np.arange(0.2, 0.9, 0.1) 
-	ax.set_yticks ( yticks ) 
-	ax.set_yticklabels (ax.get_yticks(), weight='bold')
-	ax.set_ylim   ( 0.2, 0.8 )
-	ax.set_xlim   ( 0.006, 100)
-	ax.set_xticks (np.logspace(-2,2,5))
+	yticks = np.arange(0.0, 0.9, 0.1) 
+	ax.set_yticks ( yticks )
+	ax.set_yticklabels (ax.get_yticks(), weight='bold') 
+	ax.set_ylim   ( 0.0, 0.8 )
+	ax.set_xlim   ( 0.008, 125 )
+	ax.set_xticks (np.logspace(-2, 2, 5))
 	ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
 	ax.set_aspect('auto')
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
-	
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)
 

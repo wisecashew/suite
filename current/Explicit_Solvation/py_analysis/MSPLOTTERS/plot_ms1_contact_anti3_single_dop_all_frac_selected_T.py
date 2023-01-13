@@ -29,9 +29,11 @@ if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
     U_list = aux.dir2U ( os.listdir(".") ) 
-    fig, ax = plt.subplots(figsize=(8,6))
-    # instantiate plt figure 
-    # fig.figure( figsize=(8,6) )
+    U_list.remove("U1")
+    print (U_list)
+    fig = plt.figure (figsize=(4/2,3/2), constrained_layout=True)
+    ax  = plt.axes()
+    plt.rcParams["axes.labelweight"] = "bold"
     edge = aux.edge_length(args.dop)
     PLOT_DICT  = {}
     ERROR_DICT = {}
@@ -45,10 +47,6 @@ if __name__=="__main__":
 
     ms_max = 25*2+(args.dop-2)*24
     for T in temperatures:
-        if T < 2 or T == 5.0:
-            skip = 3000
-        else:
-            skip = args.s
         frac_list    = []
         npart_list   = []
         print ("Currently plotting out stuff in T = " + str(T) + "...", end=' ', flush=True)
@@ -66,17 +64,14 @@ if __name__=="__main__":
 
             for num in num_list: 
                 # print (str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc") 
-                df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(T)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=skip) 
-                # if nsol1 == 0:
-                #     s1s2_list = np.hstack ((s1s2_list, 0))
-                # else:
-                s1s2_list = np.hstack ( (s1s2_list, df["ms1s2_tot"].values ) )
+                df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(T)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0) 
+                s1s2_list = np.hstack ( (s1s2_list, np.mean(df["ms1_tot"].values[-2000:] ) ) )
                 
             s1s2_err  = np.hstack ( (s1s2_err , np.std (s1s2_list)/np.sqrt(30) ) )
             s1s2_mean = np.hstack ( (s1s2_mean, np.mean(s1s2_list) ) )
 
-        PLOT_DICT [T] = s1s2_mean # (ms1_mean, ms2_mean, mm_mean)
-        ERROR_DICT[T] = s1s2_err  # (ms1_err , ms2_err , mm_err )
+        PLOT_DICT [T] = s1s2_mean/ms_max 
+        ERROR_DICT[T] = s1s2_err/ms_max
         # mm_max.append( np.max(ms_list) )
         print("done!", flush=True)
     
@@ -89,10 +84,7 @@ if __name__=="__main__":
 
     for T in temperatures:
         plt.errorbar ( frac_list, PLOT_DICT[T], yerr=ERROR_DICT[T], linewidth=1, fmt='none', ecolor=colors[i], capsize=2, color='k', label="_nolabel_")
-        plt.plot     ( frac_list, PLOT_DICT[T], linestyle='-',  markeredgecolor='k', linewidth=3, color=colors[i], label="_nolabel_", markersize=10, marker='o')
-        # ax.bar ( frac_list, PLOT_DICT[T], color='darkorange', width=0.05, edgecolor='k')
-        # ax.bar ( frac_list, PLOT_DICT[T][1], bottom=PLOT_DICT[T][0], color='steelblue', width=0.05, edgecolor='k')
-        # ax.bar ( frac_list, PLOT_DICT[T][2], bottom= PLOT_DICT[T][0]+PLOT_DICT[T][1], color='seagreen', width=0.05, edgecolor='k')
+        plt.plot     ( frac_list, PLOT_DICT[T], linestyle='-',  markeredgecolor='k', linewidth=3/1.3, color=colors[i], label="_nolabel_", markersize=4, marker='o')
         i += 1
 
     ###
@@ -103,19 +95,18 @@ if __name__=="__main__":
         g.write ("{}	{}	{}\n".format( frac_list[i], PLOT_DICT[T][i]/(npart_list[i][0]) if npart_list[i][0] != 0 else 0, PLOT_DICT[T][i]/(npart_list[i][1]) if npart_list[i][1] != 0 else 0) )
     g.close()
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-    ax.tick_params ( axis='x', labelsize=16, direction="in", left="off", labelleft="on" )
-    ax.tick_params ( axis='y', labelsize=16, direction="in", left="off", labelleft="on" )
-    ax.axhline (y=0, c='k', linewidth=0.2)
-    # ax.yaxis.get_major_locator().set_params(integer=True)
+    ax.tick_params ( axis='x', labelsize=8, direction="in", left="off", labelleft="on" )
+    ax.tick_params ( axis='y', labelsize=8, direction="in", left="off", labelleft="on" )
     ax.minorticks_on()
     ax.set_xlim((-0.05, 1.05))
-    ax.set_ylim( top=3.8*1e+5)
+    ax.set_ylim((-0.05, 1.05))
     ax.set_xticks (np.linspace (0, 1, 6))
-    ax.set_xticklabels([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
-    # ax.set_yticks (np.linspace (0.50,1,6))
-    plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1e}'))
+    ax.set_xticklabels([0.0, 0.2, 0.4, 0.6, 0.8, 1.0], weight='bold')
+    ax.set_yticks (np.arange (0, 1.1, 0.2))
+    ax.set_yticklabels (ax.get_yticks(), weight='bold')
+    plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     ax.xaxis.set_minor_locator(tck.AutoMinorLocator())
     ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
     
-    plt.savefig   (args.pn + ".png", bbox_inches='tight', dpi=1200)
+    plt.savefig   (args.pn, bbox_inches='tight', dpi=1200)

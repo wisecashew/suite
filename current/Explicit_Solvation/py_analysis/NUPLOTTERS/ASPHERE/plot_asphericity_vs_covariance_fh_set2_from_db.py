@@ -39,7 +39,7 @@ shebang for homemachine: #!/usr/bin/env python3
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('--dop', dest='dop', action='store', type=int, help='Size of polymer.')
-parser.add_argument('--integrated-database', dest='fd', metavar='df', action='store', type=str, help='Name of dump file.')
+parser.add_argument('--flory-dump', dest='fd', metavar='df', action='store', type=str, help='Name of dump file.')
 parser.add_argument('--energy-dump', dest='ed', metavar='ed', action='store', type=str, help='Name of energy dump file.')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
 args = parser.parse_args() 
@@ -51,9 +51,11 @@ def arrowplot(axes, x, y):
 	x = np.array(x)
 	y = np.array(y)
 	for i in range (len(x)-1):
-		axes.quiver (x[i], y[i], (x[i+1]-x[i])*0.95, (y[i+1]-y[i])*0.95, angles='xy', scale_units='xy', scale=1, color=cm.coolwarm(divnorm_arrow (i / ( len(x)-2) ) ), edgecolor=None, headwidth=5, headlength=7)
-	
+		axes.quiver (x[i], y[i], (x[i+1]-x[i])*0.92, (y[i+1]-y[i])*0.92, angles='xy', scale_units='xy', scale=1, color=cm.coolwarm(divnorm_arrow (i / ( len(x)-2) ) ), edgecolor=None, headwidth=5, headlength=7)
+
 	return
+
+
 
 
 if __name__ == "__main__":
@@ -84,7 +86,7 @@ if __name__ == "__main__":
 	
 	for U in U_list:
 		temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
-		# temperatures = [0.01, 0.03, 0.04, 0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 1.0, 5.0, 10.0, 25.0, 50.0, 100.0]
+		df = df[df["T"].isin (temperatures)]
 		print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True)
 		Emm_a, Emm_n, Ems1_a, Ems1_n, Ems2_a, Ems2_n, Es1s2_a, Es1s2_n = aux.get_energy (str(U)+"/geom_and_esurf.txt")
 		ms_list = np.asarray([])
@@ -96,7 +98,7 @@ if __name__ == "__main__":
 			ms_list = np.asarray([])
 			num_list = np.unique ( aux.dir2nsim( os.listdir ( str(U) + "/DOP_" + str(args.dop) + "/" + str(temp) ) ) )
 			for num in num_list:
-				df_cov = pd.read_csv( str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.ed+"_"+str(num)+".mc", sep=' \| ', \
+				df_cov = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.ed+"_"+str(num)+".mc", sep=' \| ', \
 				names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", \
 				"ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], \
 				engine='python', skiprows=skip)
@@ -115,23 +117,35 @@ if __name__ == "__main__":
 		print ("color = ",col_dict[U])
 		rgba_color = cm.PiYG (divnorm(col_dict[U]))
 		nu = df.loc[df["U"] == U]
-		print ("len(PLOT_DICT[U][0]) = ",len(PLOT_DICT[U][0]), ", len(nu[\"nu_mean\"]) =", len(nu["nu_mean"]))
-		ax.errorbar (PLOT_DICT[U][0], nu["nu_mean"]/2, yerr=nu["nu_err"]/2, xerr=PLOT_DICT[U][1], linewidth=0, ecolor='k')
-		ax.plot(PLOT_DICT[U][0], nu["nu_mean"]/2, linewidth=0, marker='o',markersize=8/1.3, markeredgecolor='k', \
+		# ax.errorbar(nu["nu_mean"]/2, PLOT_DICT[U][0], yerr=PLOT_DICT[U][1], xerr=nu["nu_err"]/2, linewidth=0, capsize=2, color=rgba_color, \
+		# ecolor='k', fmt='none', label='_nolegend_')
+		ax.plot(PLOT_DICT[U][0], nu["delta_mean"]/2, linewidth=0, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-.', c=rgba_color)
 		y = nu["nu_mean"]/2
 		x = PLOT_DICT[U][0]
+		print ("max =", np.max(x), "min =", np.min(x))
 		arrowplot (ax, list(x), list(y))
 		i += 1
 	stop = time.time() 
-	ax.set_yticks (np.arange (0.0, 0.9, 0.1))
-	ax.set_ylim (0.0, 0.8)
-	ax.set_xlim (-11000, 1000)
+	xmax = -np.inf
+	xmin = np.inf
+	for lines in ax.get_lines():
+		line = lines.get_data()
+		if np.max (line[0]) > xmax:
+			xmax =np.max(line[0])
+		if np.min (line[0]) < xmin:
+			xmin = np.min (line[0])
+	ax.set_yticks (np.arange (0.2, 0.9, 0.1))
+	ax.set_ylim (0.2, 0.8)
+	ax.set_xlim ( -4100, 100) # (-4000, 100)
+	ax.minorticks_on()
+	# ax.set_xticks (np.arange (-2000, 400, 400))
+	# ax.set_xticklabels (ax.get_xticks(), weight='bold')
 	ax.xaxis.get_offset_text().set_fontsize(6)
-	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
+	# ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
+	# ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	# plt.gca().xaxis.set_major_formatter (tck.StrMethodFormatter('{x:1.1e}'))
-	ax.set_aspect ('auto')
+	ax.set_aspect('auto')
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
 	
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)

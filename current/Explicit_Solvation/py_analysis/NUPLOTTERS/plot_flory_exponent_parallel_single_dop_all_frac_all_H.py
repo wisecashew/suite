@@ -8,7 +8,6 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
 import pandas as pd
 import os
-# import aux 
 import time 
 import sys 
 sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
@@ -16,7 +15,7 @@ import aux
 import multiprocessing 
 import itertools
 from sklearn.linear_model import LinearRegression 
-from sklearn.linear_model import HuberRegressor
+from sklearn.linear_model import HuberRegressor 
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -39,6 +38,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this move number (not index or line number in file).', default=100)
+parser.add_argument('-H', metavar='H', dest='H', action='store', nargs='+', help='start parsing after this move number (not index or line number in file).', default=100)
 parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
 parser.add_argument('-nproc', metavar='N', type=int, dest='nproc', action='store', help='Request these many proccesses.')
 parser.add_argument('-d1', dest='d1', metavar='d1', action='store', type=int, help='Starting index.')
@@ -48,52 +48,40 @@ args = parser.parse_args()
 divnorm = matplotlib.colors.SymLogNorm (0.005, vmin=-0.1, vmax=0.1)
 
 
-def get_starting_ind ( U, T, num, dop, dumpfile):
-    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
+def get_starting_ind ( U, H, num, dop, dumpfile):
+    filename = U + "/DOP_" + str(dop) + "/E_" + str(H) + "/" + dumpfile + "_" + str(num) + ".mc"
     df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
     L = len(df["energy"])
 
-    return 0 # int(df["time_step"].values[L-3000])
-
-
-def get_avg_amounts (U, T, num, dop, coords_file, starting_index, d1, d2):
-	x = list (np.arange (d1, d2+1))
-	y = []
-	starting_index = get_starting_ind (U, T, num, dop, "energydump")
-	for delta in x:
-		y.append ( aux.single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta) )
-
-	return (np.array (x), np.array (y))
+    return int(df["time_step"].values[L-3000])
 
 
 
-def get_flory (U, T, num, dop, coords_file, starting_index, d1, d2):
-    x = list (np.arange(d1, d2+1))
+def get_flory (U, H, num, dop, coords_file, starting_index, d1, d2):
+    x = list (np.arange(d1, d2+1, 2))
     y = []
-    starting_index = get_starting_ind (U, T, num, dop, "energydump")
+    starting_index = get_starting_ind (U, H, num, dop, "energydump")
     for delta in x:
-        y.append ( aux.single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta ) )
+        y.append ( aux.single_sim_flory_exp (U, H, num, dop, coords_file, starting_index, delta ) )
 
     x = np.asarray (np.log(x)).reshape((-1,1))
     y = np.asarray (np.log(y))
     # print (y, flush=True)
-    model = HuberRegressor()
+    model = HuberRegressor() # LinearRegression()
     model.fit(x, y)
     r2 = model.score (x, y)
+    # print ("slope = ",model.coef_)
     return (model.coef_, r2)
 
 
 if __name__ == "__main__":
-
     start = time.time() 
     ##################################
 
     U_list = aux.dir2U ( os.listdir (".") )
-    # U_list.append("Uexcl")
-    U_list = ["U1"]
     DB_DICT = {} 
     DB_DICT["U"]  = []
-    DB_DICT["T"]  = []
+    DB_DICT["H"]  = []
     DB_DICT["d1"] = []
     DB_DICT["d2"] = []
     DB_DICT["nu_mean"] = []
@@ -119,52 +107,53 @@ if __name__ == "__main__":
     
     pool_list = [pool1]
     
-
-    for U in U_list:
-        print ( "Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
-        temperatures = [0.01] # aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
+    enthalpies = [float(elem) for elem in args.H] 
+    enthalpies.sort() 
+    for H in enthalpies:
+        print ( "In H = " + str(H) + ", and N = " + str(dop) + "...", flush=True )
         
+        frac_list = [] 
         # get num_list for each temperature
-        master_temp_list = []
-        master_num_list  = []
+        master_U_list = []
+        master_num_list = []
         flory_mean = []
         flory_err  = []
         flory_r2   = []
         flory_dict.clear()
         r2_dict.clear()
         ntraj_dict.clear()
-        for T in temperatures:
-            # print ("T is " + str(T), flush=True)
-            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
+        for U in U_list:
+            print ("U is " + str(U) + "...", flush=True)
+            frac_list.append ( aux.get_frac (str(U)+"/geom_and_esurf.txt") )
+            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/E_" + str(H) ) ) ) )
             master_num_list.extend ( num_list )
-            master_temp_list.extend ( [T]*len( num_list ) )
-            ntraj_dict[T] = len ( num_list )
-            flory_dict[T] = []
-            r2_dict   [T] = []
+            master_U_list.extend ( [U]*len( num_list ) )
+            ntraj_dict[U] = len ( num_list )
+            flory_dict[U] = []
+            r2_dict   [U] = []
 
         # start multiprocessing... keeping in mind that each node only has 96 cores
         # start splitting up master_num_list and master_temp_list
         idx_range = len (master_num_list)//nproc + 1
-
         for uidx in range(idx_range):
             if uidx == idx_range-1:
-                results = pool_list[ 0 ] .starmap ( get_flory, zip( itertools.repeat(U), master_temp_list[uidx*nproc:], master_num_list[uidx*nproc:], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
+                results = pool_list[ 0 ] .starmap ( get_flory, zip( master_U_list[uidx*nproc:], itertools.repeat(H), master_num_list[uidx*nproc:], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
             else:
-                results = pool_list[ 0 ] .starmap ( get_flory, zip( itertools.repeat(U), master_temp_list[uidx*nproc:(uidx+1)*nproc], master_num_list[uidx*nproc:(uidx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
+                results = pool_list[ 0 ] .starmap ( get_flory, zip( master_U_list[uidx*nproc:(uidx+1)*nproc], itertools.repeat(H), master_num_list[uidx*nproc:(uidx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
                 
             print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )
-            for k in range(len(master_temp_list[uidx*nproc:(uidx+1)*nproc])):
-                flory_dict[master_temp_list[uidx*nproc+k]].append ( results[k][0] )
-                r2_dict   [master_temp_list[uidx*nproc+k]].append ( results[k][1] )
+            for k in range(len(master_U_list[uidx*nproc:(uidx+1)*nproc])):
+                flory_dict[master_U_list[uidx*nproc+k]].append ( results[k][0] )
+                r2_dict   [master_U_list[uidx*nproc+k]].append ( results[k][1] )
 
 
-        for T in np.unique (master_temp_list):
-            flory_mean.append ( np.mean ( flory_dict[T] ) )
-            flory_err.append  ( np.std  ( flory_dict[T] ) / np.sqrt ( ntraj_dict[T] ) )
-            flory_r2.append   ( np.mean ( r2_dict[T] ) )
+        for U in U_list:
+            flory_mean.append ( np.mean ( flory_dict[U] ) )
+            flory_err.append  ( np.std  ( flory_dict[U] ) / np.sqrt ( ntraj_dict[U] ) )
+            flory_r2.append   ( np.mean ( r2_dict[U] ) )
         
-        DB_DICT["U"].extend       ([U]*len(flory_mean))
-        DB_DICT["T"].extend       (temperatures)
+        DB_DICT["frac"].extend    (frac_list)
+        DB_DICT["H"].extend       ([H]*len(flory_mean))
         DB_DICT["d1"].extend      ([args.d1]*len(flory_mean))
         DB_DICT["d2"].extend      ([args.d2]*len(flory_mean))
         DB_DICT["nu_mean"].extend (flory_mean)
@@ -174,9 +163,8 @@ if __name__ == "__main__":
     pool1.close()
     pool1.join()
     
-    i=0
     df = pd.DataFrame.from_dict (DB_DICT)
-    df.to_csv ("FLORY-EXCL-"+str(args.d1)+"-"+str(args.d2)+".mc", sep='|', index=False)
+    df.to_csv ("FLORY-INFO-"+str(args.d1)+"-"+str(args.d2)+".mc", sep='|', index=False)
     
     stop = time.time()
     

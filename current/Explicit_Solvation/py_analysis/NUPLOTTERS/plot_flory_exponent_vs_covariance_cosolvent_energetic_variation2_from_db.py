@@ -51,22 +51,24 @@ def arrowplot(axes, x, y):
 	x = np.array(x)
 	y = np.array(y)
 	for i in range (len(x)-1):
-		axes.quiver (x[i], y[i], (x[i+1]-x[i])*0.95, (y[i+1]-y[i])*0.95, angles='xy', scale_units='xy', scale=1, color=cm.coolwarm(divnorm_arrow (i / ( len(x)-2) ) ), edgecolor=None, headwidth=5, headlength=7)
-	
+		axes.quiver (x[i], y[i], (x[i+1]-x[i])*0.92, (y[i+1]-y[i])*0.92, angles='xy', scale_units='xy', scale=1, color=cm.coolwarm(divnorm_arrow (i / ( len(x)-2) ) ), edgecolor=None, headwidth=5, headlength=7)
+
 	return
+
+
 
 
 if __name__ == "__main__":
 	start = time.time()
 	##################################
 	rc('font', weight='bold')
-	chi_list = [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
+	# chi_list = [0.1, 0.05, 0.01, 0.005, 0, -0.01, -0.05, -0.1, -0.2]
+	df = pd.read_csv (args.fd, sep='|')
 	U_list = aux.dir2U ( os.listdir (".") )
-	col_dict = {}
-	for i in range(len(chi_list)):
-		col_dict[U_list[i]] = chi_list[i]
+	# col_dict = {}
+	# for i in range(len(chi_list)):
+	# 	col_dict[U_list[i]] = chi_list[i]
 		
-	U_list = ["U1", "U4", "U11"]
 	PLOT_DICT = {}
 	fig = plt.figure   ( figsize=(4/1.6,4/1.6), constrained_layout=True )
 	ax  = plt.axes() 
@@ -79,24 +81,22 @@ if __name__ == "__main__":
 	i = 0 
 
 	##################################
-	df = pd.read_csv (args.fd, sep='|')
 	i = 0
-	
-	for U in U_list:
-		temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
-		# temperatures = [0.01, 0.03, 0.04, 0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 1.0, 5.0, 10.0, 25.0, 50.0, 100.0]
+	enthalpies = np.unique (df["H"]) 
+	print ("enthalpies = ",enthalpies, flush=True)
+	for H in enthalpies:
 		print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True)
 		Emm_a, Emm_n, Ems1_a, Ems1_n, Ems2_a, Ems2_n, Es1s2_a, Es1s2_n = aux.get_energy (str(U)+"/geom_and_esurf.txt")
 		ms_list = np.asarray([])
 		ms_err  = np.asarray([])
 		ms_mean = np.asarray([])
 
-		for temp in temperatures:
+		for H in enthalpies:
 			skip = 0
 			ms_list = np.asarray([])
-			num_list = np.unique ( aux.dir2nsim( os.listdir ( str(U) + "/DOP_" + str(args.dop) + "/" + str(temp) ) ) )
+			num_list = np.unique ( aux.dir2nsim( os.listdir ( str(U) + "/DOP_" + str(args.dop) + "/E_" + str(H) ) ) )
 			for num in num_list:
-				df_cov = pd.read_csv( str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.ed+"_"+str(num)+".mc", sep=' \| ', \
+				df_cov = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/E_"+str(H)+"/"+args.ed+"_"+str(num)+".mc", sep=' \| ', \
 				names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", \
 				"ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], \
 				engine='python', skiprows=skip)
@@ -108,14 +108,13 @@ if __name__ == "__main__":
 			ms_err  = np.hstack ( (ms_err ,  (np.std (ms_list) / np.sqrt(len(num_list)) ) ) )
 			ms_mean = np.hstack ( (ms_mean,  np.mean (ms_list) ) )
 
-		PLOT_DICT[U] = ( ms_mean, ms_err )
+		PLOT_DICT[H] = ( ms_mean, ms_err )
 		print("done!", flush=True)
 	
 	for U in U_list:
 		print ("color = ",col_dict[U])
 		rgba_color = cm.PiYG (divnorm(col_dict[U]))
 		nu = df.loc[df["U"] == U]
-		print ("len(PLOT_DICT[U][0]) = ",len(PLOT_DICT[U][0]), ", len(nu[\"nu_mean\"]) =", len(nu["nu_mean"]))
 		ax.errorbar (PLOT_DICT[U][0], nu["nu_mean"]/2, yerr=nu["nu_err"]/2, xerr=PLOT_DICT[U][1], linewidth=0, ecolor='k')
 		ax.plot(PLOT_DICT[U][0], nu["nu_mean"]/2, linewidth=0, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-.', c=rgba_color)
@@ -126,12 +125,14 @@ if __name__ == "__main__":
 	stop = time.time() 
 	ax.set_yticks (np.arange (0.0, 0.9, 0.1))
 	ax.set_ylim (0.0, 0.8)
-	ax.set_xlim (-11000, 1000)
+	ax.set_xlim (-2000, 100)
+	ax.set_xticks (np.arange (-2000, 400, 400))
+	# ax.set_xticklabels (ax.get_xticks(), weight='bold')
 	ax.xaxis.get_offset_text().set_fontsize(6)
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	# plt.gca().xaxis.set_major_formatter (tck.StrMethodFormatter('{x:1.1e}'))
-	ax.set_aspect ('auto')
+	ax.set_aspect('auto')
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
 	
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)

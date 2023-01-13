@@ -9,12 +9,15 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
 import pandas as pd
 import os
-import aux 
+# import aux 
 import time 
 import sys 
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+import aux 
 import multiprocessing 
 import itertools
 from sklearn.linear_model import LinearRegression 
+from matplotlib import rc,rcParams
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -36,18 +39,19 @@ shebang for homemachine: #!/usr/bin/env python3
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('--dop', dest='dop', action='store', type=int, help='Size of polymer.')
-parser.add_argument('--flory-dump', dest='fd', metavar='df', action='store', type=str, help='Name of dump file.')
+parser.add_argument('--integrated-database', dest='fd', metavar='df', action='store', type=str, help='Name of dump file.')
 parser.add_argument('--energy-dump', dest='ed', metavar='ed', action='store', type=str, help='Name of energy dump file.')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
 args = parser.parse_args() 
 
-divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
+divnorm       = matplotlib.colors.SymLogNorm(0.001, vmin=-0.2, vmax=0.1)
+divnorm_arrow = matplotlib.colors.Normalize (vmin=0, vmax=1)
 
 def arrowplot(axes, x, y):
 	x = np.array(x)
 	y = np.array(y)
 	for i in range (len(x)-1):
-		axes.quiver (x[i], y[i], (x[i+1]-x[i])*0.95, (y[i+1]-y[i])*0.95, angles='xy', scale_units='xy', scale=1, color='coral', edgecolor='orangered')
+		axes.quiver (x[i], y[i], (x[i+1]-x[i])*0.92, (y[i+1]-y[i])*0.92, angles='xy', scale_units='xy', scale=1, color=cm.coolwarm(divnorm_arrow (i / ( len(x)-2) ) ), edgecolor=None, headwidth=5, headlength=7)
 
 	return
 
@@ -57,20 +61,23 @@ def arrowplot(axes, x, y):
 if __name__ == "__main__":
 	start = time.time()
 	##################################
-	
-	chi_list = [0.1, 0.05, 0.01, 0.005, 0, -0.01, -0.05, -0.1, -0.2]
+	rc('font', weight='bold')
+	chi_list = [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
 	U_list = aux.dir2U ( os.listdir (".") )
 	col_dict = {}
 	for i in range(len(chi_list)):
 		col_dict[U_list[i]] = chi_list[i]
 		
-	U_list = ["U10"]
+	U_list = ["U1", "U4", "U11"]
 	PLOT_DICT = {}
-	fig = plt.figure   ( figsize=(3,3), constrained_layout=True )
+	fig = plt.figure   ( figsize=(4/1.6,4/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-	ax.tick_params(axis='x', labelsize=8)
+	ax.tick_params(axis='x', labelsize=8, labelrotation=0)
 	ax.tick_params(axis='y', labelsize=8)
+	ax.ticklabel_format(axis='x', style='sci', scilimits=(0,0))
+	ax.set (autoscale_on=False)
+	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0 
 
 	##################################
@@ -85,7 +92,7 @@ if __name__ == "__main__":
 		ms_list = np.asarray([])
 		ms_err  = np.asarray([])
 		ms_mean = np.asarray([])
-		temperatures = np.array(temperatures)
+
 		for temp in temperatures:
 			skip = 0
 			ms_list = np.asarray([])
@@ -95,9 +102,10 @@ if __name__ == "__main__":
 				names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", \
 				"ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], \
 				engine='python', skiprows=skip)
-				f = df_cov["energy"].values[-500:]
+				f = df_cov["mm_aligned"].values[-2000:]*Emm_a + df_cov["mm_naligned"].values[-2000:]*Emm_n
+				g = df_cov["ms1_aligned"].values[-2000:]*Ems1_a + df_cov["ms1_naligned"].values[-2000:]*Ems1_n
 				# f = f/np.mean(f); g = g/np.mean(g); 
-				ms_list = np.hstack ( (ms_list, np.mean (f*f) - np.mean(f)*np.mean(f) ) )
+				ms_list = np.hstack ( (ms_list, np.mean (f*g) - np.mean(f)*np.mean(g) ) )
 
 			ms_err  = np.hstack ( (ms_err ,  (np.std (ms_list) / np.sqrt(len(num_list)) ) ) )
 			ms_mean = np.hstack ( (ms_mean,  np.mean (ms_list) ) )
@@ -106,20 +114,33 @@ if __name__ == "__main__":
 		print("done!", flush=True)
 	
 	for U in U_list:
+		print ("color = ",col_dict[U])
 		rgba_color = cm.PiYG (divnorm(col_dict[U]))
 		nu = df.loc[df["U"] == U]
-		ax.errorbar(nu["nu_mean"]/2, PLOT_DICT[U][0]/(temperatures**2*args.dop), yerr=PLOT_DICT[U][1]/(temperatures**2*args.dop), xerr=nu["nu_err"]/2, linewidth=0, capsize=2, color=rgba_color, \
-		ecolor='k', fmt='none', label='_nolegend_')
-		ax.plot(nu["nu_mean"]/2, PLOT_DICT[U][0]/(temperatures**2*args.dop), linewidth=0, marker='o',markersize=4, markeredgecolor='k', \
+		# ax.errorbar(nu["nu_mean"]/2, PLOT_DICT[U][0], yerr=PLOT_DICT[U][1], xerr=nu["nu_err"]/2, linewidth=0, capsize=2, color=rgba_color, \
+		# ecolor='k', fmt='none', label='_nolegend_')
+		ax.plot(PLOT_DICT[U][0], nu["nu_mean"]/2, linewidth=0, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-.', c=rgba_color)
-		x = nu["nu_mean"]/2
-		y = PLOT_DICT[U][0]/(temperatures**2*args.dop)
+		y = nu["nu_mean"]/2
+		x = PLOT_DICT[U][0]
+		print ("max =", np.max(x), "min =", np.min(x))
 		arrowplot (ax, list(x), list(y))
 		i += 1
 	stop = time.time() 
-	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	plt.gca().yaxis.set_major_formatter (tck.StrMethodFormatter('{x:1.1e}'))
+	xmax = -np.inf
+	xmin = np.inf
+	for lines in ax.get_lines():
+		line = lines.get_data()
+		if np.max (line[0]) > xmax:
+			xmax =np.max(line[0])
+		if np.min (line[0]) < xmin:
+			xmin = np.min (line[0])
+	ax.set_yticks (np.arange (0.0, 0.9, 0.1))
+	ax.set_ylim (0.0, 0.8)
+	ax.set_xlim ( -4100, 100) # (-4000, 100)
+	ax.minorticks_on()
+	ax.xaxis.get_offset_text().set_fontsize(6)
+	ax.set_aspect('auto')
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
 	
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)

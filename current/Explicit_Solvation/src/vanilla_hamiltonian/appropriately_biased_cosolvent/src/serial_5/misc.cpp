@@ -38,6 +38,47 @@ std::array <std::array <int,3>, 26> adrns = { ax, ay, az, nx, ny, nz, axay, axaz
 std::map <int, std::array<double,3>> Or2Dir = { {0, {1.0,0,0}}, {1, {0,1.0,0}}, {2, {0,0,1}}, {3, {-1,0,0}}, {4, {0,-1,0}}, {5, {0,0,-1}}, {6, {1.0/(std::sqrt(2)), 1.0/(std::sqrt(2)), 0}}, {7, {1.0/(std::sqrt(2)), 0, 1.0/(std::sqrt(2))}}, {8, {1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {9, {1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {10, {-1.0/(std::sqrt(2)),1.0/(std::sqrt(2)),0}}, {11, {-1.0/(std::sqrt(2)),0,1.0/(std::sqrt(2))}}, {12, {-1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {13, {-1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {14, {0,1.0/(std::sqrt(2)),1.0/(std::sqrt(2))}}, {15, {0,1.0/(std::sqrt(2)),-1.0/(std::sqrt(2))}}, {16, {0,-1.0/(std::sqrt(2)), 1.0/(std::sqrt(2))}}, {17, {0,-1.0/(std::sqrt(2)), -1.0/(std::sqrt(2))}}, {18, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {19, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {20, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {21, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {22, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {23, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {24, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {25, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}} };
 std::map <std::array<double,3>, int> Dir2Or = { {{1.0,0,0}, 0}, {{0,1.0,0}, 1}, {{0,0,1}, 2}, {{-1,0,0}, 3}, {{0,-1,0}, 4}, {{0,0,-1}, 5}, {{1.0/(std::sqrt(2)), 1.0/(std::sqrt(2)), 0}, 6}, {{1.0/(std::sqrt(2)), 0, 1.0/(std::sqrt(2))}, 7}, {{1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}, 8}, {{1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}, 9}, {{-1.0/(std::sqrt(2)),1.0/(std::sqrt(2)),0}, 10}, {{-1.0/(std::sqrt(2)),0,1.0/(std::sqrt(2))}, 11}, {{-1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}, 12}, {{-1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}, 13}, {{0,1.0/(std::sqrt(2)),1.0/(std::sqrt(2))}, 14}, {{0,1.0/(std::sqrt(2)),-1.0/(std::sqrt(2))}, 15}, {{0,-1.0/(std::sqrt(2)), 1.0/(std::sqrt(2))}, 16}, {{0,-1.0/(std::sqrt(2)), -1.0/(std::sqrt(2))}, 17}, {{1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 18}, {{1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 19}, {{1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 20}, {{1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 21}, {{-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 22}, {{-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 23}, {{-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 24}, {{-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 25} };
 
+const char* ws = " \t\n\r\f\v";
+
+//==============================================================================================
+// set of functions to trim strings 
+//==============================================================================================
+
+// trim from end of string (right)
+inline std::string& rtrim(std::string& s, const char* t = ws)
+{
+    s.erase(s.find_last_not_of(t) + 1);
+    return s;
+}
+
+// trim from beginning of string (left)
+inline std::string& ltrim(std::string& s, const char* t = ws)
+{
+    s.erase(0, s.find_first_not_of(t));
+    return s;
+}
+
+// trim from both ends of string (right then left)
+inline std::string& trim(std::string& s, const char* t = ws)
+{
+    return ltrim(rtrim(s, t), t);
+}
+
+
+std::vector<std::string> split (const std::string &s, char delim) {
+    std::vector<std::string> result;
+    std::stringstream ss (s);
+    std::string item;
+
+    while (getline (ss, item, delim)) {
+        result.push_back (item);
+    }
+
+    return result;
+}
+
+
+
 //==============================================================================================
 // impose periodic boundary conditions on vector 
 //==============================================================================================
@@ -948,95 +989,13 @@ double NumberExtractor(std::string s){
 // 
 // THE CODE: 
 
-/*
-std::array <double,8> ExtractTopologyFromFile(std::string filename){
-    
-    std::array <double, 8> info_vec; 
-    double info; 
-    std::string mystring; 
-    std::vector <std::string> contents = ExtractContentFromFile(filename); 
-    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm_a ("Emm_a"), Emm_n ("Emm_n"), Ems_a ("Ems_a"), Ems_n ("Ems_n"), eof ("END OF FILE"); 
-    //bool out_mat = true; 
 
-    // print(contents);
-
-
-    for (std::string s: contents){
-
-    	if (std::regex_search(s, x)){
-    		info = NumberExtractor(s); 
-    		info_vec[0]=info; 
-    		continue; 
-    	}
-
-    	else if (std::regex_search(s, y)){
-    		double info = NumberExtractor(s); 
-    		info_vec[1] = info; 
-    		continue; 
-    	}
-
-    	else if (std::regex_search(s, z)){
-    		double info = NumberExtractor(s); 
-    		info_vec[2] = info; 
-    		continue; 
-    	}
-
-		else if (std::regex_search(s, kT)){
-    		double info = NumberExtractor(s); 
-    		info_vec[3] = info ; 
-    		continue; 
-    	}
-
-    	else if (std::regex_search (s, Emm_a)){
-    		double info = NumberExtractor(s); 
-    		info_vec[4] = info; 
-    		continue; 
-    	}
-
-    	else if (std::regex_search (s, Emm_n)){
-    		double info = NumberExtractor(s); 
-    		info_vec[5] = info; 
-    		continue; 
-    	}
-
-    	else if (std::regex_search (s, Ems_a)){
-    		double info = NumberExtractor(s); 
-    		info_vec[6] = info; 
-    		continue; 
-    	}
-
-    	else if (std::regex_search (s, Ems_n)){
-
-    		double info = NumberExtractor(s);
-    		info_vec[7] = info; 
-    		continue;
-    	}
-
-    	else if (std::regex_search(s, eof)){
-    		// std::cout << "End of topology file." << std::endl;
-    		break;
-    	}
-
-    	else {
-    		std::cout << s << std::endl;
-    		std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
-    		exit(EXIT_FAILURE); 
-    	}
-
-    }
-
-
-    return info_vec;
-
-}
-*/
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-std::array <double,13> ExtractTopologyFromFile(std::string filename){
+std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, const int, const int> >* InteractionMap ){
     
     std::array <double, 13> info_vec; 
     double info; 
+    std::pair <std::string, std::string> p; 
+    std::string interaction_type; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
     std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm_a ("Emm_a"),\
@@ -1044,10 +1003,6 @@ std::array <double,13> ExtractTopologyFromFile(std::string filename){
     Ems2_n ("Ems2_n"), Es1s2_a("Es1s2_a"), Es1s2_n ("Es1s2_n"), \
     m1_m1 ("m1-m1"), m1_s1 ("m1-s1"), m1_s2 ("m1-s2"), s1_s2 ("s1-s2"),\
     frac ("frac"), eof ("END OF FILE"); 
-    //bool out_mat = true; 
-
-    // print(contents);
-
 
     for (std::string s: contents){
 
@@ -1058,73 +1013,132 @@ std::array <double,13> ExtractTopologyFromFile(std::string filename){
     	}
 
     	else if (std::regex_search(s, y)){
-    		double info = NumberExtractor(s); 
+    		info = NumberExtractor(s); 
     		info_vec[1] = info; 
     		continue; 
     	}
 
     	else if (std::regex_search(s, z)){
-    		double info = NumberExtractor(s); 
+    		info = NumberExtractor(s); 
     		info_vec[2] = info; 
     		continue; 
     	}
 
 		else if (std::regex_search(s, kT)){
-    		double info = NumberExtractor(s); 
+    		info = NumberExtractor(s); 
     		info_vec[3] = info ; 
     		continue; 
     	}
 
+    	else if (std::regex_search(s, m1_m1)){
+    		interaction_type = trim (split(s, ':')[1]);
+    		if (interaction_type == "isotropic" || interaction_type == "parallel" || interaction_type == "antiparallel"){
+    			p = std::make_pair ("m1", "m1");
+    			(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 0, 1);
+    		}
+    		else {
+    			std::cout << "\"" << s << "\"" << std::endl;
+    			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
+    			exit(EXIT_FAILURE);     			
+    		}
+    	}
+
+    	else if (std::regex_search(s, m1_s1)){
+
+    		interaction_type = trim (split(s, ':')[1]);
+    		if (interaction_type == "isotropic" || interaction_type == "parallel" || interaction_type == "antiparallel"){
+    			p = std::make_pair ("m1", "s1");
+    			(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 2, 3);
+    			p = std::make_pair ("s1", "m1") ;
+    			(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 2, 3);
+    		}
+    		else {
+    			std::cout << "\"" << s << "\"" << std::endl;
+    			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
+    			exit(EXIT_FAILURE); 
+    		}
+    	}
+
+    	else if (std::regex_search(s, m1_s2)){
+    		interaction_type = trim (split(s, ':')[1]);
+    		if (interaction_type == "isotropic" || interaction_type == "parallel" || interaction_type == "antiparallel"){
+	    		p = std::make_pair ("m1", "s2");
+	    		(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 4, 5);
+	    		p = std::make_pair ("s2", "m1");
+	    		(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 4, 5);	
+	    	}
+	    	else {
+    			std::cout << "\"" << s << "\"" << std::endl;
+    			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
+    			exit(EXIT_FAILURE); 	    		
+	    	}
+    	}
+
+    	else if (std::regex_search(s, s1_s2)){
+    		interaction_type = trim (split(s, ':')[1]);
+    		if (interaction_type == "isotropic" || interaction_type == "parallel" || interaction_type == "antiparallel"){
+	    		p = std::make_pair ("s1", "s2");
+	    		(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 6, 7);
+	    		p = std::make_pair ("s2", "s1");
+	    		(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 6, 7);	
+    		}
+    		else {
+    			std::cout << "\"" << s << "\"" << std::endl;
+    			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
+    			exit(EXIT_FAILURE); 	    
+    		}
+    	}
+
     	else if (std::regex_search (s, Emm_a)){
-    		double info = NumberExtractor(s); 
+    		info = NumberExtractor(s); 
     		info_vec[4] = info; 
     		continue; 
     	}
 
     	else if (std::regex_search (s, Emm_n)){
-    		double info = NumberExtractor(s); 
+    		info = NumberExtractor(s); 
     		info_vec[5] = info; 
     		continue; 
     	}
 
     	else if (std::regex_search (s, Ems1_a)){
-    		double info = NumberExtractor(s); 
+    		info = NumberExtractor(s); 
     		info_vec[6] = info; 
     		continue; 
     	}
 
     	else if (std::regex_search (s, Ems1_n)){
 
-    		double info = NumberExtractor(s);
+    		info = NumberExtractor(s);
     		info_vec[7] = info; 
     		continue;
     	}
     	else if (std::regex_search (s, Ems2_a)){
 
-    		double info = NumberExtractor(s);
+    		info = NumberExtractor(s);
     		info_vec[8] = info; 
     		continue;
     	}
     	else if (std::regex_search (s, Ems2_n)){
 
-    		double info = NumberExtractor(s);
+    		info = NumberExtractor(s);
     		info_vec[9] = info; 
     		continue;
     	}
     	else if (std::regex_search (s, Es1s2_a)){
 
-    		double info = NumberExtractor(s);
+    		info = NumberExtractor(s);
     		info_vec[10] = info; 
     		continue;
     	}
     	else if (std::regex_search (s, Es1s2_n)){
 
-    		double info = NumberExtractor(s);
+    		info = NumberExtractor(s);
     		info_vec[11] = info; 
     		continue;
     	}
     	else if (std::regex_search (s, frac)) {
-    		double info = NumberExtractor(s);
+    		info = NumberExtractor(s);
     		info_vec[12] = info;
     		continue; 
     	}
@@ -1142,6 +1156,33 @@ std::array <double,13> ExtractTopologyFromFile(std::string filename){
 
     }
 
+    p = std::make_pair ("m1", "m1");
+    std::get<1>((*InteractionMap)[p]) = info_vec[4];
+    std::get<2>((*InteractionMap)[p]) = info_vec[5];
+
+    p = std::make_pair ("m1", "s1");
+	std::get<1>((*InteractionMap)[p]) = info_vec[6];
+    std::get<2>((*InteractionMap)[p]) = info_vec[7];
+
+    p = std::make_pair ("s1", "m1");
+    std::get<1>((*InteractionMap)[p]) = info_vec[6];
+    std::get<2>((*InteractionMap)[p]) = info_vec[7];
+
+    p = std::make_pair ("m1", "s2");
+    std::get<1>((*InteractionMap)[p]) = info_vec[8];
+    std::get<2>((*InteractionMap)[p]) = info_vec[9];
+
+	p = std::make_pair ("s2", "m1");
+    std::get<1>((*InteractionMap)[p]) = info_vec[8];
+    std::get<2>((*InteractionMap)[p]) = info_vec[9];
+
+	p = std::make_pair ("s2", "s1");
+    std::get<1>((*InteractionMap)[p]) = info_vec[10];
+    std::get<2>((*InteractionMap)[p]) = info_vec[11];
+
+	p = std::make_pair ("s1", "s2");
+    std::get<1>((*InteractionMap)[p]) = info_vec[10];
+    std::get<2>((*InteractionMap)[p]) = info_vec[11];
 
     return info_vec;
 
@@ -1153,6 +1194,114 @@ std::array <double,13> ExtractTopologyFromFile(std::string filename){
 // End of ExtractTopologyFromFile
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+
+double TopologicalInfluencedNeighborEnergetics ( std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, const int, const int>>* InteractionMap, \
+	int ss_index, std::array <double, 8>* contacts ){
+
+	double   Ei = 0; 
+	(*contacts) = {0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ( (*LATTICE)[ss_index]->coords, x, y, z); 
+
+	for ( std::array <int,3>& loc: ne_list) {
+
+		TopologicalInfluencedEnergyContribution ((*LATTICE)[ss_index], (*LATTICE)[lattice_index (loc, y, z)], InteractionMap, &Ei, contacts);
+
+	}
+
+	return Ei; 
+
+}
+
+
+
+void TopologicalInfluencedEnergyContribution (Particle* p1, Particle* p2, \
+	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, const int, const int>>* InteractionMap, \
+	double* pair_energy, std::array <double,8>* contacts){
+
+	*pair_energy       = 0;
+	double dot_product = 0;
+	double theta_1     = 0;
+	double theta_2     = 0;
+	double magnitude   = 0;
+	std::array <int,3> connvec = {0, 0, 0};
+
+	std::pair particle_pair = std::make_pair (p1->ptype, p2->ptype); 
+
+	std::string interaction_type = std::get<0>((*InteractionMap)[particle_pair]);
+
+	if (interaction_type == "isotropic") {
+
+		if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
+			(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 0.5; 
+			*pair_energy += std::get<1>((*InteractionMap)[particle_pair])*0.5; 
+		}
+		else {
+			(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 	
+			*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 
+		}
+		// return pair_energy; 
+
+	}
+	else if (interaction_type == "parallel") {
+
+		dot_product = take_dot_product ( p1->orientation, p2->orientation );
+		if (dot_product > 0.54){
+			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
+				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 0.5; 
+				*pair_energy += std::get<1>((*InteractionMap)[particle_pair])*0.5; 
+			}
+			else {
+				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 	
+				*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 
+			}	
+		}
+		else {
+			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
+				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 0.5; 
+				*pair_energy += std::get<2>((*InteractionMap)[particle_pair])*0.5; 
+			}
+			else {
+				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 
+				*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 
+			}
+		}
+
+	}
+
+	else if (interaction_type == "antiparallel") {
+		connvec = subtract_arrays ( &(p2->coords), &(p1->coords) );
+		modified_direction ( &connvec, x, y, z); 
+		magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
+		theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+		theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+
+		if ( theta_1 + theta_2 > M_PI/2 ){
+			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
+				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 0.5; 
+				*pair_energy += std::get<1>((*InteractionMap)[particle_pair])*0.5; 
+			}
+			else {
+				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 	
+				*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 				
+			}
+		}
+		else {
+			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
+				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 0.5; 
+				*pair_energy += std::get<2>((*InteractionMap)[particle_pair])*0.5; 
+			}
+			else {
+				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 
+				*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 
+			}			
+		}
+	}
+
+	return; 
+
+}
 
 
 //==============================================================================================
@@ -2427,6 +2576,24 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
+//==============================================================================================
+//==============================================================================================
+//
+// Name of function: TopologicalEnergyCalculation
+// Parameters: Particle 1, Particle 2, InteractionMap, Energy, contacts, x, y, z
+// 
+// What it does: it looks at two particles next to one another, then calculates the energy of 
+// interaction. 
+//  
+
+
+//==============================================================================================
+//==============================================================================================
+//
+// Name of function: TopologicalEnergyComputation
+// 
+
+
 
 //==============================================================================================
 //==============================================================================================
@@ -2541,119 +2708,58 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 
 //==============================================================================================
 //==============================================================================================
-/*
-double CalculateEnergy_parallel (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z) {
+
+double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair <std::string, std::string>, std::string>* InteractionMap, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z) {
     
     double Energy {0.0};
     (*contacts) = {0,0,0,0,0,0,0,0}; 
-    int NCosolvent = static_cast<int>((*Cosolvent).size()); 
-    // start the set up for parallelized energy computation ... 
-    
-    omp_set_num_threads (NUM_THREADS); 
-    // these need to be updated for the whole thing to work! 
-    double energy_chunks[NUM_THREADS]; 
-    double contacts_aligned [NUM_THREADS]; 
-    double contacts_naligned [NUM_THREADS]; 
-    std::array <double,8> c_contacts = *contacts; 
 
-    #pragma omp parallel 
-    { // %%%%%%%%% start of pragma %%%%%%%%%%%
-    int id, dummy_idx, nthrds;
-    id = omp_get_thread_num();  
-    nthrds = omp_get_num_threads();  
-    energy_chunks[id]=0.0; 
-    contacts_naligned[id]=0.0; 
-    contacts_aligned[id]=0.0;
-    
-    // reinitializing a bunch of new variables for locking interaction 
-    std::array <int, 3> connvec_p; 
-    double invmagnitude_p {0}; 
-    double theta_1_p   {0}; 
-    double theta_2_p   {0}; 
-    std::array <double,8> E_ = *E;  
-    double dot_product_p   = -2; 
+    double             dot_product   = -2; 
+    std::array <int,3> connvec       = {0,0,0}; 
+    double             theta_1       = 0; 
+    double             theta_2       = 0; 
+    double             magnitude     = 0; 
+
     std::array <std::array <int,3>, 26> ne_list; 
-    
-    if (id == 0) {
-    // do the polymer loop 
-        energy_chunks [0] = 0.0; 
-        for ( Polymer& pmer: (*Polymers) ) {
-            for ( Particle*& p: pmer.chain ) {
-                ne_list = obtain_ne_list(p->coords, x, y, z); 
-                for ( std::array <int,3>& loc: ne_list ) {
-            	    dot_product_p = take_dot_product (  p->orientation, (*LATTICE)[ lattice_index(loc, y, z) ]->orientation );
-            	    if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1"){
-            		    // m-m interactions
 
-            		    if (dot_product_p > 0.54){
-            			    energy_chunks[0] += 0.5* (E_)[0];
-            			    (c_contacts)[0]   += 0.5;
-            		    }
-            		    else {
-            			    energy_chunks[0] += 0.5* (E_)[1];
-            			    (c_contacts)[1]  += 0.5;
-            		    }
-            	    }
-            	    else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s1" ){ 
-            		    // m-s1 interactions 
-            		    if (dot_product_p > 0.54){
-            			    energy_chunks[0] += E_[2];
-            			    (c_contacts)[2] += 1;
-            		    }
-            		    else {
-            			    energy_chunks[0] += E_[3]; 
-            			    (c_contacts)[3]  += 1;
-            		    }
-            	    }
+    // run energy computations for every monomer bead 
+    // m-m  = stacking interaction
+    // m-s1 = stacking interaction 
+    // m-s2 = isotropic interaction 
+    // auto start = std::chrono::high_resolution_clock::now();
 
-            	    else {
-					    // m-s2 interactions 
-            		    energy_chunks[0] += (E_)[4]; 
-            		    (c_contacts)[4] += 1; 
-            	    }
-                }
-            }
+    for (Polymer& pmer: (*Polymers)) {
+        for (Particle*& p: pmer.chain){
+            ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
+            for ( std::array <std::array <int,3>, 26>& loc: ne_list){
+            	TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts)
+        	}
         }
     }
 
-    for (dummy_idx=id; dummy_idx<NCosolvent; dummy_idx = dummy_idx+nthrds) {
-        ne_list = obtain_ne_list ((*Cosolvent)[dummy_idx]->coords, x, y, z);
-        for ( std::array <int,3>& loc: ne_list ) {
-            if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2" ) {
-                continue; 
-            }
-            else {
-    		connvec_p   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &( (*Cosolvent)[dummy_idx]->coords) );
-    		modified_direction ( &connvec_p, x, y, z); 
-    		invmagnitude_p = 1/std::sqrt (connvec_p[0]*connvec_p[0]+connvec_p[1]*connvec_p[1]+connvec_p[2]*connvec_p[2]); 
-    		theta_1_p = std::acos (take_dot_product ( scale_arrays(invmagnitude_p, &connvec_p) , Or2Dir[(*Cosolvent)[dummy_idx]->orientation] ) ); 
-    		theta_2_p = std::acos (take_dot_product ( scale_arrays(-invmagnitude_p, &connvec_p), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
-                
-                if ( theta_1_p + theta_2_p > M_PI/2 ) {
-                    energy_chunks [id] += E_[7]; // naligned_energy;
-                    contacts_naligned [id] += 1;
-                }
-                else {
-                    energy_chunks [id] += E_[6]; // aligned_energy;
-                    contacts_aligned [id] += 1; 
-                }
-            }
-        }
-    }
-    } //%%%%%%%%%%% end of pragma %%%%%%%%%%%%
-    for (int i{0}; i<6; ++i) {
-        (*contacts)[i] = c_contacts[i]; 
-    }
     
-    for ( int i{0}; i<NUM_THREADS; ++i) {
-        Energy += energy_chunks[i];
-        (*contacts)[6] += contacts_aligned[i];
-        (*contacts)[7] += contacts_naligned[i];
+    
+    for ( Particle*& p: *Cosolvent ){
+
+		ne_list = obtain_ne_list ( p->coords, x, y, z );
+		for ( std::array <int,3>& loc: ne_list ){
+
+			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
+				continue; 
+			}
+
+			TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts);
+
+		}
     }
+
+    // stop = std::chrono::high_resolution_clock::now(); 
+    // duration = std::chrono::duration_cast <std::chrono::microseconds> (stop-start); 
+    // std::cout << "solvent energy computation took " << duration.count() << " microseconds. " << std::endl;
     
     return Energy; 
 }
-*/
+
 //==============================================================================================
 //==============================================================================================
 

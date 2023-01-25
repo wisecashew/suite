@@ -30,6 +30,9 @@ bool acceptance(int dE, double kT);
 // sending a string to a file
 void StringToFile(std::string filename, std::string to_send);
 
+// splitting up a string into components separated by a delimiter
+std::vector<std::string> split (const std::string &s, char delim);
+
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // imposing modified modulo methods 
 void   modified_direction (std::array<int,3>* a, int x, int y, int z);
@@ -173,7 +176,7 @@ std::vector <Polymer>    ExtractPolymersFromTraj    (std::string trajectory, std
 int                      ExtractIndexOfFinalMove    (std::string trajectory);
 double                   ExtractEnergyOfFinalMove   (std::string energy_file); 
 int                      ExtractNumberOfPolymers    (std::string filename);
-std::array <double, 13>  ExtractTopologyFromFile    (std::string filename);
+std::array <double, 13>  ExtractTopologyFromFile    (std::string filename, std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double>>* InteractionMap); 
 std::vector <Particle*>  ExtractLatticeFromRestart  (std::string rfile, int* step_num, int x, int y, int z);
 double                   NumberExtractor            (std::string s);
 

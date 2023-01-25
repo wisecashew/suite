@@ -51,8 +51,8 @@ int main (int argc, char** argv) {
 		case 'h':
 			std::cout << 
 			"\n" << 
-			"Welcome to my Monte Carlo simulation engine (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
-			"Last updated: Sep 26, 2022, 11:29. \n" << 
+			"Welcome to my [M]onte [C]arlo [Latt]ice [E]ngine [McLattE] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
+			"Last updated: Jan 25, 2023, 02:46 PM. \n" << 
 			"Author: satyend@princeton.edu \n" <<
 			"\n" << 
 			"----------------------------------------------------------------------------------------------------------------------------------\n" << 
@@ -150,6 +150,7 @@ int main (int argc, char** argv) {
     int    move_number    {0};  
     double sysEnergy      {0};
     bool   IMP_BOOL       {true}; 
+    std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double> > InteractionMap; 
 
     std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
@@ -167,7 +168,7 @@ int main (int argc, char** argv) {
     const int N = ExtractNumberOfPolymers(positions); 
     
     // EXTRACT TOPOLOGY FROM FILE 
-    std::array <double,13> info_vec {ExtractTopologyFromFile(topology)}; 
+    std::array <double,13> info_vec {ExtractTopologyFromFile(topology, &InteractionMap)}; 
 
     // info_vec is the vector with all the information that constitutes the toplogy of the simulation
     // assign values from info vec to relevant variables 
@@ -177,7 +178,15 @@ int main (int argc, char** argv) {
     const double T          =  info_vec[3] ; 
     const double frac       =  info_vec[12]; 
     std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
-    
+
+
+    std::cout << "Printing out InteractionMap..." << std::endl; 
+    std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double>>::iterator it; 
+    for (it = InteractionMap.begin(); it != InteractionMap.end(); it++){
+        std::cout << "key = (" << (it->first).first << ", " << (it->first).second <<"), value = " << "(" << std::get<0>(it->second) << ", " << std::get<1>(it->second) << ", " << std::get<2>(it->second) << ")" << std::endl;
+    }
+
+    exit (EXIT_SUCCESS);
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
@@ -204,8 +213,9 @@ int main (int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
-    std::cout << "Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ", Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
+    std::cout << "Fraction of Solvent 2 = " << frac << "." << std::endl;
+    std::cout << "Monomer-Monomer energetics: Emm_a = "  << E[0] <<", Emm_n = "  << E[1] << ".\nMonomer-Solvent I energetics: Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
+    std::cout << "Monomer-Solvent II energetics: Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ".\nSolvent I-Solvent II energetics: Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 

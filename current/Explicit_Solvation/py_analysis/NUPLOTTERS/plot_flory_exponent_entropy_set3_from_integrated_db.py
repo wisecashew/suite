@@ -16,6 +16,7 @@ import aux
 import multiprocessing 
 import itertools
 from sklearn.linear_model import LinearRegression 
+import matplotlib.patheffects as pe
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -74,6 +75,10 @@ if __name__ == "__main__":
 		i += 1
 	stop = time.time() 
 	
+	ax.axhline ( y=0.12, color='midnightblue', linestyle='--', markeredgecolor='k')
+	ax.axhline ( y=0.56, color='darkred' , linestyle='--', markeredgecolor='k')
+	# ax.axhline ( y=0.12, color='steelblue', linewidth=3/1.3, marker='_', mec='k')
+	# ax.axhline ( y=0.56, color='darkred',   linewidth=3/1.3, marker='_', mec='k')
 	ax.set_xscale('log')
 	yticks = np.arange(0.0, 0.9, 0.1) 
 	ax.set_yticks ( yticks )

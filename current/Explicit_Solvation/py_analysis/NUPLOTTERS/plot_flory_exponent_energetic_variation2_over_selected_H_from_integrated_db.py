@@ -6,6 +6,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
+import matplotlib.ticker as tck
 import pandas as pd
 import os
 import time 
@@ -37,15 +38,26 @@ import argparse
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('--integrated-database', dest='df', metavar='df', action='store', type=str, help='Name of dump file.')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
+parser.add_argument('-H', dest='H', action='store', nargs='+', type=float, help='enter enthalpies.')
 args = parser.parse_args() 
 
-divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
+grey_norm  = matplotlib.colors.SymLogNorm ( 0.001, vmin=-0.1, vmax=0 ) 
+green_norm = matplotlib.colors.Normalize  ( vmin=-3.0, vmax=-0.1 ) 
+
+def color_finder (H_mix):
+	if H_mix <= -0.1:
+		return cm.Greens_r (green_norm (H_mix) )
+	elif H_mix >-0.1:
+		return cm.Greys (grey_norm (H_mix) )
 
 if __name__ == "__main__":
-	print ("It's FLORY-EXPONENTS-1-20_SET_COMBINED.csv for this regime.", flush=True)
 	start = time.time()
 	##################################
-	U_list = aux.dir2U ( os.listdir (".") )
+	
+	U_list = aux.dir2U(os.listdir("."))
+	frac_list = []
+	for U in U_list:
+		frac_list . append( aux.get_frac (U + "/geom_and_esurf.txt") )
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	plt.rcParams["axes.labelweight"] = "bold"
@@ -53,43 +65,36 @@ if __name__ == "__main__":
 	ax.tick_params(axis='x', labelsize=8)
 	ax.tick_params(axis='y', labelsize=8)
 	ax.set (autoscale_on=False)
-	aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
-	i = 0 
-
-	##################################
-	chi_list = [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
-	df = pd.read_csv (args.df, sep='|')
+	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.coolwarm, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0
-	temperatures = [0.01, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] 
-	df = df[df["T"].isin (temperatures)]
 	
-	print (U_list)
-	for U in U_list:
-		rgba_color = cm.PiYG (divnorm(chi_list[i]))
-		nu = df.loc[df["U"] == U]
-		nu_averaged = nu["nu_mean"]/2
-		nu_err      = nu["nu_err" ]/2
-		ax.errorbar (temperatures, nu_averaged, yerr = nu_err, ecolor='k', linewidth=0)
-		ax.plot(temperatures, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
+	##################################
+	df = pd.read_csv (args.df, sep='|')
+	enthalpies = args.H
+	print (enthalpies)
+	i = 0
+	for H in enthalpies:
+		rgba_color = color_finder ( H )
+		nu = df.loc[df["H"] == H]
+		ax.errorbar(frac_list, nu["nu_mean"]/2, yerr=nu["nu_err"]/2, linewidth=1/1.3, capsize=2, color=rgba_color, \
+		ecolor='k', fmt='none', label='_nolegend_')
+		ax.plot(frac_list, nu["nu_mean"]/2, linewidth=3/2, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-', c=rgba_color)
 		i += 1
 	stop = time.time()
 	
-	# ax.axhline ( y=0.12, color='steelblue', linewidth=3/1.3, linestyle='--')
-	# ax.axhline ( y=0.56, color='darkred',   linewidth=3/1.3, linestyle='--')
-	ax.axhline ( y=0.12, color='midnightblue', linestyle='--', mec='k')
-	ax.axhline ( y=0.56, color='darkred',   linestyle='--', mec='k')
-	ax.set_xscale('log')
-	ax.set_xlim   ( 0.008, 125 )
-	ax.set_xticks (np.logspace(-2, 2, 5))
-	ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
 	yticks = np.arange(0.0, 0.9, 0.1) 
-	ax.set_yticks ( yticks ) 
-	ax.set_yticklabels (ax.get_yticks(), weight="bold")
+	ax.set_yticks ( yticks )
+	ax.set_xticks (np.linspace(0, 1, 6))
 	ax.set_ylim   ( 0.0, 0.8 )
+	ax.set_xlim   ( -0.03, 1.03 )
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	ax.yaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter('{x:1.1f}') )
-	ax.set_aspect ('auto')
+	ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
+	ax.set_aspect('auto')
+	ax.set_xticklabels (ax.get_xticks(), weight='bold') 
+	ax.set_yticklabels (ax.get_yticks(), weight='bold') 
+	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
+	ax.xaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)
 

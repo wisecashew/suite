@@ -8,10 +8,10 @@
 #include <chrono>
 #include "misc.h"
 #include "classes.h"
-#include <sstream>
-#include <fstream>
+#include <sstream>    
+#include <fstream> 
 #include <regex>
-#include <tuple>
+#include <tuple> 
 #include <array>
 #include <iterator>
 #include <utility>
@@ -1040,7 +1040,9 @@ std::array <double,13> ExtractTopologyFromFile(std::string filename){
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
     std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm_a ("Emm_a"),\
-    Emm_n ("Emm_n"), Ems1_a ("Ems1_a"), Ems1_n ("Ems1_n"), Ems2_a ("Ems2_a"), Ems2_n ("Ems2_n"), Es1s2_a("Es1s2_a"), Es1s2_n ("Es1s2_n"), \
+    Emm_n ("Emm_n"), Ems1_a ("Ems1_a"), Ems1_n ("Ems1_n"), Ems2_a ("Ems2_a"), \
+    Ems2_n ("Ems2_n"), Es1s2_a("Es1s2_a"), Es1s2_n ("Es1s2_n"), \
+    m1_m1 ("m1-m1"), m1_s1 ("m1-s1"), m1_s2 ("m1-s2"), s1_s2 ("s1-s2"),\
     frac ("frac"), eof ("END OF FILE"); 
     //bool out_mat = true; 
 
@@ -2460,8 +2462,8 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     // m-m  = stacking interaction
     // m-s1 = stacking interaction 
     // m-s2 = isotropic interaction 
-	std::cout << "Is this being hit?" << std::endl;
-    // auto start = std::chrono::high_resolution_clock::now(); 
+    // auto start = std::chrono::high_resolution_clock::now();
+
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
             ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
@@ -2491,9 +2493,9 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 			}
 		}
 		else {
-			Energy += (*E)[4]; 
-			(*contacts)[4] += 1; 
-			// (*contacts)[5] += 1; 
+			Energy += (*E)[4];
+			(*contacts)[4] += 1;
+			// (*contacts)[5] += 1;
 		}
             }
         }
@@ -2502,19 +2504,19 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     
     for ( Particle*& p: *Cosolvent ){
 
-    	ne_list = obtain_ne_list ( p->coords, x, y, z );
-    	for ( std::array <int,3>& loc: ne_list ){
+	ne_list = obtain_ne_list ( p->coords, x, y, z );
+	for ( std::array <int,3>& loc: ne_list ){
 
-    		if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
-    			continue; 
-    		}
-    		else {
-    			// std::cout << "location of s1 neighbor is "; print ( loc, ", " );
-    			connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(p->coords) );
-    			modified_direction ( &connvec, x, y, z); 
-    			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-    			theta_1 = std::acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[p->orientation] ) ); 
-    			theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
+		if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
+			continue; 
+		}
+		else {
+			// std::cout << "location of s1 neighbor is "; print ( loc, ", " );
+			connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(p->coords) );
+			modified_direction ( &connvec, x, y, z); 
+			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
+			theta_1 = std::acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[p->orientation] ) ); 
+			theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
 
 			if ( theta_1+theta_2 > M_PI/2 ){
 					Energy += (*E)[7]; 
@@ -2893,7 +2895,7 @@ double PairEnergy (Particle* p1, Particle* p2, std::array <double,8>* E, int* c_
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of calculateEnergy. 
+//             End of calculateEnergy.
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
@@ -2902,7 +2904,7 @@ double PairEnergy (Particle* p1, Particle* p2, std::array <double,8>* E, int* c_
 //==============================================================================================
 //==============================================================================================
 //
-// NAME OF FUNCTION: dumpPositionsOfPolymers 
+// NAME OF FUNCTION: dumpPositionsOfPolymers
 //
 // PARAMETERS: (int step, std::string filename), and some attributes present in the Grid Object 
 // 'step' is the current time step we are at. This is an integer which is likely defined in the driver code.  

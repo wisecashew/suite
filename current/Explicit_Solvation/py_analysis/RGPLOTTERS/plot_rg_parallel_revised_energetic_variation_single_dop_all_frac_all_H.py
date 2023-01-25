@@ -69,8 +69,7 @@ if __name__ == "__main__":
         return float(new_str)
     
     U_list = aux.dir2U ( os.listdir (".") )
-    print (U_list)
-    # U_list = ["U1", "U2", "U3", "U7", "U8", "U9", "U10", "U11", "U12", "U16", "U17"]
+    print (U_list, flush=True)
     PLOT_DICT = {} 
     dop            = args.dop
     coords_files   = args.c
@@ -178,7 +177,7 @@ if __name__ == "__main__":
     print (enthalpies)
     for H in enthalpies:
         ax.errorbar ( frac_list, PLOT_DICT[H][0]/rg_max, yerr= PLOT_DICT[H][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
-        ax.plot     ( frac_list, PLOT_DICT[H][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=3/2, c=cm.Spectral(divnorm(H)), label='_nolegend_', markersize=4 ) 
+        ax.plot     ( frac_list, PLOT_DICT[H][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=3/2, c=cm.summer(divnorm(H)), label='_nolegend_', markersize=4 ) 
         i += 1
 
     #########

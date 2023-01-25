@@ -27,6 +27,7 @@ parser = argparse.ArgumentParser(description="Go into lattice dump and get conta
 parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
 parser.add_argument('-T', dest='T', action='store', nargs='+', type=float, help='Enter enthalpies you want plotted.')
 parser.add_argument('-nproc', metavar='N', type=int, dest='nproc', action='store', help='Request these many proccesses.')
+parser.add_argument('--csv-name', type=str, dest='cn', action='store', help='Enter name of database.')
 args = parser.parse_args() 
 
 ######################################################
@@ -70,12 +71,21 @@ def get_contacts (U, dop, T, num):
 
 	
 	df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/"+str(T)+"/energydump_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0) 
-	mm_contacts   = df["mm_tot"].values[-2000:]
-	ms1_contacts  = df["ms1_tot"].values[-2000:]
-	ms2_contacts  = df["ms2_tot"].values[-2000:]
-	s1s2_contacts = df["ms1s2_tot"].values[-2000:]
+	mm_contacts    = df["mm_tot"].values[-2000:]
+	mma_contacts   = df["mm_aligned"].values[-2000:]
+	mmn_contacts   = df["mm_naligned"].values[-2000:]
+	ms_contacts    = df["ms1_tot"].values[-2000:] + df["ms2_tot"].values[-2000:]
+	ms1_contacts   = df["ms1_tot"].values[-2000:]
+	ms1a_contacts  = df["ms1_aligned"].values[-2000:]
+	ms1n_contacts  = df["ms1_naligned"].values[-2000:]
+	ms2_contacts   = df["ms2_tot"].values[-2000:]
+	ms2a_contacts  = df["ms2_aligned"].values[-2000:]
+	ms2n_contacts  = df["ms2_naligned"].values[-2000:]
+	s1s2_contacts  = df["ms1s2_tot"].values[-2000:]
+	s1s2a_contacts = df["ms1s2_aligned"].values[-2000:]
+	s1s2n_contacts = df["ms1s2_naligned"].values[-2000:]
 
-	return np.array([np.mean(mm_contacts), np.mean(ms1_contacts), np.mean(ms2_contacts), np.mean(s1s2_contacts)])
+	return np.array([np.mean(mm_contacts), np.mean(mma_contacts), np.mean(mmn_contacts), np.mean(ms_contacts), np.mean(ms1_contacts), np.mean(ms1a_contacts), np.mean (ms1n_contacts), np.mean(ms2_contacts), np.mean(ms2a_contacts), np.mean(ms2n_contacts), np.mean(s1s2_contacts), np.mean(s1s2a_contacts), np.mean(s1s2n_contacts)])
 
 #######################################################################
 #######################################################################
@@ -85,22 +95,32 @@ if __name__=="__main__":
 	
 	start = time.time()
 	U_list = aux.dir2U (os.listdir("."))
+	print (U_list)
 	dop = args.dop
 	temperatures = [float(elem) for elem in args.T]
 	temperatures.sort()
-
+	pd.options.display.float_format = '{:,.2f}'.format
 	i = 0
 	nproc = args.nproc
 	pool= multiprocessing.Pool (processes=nproc)
 	CONTACTS_DICT = {}
 
 	for T in temperatures:
-		CONTACTS_DICT["T"] = []
-		CONTACTS_DICT["x"] = []
-		CONTACTS_DICT["M1-M1"] = []
-		CONTACTS_DICT["M1-S1"] = []
-		CONTACTS_DICT["M1-S2"] = []
-		CONTACTS_DICT["S1-S2"] = []
+		CONTACTS_DICT["T"]       = []
+		CONTACTS_DICT["x"]       = []
+		CONTACTS_DICT["M1-M1"]   = []
+		CONTACTS_DICT["M1-M1-A"] = []
+		CONTACTS_DICT["M1-M1-N"] = []
+		CONTACTS_DICT["M1-S"]    = []
+		CONTACTS_DICT["M1-S1"]   = []
+		CONTACTS_DICT["M1-S1-A"] = []
+		CONTACTS_DICT["M1-S1-N"] = []
+		CONTACTS_DICT["M1-S2"]   = []
+		CONTACTS_DICT["M1-S2-A"] = []
+		CONTACTS_DICT["M1-S2-N"] = []
+		CONTACTS_DICT["S1-S2"]   = []
+		CONTACTS_DICT["S1-S2-A"] = []
+		CONTACTS_DICT["S1-S2-N"] = []
 		print ( "We are in T = "+str(T)+", and N = " + str(dop) + "...", flush=True)
 		frac_list         = []
 		master_U_list     = []
@@ -127,25 +147,34 @@ if __name__=="__main__":
 				results = pool.starmap ( get_contacts, zip( master_U_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(dop), itertools.repeat(T), master_num_list[u_idx*nproc:(u_idx+1)*nproc] ) )
 			
 			print ( "Pool has been closed. This pool had {} threads.".format (len(results) ), flush=True )
-		
+
 			for k in range( len( master_U_list[u_idx*nproc:(u_idx+1)*nproc] ) ):
 				contacts_dict[master_U_list[u_idx*nproc+k]].append (results[k])
 
-		sorted_U_list = list (np.unique (master_U_list))
-		sorted_U_list.sort(key=mysorter_f)
+		sorted_U_list = U_list # list (np.unique (master_U_list))
+		# sorted_U_list.sort(key=mysorter_f)
 		CONTACTS_DICT["T"].extend( [T]*len(sorted_U_list) )
 		CONTACTS_DICT["x"].extend( frac_list )
 		for U in sorted_U_list:
 			CONTACTS_DICT["M1-M1"].append ( np.mean( np.array (contacts_dict[U])[:,0] ) )
-			CONTACTS_DICT["M1-S1"].append ( np.mean( np.array (contacts_dict[U])[:,1] ) )
-			CONTACTS_DICT["M1-S2"].append ( np.mean( np.array (contacts_dict[U])[:,2] ) )
-			CONTACTS_DICT["S1-S2"].append ( np.mean( np.array (contacts_dict[U])[:,3] ) )
+			CONTACTS_DICT["M1-M1-A"].append ( np.mean( np.array (contacts_dict[U])[:,1] ) )
+			CONTACTS_DICT["M1-M1-N"].append ( np.mean( np.array (contacts_dict[U])[:,2] ) )
+			CONTACTS_DICT["M1-S"].append ( np.mean( np.array (contacts_dict[U])[:,3] ) )
+			CONTACTS_DICT["M1-S1"].append ( np.mean( np.array (contacts_dict[U])[:,4] ) )
+			CONTACTS_DICT["M1-S1-A"].append ( np.mean( np.array (contacts_dict[U])[:,5] ) )
+			CONTACTS_DICT["M1-S1-N"].append ( np.mean( np.array (contacts_dict[U])[:,6] ) )
+			CONTACTS_DICT["M1-S2"].append ( np.mean( np.array (contacts_dict[U])[:,7] ) )
+			CONTACTS_DICT["M1-S2-A"].append ( np.mean( np.array (contacts_dict[U])[:,8] ) )
+			CONTACTS_DICT["M1-S2-N"].append ( np.mean( np.array (contacts_dict[U])[:,9] ) )
+			CONTACTS_DICT["S1-S2"].append ( np.mean( np.array (contacts_dict[U])[:,10] ) )
+			CONTACTS_DICT["S1-S2-A"].append ( np.mean( np.array (contacts_dict[U])[:,11] ) )
+			CONTACTS_DICT["S1-S2-N"].append ( np.mean( np.array (contacts_dict[U])[:,12] ) )
 
 	pool.close()
 	pool.join ()
 
 	df = pd.DataFrame.from_dict (CONTACTS_DICT)
-	df.to_csv ("INTEGRATED-DATABASE-CONTACTS.csv", sep='|', index=False)
+	df.to_csv (args.cn, sep='|', index=False)
 	stop = time.time()
 	print ("Time to get the contacts database is " + str(stop-start) + " seconds.", flush=True)
 

@@ -75,7 +75,10 @@ if __name__ == "__main__":
 		label="_nolabel_", linestyle='-', c=rgba_color)
 		i += 1
 	stop = time.time() 
-	
+	# ax.axhline ( y=0.12, color='steelblue', linewidth=3/1.3, linestyle='--')
+	# ax.axhline ( y=0.56, color='darkred',   linewidth=3/1.3, linestyle='--')
+	ax.axhline ( y=0.12, color='midnightblue', linestyle='--', markeredgecolor='k')
+	ax.axhline ( y=0.56, color='darkred' , linestyle='--', markeredgecolor='k')
 	ax.set_xscale('log')
 	yticks = np.arange(0.0, 0.9, 0.1) 
 	ax.set_yticks ( yticks )

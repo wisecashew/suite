@@ -38,17 +38,27 @@ import argparse
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('--integrated-database', dest='df', metavar='df', action='store', type=str, help='Name of dump file.')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
-# parser.add_argument('-T', dest='T', action='store', nargs='+', type=float, help='Temperatures.')
 args = parser.parse_args() 
 
-divnorm = matplotlib.colors.Normalize (vmin=-3, vmax=0)
+# divnorm = matplotlib.colors.Normalize (vmin=-3, vmax=0)
+grey_norm  = matplotlib.colors.SymLogNorm ( 0.001, vmin=-0.1, vmax=0 ) 
+green_norm = matplotlib.colors.Normalize  ( vmin=-3.0, vmax=-0.1 ) 
+
+def color_finder (H_mix):
+	if H_mix <= -0.1:
+		return cm.Greens_r (green_norm (H_mix) )
+	elif H_mix >-0.1:
+		return cm.Greys (grey_norm (H_mix) )
 
 if __name__ == "__main__":
 	start = time.time()
 	##################################
 
 	# temps = args.T # aux.dir2U ( os.listdir (".") )
-	frac_list = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+	U_list = aux.dir2U(os.listdir("."))
+	frac_list = []
+	for U in U_list:
+		frac_list .append( aux.get_frac (U + "/geom_and_esurf.txt") )
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	plt.rcParams["axes.labelweight"] = "bold"
@@ -59,13 +69,13 @@ if __name__ == "__main__":
 	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.coolwarm, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0 
 	##################################
-	df = pd.read_csv (args.df, sep='|')
-	enthalpies = np.unique (df["H"])
+	df = pd.read_csv (args.df, sep='|', header=0)
+	print (df.columns)
+	enthalpies = np.unique(df["H"])
 	print (enthalpies)
 	i = 0
 	for H in enthalpies:
-		rgba_color = cm.Wistia (divnorm(H))
-		print (H)
+		rgba_color = color_finder (H) # cm.Wistia (divnorm(H))
 		nu = df.loc[df["H"] == H]
 		ax.errorbar(frac_list, nu["nu_mean"]/2, yerr=nu["nu_err"]/2, linewidth=1/1.3, capsize=2, color=rgba_color, \
 		ecolor='k', fmt='none', label='_nolegend_')

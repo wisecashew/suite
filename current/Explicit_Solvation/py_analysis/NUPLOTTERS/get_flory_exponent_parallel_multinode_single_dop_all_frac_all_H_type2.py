@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     U_list = aux.dir2U ( os.listdir (".") )
     DB_DICT = {} 
-    DB_DICT["U"]  = []
+    DB_DICT["x"]  = []
     DB_DICT["H"]  = []
     DB_DICT["nu_mean"] = []
     DB_DICT["nu_err"  ] = []
@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
 
         for U in U_list:
-            DB_DICT["U"].append (U)
+            DB_DICT["x"].append ( aux.get_frac(U+"/geom_and_esurf.txt") )
             DB_DICT["H"].append (H)
             DB_DICT["nu_mean"].append (np.mean(y_dict[U]) )
             DB_DICT["nu_err" ].append (np.std(y_dict[U]) / np.sqrt( len( y_dict[U] ) ) )

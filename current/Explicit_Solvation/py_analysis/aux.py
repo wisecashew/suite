@@ -347,11 +347,11 @@ def dir2enthalpies (list_of_dirs):
 def dir2U (list_of_dirs):
     l = [] 
     for dir_name in list_of_dirs:
-        if (re.match("^U\d+$", dir_name)):
+        if (re.match("^U\d+$|^U\d+\.\d+$", dir_name)):
             l.append(dir_name)
     
     l.sort()  
-    l = sorted(l, key=lambda x: int(x[1:]) )
+    l = sorted(l, key=lambda x: float(x[1:]) )
     return l
 
 # End of function.
@@ -537,7 +537,6 @@ def get_pdict(filename, starting_step, dop, x, y, z):
         elif ( starting_bool ):
             # print ( "step_num is " + str(step_num) )
             monomer_coords                   = extract_loc_from_string ( line ) 
-            
             try:
                 master_dict[step_num][pmer_flag][m_index] = monomer_coords[0:-1] 
             except KeyError: 

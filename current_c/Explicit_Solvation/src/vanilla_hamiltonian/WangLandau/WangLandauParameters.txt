@@ -1,6 +1,0 @@
-Emin     = -500
-Emax     = 0
-NBins    = 25
-Flatness = 0.8
-f        = 1.5
-END OF FILE

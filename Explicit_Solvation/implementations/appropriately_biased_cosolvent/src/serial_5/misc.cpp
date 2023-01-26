@@ -1276,22 +1276,22 @@ void TopologicalInfluencedEnergyContribution (Particle* p1, Particle* p2, \
 
 		if ( theta_1 + theta_2 > M_PI/2 ){
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
-				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 0.5; 
-				*pair_energy += std::get<1>((*InteractionMap)[particle_pair])*0.5; 
-			}
-			else {
-				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 	
-				*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 				
-			}
-		}
-		else {
-			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
 				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 0.5; 
 				*pair_energy += std::get<2>((*InteractionMap)[particle_pair])*0.5; 
 			}
 			else {
-				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 
-				*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 
+				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 	
+				*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 				
+			}
+		}
+		else {
+			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
+				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 0.5; 
+				*pair_energy += std::get<1>((*InteractionMap)[particle_pair])*0.5; 
+			}
+			else {
+				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
+				*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 
 			}			
 		}
 	}
@@ -2651,32 +2651,32 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     
     for ( Particle*& p: *Cosolvent ){
 
-	ne_list = obtain_ne_list ( p->coords, x, y, z );
-	for ( std::array <int,3>& loc: ne_list ){
+		ne_list = obtain_ne_list ( p->coords, x, y, z );
+		for ( std::array <int,3>& loc: ne_list ){
 
-		if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
-			continue; 
-		}
-		else {
-			// std::cout << "location of s1 neighbor is "; print ( loc, ", " );
-			connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(p->coords) );
-			modified_direction ( &connvec, x, y, z); 
-			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-			theta_1 = std::acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[p->orientation] ) ); 
-			theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
+			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
+				continue; 
+			}
+			else {
+				// std::cout << "location of s1 neighbor is "; print ( loc, ", " );
+				connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(p->coords) );
+				modified_direction ( &connvec, x, y, z); 
+				magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
+				theta_1 = std::acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[p->orientation] ) ); 
+				theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
 
-			if ( theta_1+theta_2 > M_PI/2 ){
-					Energy += (*E)[7]; 
-					(*contacts)[7] += 1; 
-					
-				}
+				if ( theta_1+theta_2 > M_PI/2 ){
+						Energy += (*E)[7]; 
+						(*contacts)[7] += 1; 
+						
+					}
 				else {
 					// locked or aligned
 					Energy += (*E)[6]; 
 					(*contacts)[6] += 1;
 				}
+			}
 		}
-	}
     }
 
     // stop = std::chrono::high_resolution_clock::now(); 

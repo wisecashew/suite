@@ -219,6 +219,7 @@ int main (int argc, char** argv) {
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
+
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     
     // set timers for simulation set-up.  
@@ -241,8 +242,7 @@ int main (int argc, char** argv) {
             BiasTheStart (&Polymers, &LATTICE, x, y, z);
         }
 
-        // CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
-
+        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
 
@@ -258,8 +258,7 @@ int main (int argc, char** argv) {
         CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
         
         std::cout << "System set-up took " << duration.count () << " microseconds." << std::endl;
-        std::cout << "Simulation cell has been made! \n\n" ;
-
+        std::cout << "Simulation cell has been made! \n\n";
     }
 
 
@@ -367,11 +366,11 @@ int main (int argc, char** argv) {
     std::cout << "\n\nTime taken for simulation: " << duration.count()/1e+06 << " seconds.\n"; 
     std::cout << "That is all she wrote. Hope it worked." << std::endl;
     std::cout << "--------------------------------------------------------------------\n\n";
-    
+
     for (int i{0}; i<x*y*z; ++i) {
         delete LATTICE[i];
     }
-    
+
     return 0;
-    
+
 }

@@ -1198,23 +1198,27 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 
-double TopologicalInfluencedNeighborEnergetics ( std::vector <Particle*>* LATTICE, \
+double NeighborEnergetics ( std::vector <Particle*>* LATTICE, \
 	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
-	int ss_index, std::array <double, 8>* contacts, int x, int y, int z ){
+	std::array <double, 8>* contacts, int ss_index, int x, int y, int z ){
 
 	double   Ei = 0; 
 	(*contacts) = {0, 0, 0, 0, 0, 0, 0, 0};
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ( (*LATTICE)[ss_index]->coords, x, y, z); 
 
 	for ( std::array <int,3>& loc: ne_list) {
-		TopologicalInfluencedEnergyContribution ((*LATTICE)[ss_index], (*LATTICE)[lattice_index (loc, y, z)], InteractionMap, &Ei, contacts, x, y, z);
+		ParticlePairEnergyContribution ((*LATTICE)[ss_index], (*LATTICE)[lattice_index (loc, y, z)], InteractionMap, &Ei, contacts, x, y, z);
 	}
 
 	return Ei; 
 
 }
 
-void TopologicalInfluencedEnergyContribution (Particle* p1, Particle* p2, \
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+
+void ParticlePairEnergyContribution (Particle* p1, Particle* p2, \
 	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	double* pair_energy, std::array <double,8>* contacts, int x, int y, int z) {
 
@@ -1297,6 +1301,54 @@ void TopologicalInfluencedEnergyContribution (Particle* p1, Particle* p2, \
 	}
 
 	return; 
+
+}
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+double IsolatedPairParticleInteraction (Particle* p1, Particle* p2, \
+	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	int* c_idx, int x, int y, int z) {
+
+	double pE        = 0;
+	std::pair <std::string, std::string> particle_pair = std::make_pair (p1->ptype, p2->ptype); 
+
+	if ( std::get<0>((*InteractionMap)[particle_pair]) == "isotropic") {
+		pE     = std::get<1>((*InteractionMap)[particle_pair]);
+		*c_idx = std::get<3>((*InteractionMap)[particle_pair]); 
+	}
+	else if ( std::get<0>((*InteractionMap)[particle_pair]) == "parallel") {
+		double dot_prod  = take_dot_product (p1->orientation, p2->orientation); 
+		if (dot_prod > 0.54) {
+			pE = std::get<1>((*InteractionMap)[particle_pair]);
+			*c_idx = std::get<3>((*InteractionMap)[particle_pair]);
+		}
+		else {
+			pE = std::get<2>((*InteractionMap)[particle_pair]);
+			*c_idx = std::get<4>((*InteractionMap)[particle_pair]);	
+		}
+
+	}
+	else if ( std::get<0>((*InteractionMap)[particle_pair]) == "antiparallel") {
+		std::array <int,3> connvec   = subtract_arrays ( &(p2->coords), &(p1->coords) );
+		modified_direction (&connvec, x, y, z); 
+		double magnitude = std::sqrt ( connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2] );
+		double theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
+		double theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
+
+		if (theta_1 + theta_2 > M_PI/2) {
+			pE = std::get<2>((*InteractionMap)[particle_pair]);
+			*c_idx = std::get<4>((*InteractionMap)[particle_pair]);  
+		}
+		else {
+			pE = std::get<1>((*InteractionMap)[particle_pair]);
+			*c_idx = std::get<3>((*InteractionMap)[particle_pair]); 
+		}
+
+	}
+
+	return pE; 
 
 }
 
@@ -1784,9 +1836,10 @@ void AddSolvent (std::vector <Particle*>* LATTICE, int x, int y, int z){
 
 
 void AddCosolvent (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, bool solvation, double frac, int Nmonomer, int x, int y, int z) {
-
+	std::cout << "\n--------------------------------------------------------------------\n" << std::endl;
+	std::cout << "Begin adding cosolvent... \n"; 
 	int nsol2         = std::floor ((x*y*z-Nmonomer)*frac); 
-	std::cout << "Number of particles of cosolvent is " << nsol2 << "." << std::endl;
+	std::cout << "Number of particles of cosolvent being added is " << nsol2 << "." << std::endl;
 	std::vector <int> indices (x*y*z);
 	std::iota (indices.begin(), indices.end(), 0); 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -2049,18 +2102,18 @@ bool checkForOverlaps(std::vector <Polymer> Polymers){
 		for (Particle*& p: pmer.chain){
 		// check if element exists in vector 
 			if (std::find(loc_list.begin(), loc_list.end(), p->coords) != loc_list.end() ){
-			std::cerr << "you have a repeated element." << std::endl;
-			// std::cout << "current element is: " << std::endl;
-			print(p->coords); 
-			print(loc_list);
-			return false; 
+				std::cerr << "you have a repeated element." << std::endl;
+				// std::cout << "current element is: " << std::endl;
+				print(p->coords); 
+				print(loc_list);
+				return false; 
 			}
 			else{
-			loc_list.push_back(p->coords);  
+				loc_list.push_back(p->coords);  
 			}
 		}
 	}
-	std::cout << "Input file has no overlaps!" << std::endl;
+	std::cout << "Input file has no overlaps! ";
 	return true;
 }
 
@@ -2225,7 +2278,7 @@ bool checkConnectivity(std::vector <Polymer> Polymers, int x, int y, int z) {
         }
     }
 
-    std::cout << "Input polymers are well-connected!" << std::endl;
+    std::cout << "Input polymers are well-connected! \n";
     return true;
 }
 
@@ -2317,7 +2370,7 @@ bool checkSolvationShells (std::vector <Polymer>* Polymers,  int y, int z){
 void CheckStructures (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector<Particle*>* LATTICE,  int x, int y, int z){
 
 	std::cout << "Checking validity of coords..." << std::endl;
-    std::cout << "checkForOverlaps says: " << checkForOverlaps(*Polymers) << "." << std::endl; 
+    std::cout << std::boolalpha << "checkForOverlaps says: " << checkForOverlaps(*Polymers) << "." << std::endl; 
     if (!checkForOverlaps(*Polymers)){
         std::cout << "Something is fucked up overlaps-wise in the polymer itself." << std::endl;
         exit(EXIT_FAILURE);
@@ -2334,7 +2387,7 @@ void CheckStructures (std::vector <Polymer>* Polymers, std::vector <Particle*>* 
         exit(EXIT_FAILURE);
     }
 
-    std::cout << "checkConnectivity says: " << checkConnectivity(*Polymers, x, y, z) << "." << std::endl;
+    std::cout << std::boolalpha << "checkConnectivity says: " << checkConnectivity(*Polymers, x, y, z) << "." << std::endl;
     if (!checkConnectivity(*Polymers, x, y, z) ){
     	std::cout << "Something is fucked up connectivity-wise." << std::endl; 
         exit(EXIT_FAILURE);
@@ -2705,7 +2758,7 @@ double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Pa
         for (Particle*& p: pmer.chain){
             ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
             for ( std::array <int,3>& loc: ne_list) {
-            	TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
+            	ParticlePairEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
         	}
         }
     }
@@ -2717,7 +2770,7 @@ double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Pa
 			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
 				continue; 
 			}
-			TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
+			ParticlePairEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
 		}
     }
 
@@ -3269,7 +3322,8 @@ void dumpLATTICE ( std::vector <Particle*> *LATTICE, int step, int y, int z, std
 // THE CODE: 
 
 void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
 	
@@ -3279,9 +3333,12 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 
-    std::array <double,8> cs, cm, cs_n, cm_n;
-    std::array <double,8> final_contacts; 
-    std::array <double,8> c_contacts = *contacts;
+    std::array <double,8> cs             = {0, 0, 0, 0, 0, 0, 0, 0};  
+    std::array <double,8> cm             = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> cs_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> cm_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> c_contacts     = {0, 0, 0, 0, 0, 0, 0, 0};
 
 	int choice = rng_uniform(0, 25); 
 
@@ -3294,8 +3351,8 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 	if ( (*LATTICE)[lattice_index (ne_list[choice], y, z)]->ptype[0] == 's' ){
 
 		// find the energetic interaction for the solvent molecule 
-		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
-		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_0, y, z), x, y, z);  
+		Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
+		Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_0, y, z), x, y, z);  
 
 		(*Polymers)[index].chain[0]->coords = ne_list[choice]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]->coords = loc_0; 
@@ -3304,8 +3361,10 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 		// take the pointer of the solvent, and put it where the monomer was on the lattice 
 		(*LATTICE)[ lattice_index (loc_0, y, z) ]           = (*LATTICE)[ lattice_index (ne_list[choice], y, z)]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]  = (*Polymers)[index].chain[0]; 
-		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
-		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
+
+		//
+		Em_n = NeighborEnergy (LATTICE, InteractionMap, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
+		Es_n = NeighborEnergy (LATTICE, InteractionMap, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
 
 	}
 	else {
@@ -3353,7 +3412,8 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 //==============================================================================================
 
 void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
 	
@@ -3363,11 +3423,11 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 
-    std::array <double,8> cs;  
-    std::array <double,8> cm; 
-    std::array <double,8> cs_n; 
-    std::array <double,8> cm_n; 
-    std::array <double,8> final_contacts; 
+    std::array <double,8> cs             = {0, 0, 0, 0, 0, 0, 0, 0};  
+    std::array <double,8> cm             = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> cs_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> cm_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
 
 	int choice = rng_uniform(0, 25); 
 
@@ -3382,9 +3442,10 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	if ( (*LATTICE)[lattice_index (ne_list[choice], y, z)]->ptype[0] == 's' ){
 
 		// find the energetic interaction for the solvent molecule 
-		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
-		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_0, y, z), x, y, z);  
+		Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[choice], y, z), x, y, z);
+		Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_0, y, z), x, y, z);
 
+		// setting up the switch 
 		(*Polymers)[index].chain[0]->coords = ne_list[choice]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]->coords = loc_0; 
 		
@@ -3392,8 +3453,10 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 		// take the pointer of the solvent, and put it where the monomer was on the lattice 
 		(*LATTICE)[ lattice_index (loc_0, y, z) ]           = (*LATTICE)[ lattice_index (ne_list[choice], y, z)]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]  = (*Polymers)[index].chain[0]; 
-		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
-		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
+
+		// get new neighbor energetics 
+		Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
+		Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
 
 	}
 	else {
@@ -3403,7 +3466,6 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 
 	Ef = *sysEnergy - (Es + Em) + (Em_n + Es_n); 
 	final_contacts = add_arrays( subtract_arrays(*contacts, add_arrays (cs, cm)), add_arrays(cs_n, cm_n) );
-
 
 	if ( MetropolisAcceptance (*sysEnergy, Ef, temperature)){
 		*sysEnergy        = Ef; 
@@ -3578,7 +3640,8 @@ void TailRotation_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 // THE CODE: 
 
 void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
     // get the neighborlist of particle at index 1 
@@ -3586,12 +3649,14 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
     std::array <int,3> loc_0 = (*Polymers)[index].chain[dop-1]->coords; 
     std::array <int,3> loc_1 = (*Polymers)[index].chain[dop-2]->coords; 
 
-    std::array <double,8> c_contacts         = *contacts;
-
-    std::array <double,8> cs, cm, cs_n, cm_n;
-    std::array <double,8> final_contacts; 
-
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
+
+    std::array <double,8> cs             = {0, 0, 0, 0, 0, 0, 0, 0};  
+    std::array <double,8> cm             = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> cs_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> cm_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+    std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> c_contacts     = {0, 0, 0, 0, 0, 0, 0, 0};
 
 	int choice = rng_uniform(0, 25); 
 
@@ -3605,8 +3670,8 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 	if ( (*LATTICE)[lattice_index (ne_list[choice], y, z)]->ptype[0] == 's' ){
 		
 		// find the energetic interactions for the solvent molecule 
-		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
-		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_0, y, z), x, y, z);  
+		Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
+		Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_0, y, z), x, y, z);  
 
 		(*Polymers)[index].chain[dop-1]->coords = ne_list[choice]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]->coords = loc_0; 
@@ -3615,8 +3680,10 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 		// take the pointer of the solvent, and put it where the monomer was on the lattice 
 		(*LATTICE)[ lattice_index (loc_0, y, z) ]    = (*LATTICE)[ lattice_index (ne_list[choice], y, z)]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]  = (*Polymers)[index].chain[dop-1]; 
-		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
-		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
+
+		// 
+		Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
+		Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
 	
 	}
 	else {
@@ -3627,7 +3694,7 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 	Ef = *sysEnergy - (Es + Em) + (Em_n + Es_n);
 	final_contacts = add_arrays( subtract_arrays(*contacts, add_arrays (cs, cm)), add_arrays(cs_n, cm_n) );
 
-	// DELETE THIS LATER 
+	
 	double energy_n = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts, x, y, z); 
 	if (Ef != energy_n || final_contacts != c_contacts) {
 		std::cout << "Either energy or contacts is messed up in end rotation... " << std::endl; 
@@ -3635,7 +3702,7 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 		std::cout << "final_contacts = "; print (final_contacts, ", "); std::cout << "c_contacts = "; print(c_contacts); 
 		exit (EXIT_FAILURE); 
 	}
-	// DELETE ABOVE LATER 
+	
 
 	if ( MetropolisAcceptance (*sysEnergy, Ef, temperature) ){
 		// std::cout << "accepted." << std::endl;
@@ -3664,7 +3731,8 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap,\
+	std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
     // get the neighborlist of particle at index 1 
@@ -3673,11 +3741,11 @@ void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
     std::array <int,3> loc_1 = (*Polymers)[index].chain[dop-2]->coords; 
 
     // these are contacts arrays which are necessary to check validity of code 
-    std::array <double,8> cs;
-    std::array <double,8> cm;
-    std::array <double,8> cs_n;
-    std::array <double,8> cm_n;
-    std::array <double,8> final_contacts; 
+    std::array <double,8> cs             = {0,0,0,0,0,0,0,0};
+    std::array <double,8> cm             = {0,0,0,0,0,0,0,0};
+    std::array <double,8> cs_n           = {0,0,0,0,0,0,0,0};
+    std::array <double,8> cm_n           = {0,0,0,0,0,0,0,0};
+    std::array <double,8> final_contacts = {0,0,0,0,0,0,0,0}; 
 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 	int choice = rng_uniform(0, 25); 
@@ -3694,8 +3762,8 @@ void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	if ( (*LATTICE)[lattice_index (ne_list[choice], y, z)]->ptype[0] == 's' ){
 		
 		// find the energetic interactions for the solvent molecule 
-		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
-		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_0, y, z), x, y, z);  
+		Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (ne_list[choice], y, z), x, y, z);
+		Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_0, y, z), x, y, z);  
 
 		(*Polymers)[index].chain[dop-1]->coords = ne_list[choice]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]->coords = loc_0; 
@@ -3704,8 +3772,10 @@ void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 		// take the pointer of the solvent, and put it where the monomer was on the lattice 
 		(*LATTICE)[ lattice_index (loc_0, y, z) ]    = (*LATTICE)[ lattice_index (ne_list[choice], y, z)]; 
 		(*LATTICE)[ lattice_index (ne_list[choice], y, z)]  = (*Polymers)[index].chain[dop-1]; 
-		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
-		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
+
+
+		Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index (ne_list[choice], y, z), x, y, z);
+		Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index (loc_0, y, z), x, y, z);  
 	
 	}
 	else {
@@ -3898,8 +3968,8 @@ void HeadRotation_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 // THE CODE: 
 
 void EndRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
-	std::array <double,8>* E, std::array <double,8>* contacts, \
-	bool* IMP_BOOL, double* sysEnergy, double temperature, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, \
 	int index, int x, int y, int z){
 
 	unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
@@ -3909,12 +3979,12 @@ void EndRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         std::cout << "Zero index rotation!" << std::endl;
-        TailRotation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        TailRotation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
     else {
         std::cout << "Final index rotation!" << std::endl;
-        HeadRotation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        HeadRotation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
 
@@ -3924,7 +3994,8 @@ void EndRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,8>* E, std::array <double,8>* contacts, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap,\
+	std::array <double,8>* contacts, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, \
 	int index, int x, int y, int z){
 
@@ -3935,12 +4006,12 @@ void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particl
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         // std::cout << "Zero index rotation!" << std::endl;
-        TailRotation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        TailRotation_UNBIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
     else {
         // std::cout << "Final index rotation!" << std::endl;
-        HeadRotation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        HeadRotation_UNBIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
 
@@ -4024,7 +4095,9 @@ void forward_reptation_with_tail_biting (std::vector <Polymer>* Polymers, std::v
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
+void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
 
 	// start performing exchanges 
 	// doubles for energy transfer 
@@ -4048,16 +4121,16 @@ void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, st
 		loc_m2 = (*Polymers)[index].chain[i+1]->coords;
 		
 		// find energies 
-		Em1 = NeighborEnergy (LATTICE, E, &cm1, lattice_index (loc_m1, y, z), x, y, z);
-		Em2 = NeighborEnergy (LATTICE, E, &cm2, lattice_index (loc_m2, y, z), x, y, z);
+		Em1   = NeighborEnergetics (LATTICE, InteractionMap, &cm1, lattice_index (loc_m1, y, z), x, y, z);
+		Em2   = NeighborEnergetics (LATTICE, InteractionMap, &cm2, lattice_index (loc_m2, y, z), x, y, z);
 
 		(*LATTICE)[ lattice_index(loc_m1, y, z) ] = (*LATTICE)[ lattice_index (loc_m2, y, z) ]; 
 		(*LATTICE)[ lattice_index(loc_m2, y, z) ] = (*Polymers)[index].chain[i]; 
 		(*LATTICE)[ lattice_index(loc_m1, y, z) ]->coords = loc_m1; 
 		(*LATTICE)[ lattice_index(loc_m2, y, z) ]->coords = loc_m2; 
 
-		Em1_n = NeighborEnergy (LATTICE, E, &cm1_n, lattice_index (loc_m1, y, z), x, y, z);
-		Em2_n = NeighborEnergy (LATTICE, E, &cm2_n, lattice_index (loc_m2, y, z), x, y, z);
+		Em1_n = NeighborEnergetics (LATTICE, InteractionMap, &cm1_n, lattice_index (loc_m1, y, z), x, y, z);
+		Em2_n = NeighborEnergetics (LATTICE, InteractionMap, &cm2_n, lattice_index (loc_m2, y, z), x, y, z);
 
 		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cm1, cm2)), add_arrays (cm1_n, cm2_n) ); 
 
@@ -4101,7 +4174,9 @@ void forward_reptation_without_tail_biting (std::vector <Polymer>* Polymers, std
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void forward_reptation_without_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
+void forward_reptation_without_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
 
 	// start performing exchanges 
 	// doubles for energy transfer 
@@ -4125,16 +4200,16 @@ void forward_reptation_without_tail_biting_new (std::vector <Polymer>* Polymers,
 		loc_m = (*Polymers)[index].chain[deg_poly-1-i]->coords;
 		
 		// find energies 
-		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (loc_s, y, z), x, y, z);
-		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_m, y, z), x, y, z);
+		Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (loc_s, y, z), x, y, z);
+		Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_m, y, z), x, y, z);
 
 		(*LATTICE)[ lattice_index(loc_m, y, z) ] = (*LATTICE)[ lattice_index (loc_s, y, z) ]; 
 		(*LATTICE)[ lattice_index(loc_s, y, z) ] = (*Polymers)[index].chain[deg_poly-1-i]; 
 		(*LATTICE)[ lattice_index(loc_m, y, z) ]->coords = loc_m; 
 		(*LATTICE)[ lattice_index(loc_s, y, z) ]->coords = loc_s; 
 
-		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_s, y, z), x, y, z);
-		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+		Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index (loc_s, y, z), x, y, z);
+		Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index (loc_m, y, z), x, y, z);
 
 		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
 
@@ -4176,7 +4251,9 @@ void backward_reptation_with_head_butting (std::vector <Polymer>* Polymers, std:
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void backward_reptation_with_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
+void backward_reptation_with_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
 
 	// start performing exchanges 
 	// doubles for energy transfer 
@@ -4200,22 +4277,23 @@ void backward_reptation_with_head_butting_new (std::vector <Polymer>* Polymers, 
 		loc_m2 = (*Polymers)[index].chain[deg_poly-(i+2)]->coords;
 		
 		// find energies 
-		Em1 = NeighborEnergy (LATTICE, E, &cm1, lattice_index (loc_m1, y, z), x, y, z);
-		Em2 = NeighborEnergy (LATTICE, E, &cm2, lattice_index (loc_m2, y, z), x, y, z);
+		Em1 = NeighborEnergetics (LATTICE, E, &cm1, lattice_index (loc_m1, y, z), x, y, z);
+		Em2 = NeighborEnergetics (LATTICE, E, &cm2, lattice_index (loc_m2, y, z), x, y, z);
 
 		(*LATTICE)[ lattice_index(loc_m1, y, z) ] = (*LATTICE)[ lattice_index (loc_m2, y, z) ]; 
 		(*LATTICE)[ lattice_index(loc_m2, y, z) ] = (*Polymers)[index].chain[deg_poly-(i+1)]; 
 		(*LATTICE)[ lattice_index(loc_m1, y, z) ]->coords = loc_m1; 
 		(*LATTICE)[ lattice_index(loc_m2, y, z) ]->coords = loc_m2; 
 
-		Em1_n = NeighborEnergy (LATTICE, E, &cm1_n, lattice_index (loc_m1, y, z), x, y, z);
-		Em2_n = NeighborEnergy (LATTICE, E, &cm2_n, lattice_index (loc_m2, y, z), x, y, z);
+		Em1_n = NeighborEnergetics (LATTICE, E, &cm1_n, lattice_index (loc_m1, y, z), x, y, z);
+		Em2_n = NeighborEnergetics (LATTICE, E, &cm2_n, lattice_index (loc_m2, y, z), x, y, z);
 
 		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cm1, cm2)), add_arrays (cm1_n, cm2_n) ); 
 
 		Esys = Esys - (Em1+Em2) + (Em1_n+Em2_n); 
 
 	}
+
 	*frontflow_energy = Esys; 
 	*contacts         = current_contacts;
 
@@ -4250,7 +4328,9 @@ void backward_reptation_without_head_butting (std::vector <Polymer>* Polymers, s
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z) {
+void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z) {
 
 	// start performing exchanges 
 	// doubles for energy transfer 
@@ -4274,16 +4354,16 @@ void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymer
 		loc_m = (*Polymers)[index].chain[i]->coords;
 		
 		// find energies 
-		Es = NeighborEnergy (LATTICE, E, &cs, lattice_index (loc_s, y, z), x, y, z);
-		Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_m, y, z), x, y, z);
+		Es = NeighborEnergetics (LATTICE, E, &cs, lattice_index (loc_s, y, z), x, y, z);
+		Em = NeighborEnergetics (LATTICE, E, &cm, lattice_index (loc_m, y, z), x, y, z);
 
 		(*LATTICE)[ lattice_index(loc_m, y, z) ] = (*LATTICE)[ lattice_index (loc_s, y, z) ]; 
 		(*LATTICE)[ lattice_index(loc_s, y, z) ] = (*Polymers)[index].chain[i]; 
 		(*LATTICE)[ lattice_index(loc_m, y, z) ]->coords = loc_m; 
 		(*LATTICE)[ lattice_index(loc_s, y, z) ]->coords = loc_s; 
 
-		Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index (loc_s, y, z), x, y, z);
-		Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+		Es_n = NeighborEnergetics (LATTICE, E, &cs_n, lattice_index (loc_s, y, z), x, y, z);
+		Em_n = NeighborEnergetics (LATTICE, E, &cm_n, lattice_index (loc_m, y, z), x, y, z);
 
 		current_contacts = add_arrays ( subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
 
@@ -4327,6 +4407,7 @@ void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymer
 // THE CODE: 
 
 void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
@@ -4354,12 +4435,12 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 	if ( to_slither == loc0 ){
 		std::cout << "With tail biting..." << std::endl;
 		// if you are performing tail biting, you need neighborhood information about all monomer beads 
-		forward_reptation_with_tail_biting_new    (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
+		forward_reptation_with_tail_biting_new    (Polymers, LATTICE, InteractionMap, &current_contacts, &Esys, deg_poly, index, x, y, z); 
 	}
 	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
 		// IMPORTANT STEP 
 		std::cout << "Without tail biting... " << std::endl;
-		forward_reptation_without_tail_biting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
+		forward_reptation_without_tail_biting_new (Polymers, LATTICE, InteractionMap, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
 	}
 
 	else {
@@ -4382,12 +4463,12 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 	}
 	// delete above 
 
-	if ( MetropolisAcceptance (*sysEnergy, energy_n, temperature) ){
+	if ( MetropolisAcceptance (*sysEnergy, energy_n, temperature) ) {
 		std::cout << "Accepted!" << std::endl;
 		*sysEnergy = Esys;
 		*contacts  = current_contacts; 
-
 	}
+
 	else {
 		// revert back to old state 
 		std::cout << "Rejected..." << std::endl;
@@ -4400,8 +4481,8 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 			std::cout << "without head_butting... " << std::endl;
 			tmp = (*LATTICE)[ lattice_index (loc0, y, z) ]; 
 			backward_reptation_without_head_butting (Polymers, LATTICE, tmp, &loc0, &to_slither_copy, deg_poly, index, y, z); 
-
 		}
+
 		*IMP_BOOL = false; 
 	}
 
@@ -4416,7 +4497,8 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 //==============================================================================================
 
 void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
 	// std::cout << "In forward reptation unbiased." <<std::endl;
@@ -4436,18 +4518,17 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	std::array <int,3> to_slither_copy = to_slither; 
 	Particle* tmp {nullptr}; 
 	
-
 	// std::cout << "Suggested location is "; print (ne_list[choice]);
 	// std::cout << "to_slither = "; print (to_slither);
 	if ( to_slither == loc0 ){
 		// std::cout << "With tail biting..." << std::endl;
 		// if you are performing tail biting, you need neighborhood information about all monomer beads 
-		forward_reptation_with_tail_biting_new    (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
+		forward_reptation_with_tail_biting_new    (Polymers, LATTICE, InteractionMap, &current_contacts, &Esys, deg_poly, index, x, y, z); 
 	}
 	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
 		// IMPORTANT STEP 
 		// std::cout << "Without tail biting... " << std::endl;
-		forward_reptation_without_tail_biting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
+		forward_reptation_without_tail_biting_new (Polymers, LATTICE, InteractionMap, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
 	}
 
 	else {
@@ -4508,6 +4589,7 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 // THE CODE: 
 
 void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
@@ -4533,11 +4615,11 @@ void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vec
 
 	if ( to_slither == locf ){
 		std::cout << "With head butting..." << std::endl;
-		backward_reptation_with_head_butting_new (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
+		backward_reptation_with_head_butting_new (Polymers, LATTICE, InteractionMap, &current_contacts, &Esys, deg_poly, index, x, y, z); 
 	}
 	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
 		std::cout << "Without head butting... " << std::endl;
-		backward_reptation_without_head_butting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
+		backward_reptation_without_head_butting_new (Polymers, LATTICE, InteractionMap, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
 	}
 
 	else {
@@ -4595,7 +4677,8 @@ void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vec
 
 
 void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
 	// std::cout << "In backward reptation unbiased." <<std::endl;
@@ -4619,11 +4702,11 @@ void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <P
 
 	if ( to_slither == locf ){
 		// std::cout << "With head butting..." << std::endl;
-		backward_reptation_with_head_butting_new (Polymers, LATTICE, E, &current_contacts, &Esys, deg_poly, index, x, y, z); 
+		backward_reptation_with_head_butting_new    (Polymers, LATTICE, InteractionMap, &current_contacts, &Esys, deg_poly, index, x, y, z); 
 	}
 	else if ( (*LATTICE)[ lattice_index (to_slither, y, z) ]->ptype[0] == 's' ){
 		// std::cout << "Without head butting... " << std::endl;
-		backward_reptation_without_head_butting_new (Polymers, LATTICE, E, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
+		backward_reptation_without_head_butting_new (Polymers, LATTICE, InteractionMap, &current_contacts, &to_slither, &Esys, deg_poly, index, x, y, z);
 	}
 
 	else {
@@ -4653,6 +4736,7 @@ void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <P
 	}
 
 	return; 
+
 }
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -4677,6 +4761,7 @@ void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <P
 
 
 void Reptation_UNBIASED_debug (std::vector<Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
@@ -4687,12 +4772,12 @@ void Reptation_UNBIASED_debug (std::vector<Polymer>* Polymers, std::vector <Part
 
     if (num==0){
         std::cout << "Backward reptation only!" << std::endl;
-        BackwardReptation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+        BackwardReptation_UNBIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
         return; 
     }
     else {
         std::cout << "Forward reptation!" << std::endl;
-        ForwardReptation_UNBIASED_debug  (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        ForwardReptation_UNBIASED_debug  (Polymers, Cosolvent, LATTICE, InteractionMap, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
     
@@ -5958,8 +6043,9 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, \
-	double* sysEnergy, double temperature, int p_index, int x, int y, int z){
+	double* sysEnergy, double temperature, int p_index, int x, int y, int z) {
 
 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
@@ -6012,7 +6098,7 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 		// regrow the polymer frontwards
 		// std::cout << "Regrowth time!" << std::endl;
 		
-		HeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
+		HeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
 		
 		// std::cout << "Worked!" << std::endl;
 		
@@ -6042,7 +6128,7 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 
 		std::cout << "-------------------" << std::endl;
 		std::cout << "Backflow time!" << std::endl;
-		BackFlowFromHeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
+		BackFlowFromHeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, &old_cut, InteractionMap, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
 			std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
@@ -6077,7 +6163,7 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 		}
 
 		// regrow the polymer backwards
-		TailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
+		TailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
 
 		for (int i {0}; i<m_index; ++i){
 			new_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
@@ -6102,7 +6188,7 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 
 		// std::cout << "BEGIN BACK FLOW! " << std::endl;
 
-		BackFlowFromTailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
+		BackFlowFromTailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, &old_cut, InteractionMap, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
 		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
@@ -6141,7 +6227,8 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
 
@@ -6222,8 +6309,8 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 			else {
 				// std::cout << "monomer swap time." << std::endl;
 				// get the initial neighboring energies. 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6234,8 +6321,8 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 				// get the new energies
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
 				contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
@@ -6246,14 +6333,14 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 				
 				// perform the swap (since coords were changed, this swap works)
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
-				(*LATTICE)[lattice_index(loc_m, y, z)]         = (*Polymers)[p_index].chain[m_index+1];
+				(*LATTICE)[lattice_index(loc_m, y, z)]                   = (*Polymers)[p_index].chain[m_index+1];
 			}
 			
 		}
 		else {
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6264,8 +6351,8 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 			// get the new energies
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			// std::cout << "Es_n = " << Es_n << std::endl; 
 			// std::cout << "Em_n = " << Em_n << std::endl;
@@ -6332,7 +6419,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 	(*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	// else { do nothing and maintain structure, because suggested index is in the maintain index vector }
-	HeadRegrowth_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
+	HeadRegrowth_BIASED (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
 
 	return; 
 
@@ -6342,6 +6429,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z) {
 
@@ -6431,8 +6519,8 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 			else {
 				// std::cout << "monomer swap time." << std::endl;
 				// get the initial neighboring energies. 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6443,8 +6531,8 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 				// get the new energies
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
 				contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
@@ -6475,8 +6563,8 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 		}
 		else {
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6487,8 +6575,8 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 			// get the new energies
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			// std::cout << "Es_n = " << Es_n << std::endl; 
 			// std::cout << "Em_n = " << Em_n << std::endl;
@@ -6500,7 +6588,7 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 			// delete later 
 			
 			Etest  = CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &copy_contacts, x, y, z); 
-			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ) {
 				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 				std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
@@ -6574,7 +6662,7 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 	(*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	// else { do nothing and maintain structure, because suggested index is in the maintain index vector }
-	HeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
+	HeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
 
 	return; 
 
@@ -6589,7 +6677,9 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
+	std::vector<std::array<int,3>>* old_cut, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
 
@@ -6663,8 +6753,8 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 
 				// std::cout << "monomer swap time." << std::endl;
 				// get the initial neighboring energies. 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6675,8 +6765,8 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 				
 				// get the new energies
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				// get the energy
 				energies      [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
@@ -6694,8 +6784,8 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 		else {
 
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6706,8 +6796,8 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] =  (*Polymers)[p_index].chain[m_index+1];
 
 			// get the energy 
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
 			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
@@ -6756,7 +6846,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	(*LATTICE)[ lattice_index (ne_list[0], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
-	BackFlowFromHeadRegrowth_BIASED (Polymers, Cosolvent, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
+	BackFlowFromHeadRegrowth_BIASED (Polymers, Cosolvent, LATTICE, old_cut, InteractionMap, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -6766,7 +6856,9 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::vector <std::array<int,3>>* old_cut, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
+	std::vector <std::array<int,3>>* old_cut, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z) {
 
 
@@ -6848,8 +6940,8 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 
 				// std::cout << "monomer swap time." << std::endl;
 				// get the initial neighboring energies. 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6860,8 +6952,8 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 				
 				// get the new energies
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				// get the energy
 				energies      [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
@@ -6892,8 +6984,8 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 		else {
 
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -6904,8 +6996,8 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] =  (*Polymers)[p_index].chain[m_index+1];
 
 			// get the energy 
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
 			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
@@ -6971,7 +7063,7 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 	(*LATTICE)[ lattice_index (ne_list[0], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
-	BackFlowFromHeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
+	BackFlowFromHeadRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, old_cut, InteractionMap, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -6985,8 +7077,9 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 //             Start of TailRegrowth_BIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
+void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
 
@@ -7061,8 +7154,8 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 			}
 			else {
 				// get the initial neighboring energies 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7073,8 +7166,8 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 				// get the energy
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n + Em_n); 
 				contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
@@ -7091,8 +7184,8 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 		}
 		else {
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7103,8 +7196,8 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 			// get the new energies
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			// run the computation 
 			energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
@@ -7171,7 +7264,7 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 	
 
 	// else { do nothing and maintain structure, because the suggested index is in the the maintain index vector }
-	TailRegrowth_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
+	TailRegrowth_BIASED (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
 
 	return; 
 
@@ -7181,7 +7274,8 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 
-void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
@@ -7266,8 +7360,8 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 			}
 			else {
 				// get the initial neighboring energies 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7278,8 +7372,8 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 				// get the energy
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				energies [idx_counter] = Esys - (Es+Em) + (Es_n + Em_n); 
 				contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
@@ -7310,8 +7404,8 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 		}
 		else {
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7322,8 +7416,8 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 			// get the new energies
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			// run the computation 
 			energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
@@ -7414,7 +7508,7 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 	
 
 	// else { do nothing and maintain structure, because the suggested index is in the the maintain index vector }
-	TailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
+	TailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
 
 	return; 
 
@@ -7428,9 +7522,10 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 //             Start of BackFlowFromTailRegrowth_BIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::array<double,8>* E, std::array <double,8>* contacts, \
-	bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, \
+void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::vector<std::array<int,3>>* old_cut, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, \
 	int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
 	if (m_index == 0){
@@ -7513,8 +7608,8 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 			else {
 				// std::cout << "monomer swap time." << std::endl;
 				// get the initial neighboring energies. 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 				
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 				
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7525,8 +7620,8 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 				// get the new energies	
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				// get the energy
 				energies      [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
@@ -7544,8 +7639,8 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 		}
 		else {
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7556,8 +7651,8 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 			// get the energy 
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
 			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
@@ -7604,7 +7699,7 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[0], y, z)];
 	(*LATTICE)[ lattice_index (ne_list[0], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
-	BackFlowFromTailRegrowth_BIASED (Polymers, Cosolvent, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
+	BackFlowFromTailRegrowth_BIASED (Polymers, Cosolvent, LATTICE, old_cut, InteractionMap, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -7614,7 +7709,9 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::array<double,8>* E, std::array <double,8>* contacts, \
+	std::vector<std::array<int,3>>* old_cut, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array<double,8>* E, std::array <double,8>* contacts, \
 	bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, \
 	int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
@@ -7701,8 +7798,8 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 			else {
 				// std::cout << "monomer swap time." << std::endl;
 				// get the initial neighboring energies. 
-				Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 				
+				Es = NeighborEnergetics (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 				
 
 				// prep the swap 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7713,8 +7810,8 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 				// get the new energies	
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Es_n = NeighborEnergetics (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 
 				// get the energy
 				energies      [idx_counter] = Esys - (Es+Em) + (Es_n+Em_n); // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, contacts, x, y, z); 
@@ -7745,8 +7842,8 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 		}
 		else {
 			// std::cout << "solvent swap time." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			// prep the swap 
 			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
@@ -7757,8 +7854,8 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 			// get the energy 
-			Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 
 			energies       [ idx_counter ] = Esys - (Es+Em) + (Es_n+Em_n); 
 			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
@@ -7822,7 +7919,7 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[0], y, z)];
 	(*LATTICE)[ lattice_index (ne_list[0], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
-	BackFlowFromTailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
+	BackFlowFromTailRegrowth_BIASED_debug (Polymers, Cosolvent, LATTICE, old_cut, InteractionMap, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -8290,6 +8387,7 @@ void acceptance_after_tail_regrowth (std::vector <Particle*>* LATTICE, \
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
@@ -8348,13 +8446,13 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 		if ( ne_list[idx_counter] == loc_m ){
 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_m, y, z), x, y, z); 
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_m, y, z), x, y, z); 
 			for ( int i{0}; i<5; ++i){
 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
 				orientations[5*idx_counter+i] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation; 
 			
-				Em_n = NeighborEnergy ( LATTICE, E, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+				Em_n = NeighborEnergetics ( LATTICE, InteractionMap, &cm_n, lattice_index (loc_m, y, z), x, y, z);
 				energies       [5*idx_counter+i] = Esys - Em + Em_n; 
 				contacts_store [5*idx_counter+i] = add_arrays ( subtract_arrays (current_contacts, cm), cm_n); 
 
@@ -8365,10 +8463,9 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 			 
 		}
 
-		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
+		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ) {
 
 			// check which region of the polymer the swap is taking place 
-
 			for ( int u{0}; u<deg_poly; ++u){
 				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ){
 					self_swap_idx = u; 
@@ -8378,8 +8475,8 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 			// if it is with other tail units, do the swap 
 			// if not, discourage it 
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			// std::cout << "difference = "; print (difference);
 			modified_direction (&difference, x, y, z);
@@ -8387,7 +8484,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -8400,7 +8497,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 					orientations[5*idx_counter+i] = original_ori; 
 					energies[5*idx_counter+i] = 1e+08; 
-					contacts_store[5*idx_counter+i] = {-1,-1,-1,-1}; 
+					contacts_store[5*idx_counter+i] = {-1, -1, -1, -1, -1, -1, -1, -1}; 
 					block_counter += 1; 
 				}
 				else {
@@ -8418,10 +8515,10 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 					(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 					// get the energy
-					Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-					Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+					Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+					Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 					if (neighbor_bool){
-						Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+						Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 					}
 					else {
 						Epair_n = 0;
@@ -8451,8 +8548,8 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 		else {
 			// std::cout << "performing a solvent swap." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			// std::cout << "difference = "; print (difference);
@@ -8460,7 +8557,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 			// std::cout << "difference = "; print (difference);
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -8481,10 +8578,10 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 				// get the energy
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+				Es_n = NeighborEnergetics (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 				if (neighbor_bool){
-					Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+					Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 				}
 				else {
 					Epair_n = 0;
@@ -8562,7 +8659,7 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	// std::cout << "m_index = " << m_index << std::endl;
 	// (*Polymers)[0].printChainCoords(); 
 
-	TailRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
+	TailRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
 
 	return; 
 
@@ -8571,7 +8668,8 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
@@ -8633,13 +8731,13 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 
 		if ( ne_list[idx_counter] == loc_m ){
 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index (loc_m, y, z), x, y, z); 
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_m, y, z), x, y, z); 
 			for ( int i{0}; i<5; ++i){
 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
 				orientations[5*idx_counter+i] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation; 
 			
-				Em_n = NeighborEnergy ( LATTICE, E, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+				Em_n = NeighborEnergetics ( LATTICE, InteractionMap, &cm_n, lattice_index (loc_m, y, z), x, y, z);
 				energies       [5*idx_counter+i] = Esys - Em + Em_n; 
 				contacts_store [5*idx_counter+i] = add_arrays ( subtract_arrays (current_contacts, cm), cm_n); 
 
@@ -8672,8 +8770,8 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 
 			// if it is with other tail units, do the swap 
 			// if not, discourage it 
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z); 
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			// std::cout << "difference = "; print (difference);
 			modified_direction (&difference, x, y, z);
@@ -8681,7 +8779,7 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -8711,10 +8809,10 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 					(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
 					// get the energy
-					Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-					Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+					Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+					Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 					if (neighbor_bool){
-						Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+						Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 					}
 					else {
 						Epair_n = 0;
@@ -8756,8 +8854,8 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 
 		else {
 			// std::cout << "performing a solvent swap." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			// std::cout << "difference = "; print (difference);
@@ -8765,7 +8863,7 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 			// std::cout << "difference = "; print (difference);
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -8789,7 +8887,7 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
 				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 				if (neighbor_bool){
-					Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+					Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 				}
 				else {
 					Epair_n = 0;
@@ -8890,7 +8988,7 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 	// std::cout << "m_index = " << m_index << std::endl;
 	// (*Polymers)[0].printChainCoords(); 
 
-	TailRegrowthPlusOrientationFlip_BIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
+	TailRegrowthPlusOrientationFlip_BIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
 
 	return; 
 
@@ -8903,7 +9001,9 @@ void TailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 
 
 void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::vector <int>* old_ori, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
+	std::vector<std::array<int,3>>* old_cut, std::vector <int>* old_ori, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
 
@@ -8974,11 +9074,11 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 		// std::cout << "Suggested location = "; print(ne_list[idx_counter]);
 		if ( ne_list[idx_counter] == loc_m ){
 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z);
 			for (int i{0}; i < 5; ++i ){
 				// std::cout << "monomer self-swap: idx_counter = " << idx_counter << std::endl;
 				(*Polymers)[p_index].chain[m_index-1]->orientation = test_ori[5*idx_counter+i];
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 				energies[5*idx_counter+i]       = Esys - Em +Em_n ;
 				contacts_store[5*idx_counter+i] = add_arrays ( subtract_arrays (current_contacts, cm), cm_n); 
 
@@ -8997,16 +9097,15 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 				}
 			}
 
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			
 			modified_direction (&difference, x, y, z);
-			
 
 			if (std::find (adrns.begin(), adrns.end(), difference) != adrns.end()) {
 				neighbor_bool = true; 
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false;
@@ -9030,7 +9129,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 					// std::cout << "monomer swap: idx_counter = " << idx_counter << std::endl;
 					// prep the swap 
 					(*Polymers)[p_index].chain[m_index-1]->orientation     = test_ori[5*idx_counter+i];
-					(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
+					(*LATTICE) [lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
 					(*Polymers)[p_index].chain[m_index-1]->coords       = ne_list[idx_counter];
 					
 					// perform the swap 
@@ -9038,11 +9137,11 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 					(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 					
 					// get the energy
-					Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-					Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+					Es_n = NeighborEnergetics (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+					Em_n = NeighborEnergetics (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 
 					if (neighbor_bool) {
-						Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+						Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
 					}
 					else {
 						Epair_n = 0; 
@@ -9072,8 +9171,8 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 
 		else {
 
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 
@@ -9081,7 +9180,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() && (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->ptype == "s1" ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -9101,11 +9200,11 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 				
 
 				// get the energy 
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 
 				if (neighbor_bool){
-					Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+					Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 				}
 				else {
 					Epair_n = 0;
@@ -9162,7 +9261,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 	(*Polymers)[p_index].chain[m_index-1]->orientation = test_ori[0]; 
 
 	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
-	BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, old_cut, old_ori, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
+	BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, old_cut, old_ori, InteractionMap, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -9172,7 +9271,9 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::vector <int>* old_ori, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
+	std::vector<std::array<int,3>>* old_cut, std::vector <int>* old_ori, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
 
@@ -9186,7 +9287,6 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 	
 	std::array <double,8>                copy_contacts    = *contacts; 
 	std::array <double,8>                current_contacts = *contacts; 
-	
 	std::array <double,25>               energies; 
 	std::array <std::array<double,8>,25> contacts_store; 
 	std::array <double,25>               boltzmann; 
@@ -9246,11 +9346,11 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 		// std::cout << "Suggested location = "; print(ne_list[idx_counter]);
 		if ( ne_list[idx_counter] == loc_m ){
 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z);
 			for (int i{0}; i < 5; ++i ){
 				// std::cout << "monomer self-swap: idx_counter = " << idx_counter << std::endl;
 				(*Polymers)[p_index].chain[m_index-1]->orientation = test_ori[5*idx_counter+i];
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
 				energies[5*idx_counter+i]       = Esys - Em +Em_n ;
 				contacts_store[5*idx_counter+i] = add_arrays ( subtract_arrays (current_contacts, cm), cm_n); 
 
@@ -9278,8 +9378,8 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 				}
 			}
 
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			std::cout << "difference = "; print (difference);
 			modified_direction (&difference, x, y, z);
@@ -9287,7 +9387,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 
 			if (std::find (adrns.begin(), adrns.end(), difference) != adrns.end()) {
 				neighbor_bool = true; 
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx, x, y, z); 
 			}	
 			else {
 				neighbor_bool = false;
@@ -9319,11 +9419,11 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 					(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 					
 					// get the energy
-					Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-					Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+					Es_n = NeighborEnergetics (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+					Em_n = NeighborEnergetics (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 
 					if (neighbor_bool) {
-						Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+						Epair_n = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 					}
 					else {
 						Epair_n = 0; 
@@ -9364,8 +9464,8 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 
 		else {
 			std::cout << "performing a solvent swap." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			std::cout << "difference = "; print (difference);
@@ -9373,7 +9473,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 			std::cout << "difference = "; print (difference);
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() && (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->ptype == "s1" ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -9397,11 +9497,11 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 				
 
 				// get the energy 
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 
 				if (neighbor_bool){
-					Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+					Epair_n = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 				}
 				else {
 					Epair_n = 0;
@@ -9488,7 +9588,7 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 	(*Polymers)[p_index].chain[m_index-1]->orientation = test_ori[0]; 
 
 	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
-	BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (Polymers, Cosolvent, LATTICE, old_cut, old_ori, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
+	BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (Polymers, Cosolvent, LATTICE, old_cut, old_ori, InteractionMap, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -9504,7 +9604,8 @@ void BackFlowFromTailRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Poly
 
 
 void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
+	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
 
@@ -9560,13 +9661,13 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 		if ( ne_list[idx_counter] == loc_m ){ 
 			// std::cout << "no location change, just orientation flip. " << std::endl;
 			// this is just a solvent flip 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z);
 			for (int i{0}; i < 5; ++i ){
 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
 				orientations[ 5*idx_counter + i ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation;
 
-				Em_n = NeighborEnergy ( LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Em_n = NeighborEnergetics ( LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 				energies [5*idx_counter + i]  = Esys - Em + Em_n; 
 				contacts_store [5*idx_counter + i] = add_arrays ( subtract_arrays (current_contacts, cm), cm_n); 
 
@@ -9588,15 +9689,15 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 				}
 			}
 
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 
 			modified_direction (&difference, x, y, z);
 
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -9633,10 +9734,10 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 					(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 					// get the new energies
-					Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-					Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+					Es_n = NeighborEnergetics (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+					Em_n = NeighborEnergetics (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 					if (neighbor_bool){
-						Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+						Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 					}
 					else {
 						Epair_n = 0;
@@ -9667,8 +9768,8 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 		else {
 			// std::cout << "performing a solvent swap." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			// std::cout << "difference = "; print (difference);
@@ -9676,7 +9777,7 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 			// std::cout << "difference = "; print (difference);
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() && (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->ptype == "s1" ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -9698,10 +9799,10 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 				// get the new energies
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+				Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 				if (neighbor_bool){
-					Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+					Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 				}
 				else {
 					Epair_n = 0;
@@ -9778,7 +9879,7 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	(*LATTICE)[ lattice_index (ne_list[e_idx/5], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	
-	HeadRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
+	HeadRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
 
 	return; 
 
@@ -9790,6 +9891,7 @@ void HeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 
 
 void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
@@ -9852,13 +9954,13 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 		if ( ne_list[idx_counter] == loc_m ){ 
 			// std::cout << "no location change, just orientation flip. " << std::endl;
 			// this is just a solvent flip 
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z);
 			for (int i{0}; i < 5; ++i ){
 
 				(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation = rng_uniform(0,25); 
 				orientations[ 5*idx_counter + i ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->orientation;
 
-				Em_n = NeighborEnergy ( LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
+				Em_n = NeighborEnergetics ( LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 
 				energies [5*idx_counter + i]  = Esys - Em + Em_n; 
 				contacts_store [5*idx_counter + i] = add_arrays ( subtract_arrays (current_contacts, cm), cm_n); 
 
@@ -9890,8 +9992,8 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 				}
 			}
 
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			// std::cout << "difference = "; print (difference);
 			modified_direction (&difference, x, y, z);
@@ -9899,7 +10001,7 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -9940,10 +10042,10 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 					(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 					// get the new energies
-					Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-					Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+					Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+					Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 					if (neighbor_bool){
-						Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+						Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z); 
 					}
 					else {
 						Epair_n = 0;
@@ -9986,8 +10088,8 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 
 		else {
 			// std::cout << "performing a solvent swap." << std::endl;
-			Es = NeighborEnergy (LATTICE, E, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-			Em = NeighborEnergy (LATTICE, E, &cm, lattice_index(loc_m, y, z), x, y, z); 
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index(loc_m, y, z), x, y, z); 
 
 			difference = subtract_arrays (&ne_list[idx_counter], &loc_m); 
 			// std::cout << "difference = "; print (difference);
@@ -9995,7 +10097,7 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 			// std::cout << "difference = "; print (difference);
 			if ( std::find (adrns.begin(), adrns.end(), difference) != adrns.end() && (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->ptype == "s1" ){
 				neighbor_bool = true;
-				Epair = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
+				Epair = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx, x, y, z); 
 			}
 			else {
 				neighbor_bool = false; 
@@ -10020,10 +10122,10 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 				(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
 
 				// get the new energies
-				Es_n = NeighborEnergy (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
-				Em_n = NeighborEnergy (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
+				Es_n = NeighborEnergetic (LATTICE, E, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+				Em_n = NeighborEnergetic (LATTICE, E, &cm_n, lattice_index(loc_m, y, z), x, y, z); 	
 				if (neighbor_bool){
-					Epair_n = PairEnergy  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
+					Epair_n = IsolatedPairParticleInteraction  ((*LATTICE)[lattice_index(ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index(loc_m, y, z)], E, &c_idx_n, x, y, z); 
 				}
 				else {
 					Epair_n = 0;
@@ -10139,7 +10241,7 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 	(*LATTICE)[ lattice_index (ne_list[e_idx/5], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	// else { do nothing and maintain structure, because suggested index is in the maintain index vector }
-	HeadRegrowthPlusOrientationFlip_BIASED_debug (Polymers, Cosolvent, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
+	HeadRegrowthPlusOrientationFlip_BIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
 
 	return; 
 
@@ -10154,7 +10256,9 @@ void HeadRegrowthPlusOrientationFlip_BIASED_debug (std::vector <Polymer>* Polyme
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromHeadRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::vector <int>* old_ori, std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
+	std::vector<std::array<int,3>>* old_cut, std::vector <int>* old_ori, \
+	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* E, std::array <double,8>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
 
@@ -12189,6 +12293,7 @@ void SolventExchange_BIASED_debug (std::vector <Polymer>* Polymers, std::vector 
 
 
 void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, \
 	bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, \
 	int* move_number, int x, int y, int z) {
@@ -12203,7 +12308,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			if (v) {
 				std::cout << "Performing end rotations..." << std::endl; 
 			}
-			EndRotation_UNBIASED  (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			EndRotation_UNBIASED  (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
 			*move_number    = r; 
 			(*attempts)[r] += 1; 
 			break; 

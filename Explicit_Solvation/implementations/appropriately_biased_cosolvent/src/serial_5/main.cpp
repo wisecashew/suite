@@ -177,6 +177,10 @@ int main (int argc, char** argv) {
     const int z             =  info_vec[2] ; 
     const double T          =  info_vec[3] ; 
     const double frac       =  info_vec[12]; 
+    std::pair <std::string, std::string> mm_pair    = std::make_pair ("m1", "m1");
+    std::pair <std::string, std::string> ms1_pair   = std::make_pair ("m1", "s1");
+    std::pair <std::string, std::string> ms2_pair   = std::make_pair ("m1", "s2");
+    std::pair <std::string, std::string> s1s2_pair  = std::make_pair ("s1", "s2");
     std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
 
 
@@ -208,14 +212,14 @@ int main (int argc, char** argv) {
     std::cout << std::endl;
     std::cout << "Preparing for take-off...\n\n" ; 
     std::cout << "Chemical information: " << std::endl;
-    std::cout << "Number of polymers is " << N << ".\n\n";
+    std::cout << "Number of polymers in system = " << N << ".\n\n";
     std::cout << "Geometric information about simulation cell: " << std::endl;
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Fraction of Solvent 2 = " << frac << "." << std::endl;
-    std::cout << "Monomer-Monomer energetics: Emm_a = "  << E[0] <<", Emm_n = "  << E[1] << ".\nMonomer-Solvent I energetics: Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
-    std::cout << "Monomer-Solvent II energetics: Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ".\nSolvent I-Solvent II energetics: Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
+    std::cout << "Fraction of Solvent II = " << frac << "." << std::endl;
+    std::cout << "Monomer-Monomer energetics: "    << std::get<0>(InteractionMap[mm_pair])  << ", Emm_a = "  << E[0] <<", Emm_n = "  << E[1] << ".\nMonomer-Solvent I energetics: "    << std::get<0>(InteractionMap[ms1_pair]) << ", Ems1_a = "  << E[2] << ", Ems1_n = "  << E[3] <<".\n";
+    std::cout << "Monomer-Solvent II energetics: " << std::get<0>(InteractionMap[ms2_pair]) << ", Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ".\nSolvent I-Solvent II energetics: " << std::get<0>(InteractionMap[s1s2_pair])<< ", Es1s2_a = " << E[6] << ", Es1s2_n = " << E[7] <<".\n";  
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
@@ -234,8 +238,9 @@ int main (int argc, char** argv) {
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
-        std::cout << "Solvation took " << duration.count () << " microseconds." << std::endl;
-        std::cout << "Cell has been solvated! \n\n" ;
+        std::cout << "Cell has been solvated!\n" ;
+        std::cout << "Solvation took " << duration.count () << " microseconds.\n\n" << std::endl;
+        
 
         if (b) {
             std::cout << "Simulation will have a biased start..." << std::endl;
@@ -295,7 +300,7 @@ int main (int argc, char** argv) {
     
     std::cout << "Initiation complete. We are ready to go. The engine will output information every " << dfreq << " configuration(s)." << std::endl; 
     std::cout << "Number of iteration to perform: " << max_iter << "." << std::endl;
-    // std::cout << "acceptances[1] = " << acceptances[1] << std::endl;
+
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //    
@@ -321,7 +326,7 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &InteractionMap, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
 
         if ( IMP_BOOL ) {

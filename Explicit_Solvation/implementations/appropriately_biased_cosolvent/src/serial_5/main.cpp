@@ -150,7 +150,7 @@ int main (int argc, char** argv) {
     int    move_number    {0};  
     double sysEnergy      {0};
     bool   IMP_BOOL       {true}; 
-    std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double> > InteractionMap; 
+    std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double, int, int> > InteractionMap; 
 
     std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
     std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
@@ -180,13 +180,13 @@ int main (int argc, char** argv) {
     std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
 
 
-    std::cout << "Printing out InteractionMap..." << std::endl; 
-    std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double>>::iterator it; 
-    for (it = InteractionMap.begin(); it != InteractionMap.end(); it++){
-        std::cout << "key = (" << (it->first).first << ", " << (it->first).second <<"), value = " << "(" << std::get<0>(it->second) << ", " << std::get<1>(it->second) << ", " << std::get<2>(it->second) << ")" << std::endl;
-    }
+    // std::cout << "Printing out InteractionMap..." << std::endl; 
+    // std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double>>::iterator it; 
+    // for (it = InteractionMap.begin(); it != InteractionMap.end(); it++){
+    //     std::cout << "key = (" << (it->first).first << ", " << (it->first).second <<"), value = " << "(" << std::get<0>(it->second) << ", " << std::get<1>(it->second) << ", " << std::get<2>(it->second) << ")" << std::endl;
+    // }
+    // exit (EXIT_SUCCESS);
 
-    exit (EXIT_SUCCESS);
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
@@ -271,6 +271,13 @@ int main (int argc, char** argv) {
     
     start = std::chrono::high_resolution_clock::now(); 
     sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
+    std::array <double,8> contact_c = {0, 0, 0, 0, 0, 0, 0, 0};
+    double sysEnergyRevamp = CalculateEnergyRevamped (&Polymers, &Cosolvent, &LATTICE, &InteractionMap, &contact_c, x, y, z);
+    std::cout << "sysEnergy = " << sysEnergy << ", sysEnergyRevamp = " << sysEnergyRevamp << std::endl;
+    std::cout << "contacts  = "; print (contacts, ", "); std::cout << "contact_c = "; print (contact_c);
+
+
+    exit(EXIT_SUCCESS); 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
@@ -360,11 +367,11 @@ int main (int argc, char** argv) {
     std::cout << "\n\nTime taken for simulation: " << duration.count()/1e+06 << " seconds.\n"; 
     std::cout << "That is all she wrote. Hope it worked." << std::endl;
     std::cout << "--------------------------------------------------------------------\n\n";
-
+    
     for (int i{0}; i<x*y*z; ++i) {
         delete LATTICE[i];
     }
-
+    
     return 0;
-
+    
 }

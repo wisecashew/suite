@@ -990,11 +990,12 @@ double NumberExtractor(std::string s){
 // THE CODE: 
 
 
-std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, const int, const int> >* InteractionMap ){
+std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, int, int> >* InteractionMap ){
     
     std::array <double, 13> info_vec; 
     double info; 
-    std::pair <std::string, std::string> p; 
+    std::pair  <std::string, std::string> p; 
+    std::tuple <std::string, double, double, int, int> t; 
     std::string interaction_type; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
@@ -1034,7 +1035,8 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
     		interaction_type = trim (split(s, ':')[1]);
     		if (interaction_type == "isotropic" || interaction_type == "parallel" || interaction_type == "antiparallel"){
     			p = std::make_pair ("m1", "m1");
-    			(*InteractionMap)[p] = std::make_tuple(interaction_type, 0, 0, 0, 1);
+    			t = std::make_tuple(interaction_type, 0, 0, 0, 1);
+    			(*InteractionMap)[p] = t;
     		}
     		else {
     			std::cout << "\"" << s << "\"" << std::endl;
@@ -1197,37 +1199,32 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
 
 
 double TopologicalInfluencedNeighborEnergetics ( std::vector <Particle*>* LATTICE, \
-	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, const int, const int>>* InteractionMap, \
-	int ss_index, std::array <double, 8>* contacts ){
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	int ss_index, std::array <double, 8>* contacts, int x, int y, int z ){
 
 	double   Ei = 0; 
 	(*contacts) = {0, 0, 0, 0, 0, 0, 0, 0};
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ( (*LATTICE)[ss_index]->coords, x, y, z); 
 
 	for ( std::array <int,3>& loc: ne_list) {
-
-		TopologicalInfluencedEnergyContribution ((*LATTICE)[ss_index], (*LATTICE)[lattice_index (loc, y, z)], InteractionMap, &Ei, contacts);
-
+		TopologicalInfluencedEnergyContribution ((*LATTICE)[ss_index], (*LATTICE)[lattice_index (loc, y, z)], InteractionMap, &Ei, contacts, x, y, z);
 	}
 
 	return Ei; 
 
 }
 
-
-
 void TopologicalInfluencedEnergyContribution (Particle* p1, Particle* p2, \
-	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, const int, const int>>* InteractionMap, \
-	double* pair_energy, std::array <double,8>* contacts){
+	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	double* pair_energy, std::array <double,8>* contacts, int x, int y, int z) {
 
-	*pair_energy       = 0;
 	double dot_product = 0;
 	double theta_1     = 0;
 	double theta_2     = 0;
 	double magnitude   = 0;
 	std::array <int,3> connvec = {0, 0, 0};
 
-	std::pair particle_pair = std::make_pair (p1->ptype, p2->ptype); 
+	std::pair <std::string, std::string> particle_pair = std::make_pair (p1->ptype, p2->ptype); 
 
 	std::string interaction_type = std::get<0>((*InteractionMap)[particle_pair]);
 
@@ -2576,23 +2573,6 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-//==============================================================================================
-//==============================================================================================
-//
-// Name of function: TopologicalEnergyCalculation
-// Parameters: Particle 1, Particle 2, InteractionMap, Energy, contacts, x, y, z
-// 
-// What it does: it looks at two particles next to one another, then calculates the energy of 
-// interaction. 
-//  
-
-
-//==============================================================================================
-//==============================================================================================
-//
-// Name of function: TopologicalEnergyComputation
-// 
-
 
 
 //==============================================================================================
@@ -2709,54 +2689,38 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 //==============================================================================================
 //==============================================================================================
 
-double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair <std::string, std::string>, std::string>* InteractionMap, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z) {
+double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, int, int>>* InteractionMap, \
+	std::array<double,8>* contacts, int x, int y, int z) {
     
     double Energy {0.0};
     (*contacts) = {0,0,0,0,0,0,0,0}; 
 
-    double             dot_product   = -2; 
-    std::array <int,3> connvec       = {0,0,0}; 
-    double             theta_1       = 0; 
-    double             theta_2       = 0; 
-    double             magnitude     = 0; 
-
     std::array <std::array <int,3>, 26> ne_list; 
 
     // run energy computations for every monomer bead 
-    // m-m  = stacking interaction
-    // m-s1 = stacking interaction 
-    // m-s2 = isotropic interaction 
     // auto start = std::chrono::high_resolution_clock::now();
 
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
             ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
-            for ( std::array <std::array <int,3>, 26>& loc: ne_list){
-            	TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts)
+            for ( std::array <int,3>& loc: ne_list) {
+            	TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
         	}
         }
     }
-
-    
     
     for ( Particle*& p: *Cosolvent ){
 
 		ne_list = obtain_ne_list ( p->coords, x, y, z );
 		for ( std::array <int,3>& loc: ne_list ){
-
 			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
 				continue; 
 			}
-
-			TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts);
-
+			TopologicalInfluencedEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
 		}
     }
 
-    // stop = std::chrono::high_resolution_clock::now(); 
-    // duration = std::chrono::duration_cast <std::chrono::microseconds> (stop-start); 
-    // std::cout << "solvent energy computation took " << duration.count() << " microseconds. " << std::endl;
-    
     return Energy; 
 }
 

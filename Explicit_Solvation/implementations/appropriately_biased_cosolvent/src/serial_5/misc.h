@@ -176,7 +176,7 @@ std::vector <Polymer>    ExtractPolymersFromTraj    (std::string trajectory, std
 int                      ExtractIndexOfFinalMove    (std::string trajectory);
 double                   ExtractEnergyOfFinalMove   (std::string energy_file); 
 int                      ExtractNumberOfPolymers    (std::string filename);
-std::array <double, 13>  ExtractTopologyFromFile    (std::string filename, std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double>>* InteractionMap); 
+std::array <double, 13>  ExtractTopologyFromFile    (std::string filename, std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, int, int>>* InteractionMap); 
 std::vector <Particle*>  ExtractLatticeFromRestart  (std::string rfile, int* step_num, int x, int y, int z);
 double                   NumberExtractor            (std::string s);
 
@@ -189,6 +189,11 @@ double CalculateEnergy               (std::vector <Polymer>* Polymers, std::vect
 double CalculateEnergy_parallel      (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array<double,8>* E, std::array<double,8>* contacts, int x, int y, int z);
 double NeighborEnergy                (std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, int ss_index, int x, int y, int z); 
 double PairEnergy                    (Particle* p1, Particle* p2, std::array <double,8>* E, int* c_idx, int x, int y, int z);
+
+// energy calculation 
+double CalculateEnergyRevamped                 (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array<double,8>* contacts, int x, int y, int z); 
+double TopologicalInfluenceNeighborEnergetics  (std::vector <Particle*>* LATTICE, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, int ss_index, std::array <double,8>* contacts, int x, int y, int z); 
+void   TopologicalInfluencedEnergyContribution (Particle* p1, Particle* p2, std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, double* pair_energy, std::array <double,8>* contacts, int x, int y, int z); 
 
 // %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -326,7 +326,7 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &InteractionMap, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &InteractionMap, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
 
         if ( IMP_BOOL ) {

@@ -7,12 +7,12 @@ m1-m1:isotropic
 m1-s1:antiparallel
 m1-s2:parallel
 s1-s2:isotropic
-Emm_a    = -0
-Emm_n    = -0
-Ems1_a   = -1
-Ems1_n   = -0
+Emm_a    = -7
+Emm_n    = -6
+Ems1_a   = -5
+Ems1_n   = -4
 Ems2_a   = -3
-Ems2_n   = -5
-Es1s2_a  = -4
-Es1s2_n  = -1
+Ems2_n   = -2
+Es1s2_a  = -1
+Es1s2_n  = -0
 END OF FILE

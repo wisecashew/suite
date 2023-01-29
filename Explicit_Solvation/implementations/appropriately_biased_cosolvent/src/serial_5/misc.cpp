@@ -1711,7 +1711,7 @@ void SetUpLatticeFromRestart ( std::vector <Polymer>* Polymers, std::vector <Par
 }
 
 
-void BiasTheStart ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z ) {
+void AlignTheSolvationShell ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z ) {
 
     std::array <std::array<int,3>, 26> ne_list;
     std::vector <int> solvent_indices; 
@@ -1743,6 +1743,17 @@ void BiasTheStart ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
     }
 
     return;
+
+}
+
+void AlignTheLattice ( std::vector <Particle*>* LATTICE ) {
+
+	for ( Particle*& p: (*LATTICE) ) {
+		p->orientation = 0;
+	}
+
+	return; 
+
 
 }
 

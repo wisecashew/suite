@@ -24,7 +24,8 @@ int main (int argc, char** argv) {
 	int max_iter{-1}; // number of iteration to perform
 	bool v = false;   // boolean for verbosity of output  (default: not verbose)
 	bool r = false;   // boolean for restarts (default: no restarts) 
-	bool b = false;   // boolean for biased starting 
+	bool S = false;   // boolean for biased solvation shell 
+    bool A = false;   // boolean for aligned lattice 
 	bool s = false;   // boolean for solvation 
 	std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 	std::string topology           {"__blank__"}; // name of file with topology of system 
@@ -36,7 +37,7 @@ int main (int argc, char** argv) {
 	std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
 	// loop to obtain inputs and assign them to the appropriate variables 
-	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbyr")) != -1 )
+	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhSAyr")) != -1 )
 	{
 	    switch (opt) 
 	    {
@@ -57,21 +58,22 @@ int main (int argc, char** argv) {
 			"\n" << 
 			"----------------------------------------------------------------------------------------------------------------------------------\n" << 
 			"These are all the inputs the engine accepts for a single run, as of right now: \n\n" <<
-			"help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
-			"verbose flag              [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
-			"restart flag              [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
-			"solvation bias flag       [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
-			"orientation bias flag     [-b]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
-			"Dump Frequency            [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
-			"Number of maximum moves   [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
-			"Polymer coordinates       [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
-			"Energy and geometry       [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
-			"Energy of grid            [-u]           (STRING ARGUMENT REQUIRED)     Name of output file with energy of system at each step in a file.\n"<<
-			"Lattice file to write to  [-L]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to write out current simulation.\n" <<
-			"Lattice file to read from [-R]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
-			"Orientation file          [-e]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain orientation of ALL particles in system.\n" << 
-			"Move statistics file      [-s]           (STRING ARGUMENT REQUIRED)     Name of output file with move statistics. \n" <<
-			"Name of output file       [-o]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain coordinates of polymer.\n\n";  
+			"help                                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
+			"verbose flag                             [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
+			"restart flag                             [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
+			"solvation bias flag                      [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
+			"solvation shell orientation bias flag    [-S]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
+            "lattice orientation bias flag            [-T]           (NO ARG REQUIRED)              All particles in lattice have orientation 0. \n"<<
+			"Dump Frequency                           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
+			"Number of maximum moves                  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
+			"Polymer coordinates                      [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
+			"Energy and geometry                      [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
+			"Energy of grid                           [-u]           (STRING ARGUMENT REQUIRED)     Name of output file with energy of system at each step in a file.\n"<<
+			"Lattice file to write to                 [-L]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to write out current simulation.\n" <<
+			"Lattice file to read from                [-R]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
+			"Orientation file                         [-e]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain orientation of ALL particles in system.\n" << 
+			"Move statistics file                     [-s]           (STRING ARGUMENT REQUIRED)     Name of output file with move statistics. \n" <<
+			"Name of output file                      [-o]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain coordinates of polymer.\n\n";  
 			exit(EXIT_SUCCESS);
 			break;
 
@@ -81,9 +83,13 @@ int main (int argc, char** argv) {
 			positions = optarg;
 			break;    
 
-		case 'b':
-			b = true;
+		case 'S':
+			S = true;
 			break;
+
+        case 'A':
+            A = true;
+            break;
 
 		case 'y': 
 			s = true;
@@ -184,13 +190,6 @@ int main (int argc, char** argv) {
     std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
 
 
-    // std::cout << "Printing out InteractionMap..." << std::endl; 
-    // std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double>>::iterator it; 
-    // for (it = InteractionMap.begin(); it != InteractionMap.end(); it++){
-    //     std::cout << "key = (" << (it->first).first << ", " << (it->first).second <<"), value = " << "(" << std::get<0>(it->second) << ", " << std::get<1>(it->second) << ", " << std::get<2>(it->second) << ")" << std::endl;
-    // }
-    // exit (EXIT_SUCCESS);
-
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
@@ -241,10 +240,13 @@ int main (int argc, char** argv) {
         std::cout << "Cell has been solvated!\n" ;
         std::cout << "Solvation took " << duration.count () << " microseconds.\n\n" << std::endl;
         
-
-        if (b) {
-            std::cout << "Simulation will have a biased start..." << std::endl;
-            BiasTheStart (&Polymers, &LATTICE, x, y, z);
+        if (A) {
+            std::cout << "The lattice will be entirely aligned." << std::endl;
+            AlignTheLattice (&LATTICE);
+        }
+        else if (S){
+            std::cout << "The solvation shell will be entirely aligned." << std::endl;
+            AlignTheSolvationShell (&Polymers, &LATTICE, x, y, z);
         }
 
         CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
@@ -274,14 +276,8 @@ int main (int argc, char** argv) {
     std::cout <<"\nCalculating energy..." << std::endl;
     
     start = std::chrono::high_resolution_clock::now(); 
-    sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
-    std::array <double,8> contact_c = {0, 0, 0, 0, 0, 0, 0, 0};
-    double sysEnergyRevamp = CalculateEnergyRevamped (&Polymers, &Cosolvent, &LATTICE, &InteractionMap, &contact_c, x, y, z);
-    std::cout << "sysEnergy = " << sysEnergy << ", sysEnergyRevamp = " << sysEnergyRevamp << std::endl;
-    std::cout << "contacts  = "; print (contacts, ", "); std::cout << "contact_c = "; print (contact_c);
+    sysEnergy = CalculateEnergyRevamped (&Polymers, &Cosolvent, &LATTICE, &InteractionMap, &contacts, x, y, z);
 
-
-    exit(EXIT_SUCCESS); 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
@@ -320,7 +316,7 @@ int main (int argc, char** argv) {
                 print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
             }
             std::cout << "Contacts = "; print (contacts);
-            std::cout << " -------------------------- " << std::endl;
+            std::cout << "-------------------------- " << std::endl;
             std::cout << "Step number: " << i << "." << std::endl; 
             std::cout << "Executing..." << std::endl << std::endl;
         }

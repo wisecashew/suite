@@ -24,7 +24,8 @@ int main (int argc, char** argv) {
 	int max_iter{-1}; // number of iteration to perform
 	bool v = false;   // boolean for verbosity of output  (default: not verbose)
 	bool r = false;   // boolean for restarts (default: no restarts) 
-	bool b = false;   // boolean for biased starting 
+    bool S = false;   // boolean for biased solvation shell 
+    bool A = false;   // boolean for aligned lattice 
 	bool s = false;   // boolean for solvation 
 	std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 	std::string topology           {"__blank__"}; // name of file with topology of system 
@@ -36,7 +37,7 @@ int main (int argc, char** argv) {
 	std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
 	// loop to obtain inputs and assign them to the appropriate variables 
-	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbyr")) != -1 )
+	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhSAyr")) != -1 )
 	{
 	    switch (opt) 
 	    {
@@ -82,9 +83,13 @@ int main (int argc, char** argv) {
 			positions = optarg;
 			break;    
 
-		case 'b':
-			b = true;
+		case 'S':
+			S = true;
 			break;
+
+        case 'A':
+            A = true;
+            break;
 
 		case 'y': 
 			s = true;
@@ -242,10 +247,13 @@ int main (int argc, char** argv) {
         std::cout << "Cell has been solvated!\n" ;
         std::cout << "Solvation took " << duration.count () << " microseconds.\n\n" << std::endl;
         
-
-        if (b) {
-            std::cout << "Simulation will have a biased start..." << std::endl;
-            BiasTheStart (&Polymers, &LATTICE, x, y, z);
+        if (A) {
+            std::cout << "The lattice will be entirely aligned." << std::endl;
+            AlignTheLattice (&LATTICE);
+        }
+        else if (S) {
+            std::cout << "The solvation shell will be entirely aligned." << std::endl;
+            AlignTheSolvationShell (&Polymers, &LATTICE, x, y, z);
         }
 
         CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);

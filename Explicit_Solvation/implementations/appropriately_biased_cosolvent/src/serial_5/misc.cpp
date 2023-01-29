@@ -994,6 +994,7 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
     
     std::array <double, 13> info_vec; 
     double info; 
+    std::array <int,17> input_hit_check = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     std::pair  <std::string, std::string> p; 
     std::tuple <std::string, double, double, int, int> t; 
     std::string interaction_type; 
@@ -1010,24 +1011,48 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
     	if (std::regex_search(s, x)){
     		info = NumberExtractor(s); 
     		info_vec[0]=info; 
+    		input_hit_check[0] += 1;
+    		if (input_hit_check [0] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
     	else if (std::regex_search(s, y)){
     		info = NumberExtractor(s); 
     		info_vec[1] = info; 
+    		input_hit_check[1] += 1;
+    		if (input_hit_check [1] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
     	else if (std::regex_search(s, z)){
     		info = NumberExtractor(s); 
     		info_vec[2] = info; 
+    		input_hit_check[2] += 1;
+    		if (input_hit_check [2] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
 		else if (std::regex_search(s, kT)){
     		info = NumberExtractor(s); 
     		info_vec[3] = info ; 
+    		input_hit_check[3] += 1;
+    		if (input_hit_check [3] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
@@ -1043,6 +1068,13 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
     			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
     			exit(EXIT_FAILURE);     			
     		}
+    		input_hit_check[4] += 1;
+    		if (input_hit_check [4] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
+    		continue;
     	}
 
     	else if (std::regex_search(s, m1_s1)){
@@ -1059,6 +1091,13 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
     			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
     			exit(EXIT_FAILURE); 
     		}
+    		input_hit_check[5] += 1;
+    		if (input_hit_check [5] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
+    		continue;
     	}
 
     	else if (std::regex_search(s, m1_s2)){
@@ -1074,6 +1113,13 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
     			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
     			exit(EXIT_FAILURE); 	    		
 	    	}
+	    	input_hit_check[6] += 1;
+	    	if (input_hit_check [6] > 1){
+	    		std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
+	    	continue;
     	}
 
     	else if (std::regex_search(s, s1_s2)){
@@ -1089,23 +1135,48 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
     			std::cerr << "ERROR: There is a nonstandard input provided in topology file." << std::endl;
     			exit(EXIT_FAILURE); 	    
     		}
+    		input_hit_check[7] += 1;
+    		if (input_hit_check [7] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
+    		continue;
     	}
 
     	else if (std::regex_search (s, Emm_a)){
     		info = NumberExtractor(s); 
     		info_vec[4] = info; 
+    		input_hit_check[16] += 1;
+    		if (input_hit_check [16] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
     	else if (std::regex_search (s, Emm_n)){
     		info = NumberExtractor(s); 
     		info_vec[5] = info; 
+    		input_hit_check[8] += 1;
+    		if (input_hit_check [8] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
     	else if (std::regex_search (s, Ems1_a)){
     		info = NumberExtractor(s); 
     		info_vec[6] = info; 
+    		input_hit_check[9] += 1;
+    		if (input_hit_check [9] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
@@ -1113,35 +1184,71 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
 
     		info = NumberExtractor(s);
     		info_vec[7] = info; 
+    		input_hit_check[10] += 1;
+    		if (input_hit_check [10] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue;
     	}
     	else if (std::regex_search (s, Ems2_a)){
 
     		info = NumberExtractor(s);
     		info_vec[8] = info; 
+    		input_hit_check[11] += 1;
+    		if (input_hit_check [11] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue;
     	}
     	else if (std::regex_search (s, Ems2_n)){
 
     		info = NumberExtractor(s);
     		info_vec[9] = info; 
+    		input_hit_check[12] += 1;
+    		if (input_hit_check [12] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue;
     	}
     	else if (std::regex_search (s, Es1s2_a)){
 
     		info = NumberExtractor(s);
     		info_vec[10] = info; 
+    		input_hit_check[13] += 1;
+    		if (input_hit_check [13] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue;
     	}
     	else if (std::regex_search (s, Es1s2_n)){
 
     		info = NumberExtractor(s);
     		info_vec[11] = info; 
+    		input_hit_check[14] += 1;
+    		if (input_hit_check [14] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue;
     	}
     	else if (std::regex_search (s, frac)) {
     		info = NumberExtractor(s);
     		info_vec[12] = info;
+    		input_hit_check[15] += 1;
+    		if (input_hit_check [15] > 1){
+    			std::cout << "line = " << s << "." << std::endl;
+    			std::cerr << "You have not provided all of the topology or provided redundant topology, or your inputs might be incorrectly written. Please check. Exiting..." << std::endl;
+    			exit (EXIT_FAILURE);
+    		}
     		continue; 
     	}
 
@@ -1185,6 +1292,7 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
 	p = std::make_pair ("s1", "s2");
     std::get<1>((*InteractionMap)[p]) = info_vec[10];
     std::get<2>((*InteractionMap)[p]) = info_vec[11];
+
 
     return info_vec;
 
@@ -2880,7 +2988,7 @@ void PairInteractionForRevampedEnergyCalc (Particle* p1, Particle* p2, \
 		dot_product = take_dot_product ( p1->orientation, p2->orientation );
 		if (dot_product > 0.54){
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
-				std::cout << "aligned parallel m1-m1..." << std::endl;
+				// std::cout << "aligned parallel m1-m1..." << std::endl;
 				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 0.5; 
 				*pair_energy += std::get<1>((*InteractionMap)[particle_pair])*0.5; 
 			}
@@ -2891,7 +2999,7 @@ void PairInteractionForRevampedEnergyCalc (Particle* p1, Particle* p2, \
 		}
 		else {
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
-				std::cout << "misaligned parallel m1-m1..." << std::endl;
+				// std::cout << "misaligned parallel m1-m1..." << std::endl;
 				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 0.5; 
 				*pair_energy += std::get<2>((*InteractionMap)[particle_pair])*0.5; 
 			}
@@ -2912,7 +3020,7 @@ void PairInteractionForRevampedEnergyCalc (Particle* p1, Particle* p2, \
 
 		if ( theta_1 + theta_2 > M_PI/2 ){
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ) {
-				std::cout << "misaligned antiparallel m1-m1..." << std::endl;
+				// std::cout << "misaligned antiparallel m1-m1..." << std::endl;
 				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 0.5; 
 				*pair_energy += std::get<2>((*InteractionMap)[particle_pair])*0.5; 
 			}
@@ -2923,7 +3031,7 @@ void PairInteractionForRevampedEnergyCalc (Particle* p1, Particle* p2, \
 		}
 		else {
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
-				std::cout << "aligned antiparallel m1-m1..." << std::endl;
+				// std::cout << "aligned antiparallel m1-m1..." << std::endl;
 				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 0.5; 
 				*pair_energy += std::get<1>((*InteractionMap)[particle_pair])*0.5; 
 			}
@@ -2942,240 +3050,6 @@ void PairInteractionForRevampedEnergyCalc (Particle* p1, Particle* p2, \
 //==============================================================================================
 //==============================================================================================
 
-
-double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, int ss_index, int x, int y, int z){
-
-	// reinitialize contacts 
-	(*contacts) = {0,0,0,0,0,0,0,0}; 
-
-	// information of particle whose neighbor list is being calculated 
-	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ( (*LATTICE).at(ss_index)->coords, x, y, z ); 
-	std::array <int,3> ploc                    = (*LATTICE).at(ss_index)->coords; 
-	std::string particle_type                  = (*LATTICE).at(ss_index)->ptype; 
-	int orientation                            = (*LATTICE).at(ss_index)->orientation; 
-	
-	double Ei       = 0; 
-	double dot_prod = -2; 
-	double theta_1 (0), theta_2 (0), magnitude (0);
-	std::array <int,3> connvec = {0,0,0};  
-
-	// std::cout << "Coords of particle of interest = "; print ( ploc );
-	// start of neighbor loop 
-	for ( std::array <int,3>& loc: ne_list) {
-		// print (*contacts);
-		// if particle in question is s1... 
-		if ( particle_type == "s1" ) {
-			if ( (*LATTICE).at(lattice_index(loc, y, z))->ptype == "m1" ){
-				dot_prod = take_dot_product ( orientation, (*LATTICE).at(lattice_index(loc, y, z) )->orientation) ;
-				if ( dot_prod > 0.54 ){
-					Ei += (*E).at(2);
-					(*contacts).at(2) += 1; 
-				}
-				else {
-					Ei += (*E).at(3); 
-					(*contacts).at(3) += 1; 
-				}
-			}
-
-			else if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2" ) {
-				connvec = subtract_arrays ( &loc, &ploc ); 
-				modified_direction ( &connvec, x, y, z); 
-				magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-				
-				theta_1 = std::acos (take_dot_product ( scale_arrays(1/magnitude, &connvec), Or2Dir[orientation] ) ); 
-				theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE).at(lattice_index(loc, y, z))->orientation] ) ); 
-
-				if ( theta_1 + theta_2 > M_PI/2 ) {
-					Ei += (*E).at(7); 
-					(*contacts).at(7) += 1;
-				}
-				else {
-					Ei += (*E).at(6); 
-					(*contacts).at(6) += 1; 
-				}
-			}
-		}
-
-		// if particle in question is s2... 
-		else if ( particle_type == "s2" ) {
-			// if neighbor is m1
-			if ( (*LATTICE).at(lattice_index(loc, y, z) )->ptype == "m1" ){
-				Ei += (*E).at(4);
-				(*contacts).at(4) += 1; 
-				// std::cout << "s2-m1 neighbor loc = "; print (loc);
-			}
-			// if neighbor is s1
-			else if ( (*LATTICE).at(lattice_index(loc, y, z) )->ptype == "s1") {
-				// std::cout << "location of s1 neighbor is "; print ( loc );
-				connvec = subtract_arrays ( &loc, &ploc ); 
-				modified_direction ( &connvec, x, y, z); 
-				magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-				theta_1 = std::acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[orientation] ) ); 
-				theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE).at(lattice_index(loc, y, z))->orientation] ) ); 
-
-				if ( theta_1 + theta_2 > M_PI/2 ) {
-					Ei += (*E).at(7); 
-					(*contacts).at(7) += 1; 
-					// std::cout << "s2-s1 neighbor loc = "; print (loc);
-					// std::cout << "misaligned." << std::endl;
-				}
-				else {
-					Ei += (*E).at(6); 
-					(*contacts).at(6) += 1; 
-					// std::cout << "s2-s1 neighbor loc = "; print (loc);
-					// std::cout << "aligned." << std::endl;
-				}
-			}
-		}
-
-		// if particle in question is m1... 
-		else {
-			// if neighbor is m1
-			if ( (*LATTICE).at( lattice_index(loc, y, z) )->ptype == "m1" ) {
-				dot_prod = take_dot_product ( orientation, (*LATTICE).at( lattice_index (loc, y, z) )->orientation ); 
-				if ( dot_prod > 0.54){
-					Ei += (*E).at(0);
-					(*contacts).at(0) += 1; 
-					// std::cout << "m1-m1 neighbor loc = "; print (loc); 
-				}
-				else {
-					Ei += (*E).at(1); 
-					(*contacts).at(1) += 1;
-					// std::cout << "m1-m1 neighbor loc = "; print (loc); 
-				}
-			}
-			// if neighbor is s1
-			else if ( (*LATTICE).at( lattice_index(loc, y, z) )->ptype == "s1" ) {
-				dot_prod = take_dot_product ( orientation, (*LATTICE).at( lattice_index (loc, y, z) )->orientation ); 
-				if (dot_prod > 0.54){
-					Ei += (*E).at(2);
-					(*contacts).at(2) += 1;
-					// std::cout << "m1-s1 neighbor loc = "; print (loc); 
-					// std::cout << "aligned." << std::endl;
-				}
-				else {
-					Ei += (*E).at(3); 
-					(*contacts).at(3)  += 1;
-					// std::cout << "m1-s1 neighbor loc = "; print (loc); 
-					// std::cout << "misaligned." << std::endl;
-				}
-			}
-			// if neighbor is s2
-			else {
-				Ei += (*E).at(4); 
-				(*contacts).at(4) += 1; 
-				// std::cout << "s2-m1 neighbor loc = "; print (loc);
-			}
-		}
-	} // end of neighbor loop 
-
-	return Ei; 
-
-}
-
-
-double PairEnergy (Particle* p1, Particle* p2, std::array <double,8>* E, int* c_idx, int x, int y, int z){
-
-	double             pE = 0; 
-	double             dot_prod = 0; 
-	double             magnitude = 0; 
-	double             theta_1   = 0;
-	double             theta_2   = 0;
-	std::array <int,3> connvec = {0,0,0};  
-
-
-	// std::cout << "p1: type = " << p1->ptype << ", or = " << p1->orientation << ", dir = "; print (Or2Dir[p1->orientation], ", "); std::cout << "coords = "; print (p1->coords); 
-	// std::cout << "p2: type = " << p2->ptype << ", or = " << p2->orientation << ", dir = "; print (Or2Dir[p2->orientation], ", "); std::cout << "coords = "; print (p2->coords); 
-	// std::cout << "dot product = " << take_dot_product (p1->orientation, p2->orientation) << std::endl;
-	
-	if ( p1->ptype == "m1" ){
-		if ( p2->ptype == "m1" ){
-			dot_prod = take_dot_product (p1->orientation, p2->orientation); 
-			if ( dot_prod > 0.54 ){
-				pE = (*E)[0]; 
-				*c_idx = 0; 
-			}
-			else {
-				pE = (*E)[1];
-				*c_idx = 1; 
-			}
-		}
-		else if ( p2->ptype == "s1" ){
-			dot_prod = take_dot_product (p1->orientation, p2->orientation); 
-			if ( dot_prod > 0.54 ){
-				pE = (*E)[2];
-				*c_idx = 2;  
-			}
-			else {
-				pE = (*E)[3];
-				*c_idx = 3; 
-			}
-		}
-		else {
-			pE = (*E)[4];
-			*c_idx = 4; 
-		}
-	} // end of p1->orientation = m1 
-	
-	else if ( p1->ptype == "s1" ){
-		if (p2->ptype == "m1" ){
-			dot_prod = take_dot_product (p1->orientation, p2->orientation); 
-			if ( dot_prod > 0.54 ){
-				pE = (*E)[2];
-				*c_idx = 2;  
-			}
-			else {
-				pE = (*E)[3]; 
-				*c_idx = 3; 
-			}
-		}
-		else if (p2->ptype == "s2"){
-
-			connvec = subtract_arrays (&(p2->coords), &(p1->coords));
-			modified_direction ( &connvec, x, y, z); 
-			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
-			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
-
-			if ( theta_1 + theta_2 > M_PI/2 ){
-				pE = (*E)[7];
-				*c_idx = 7; 
-			}
-			else {
-				pE = (*E)[6]; 
-				*c_idx = 6; 
-			}
-		}
-	} // end of p1->orientation = s1 
-
-	else {
-		if (p2->ptype == "m1"){
-			pE = (*E)[4]; 
-			*c_idx = 4; 
-		}
-		else if ( p2->ptype == "s1") {
-
-			connvec = subtract_arrays (&(p2->coords), &(p1->coords));
-			modified_direction ( &connvec, x, y, z); 
-			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude,  &connvec), Or2Dir[p1->orientation]) ); 
-			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
-
-			if ( theta_1 + theta_2 > M_PI/2 ){
-				pE = (*E)[7];
-				*c_idx = 7; 
-			}
-			else {
-				pE = (*E)[6]; 
-				*c_idx = 6; 
-			}
-		}
-
-	}
-
-	return pE; 
-
-}
 
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~

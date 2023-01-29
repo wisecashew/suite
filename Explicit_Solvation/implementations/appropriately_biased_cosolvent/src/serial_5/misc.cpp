@@ -1231,8 +1231,47 @@ void ParticlePairEnergyContribution (Particle* p1, Particle* p2, \
 
 	std::pair <std::string, std::string> particle_pair = std::make_pair (p1->ptype, p2->ptype); 
 
-	std::string interaction_type = std::get<0>((*InteractionMap)[particle_pair]);
+	switch ( std::get<0>((*InteractionMap)[particle_pair])[0] ) {
 
+		case 'i':
+			(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
+			*pair_energy += std::get<1>((*InteractionMap)[particle_pair]);
+			break;
+
+		case 'p':
+				dot_product = take_dot_product ( p1->orientation, p2->orientation );
+				if (dot_product > 0.54){
+					(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
+					*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 
+				}
+				else {
+					(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 
+					*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 
+				}	
+				break;
+
+		case 'a':
+			connvec = subtract_arrays ( &(p2->coords), &(p1->coords) );
+			modified_direction ( &connvec, x, y, z); 
+			magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
+			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+
+			if ( theta_1 + theta_2 > M_PI/2 ){
+
+				(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 
+				*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 
+			}
+			else {
+				(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
+				*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 					
+			}
+			break;
+
+	}
+
+	return; 
+	/*
 	if (interaction_type == "isotropic") {
 
 		(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
@@ -1271,8 +1310,7 @@ void ParticlePairEnergyContribution (Particle* p1, Particle* p2, \
 			*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 					
 		}
 	}
-
-	return; 
+	*/
 
 }
 
@@ -1291,14 +1329,54 @@ double IsolatedPairParticleInteraction (Particle* p1, Particle* p2, \
 		return 0;
 	}
 
-	double pE        = 0;
+	double pE          = 0;
+	double dot_prod    = 0;
+	double magnitude   = 0;
+	double theta_1     = 0;
+	double theta_2     = 0;
 	std::pair <std::string, std::string> particle_pair = std::make_pair (p1->ptype, p2->ptype); 
 
+	switch (std::get<0>( (*InteractionMap)[particle_pair])[0] ) {
+		case 'i':
+			pE     = std::get<1>((*InteractionMap)[particle_pair]); 
+			*c_idx = std::get<3>((*InteractionMap)[particle_pair]);
+		break;
+
+		case 'p':
+			dot_prod  = take_dot_product (p1->orientation, p2->orientation); 
+			if (dot_prod > 0.54) {
+				pE = std::get<1>((*InteractionMap)[particle_pair]);
+				*c_idx = std::get<3>((*InteractionMap)[particle_pair]);
+			}
+			else {
+				pE = std::get<2>((*InteractionMap)[particle_pair]);
+				*c_idx = std::get<4>((*InteractionMap)[particle_pair]);	
+			}
+		break;
+
+		case 'a':
+			magnitude = std::sqrt ( connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2] );
+			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
+			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
+
+			if (theta_1 + theta_2 > M_PI/2) {
+				pE = std::get<2>((*InteractionMap)[particle_pair]);
+				*c_idx = std::get<4>((*InteractionMap)[particle_pair]);  
+			}
+			else {
+				pE = std::get<1>((*InteractionMap)[particle_pair]);
+				*c_idx = std::get<3>((*InteractionMap)[particle_pair]); 
+			}		 
+		break; 
+	}
+
+	return pE; 
+	/*
 	if ( std::get<0>((*InteractionMap)[particle_pair]) == "isotropic") {
 		pE     = std::get<1>((*InteractionMap)[particle_pair]); 
 		*c_idx = std::get<3>((*InteractionMap)[particle_pair]); 
 	}
-
+	
 	else if ( std::get<0>((*InteractionMap)[particle_pair]) == "parallel") {
 		double dot_prod  = take_dot_product (p1->orientation, p2->orientation); 
 		if (dot_prod > 0.54) {
@@ -1326,7 +1404,8 @@ double IsolatedPairParticleInteraction (Particle* p1, Particle* p2, \
 			*c_idx = std::get<3>((*InteractionMap)[particle_pair]); 
 		}
 	}
-	return pE; 
+	*/
+	
 }
 
 

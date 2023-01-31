@@ -218,18 +218,10 @@ int main (int argc, char** argv) {
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, s, frac, x, y, z);
+        SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, s, frac, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-
-        std::cout << "Solvation took " << duration.count () << " microseconds." << std::endl;
-        std::cout << "Cell has been solvated! \n\n" ;
-
-        if (b) {
-            std::cout << "Simulation will have a biased start..." << std::endl;
-            BiasTheStart (&Polymers, &LATTICE, x, y, z);
-        }
 
         // CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
 
@@ -240,12 +232,12 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (&Polymers, &Cosolvent, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
+        SetUpLatticeFromRestart (&Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
         
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
-        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+        CheckStructures (&Polymers, &LATTICE, x, y, z);
         
         std::cout << "System set-up took " << duration.count () << " microseconds." << std::endl;
         std::cout << "Simulation cell has been made! \n\n" ;
@@ -260,7 +252,7 @@ int main (int argc, char** argv) {
     std::cout <<"\nCalculating energy..." << std::endl;
     
     start = std::chrono::high_resolution_clock::now(); 
-    sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
+    sysEnergy   = CalculateEnergy(&Polymers, &LATTICE, &E, &contacts, x, y, z); 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;

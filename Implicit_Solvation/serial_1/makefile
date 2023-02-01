@@ -26,3 +26,4 @@ mac_CG: main.cpp misc.cpp classes.cpp
 mac_dCG: debug.cpp misc.cpp classes.cpp 
 	@echo "Compiling the debugging script..."
 	@$(CC) $(MACFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround
+	@echo "Compiled!"

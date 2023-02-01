@@ -50,8 +50,8 @@ int main (int argc, char** argv) {
             case 'h':
                 std::cout << 
                 "\n" << 
-                "Welcome to the Monte Carlo simulation engine (v0.9.1) for polymers and solvents on a cubic lattice (Z=26). \n" << 
-		        "Last updated: Sep 8, 2022, 01:09. \n" << 
+                "Welcome to my Monte Carlo simulation engine (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
+                "Last updated: Sep 26, 2022, 11:29. \n" << 
                 "Author: satyend@princeton.edu \n" <<
                 "\n" << 
                 "----------------------------------------------------------------------------------------------------------------------------------\n" << 
@@ -59,6 +59,8 @@ int main (int argc, char** argv) {
                 "help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
                 "verbose flag              [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
                 "restart flag              [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
+                "solvation bias flag       [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
+                "orientation bias flag     [-b]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
                 "Dump Frequency            [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
                 "Number of maximum moves   [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
                 "Polymer coordinates       [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
@@ -144,9 +146,9 @@ int main (int argc, char** argv) {
     double sysEnergy      {0};
     bool   IMP_BOOL       {true}; 
 
-    std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
-    std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
-    std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
+    std::array <int,3>    attempts    = {0,0,0};
+    std::array <int,3>    acceptances = {0,0,0}; 
+    std::array <double,2> contacts    = {0,0}; 
     
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
@@ -160,7 +162,7 @@ int main (int argc, char** argv) {
     const int N = ExtractNumberOfPolymers(positions); 
     
     // EXTRACT TOPOLOGY FROM FILE 
-    std::array <double,13> info_vec {ExtractTopologyFromFile(topology)}; 
+    std::array <double,6> info_vec {ExtractTopologyFromFile(topology)}; 
 
     // info_vec is the vector with all the information that constitutes the toplogy of the simulation
     // assign values from info vec to relevant variables 
@@ -168,23 +170,16 @@ int main (int argc, char** argv) {
     const int y             =  info_vec[1] ; 
     const int z             =  info_vec[2] ; 
     const double T          =  info_vec[3] ; 
-    const double frac       =  info_vec[12]; 
-    std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
+    std::array <double,2> E =  {info_vec[4], info_vec[5]}; 
     
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
     Polymers.reserve(N);
 
-    // this data structure will hold the coordinates of the cosolvent 
-    std::vector <Particle*> Cosolvent; 
-
     // this data structure will hold the coordinates of the solvent 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
-
-    std::vector <int> solvation_shells; 
-    solvation_shells.reserve(2*26*26*N); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // OPENING TILES
@@ -197,8 +192,7 @@ int main (int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
-    std::cout << "Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ", Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
+    std::cout << "Emm = " << E[0] <<", Ems = " << E[1] <<".\n";  
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
@@ -211,20 +205,13 @@ int main (int argc, char** argv) {
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (&Polymers, &Cosolvent, &LATTICE, positions, frac, x, y, z);
+        SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
         std::cout << "Solvation took " << duration.count () << " microseconds." << std::endl;
         std::cout << "Cell has been solvated! \n\n" ;
-
-        if (b) {
-            std::cout << "Simulation will have a biased start..." << std::endl;
-            BiasTheStart (&Polymers, &LATTICE, x, y, z);
-        }
-
-        // CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
 
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
@@ -233,12 +220,12 @@ int main (int argc, char** argv) {
 
     else {
         std::cout << "Setting up system from a restart file!" << std::endl;
-        SetUpLatticeFromRestart (&Polymers, &Cosolvent, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
+        SetUpLatticeFromRestart (&Polymers, &LATTICE, &step_number, lattice_file_read, dfile, positions, x, y, z); 
         
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
-        CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+        CheckStructures (&Polymers, &LATTICE, x, y, z);
         
         std::cout << "System set-up took " << duration.count () << " microseconds." << std::endl;
         std::cout << "Simulation cell has been made! \n\n" ;
@@ -253,7 +240,7 @@ int main (int argc, char** argv) {
     std::cout <<"\nCalculating energy..." << std::endl;
     
     start = std::chrono::high_resolution_clock::now(); 
-    sysEnergy   = CalculateEnergy(&Polymers, &Cosolvent, &LATTICE, &E, &contacts, x, y, z); 
+    sysEnergy   = CalculateEnergy(&Polymers, &LATTICE, &E, &contacts, x, y, z); 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
@@ -298,7 +285,7 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED_debug (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED_debug (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
 
         if ( IMP_BOOL ) {
@@ -315,7 +302,7 @@ int main (int argc, char** argv) {
                 std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+            CheckStructures (&Polymers, &LATTICE, x, y, z);
         }
 
         if ( ( i % dfreq == 0 ) ){

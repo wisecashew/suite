@@ -51,7 +51,7 @@ int main (int argc, char** argv) {
 		case 'h':
 			std::cout << 
 			"\n" << 
-			"Welcome to my Monte Carlo simulation engine (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
+			"Welcome to my Implicit Solvent Monte Carlo simulation engine [CoarseGrounds] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
 			"Last updated: Sep 26, 2022, 11:29. \n" << 
 			"Author: satyend@princeton.edu \n" <<
 			"\n" << 
@@ -151,9 +151,9 @@ int main (int argc, char** argv) {
     double sysEnergy      {0};
     bool   IMP_BOOL       {true}; 
 
-    std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
-    std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
-    std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
+    std::array <int,3>    attempts    = {0,0,0};
+    std::array <int,3>    acceptances = {0,0,0}; 
+    std::array <double,2> contacts    = {0,0}; 
     
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
@@ -167,15 +167,15 @@ int main (int argc, char** argv) {
     const int N = ExtractNumberOfPolymers(positions); 
     
     // EXTRACT TOPOLOGY FROM FILE 
-    std::array <double,13> info_vec {ExtractTopologyFromFile(topology)}; 
+    std::array <double,6> info_vec {ExtractTopologyFromFile(topology)}; 
 
     // info_vec is the vector with all the information that constitutes the toplogy of the simulation
     // assign values from info vec to relevant variables 
-    const int x             =  info_vec[0] ;
-    const int y             =  info_vec[1] ; 
-    const int z             =  info_vec[2] ; 
-    const double T          =  info_vec[3] ; 
-    std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
+    const int x             =   info_vec[0] ;
+    const int y             =   info_vec[1] ; 
+    const int z             =   info_vec[2] ; 
+    const double T          =   info_vec[3] ; 
+    std::array <double,2> E =  {info_vec[4], info_vec[5]}; 
     
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
@@ -185,9 +185,6 @@ int main (int argc, char** argv) {
     // this data structure will hold the coordinates of the solvent 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
-
-    std::vector <int> solvation_shells; 
-    solvation_shells.reserve(2*26*26*N); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // OPENING TILES
@@ -200,8 +197,7 @@ int main (int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", Ems1_a = "<< E[2] << ", Ems1_n = " << E[3] <<".\n";
-    std::cout << "Ems2_a = " << E[4] <<", Ems2_n = " << E[5] << ", Es1s2_a = "<< E[6] << ", Es1s2_n = " << E[7] <<".\n";  
+    std::cout << "Emm = " << E[0] <<", Ems_n = " << E[1] <<".\n";
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 

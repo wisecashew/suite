@@ -175,16 +175,12 @@ int main (int argc, char** argv) {
     const int y             =  info_vec[1] ; 
     const int z             =  info_vec[2] ; 
     const double T          =  info_vec[3] ; 
-    const double frac       =  info_vec[12]; 
     std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
     
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
     Polymers.reserve(N);
-
-    // this data structure will hold the coordinates of the cosolvent 
-    std::vector <Particle*> Cosolvent; 
 
     // this data structure will hold the coordinates of the solvent 
     std::vector <Particle*> LATTICE;
@@ -218,12 +214,10 @@ int main (int argc, char** argv) {
 
     if ( !r ){
         std::cout << "Setting up the lattice from scratch! " << std::endl;
-        SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, s, frac, x, y, z);
+        SetUpLatticeFromScratch (&Polymers, &LATTICE, positions, x, y, z);
     
         stop = std::chrono::high_resolution_clock::now(); 
         duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-
-        // CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
 
         dumpPositionsOfPolymers(&Polymers, step_number, dfile); 
     }
@@ -297,7 +291,7 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &Cosolvent, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
 
         if ( IMP_BOOL ) {
@@ -314,7 +308,7 @@ int main (int argc, char** argv) {
                 std::cout << "Rejected..." << std::endl;   
             }
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
+            CheckStructures (&Polymers, &LATTICE, x, y, z);
         }
 
         if ( ( i % dfreq == 0 ) ){

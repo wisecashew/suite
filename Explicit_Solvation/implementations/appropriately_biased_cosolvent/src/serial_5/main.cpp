@@ -25,7 +25,7 @@ int main (int argc, char** argv) {
 	bool v = false;   // boolean for verbosity of output  (default: not verbose)
 	bool r = false;   // boolean for restarts (default: no restarts) 
 	bool S = false;   // boolean for biased solvation shell 
-    bool A = false;   // boolean for aligned lattice 
+	bool A = false;   // boolean for aligned lattice 
 	bool s = false;   // boolean for solvation 
 	std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 	std::string topology           {"__blank__"}; // name of file with topology of system 
@@ -63,7 +63,7 @@ int main (int argc, char** argv) {
 			"restart flag                             [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
 			"solvation bias flag                      [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
 			"solvation shell orientation bias flag    [-S]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
-            "lattice orientation bias flag            [-T]           (NO ARG REQUIRED)              All particles in lattice have orientation 0. \n"<<
+            "lattice orientation bias flag            [-A]           (NO ARG REQUIRED)              All particles in lattice have orientation 0. \n"<<
 			"Dump Frequency                           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
 			"Number of maximum moves                  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
 			"Polymer coordinates                      [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
@@ -87,9 +87,9 @@ int main (int argc, char** argv) {
 			S = true;
 			break;
 
-        case 'A':
-            A = true;
-            break;
+		case 'A':
+			A = true;
+			break;
 
 		case 'y': 
 			s = true;

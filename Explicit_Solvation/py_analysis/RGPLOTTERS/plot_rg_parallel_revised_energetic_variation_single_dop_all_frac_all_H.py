@@ -11,7 +11,7 @@ from matplotlib.ticker import StrMethodFormatter
 import pandas as pd
 import os
 import sys 
-sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
 import aux 
 import time 
 import multiprocessing 

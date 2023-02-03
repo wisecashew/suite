@@ -24,8 +24,6 @@ int main (int argc, char** argv) {
 	int max_iter{-1}; // number of iteration to perform
 	bool v = false;   // boolean for verbosity of output  (default: not verbose)
 	bool r = false;   // boolean for restarts (default: no restarts) 
-	bool b = false;   // boolean for biased starting 
-	bool s = false;   // boolean for solvation 
 	std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 	std::string topology           {"__blank__"}; // name of file with topology of system 
 	std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -36,7 +34,7 @@ int main (int argc, char** argv) {
 	std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
 	// loop to obtain inputs and assign them to the appropriate variables 
-	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbyr")) != -1 )
+	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
 	{
 	    switch (opt) 
 	    {
@@ -52,7 +50,7 @@ int main (int argc, char** argv) {
 			std::cout << 
 			"\n" << 
 			"Welcome to my Implicit Solvent Monte Carlo simulation engine [CoarseGrounds] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
-			"Last updated: Sep 26, 2022, 11:29. \n" << 
+			"Last updated: Feb 02, 2023, 11:38. \n" << 
 			"Author: satyend@princeton.edu \n" <<
 			"\n" << 
 			"----------------------------------------------------------------------------------------------------------------------------------\n" << 
@@ -60,9 +58,7 @@ int main (int argc, char** argv) {
 			"help                      [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
 			"verbose flag              [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
 			"restart flag              [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
-			"solvation bias flag       [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
-			"orientation bias flag     [-b]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
-			"Dump Frequency            [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
+			"Dump Frequency            [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<
 			"Number of maximum moves   [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
 			"Polymer coordinates       [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
 			"Energy and geometry       [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
@@ -80,14 +76,6 @@ int main (int argc, char** argv) {
 			// std::cout <<"Option p was called with argument " << optarg << std::endl;
 			positions = optarg;
 			break;    
-
-		case 'b':
-			b = true;
-			break;
-
-		case 'y': 
-			s = true;
-			break;
 
 		case 't':
 			topology = optarg; 

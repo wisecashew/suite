@@ -3688,17 +3688,17 @@ void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particl
     std::uniform_int_distribution<int> distribution (0,1); 
     int num = distribution(generator); 
     // std::cout << "rng is " << num << std::endl;
-    if (num==0){
+    switch (num) {
+    case (0):
         // std::cout << "Zero index rotation!" << std::endl;
         TailRotation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-        return; 
-    }
-    else {
+        break; 
+    case (1):
         // std::cout << "Final index rotation!" << std::endl;
         HeadRotation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-        return; 
+        break; 
     }
-
+    return;
 }
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -4474,17 +4474,19 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
     std::uniform_int_distribution<int> distribution (0,1); 
     int num = distribution(generator); 
 
-    if (num==0){
+    switch (num){
+    case (0):
         // std::cout << "Backward reptation only!" << std::endl;
         BackwardReptation_UNBIASED (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
-        return; 
-    }
-    else {
+        break;
+         
+    case (1):
         // std::cout << "Forward reptation!" << std::endl;
         ForwardReptation_UNBIASED  (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-        return; 
+        break;
     }
     
+    return; 
 }
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~

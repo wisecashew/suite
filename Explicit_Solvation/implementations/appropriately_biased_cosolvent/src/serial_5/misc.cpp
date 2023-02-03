@@ -84,34 +84,39 @@ std::vector<std::string> split (const std::string &s, char delim) {
 //==============================================================================================
 
 void impose_pbc(std::vector <int>* vect, int x_len, int y_len, int z_len){
-	for (int i{0}; i<3; i++){
-		if (i==0){
+	for (int i{0}; i<3; i++) {
+		switch (i) {
+		case (0):
 			(*vect)[i] = ((((*vect)[i])%x_len)+x_len)%x_len; 
-		}
-		else if (i==1){
-			(*vect)[i] = ((((*vect)[i])%y_len)+y_len)%y_len; 
-		}
-		else {
-			(*vect)[i] = ((((*vect)[i])%z_len)+z_len)%z_len; 
-		}
+			break;
 
+		case (1):
+			(*vect)[i] = ((((*vect)[i])%y_len)+y_len)%y_len; 
+			break;
+
+		case (2):
+			(*vect)[i] = ((((*vect)[i])%z_len)+z_len)%z_len; 
+			break;
+		}
 	}
-	
 	return; 
 }
 
 void impose_pbc(std::array <int,3>* arr, int x_len, int y_len, int z_len) {
 	for (int i{0}; i<3; ++i){
-		if (i==0){
-			(*arr)[i] = (((*arr)[i]%x_len)+x_len)%x_len; 
-		}
-		else if (i==1){
-			(*arr)[i] = (((*arr)[i]%y_len)+y_len)%y_len; 	
-		}
-		else {
-			(*arr)[i] = (((*arr)[i]%z_len)+z_len)%z_len; 
-		}
+		switch (i) {
+			case (0):
+				(*arr)[i] = (((*arr)[i]%x_len)+x_len)%x_len; 
+				break;
 
+			case (1):
+				(*arr)[i] = (((*arr)[i]%y_len)+y_len)%y_len;
+				break; 
+
+			case (2):
+				(*arr)[i] = (((*arr)[i]%z_len)+z_len)%z_len; 
+				break; 
+		}
 	}
 
 	return; 
@@ -120,21 +125,21 @@ void impose_pbc(std::array <int,3>* arr, int x_len, int y_len, int z_len) {
 
 void impose_pbc(std::array <double,3>* arr, int x_len, int y_len, int z_len) {
 	for (int i{0}; i<3; ++i){
-		if (i==0){
-			(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], x_len) +x_len), x_len); 
+		switch (i) {
+			case (0):
+				(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], x_len) +x_len), x_len); 
+				break;
+			case (1):
+				(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], y_len) +y_len), y_len); 
+				break; 
+			
+			case (2):
+				(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], z_len) +z_len), z_len);
+				break; 
 		}
-		else if (i==1){
-			(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], y_len) +y_len), y_len); 
-			// (*arr)[i] = (((*arr)[i]%y_len)+y_len)%y_len; 	
-		}
-		else {
-			(*arr)[i] = std::fmod( ( std::fmod( (*arr)[i], z_len) +z_len), z_len); 
-			// (*arr)[i] = (((*arr)[i]%z_len)+z_len)%z_len; 
-		}
-
 	}
 
-	return; 
+	return;
 }
 
 
@@ -556,18 +561,18 @@ double distance_between_points (std::array <double,3>* a1, std::array <double,3>
 	std::array <double,3> delta = subtract_arrays (a1, a2); 
 	// std::cout << "delta array is "; print (delta);
 	for ( int i{0}; i<3; ++i){
-		if (i==0){
+		switch (i) {
+		case (0):
 			delta[i] = modified_modulo ( delta[i], xlen );
-		}
-		else if ( i == 1 ){
+			break; 
+		case (1):
 			delta[i] = modified_modulo ( delta[i], ylen ); 
-		}
-		else if ( i == 2 ){
+			break;
+		case (2):
 			delta[i] = modified_modulo ( delta[i], zlen ); 
+			break; 
 		}
 	}
-
-	// impose_pbc ( &delta, xlen, ylen, zlen ); 
 
 	return std::sqrt(delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2]);
 
@@ -1379,46 +1384,6 @@ void ParticlePairEnergyContribution (Particle* p1, Particle* p2, \
 	}
 
 	return; 
-	/*
-	if (interaction_type == "isotropic") {
-
-		(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
-		*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 
-		
-	}
-	else if (interaction_type == "parallel") {
-		// std::cout << "intrxn = parallel " << std::endl;
-		dot_product = take_dot_product ( p1->orientation, p2->orientation );
-		if (dot_product > 0.54){
-			(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
-			*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 
-		}
-		else {
-			(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 
-			*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 
-		}
-
-	}
-
-	else if (interaction_type == "antiparallel") {
-		// std::cout << "intrxn = antiparal " << std::endl;
-		connvec = subtract_arrays ( &(p2->coords), &(p1->coords) );
-		modified_direction ( &connvec, x, y, z); 
-		magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-		theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-		theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
-
-		if ( theta_1 + theta_2 > M_PI/2 ){
-
-			(*contacts)[std::get<4>((*InteractionMap)[particle_pair])] += 1; 
-			*pair_energy += std::get<2>((*InteractionMap)[particle_pair]); 
-		}
-		else {
-			(*contacts)[std::get<3>((*InteractionMap)[particle_pair])] += 1; 
-			*pair_energy += std::get<1>((*InteractionMap)[particle_pair]); 					
-		}
-	}
-	*/
 
 }
 
@@ -1479,40 +1444,6 @@ double IsolatedPairParticleInteraction (Particle* p1, Particle* p2, \
 	}
 
 	return pE; 
-	/*
-	if ( std::get<0>((*InteractionMap)[particle_pair]) == "isotropic") {
-		pE     = std::get<1>((*InteractionMap)[particle_pair]); 
-		*c_idx = std::get<3>((*InteractionMap)[particle_pair]); 
-	}
-	
-	else if ( std::get<0>((*InteractionMap)[particle_pair]) == "parallel") {
-		double dot_prod  = take_dot_product (p1->orientation, p2->orientation); 
-		if (dot_prod > 0.54) {
-			pE = std::get<1>((*InteractionMap)[particle_pair]);
-			*c_idx = std::get<3>((*InteractionMap)[particle_pair]);
-		}
-		else {
-			pE = std::get<2>((*InteractionMap)[particle_pair]);
-			*c_idx = std::get<4>((*InteractionMap)[particle_pair]);	
-		}
-	}
-
-	else if ( std::get<0>((*InteractionMap)[particle_pair]) == "antiparallel") {
-
-		double magnitude = std::sqrt ( connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2] );
-		double theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
-		double theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
-
-		if (theta_1 + theta_2 > M_PI/2) {
-			pE = std::get<2>((*InteractionMap)[particle_pair]);
-			*c_idx = std::get<4>((*InteractionMap)[particle_pair]);  
-		}
-		else {
-			pE = std::get<1>((*InteractionMap)[particle_pair]);
-			*c_idx = std::get<3>((*InteractionMap)[particle_pair]); 
-		}
-	}
-	*/
 	
 }
 
@@ -4073,20 +4004,21 @@ void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int index, int x, int y, int z){
 
 	unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
-    std::mt19937 generator(seed); 
-    std::uniform_int_distribution<int> distribution (0,1); 
-    int num = distribution(generator); 
-    // std::cout << "rng is " << num << std::endl;
-    if (num==0){
-        // std::cout << "Zero index rotation!" << std::endl;
-        TailRotation_UNBIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-        return; 
-    }
-    else {
-        // std::cout << "Final index rotation!" << std::endl;
-        HeadRotation_UNBIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
-        return; 
-    }
+	std::mt19937 generator(seed); 
+	std::uniform_int_distribution<int> distribution (0,1); 
+	int num = distribution(generator); 
+	switch (num) {
+		case (0):
+			// std::cout << "Zero index rotation!" << std::endl;
+			TailRotation_UNBIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			break; 
+		case (1):
+			// std::cout << "Final index rotation!" << std::endl;
+			HeadRotation_UNBIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			break;
+	}
+
+	return;
 
 }
 
@@ -4967,7 +4899,6 @@ void SolventFlip_UNBIASED_debug ( std::vector <Polymer>* Polymers, std::vector <
 	double Es   = 0;
 	double Es_n = 0;
 	double Ef   = *sysEnergy; 
-	auto start  = std::chrono::high_resolution_clock::now(); 
 	for (int i{0}; i<nflips; ++i){
 		// generate an index 
 		r_idx = rng_uniform (0, x*y*z-1); 
@@ -5867,37 +5798,36 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 		Epert               = NeighborEnergetics  (LATTICE, InteractionMap, &contacts_pert, m_lattice_idx, x, y, z); 
 		energies       [0]  = Esys - Ei + Epert; 
 		contacts_store [0]  = subtract_arrays ( &contacts_sys, &contacts_i ); 
-    	contacts_store [0]  = add_arrays ( &contacts_store[0], &contacts_pert );  
+		contacts_store [0]  = add_arrays ( &contacts_store[0], &contacts_pert );  
 
-    	// DELETE THIS LATER 
-    	
-	    E_test         = CalculateEnergyRevamped ( Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_test, x, y, z); 
-	    if ( E_test != energies[0] || contacts_store[0] != contacts_test  ){
-	    	std::cout << "Something is fucked. Either energies do not match or..." << std::endl;
+		// DELETE THIS LATER 
+		
+		E_test         = CalculateEnergyRevamped ( Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_test, x, y, z); 
+		if ( E_test != energies[0] || contacts_store[0] != contacts_test  ){
+			std::cout << "Something is fucked. Either energies do not match or..." << std::endl;
 			std::cout << "E_test = " << E_test << ", energies[j] = " << energies[0] << std::endl;
 			std::cout << "contacts_store[j] = "; print (contacts_store[0], ", "); std::cout << "contacts_test = "; print (contacts_test); 
 			exit(EXIT_FAILURE); 
-	    }
-    	
-    	// DELETE ABOVE 
+		}
+	
+	// DELETE ABOVE
 
 		for (int j{1}; j<ntest; ++j){
 			(*Polymers)[index].chain[ polymer_indices[i] ]->orientation = rng_uniform (0, 25); 
 			Epert       = NeighborEnergetics  (LATTICE, InteractionMap, &contacts_pert, m_lattice_idx, x, y, z); 
 			energies[j] = Esys - Ei + Epert; 
 			contacts_store [j]  = subtract_arrays ( &contacts_sys, &contacts_i ); 
-    	    contacts_store [j]  = add_arrays      ( &contacts_store[j], &contacts_pert ); 
-    	    // DELETE THIS LATER 
-    	    
-    	    E_test         = CalculateEnergyRevamped ( Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_test, x, y, z); 
-    	    if ( E_test != energies[j] || contacts_store[j] != contacts_test  ){
-    	    	std::cout << "Something is fucked. Either energies do not match or..." << std::endl;
-    			std::cout << "E_test = " << E_test << ", energies[j] = " << energies[j] << std::endl;
-    			std::cout << "contacts_store[j] = "; print (contacts_store[j], ", "); std::cout << "contacts_test = "; print (contacts_test); 
-    			exit(EXIT_FAILURE); 
-    	    }
-    	     
-    	    // DELETE ABOVE 
+			contacts_store [j]  = add_arrays      ( &contacts_store[j], &contacts_pert ); 
+			// DELETE THIS LATER 
+			
+			E_test         = CalculateEnergyRevamped ( Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_test, x, y, z); 
+			if ( E_test != energies[j] || contacts_store[j] != contacts_test  ){
+				std::cout << "Something is fucked. Either energies do not match or..." << std::endl;
+				std::cout << "E_test = " << E_test << ", energies[j] = " << energies[j] << std::endl;
+				std::cout << "contacts_store[j] = "; print (contacts_store[j], ", "); std::cout << "contacts_test = "; print (contacts_test); 
+				exit(EXIT_FAILURE); 
+			}
+			// DELETE ABOVE 
 		}
 
 		Emin = *std::min_element ( energies.begin(), energies.end() ); 

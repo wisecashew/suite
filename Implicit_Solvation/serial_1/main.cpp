@@ -34,7 +34,7 @@ int main (int argc, char** argv) {
 	std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
 	// loop to obtain inputs and assign them to the appropriate variables 
-	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbyr")) != -1 )
+	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
 	{
 	    switch (opt) 
 	    {
@@ -50,7 +50,7 @@ int main (int argc, char** argv) {
 			std::cout << 
 			"\n" << 
 			"Welcome to my Implicit Solvent Monte Carlo simulation engine [CoarseGrounds] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
-			"Last updated: Sep 26, 2022, 11:29. \n" << 
+			"Last updated: Feb 02, 2023, 11:38. \n" << 
 			"Author: satyend@princeton.edu \n" <<
 			"\n" << 
 			"----------------------------------------------------------------------------------------------------------------------------------\n" << 

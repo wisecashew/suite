@@ -34,7 +34,7 @@ int main (int argc, char** argv) {
     std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
     // loop to obtain inputs and assign them to the appropriate variables 
-    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhbr")) != -1 )
+    while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhr")) != -1 )
     {
         switch (opt) 
         {
@@ -70,7 +70,6 @@ int main (int argc, char** argv) {
                 "Name of output file       [-o]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain coordinates of polymer.\n\n";  
                 exit(EXIT_SUCCESS);
                 break;
-
 
             case 'p':
                 // std::cout <<"Option p was called with argument " << optarg << std::endl;

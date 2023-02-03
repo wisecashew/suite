@@ -32,19 +32,34 @@ if __name__=="__main__":
     avg_Nmm_T = np.mean  (df_T["mm_tot" ].values[-2000:])
     avg_Nms_T = np.mean  (df_T["ms1_tot"].values[-2000:]+df_T["ms2_tot"].values[-2000:])
     avg_T     = np.array ([avg_Nmm_T, avg_Nms_T])
-
+    print ("target average mm contacts = " + str(avg_Nmm_T))
+    print ("target average ms contacts = " + str(avg_Nms_T))
+    print ("target average contacts = ",avg_T)
+    
     lambda_M = aux.get_energy_cg (args.m+"/geom_and_esurf.txt")
+    print ("parameters to update = ",lambda_M)
     
     df_M = pd.read_csv (args.m+"/energydump_1.mc",  sep=' \| ', names=["energy", "mm_tot", "ms_tot", "time_step"], engine='python', skiprows=0)
     avg_Nmm_M = np.mean (df_M["mm_tot"].values[-2000:])
     avg_Nms_M = np.mean (df_M["ms_tot"].values[-2000:])
+
     avg_M     = np.array([avg_Nmm_M, avg_Nms_M])
+
+    print ("model average mm contacts = " + str(avg_Nmm_M))
+    print ("model average ms contacts = " + str(avg_Nms_M))
+    print ("model average contacts = ",avg_M)
+    print ("model2 average contacts = ",avg_M**2)
+
     avg_Nmm2_M = np.mean ((df_M["mm_tot"].values[-2000:])**2)
     avg_Nms2_M = np.mean ((df_M["ms_tot"].values[-2000:])**2)
     avg_M2     = np.array ([avg_Nmm2_M, avg_Nms2_M])
     
+    print ("model average mm contacts2 = " + str(avg_Nmm2_M))
+    print ("model average ms contacts2 = " + str(avg_Nms2_M))
+    print ("model average contacts2 = ",avg_M2)
+
     correction = T*(avg_T - avg_M)/(avg_M2 - avg_M**2) 
-    print (correction)
+    print ("correction from initial guess = ",correction)
     lambda_M   = lambda_M - correction
     print ("New energies = ",lambda_M)
     f = open (args.m+"/delta_e.mc", 'w')

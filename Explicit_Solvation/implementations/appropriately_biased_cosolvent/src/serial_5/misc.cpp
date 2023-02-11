@@ -4927,18 +4927,18 @@ void SolventFlip_UNBIASED_debug ( std::vector <Polymer>* Polymers, std::vector <
 			break;
 		}
 	}
-	auto stop  = std::chrono::high_resolution_clock::now(); 
-	auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-	std::cout << "T(swap) = " << duration.count() << std::endl;
+	// auto stop  = std::chrono::high_resolution_clock::now(); 
+	// auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+	// std::cout << "T(swap) = " << duration.count() << std::endl;
 	// std::cout << "Does it reach here 2" << std::endl;
 	if (*IMP_BOOL){
 		// calculate the energy 
 		// delete later 
-		start  = std::chrono::high_resolution_clock::now(); 
+		// start  = std::chrono::high_resolution_clock::now(); 
 		double energy = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &copy_contacts, x, y, z); 
-		stop  = std::chrono::high_resolution_clock::now(); 
-		duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-		std::cout << "T(reg) = " << duration.count() << std::endl;
+		// stop  = std::chrono::high_resolution_clock::now(); 
+		// duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+		// std::cout << "T(reg) = " << duration.count() << std::endl;
 
 		// std::cout << "Ef = " << Ef << ", energy = " << energy << ". " << std::endl; 
 		if (Ef != energy || current_contacts != copy_contacts) {

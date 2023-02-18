@@ -68,7 +68,7 @@ if __name__ == "__main__":
                 new_str = new_str+m
         return float(new_str)
     
-    U_list = ["U1"] # aux.dir2U ( os.listdir (".") )
+    U_list =  aux.dir2U ( os.listdir (".") )
     print (U_list, flush=True)
     PLOT_DICT = {} 
     dop            = args.dop
@@ -144,7 +144,7 @@ if __name__ == "__main__":
             rg_std.append ( np.std  ( rg_dict[U] ) / np.sqrt(master_U_list.count(U) ) )
         
         PLOT_DICT [H] = (np.asarray(rg_mean), np.asarray(rg_std))
-         
+        print ("len(rg_mean) = " + str(len(rg_mean)))
         f.write("Rg^2: ") 
         for elem in rg_mean: 
             f.write ( "{:.2f} ".format(elem))
@@ -172,6 +172,7 @@ if __name__ == "__main__":
         colors = cm.Spectral (np.linspace(0,1,len(enthalpies)))
     print (enthalpies)
     for H in enthalpies:
+        
         ax.errorbar ( frac_list, PLOT_DICT[H][0]/rg_max, yerr= PLOT_DICT[H][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
         ax.plot     ( frac_list, PLOT_DICT[H][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=3/2, c=cm.summer(divnorm(H)), label='_nolegend_', markersize=4 ) 
         i += 1

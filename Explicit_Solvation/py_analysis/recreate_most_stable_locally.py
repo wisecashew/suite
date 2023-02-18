@@ -23,7 +23,7 @@ if __name__=="__main__":
 
 	# instantiate plt figure 
 	# plt.figure ( figsize=(8,6) )
-	temperatures = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 1.0]
+	temperatures = [0.01, 0.05, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
 	name_list    = ["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"]
 	for U in U_list:
 		min_energy = +1
@@ -35,12 +35,12 @@ if __name__=="__main__":
 				df = pd.read_csv( str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names = name_list, engine='python', skiprows=args.s) 
 				net_energy = df["energy"].values[-1]
 				if  net_energy < min_energy:
-					min_energy = net_energy
+					min_energy   = net_energy
 					energy_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc"
 					coords_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/coords_"+str(num)+".mc"
 					lattice_dump = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/lattice_dump_"+str(num)+".mc"
 			new_energy = 0
-			for num in num_list: 
+			for num in num_list:
 
 				destination_energy_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc"
 				destination_coords_dump  = str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/coords_"+str(num)+".mc"

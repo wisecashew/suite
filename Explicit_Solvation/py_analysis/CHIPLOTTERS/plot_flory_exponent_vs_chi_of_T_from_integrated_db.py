@@ -50,52 +50,73 @@ def color_finder (H_mix):
 	elif H_mix >-0.1:
 		return cm.Greys (grey_norm (H_mix) )
 
+def chi_calculator (e_mm_a, e_mm_n, e_ms_a, e_ms_n, T):
+	g = 0.25
+	Zmm = g*np.exp (-1/T * e_mm_a) + (1-g)*np.exp(-1/T * e_mm_n)
+	Zms = g*np.exp (-1/T * e_ms_a) + (1-g)*np.exp(-1/T * e_ms_n)
+	fmm_a = g*np.exp (-1/T * e_mm_a) / Zmm 
+	fms_a = g*np.exp (-1/T * e_ms_a) / Zms
+	chi   = ( ( fms_a*e_ms_a + (1-fms_a)*e_ms_n ) - 0.5 * ( fmm_a*e_mm_a + (1-fmm_a)*e_mm_n) )/T
+	
+	return chi
+
+def chi_extractor (U, T):
+	E = aux.get_energy (U+"/geom_and_esurf.txt")
+	chi = chi_calculator(E[0], E[1], E[2], E[3], T) 
+	
+	return chi
+
 if __name__ == "__main__":
 	start = time.time()
 	##################################
 
 	# temps = args.T # aux.dir2U ( os.listdir (".") )
-	U_list = aux.dir2U(os.listdir("."))
-	frac_list = []
-	for U in U_list:
-		frac_list .append( aux.get_frac (U + "/geom_and_esurf.txt") )
+	# U_list = aux.dir2U(os.listdir("."))
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	plt.rcParams["axes.labelweight"] = "bold"
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	ax.tick_params(axis='x', labelsize=8)
 	ax.tick_params(axis='y', labelsize=8)
-	ax.set (autoscale_on=False)
-	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.coolwarm, cmap_range=(0.2, 0.8), alpha=1)
-	i = 0 
+	# ax.set (autoscale_on=False)
+	# aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.coolwarm, cmap_range=(0.2, 0.8), alpha=1)
+	i = 0
+
 	##################################
 	df = pd.read_csv (args.df, sep='|', header=0)
-	# print (df.columns)
-	enthalpies = np.unique(df["H"])
-	# print (enthalpies)
+	U_list = np.unique(df["U"])
+	print (U_list)
 	i = 0
-	for H in enthalpies:
-		rgba_color = color_finder (H) # cm.Wistia (divnorm(H))
-		nu = df.loc[df["H"] == H]
-		ax.errorbar(frac_list, nu["nu_mean"]/2, yerr=nu["nu_err"]/2, linewidth=1/1.3, capsize=2, color=rgba_color, \
-		ecolor='k', fmt='none', label='_nolegend_')
-		ax.plot(frac_list, nu["nu_mean"]/2, linewidth=3/2, marker='o',markersize=8/1.3, markeredgecolor='k', \
-		label="_nolabel_", linestyle='-', c=rgba_color)
+	chi_tot = []
+	chi_list = []
+	for U in U_list:
+		chi_list.clear()
+		# rgba_color = color_finder (U)
+		nu = df.loc[df["U"] == U]
+		for T in nu["T"]:
+			chi_list.append ( chi_extractor (U, T) )
+		chi_tot.extend(chi_list)
+		# print (chi_list)
+		# ax.errorbar(chi_list, nu["nu_mean"]/2, yerr=nu["nu_err"]/2, linewidth=0, capsize=2, \
+		# ecolor='k', fmt='none', label='_nolegend_', marker='o', markersize=5)
+		ax.plot(chi_list, nu["nu_mean"]/2, linewidth=0, marker='o',markersize=8/1.3, markeredgecolor='k', label="_nolabel_")# , c=rgba_color)
 		i += 1
-	stop = time.time() 
-	
-	yticks = np.arange(0.0, 0.9, 0.1) 
-	ax.set_yticks ( yticks )
-	ax.set_xticks (np.linspace(0, 1, 6))
-	ax.set_ylim   ( 0.0, 0.8 )
-	ax.set_xlim   ( -0.03, 1.03 )
-	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	ax.set_aspect('auto')
-	ax.set_xticklabels (ax.get_xticks(), weight='bold') 
-	ax.set_yticklabels (ax.get_yticks(), weight='bold') 
-	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
-	ax.xaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
-	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
+	df.insert (2, "chi", chi_tot, True)
+	stop = time.time()
+	ax.set_xscale ('symlog', linthresh=0.1)
+	df.to_csv("INTEGRATED.csv", sep='|', float_format="%.2f", index=False)
+	# yticks = np.arange(0.0, 0.9, 0.1) 
+	# ax.set_yticks ( yticks )
+	# ax.set_xticks (np.linspace(0, 1, 6))
+	# ax.set_ylim   ( 0.0, 0.8 )
+	# ax.set_xlim   ( -0.03, 1.03 )
+	# ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
+	# ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
+	# ax.set_aspect('auto')
+	# ax.set_xticklabels (ax.get_xticks(), weight='bold') 
+	# ax.set_yticklabels (ax.get_yticks(), weight='bold') 
+	# ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
+	# ax.xaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
+	plt.savefig   ( args.pn, dpi=1200)
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)
 

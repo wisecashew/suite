@@ -122,7 +122,7 @@ def get_energy (topology):
 			# print(r)
 			s1s2_n = float(r[0] ) 
 
-	return mm_a, mm_n, ms1_a, ms1_n, ms2_a, ms2_n, s1s2_a, s1s2_n
+	return np.array([mm_a, mm_n, ms1_a, ms1_n, ms2_a, ms2_n, s1s2_a, s1s2_n])
 
 
 def get_chi_fh (topology):

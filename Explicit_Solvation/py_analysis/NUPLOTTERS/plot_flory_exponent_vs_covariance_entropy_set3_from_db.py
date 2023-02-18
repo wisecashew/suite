@@ -12,7 +12,7 @@ import os
 # import aux 
 import time 
 import sys 
-sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis')
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
 import aux 
 import multiprocessing 
 import itertools
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 	for i in range(len(chi_list)):
 		col_dict[U_list[i]] = chi_list[i]
 		
-	U_list = ["U1", "U4", "U11"]
+	U_list = ["U1", "U2", "U4", "U5", "U6", "U11"]
 	PLOT_DICT = {}
 	fig = plt.figure   ( figsize=(4/1.6,4/1.6), constrained_layout=True )
 	ax  = plt.axes() 
@@ -83,7 +83,7 @@ if __name__ == "__main__":
 	i = 0
 	
 	for U in U_list:
-		temperatures = aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
+		temperatures = [0.01, 0.05, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] # aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(args.dop) ) )
 		# temperatures = [0.01, 0.03, 0.04, 0.05, 0.1, 0.2, 0.4, 0.5, 0.6, 0.7, 1.0, 5.0, 10.0, 25.0, 50.0, 100.0]
 		print ("Currently plotting out stuff in U = " + str(U) + "...", end=' ', flush=True)
 		Emm_a, Emm_n, Ems1_a, Ems1_n, Ems2_a, Ems2_n, Es1s2_a, Es1s2_n = aux.get_energy (str(U)+"/geom_and_esurf.txt")

@@ -52,7 +52,7 @@ int main (int argc, char** argv) {
 		case 'h':
 			std::cout << 
 			"\n" << 
-			"Welcome to my [M]onte [C]arlo [Latt]ice [E]ngine [McLattE] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
+			"Welcome to Iced [Latt]ice [E]ngine [IcedLattE] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
 			"Last updated: Jan 25, 2023, 02:46 PM. \n" << 
 			"Author: satyend@princeton.edu \n\n" <<
             "[[[[  THIS IS A DEBUGGING EXECUTABLE. VERY CLUNKY, VERY VERBOSE. ]]]] \n" << 

@@ -17,7 +17,7 @@ McLattE: main.cpp misc.cpp classes.cpp
 
 dMcLattE: debug.cpp misc.cpp classes.cpp
 	@echo "Compiling the debugging script..."
-	@$(CC) $(LINUXFLAGS) debug.cpp misc.cpp classes.cpp -o dMcLattE
+	@$(CC) $(LINUXFLAGS) debug.cpp misc.cpp classes.cpp -o dIcedLattE
 	@echo "Compiled!"
 
 iMcLattE: main.cpp misc.cpp classes.cpp
@@ -31,5 +31,5 @@ mac_MLE: main.cpp misc.cpp classes.cpp
 
 mac_dMLE: debug.cpp misc.cpp classes.cpp
 	@echo "Compiling the debugging script..."
-	@$(CC) $(MACFLAGS) debug.cpp misc.cpp classes.cpp -o dMcLattE
+	@$(CC) $(MACFLAGS) debug.cpp misc.cpp classes.cpp -o dIcedLattE
 	@echo "Compiled!"

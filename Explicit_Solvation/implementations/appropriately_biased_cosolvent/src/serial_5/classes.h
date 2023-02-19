@@ -120,6 +120,18 @@ std::vector <std::string> ExtractContentFromFile(std::string filename);
 
 // extract topology from the topology file 
 
+class State {
+public:
+    std::array <int,27> l_indices       = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    std::array <int,27> o_indices       = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    std::array <double,8> contacts      = {0, 0, 0, 0, 0, 0, 0, 0};
+
+    // constructor 
+    State (std::array <int,27> locations, std::array <int,27> orientations, std::array <double,8> ctacts): l_indices (locations), o_indices (orientations), contacts (ctacts); 
+
+    // destructor 
+    ~State() {};
+}
 
 
 #endif 

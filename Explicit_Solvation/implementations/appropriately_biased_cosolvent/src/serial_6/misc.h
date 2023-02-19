@@ -351,6 +351,12 @@ void                  BackFlowFromTailRegrowthPlusOrientationFlip_BIASED  (std::
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
+void                  AlignNeighbors_debug                            (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair<std::string,std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z);
+
+
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
 void                  PerturbSystem_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 void                  PerturbSystem_BIASED_debug   (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);

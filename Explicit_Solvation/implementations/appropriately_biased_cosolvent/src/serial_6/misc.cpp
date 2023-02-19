@@ -329,32 +329,32 @@ void print(std::array <double, 6> v, std::string c){
 // functions to print data types. primarily vectors and arrays. 
 //==============================================================================================
 
-void print(std::vector <std::vector <int>>vv){
+void print (std::vector <std::vector <int>>vv){
 	for (std::vector <int> v: vv){
 		print(v);
 	}
 }
 
-void print(std::vector <std::vector <double>>vv){
+void print (std::vector <std::vector <double>>vv){
 	for (std::vector <double> v: vv){
 		print(v);
 	}
 }
 
-void print(std::vector <std::string>vv){
+void print (std::vector <std::string>vv){
 	for (std::string s: vv){
 		std::cout << s << std::endl;
 	}
 }
 
-void print(std::vector <Particle> pvec){
+void print (std::vector <Particle> pvec){
 	for (Particle p: pvec){
 		p.printCoords();
 		// std::cout << p.ptype << std::endl;
 	}
 }
 
-void print( std::array <std::array<int,3>,6> aa ){
+void print (std::array <std::array<int,3>,6> aa ){
 
 	for ( std::array<int,3>& a: aa){
 		print(a);
@@ -362,7 +362,7 @@ void print( std::array <std::array<int,3>,6> aa ){
 
 }
 
-void print ( std::vector <std::array<int,3>> aa ){
+void print (std::vector <std::array<int,3>> aa ){
 
 	for ( std::array <int,3>& a: aa){
 		print (a);
@@ -370,14 +370,14 @@ void print ( std::vector <std::array<int,3>> aa ){
 
 }
 
-void print ( std::vector <Particle*>* LATTICE ){
+void print (std::vector <Particle*>* LATTICE ){
 
 	for ( Particle*& p: (*LATTICE) ){
 		print( p->coords );
 	}
 }
 
-void print ( std::vector <std::vector <std::array<int,3>>> V){
+void print (std::vector <std::vector <std::array<int,3>>> V) {
 
 	for ( std::vector <std::array<int,3>>& v: V){
 		for (std::array<int,3>& a: v){
@@ -5069,24 +5069,212 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 //             End of SolventFlip_UNBIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void AlignNeighbors (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-std::map <std::pair<std::string,std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
-std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z ){ 
+void AlignNeighbors_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string,std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z) { 
 
-	int m_idx = rng_uniform (0, static_cast<int>((*Polymers)[0].size()) );
-	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list ( (*Polymers)[0].chain[m_idx]->coords );
+	int                                   e_idx                = 0; 
+	int 					              ntest                = 26;
+	int                                   critical_idx         = -1; 
+	int                                   l                    = 0;
+	int                                   DOP                  = static_cast<int>((*Polymers)[0].chain.size());
+	double								  rng                  = 0;
+	double                                rng_acc              = 0;
+	double								  Emin                 = 0;
+	double								  Epert                = *sysEnergy; 
+	double								  rsum                 = 0;
+	double					              rboltzmann           = 0;
+	double					              prob_n_to_o          = 1; // 1;
+	double					              prob_o_to_n          = 1; // 1;
+	std::array <double,8>				  rcontacts            = *contacts;
+	std::array <double,8>                 c_contacts           = {0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,26>			      energy_store         = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,26>			      boltzmann_store      = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <std::array <int,3>,26>    ne_list;
+	std::array <std::array <double,8>,26> contacts_store;
+	std::vector <std::array <int,27>>     list_l_indices; 
+	std::vector <std::array <int,27>>     list_o_indices; 
+	std::array <int,27> l_indices;
+	std::array <int,27> o_indices;
 
-	int 					ntest      =			26;
-	std::array <double,26>			energies   = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	std::array <double,26>			boltzmann  = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	double					rboltzmann = 0;
-	double					frontflow_energy = 0;
-	double					prob_n_to_o = 1;
-	double					prob_o_to_n = 1;
-	double<std::array <double,8>, 26>	
+	std::cout << "Outside big loop..." << std::endl;
+	for (int m_idx=0; m_idx<DOP; ++m_idx) {
+
+		std::cout << "monomer index = " << m_idx << "." << std::endl;
+		l_indices = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+		o_indices = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+		// start with the monomer itself... 
+		l_indices [0] = lattice_index ((*Polymers)[0].chain[m_idx]->coords, y, z); 
+		o_indices [0] = (*Polymers)[0].chain[m_idx]->orientation; 
+
+		for (int i{0}; i<26; ++i){
+
+			if (i == o_indices[0]) {
+				(*Polymers)[0].chain[m_idx]->orientation = i;
+				energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[0], x, y, z);
+				critical_idx    = i;
+			}
+			else {
+				(*Polymers)[0].chain[m_idx]->orientation = i;
+				energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[0], x, y, z);
+			}
+
+		}
+
+		// now that everything has been sampled, make the jump to the orientation 
+		Emin = *std::min_element ( energy_store.begin(), energy_store.end() ); 
+		rsum = 0;
+		rboltzmann = 0;
+		for (int k{0}; k<ntest; ++k){
+			boltzmann_store [k] = std::exp (-1/temperature * (energy_store[k]-Emin) );
+			rboltzmann += boltzmann_store[k];
+		}
+
+		rng   = rng_uniform (0.0, 1.0);
+		rsum  = 0;
+		e_idx = 0; 
+
+		for (int j{0}; j<26; ++j){
+			rsum += boltzmann_store [j]/rboltzmann; 
+			if (rng < rsum) {
+				e_idx = j;
+				break;
+			}
+		}
+
+		Epert        = Epert - energy_store[critical_idx]   + energy_store[e_idx]; 
+		rcontacts    = subtract_arrays (&rcontacts, &contacts_store [critical_idx]); 
+		rcontacts    = add_arrays      (&rcontacts, &contacts_store [e_idx]);
+		// prob_o_to_n += std::logf (boltzmann_store[e_idx]) - std::logf(rboltzmann);
+		// prob_n_to_o += std::logf (boltzmann_store[critical_idx]) - std::logf(rboltzmann);
+		prob_o_to_n *= boltzmann_store [e_idx] / rboltzmann; 
+		prob_n_to_o *= boltzmann_store [critical_idx] / rboltzmann; 
+		std::cout << "prob_o_to_n = " << prob_o_to_n << std::endl;
+		std::cout << "prob_n_to_o = " << prob_n_to_o << std::endl;
+		std::cout << "rboltzmann  = " << rboltzmann << std::endl;
+		std::cout << "boltzmann[e_idx] = " << boltzmann_store[e_idx] << std::endl; 
+		std::cout << "boltzmann[critical_idx] = " << boltzmann_store[critical_idx] << std::endl; 
+		(*Polymers)[0].chain[m_idx]->orientation = e_idx; 
+
+	
+		// start perturbing indicies of neighboring solvent particles
+		l = 1;
+		ne_list = obtain_ne_list ( (*Polymers)[0].chain[m_idx]->coords, x, y, z) ; 
+		std::cout << "Outside solvent perturbation..." << std::endl;
+		for (std::array <int,3>& ne: ne_list) {
+
+			l_indices [l] = lattice_index (ne, y, z);
+			o_indices [l] = (*LATTICE)[lattice_index(ne, y, z)]->orientation; 
+
+			for (int i{0}; i<26; ++i){
+
+				if (i == o_indices[l]){
+					(*LATTICE)[l_indices[l]]->orientation = i;
+					energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[l], x, y, z);
+					critical_idx    = i;
+				}
+				else {
+					(*LATTICE)[l_indices[l]]->orientation = i;
+					energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[l], x, y, z);
+				}
+
+			}
+
+			Emin = *std::min_element ( energy_store.begin(), energy_store.end() ); 
+			rboltzmann = 0;
+
+			for (int k{0}; k<ntest; ++k){
+				boltzmann_store [k] = std::exp (-1/temperature * (energy_store[k]-Emin) );
+				rboltzmann += boltzmann_store[k];
+			}
+
+			rng   = rng_uniform (0.0, 1.0);
+			rsum  = 0;
+			e_idx = 0; 
+
+			for (int j{0}; j<26; ++j){
+				rsum += boltzmann_store [j]/rboltzmann; 
+				if (rng < rsum) {
+					e_idx = j;
+					break;
+				}
+			}
+
+			Epert        = Epert - energy_store[critical_idx] + energy_store[e_idx]; 
+			rcontacts    = subtract_arrays (&rcontacts, &contacts_store [critical_idx]); 
+			rcontacts    = add_arrays      (&rcontacts, &contacts_store [e_idx]);
+			// prob_o_to_n += std::logf (boltzmann_store[e_idx]) - std::logf(rboltzmann);
+			// prob_n_to_o += std::logf (boltzmann_store[critical_idx]) - std::logf(rboltzmann);
+			prob_o_to_n *= boltzmann_store [e_idx] / rboltzmann; 
+			prob_n_to_o *= boltzmann_store [critical_idx] / rboltzmann; 
+			(*LATTICE)[l_indices[l]]->orientation = e_idx;  
+
+			l = l + 1;
+
+		}
+		
+		list_l_indices.push_back (l_indices);
+		list_o_indices.push_back (o_indices); 
+
+	}
+
+	std::cout << "Done with sampling. Checking acceptance... " << std::endl;
+	rng_acc = rng_uniform (0.0, 1.0);
+
+	std::cout << "Acceptance figure = " << std::exp (-1/temperature * (Epert - *sysEnergy)) * prob_n_to_o/prob_o_to_n << std::endl;
+	// std::cout << "Acceptance figure = " << std::exp (-1/temperature * (Epert - *sysEnergy)) * std::exp(prob_n_to_o-prob_o_to_n) << std::endl;
+	std::cout << "The exponential = " << std::exp (-1/temperature * (Epert - *sysEnergy)) << std::endl;
+	std::cout << "product of probabilities = " << prob_n_to_o/prob_o_to_n << std::endl;
+	std::cout << "prob_n_to_o = " << prob_n_to_o << std::endl;
+	std::cout << "prob_o_to_n = " << prob_o_to_n << std::endl;
+	if (rng_acc < std::exp (-1/temperature * (Epert - *sysEnergy)) * prob_n_to_o/prob_o_to_n) {
+		std::cout << "Accepted. " << std::endl;
+		*sysEnergy = Epert;
+		*contacts  = rcontacts; // subtract_arrays(contacts, &rcontacts);
+
+		// DELETE THIS LATER 
+		double energy_n = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &c_contacts, x, y, z); 
+
+		if (Epert != energy_n || *contacts != c_contacts) {
+			std::cout << "The energy or contacts have become messed up in alignment... " << std::endl;
+			std::cout << "Epert (calc) = " << Epert << ", energy_n (true) = " << energy_n << ". " << std::endl; 
+			std::cout << "contacts (calc) = "; print (*contacts, ", "); std::cout << "c_contacts (true) = "; print(c_contacts);
+			exit(EXIT_FAILURE);
+		} 
+		// DELETE ABOVE LATER 
 
 
-}
+	}
+
+	else {
+		std::cout << "Rejected... " << std::endl;
+		*IMP_BOOL = false; 
+	
+		// go back to the initial state 
+		for (int m=0; m<DOP; ++m) {
+			(*Polymers)[0].chain[DOP-m-1]->orientation = list_o_indices[DOP-m-1][0];
+			for (int i=1; i<26; ++i) {
+				(*LATTICE)[list_l_indices[DOP-m-1][i]]->orientation = list_o_indices[DOP-m-1][i]; 
+			}
+		}
+
+		// DELETE THIS LATER
+		double energy_n = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &c_contacts, x, y, z); 
+
+		if (*sysEnergy != energy_n || *contacts != c_contacts) {
+			std::cout << "The energy or contacts have become messed up in alignment... " << std::endl;
+			std::cout << "sysEnergy (calc) = " << *sysEnergy << ", energy_n (true) = " << energy_n << ". " << std::endl; 
+			std::cout << "contacts (calc) = "; print (*contacts, ", "); std::cout << "c_contacts (true) = "; print(c_contacts);
+			exit(EXIT_FAILURE);
+		} 
+		// DELETE ABOVE LATER 
+
+	}
+
+	return;
+
+} 
 
 
 
@@ -11728,7 +11916,6 @@ void SolventExchange_BIASED_debug (std::vector <Polymer>* Polymers, std::vector 
 
 		
 			// DELETE THIS LATER 
-            
 			energy_n = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &c_contacts1, x, y, z);
 			if (energies[j] != energy_n || contacts_store[j] != c_contacts1) {
 				std::cout << "Either energy or contacts is messed up in id swap in frontflow... " << std::endl;
@@ -11736,7 +11923,6 @@ void SolventExchange_BIASED_debug (std::vector <Polymer>* Polymers, std::vector 
 				std::cout << "contacts_store[" <<j<< "] = "; print (contacts_store[j], ", "); std::cout << "c_contacts = "; print(c_contacts1);
 				exit(EXIT_FAILURE);
 			}
-             
 			// DELETE ABOVE LATER 
 		
 		}
@@ -12027,7 +12213,7 @@ void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform (0, 8); 
+	int r     = 9; //rng_uniform (0, 8); 
 
 	switch (r) {
 
@@ -12110,6 +12296,14 @@ void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 			SolventExchange_UNBIASED_debug (Polymers, Cosolvent, LATTICE, InteractionMap, E, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z); 
 			*move_number    = r; 
 			(*attempts)[r] += 1; 
+			break; 
+
+		case (9):
+			if (v) {
+				std::cout << "Performing a neighbor alignment..." << std::endl;
+			}
+			AlignNeighbors_debug (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z); 
+			*move_number = r;
 			break; 
 
 	}

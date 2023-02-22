@@ -5398,6 +5398,7 @@ void IcedHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>*
 		*SysEnergy = Eforw;
 		*contacts  = copy_contacts; 
 	}
+
 	else {
 		*IMP_BOOL = false;
 		
@@ -5417,12 +5418,11 @@ void IcedHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>*
 			// perform the swap (since coords were changes)
 			(*LATTICE)[lattice_index (v_SwingStates[deg_poly-2-m_index-i].old_loc, y, z)] = (*LATTICE)[lattice_index (v_SwingStates.new_loc, y, z)];
 			(*LATTICE)[lattice_index (v_SwingStates[deg_poly-2-m_index-i].new_loc, y, z)] = (*Polymers)[0].chain[deg_poly-1-i];
-
 		}
 
 	}
 
-	// tripwire calculations below
+	// tripwire calculations below 
 	E_debug  = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_debug, x, y, z); 
 	if ( E_debug != *SysEnergy || *contacts != contacts_debug ){
 		std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;

@@ -1306,7 +1306,9 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//
 // End of ExtractTopologyFromFile
+//
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
@@ -5069,6 +5071,23 @@ void SolventFlip_UNBIASED ( std::vector <Polymer>* Polymers, std::vector <Partic
 //             End of SolventFlip_UNBIASED
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
+//==============================================================================================
+//==============================================================================================
+//
+// 
+// NAME OF FUNCTION: AlignNeighbors_debug
+// 
+// WHAT THE FUNCTION DOES: it goes to all the neighbors of the polymer and samples spin states.
+// This time we sample ALL spin states.  
+//
+//
+// THE CODE: 
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+
+
 void AlignNeighbors_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
 	std::map <std::pair<std::string,std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z) { 
@@ -5096,6 +5115,8 @@ void AlignNeighbors_debug (std::vector <Polymer>* Polymers, std::vector <Particl
 	std::vector <std::array <int,27>>     list_o_indices; 
 	std::array <int,27> l_indices;
 	std::array <int,27> o_indices;
+	list_l_indices.reserve (DOP);
+	list_o_indices.reserve (DOP); 
 
 	std::cout << "Outside big loop..." << std::endl;
 	for (int m_idx=0; m_idx<DOP; ++m_idx) {
@@ -5277,6 +5298,714 @@ void AlignNeighbors_debug (std::vector <Polymer>* Polymers, std::vector <Particl
 } 
 
 
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+//==============================================================================================
+//==============================================================================================
+//
+// 
+// NAME OF FUNCTION: IcedRegrowth_debug
+// 
+// WHAT THE FUNCTION DOES: we will be performing a chain regrowth, but this time, we will be 
+// sampling surrounding solvent states, EXHAUSTIVELY. 
+//
+// THE CODE: 
+// 
+
+void IcedRegrowth_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z) {
+
+	int deg_poly = (*Polymers)[0].deg_poly; 
+	int m_index  = rng_uniform (1, deg_poly); 
+
+	return; 
+
+}
+
+
+void IcedHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, bool* IMP_BOOL, \
+	double* SysEnergy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z) {
+
+
+	// separate this regrowth into a monomer movement followed by solvent alignment
+
+	if (m_index == deg_poly - 1){
+		*IMP_BOOL = true;
+		return;
+	}
+
+	std::array <double,8> copy_contacts = *contacts; 
+
+	double 				  E_debug        = 0;
+	std::array <double,8> contacts_debug = *contacts;
+
+	double Eforw           = *SysEnergy;
+	double Eback           = *SysEnergy;
+	double prob_o_to_n     = 1 ;
+	double prob_n_to_o     = 1 ;
+	double rng_acc         = rng_uniform (0.0, 1.0); 
+	// define vector for SwingStates 
+	std::vector <MonomerSwing> v_SwingStates; 
+	v_SwingStates.reserve (deg_poly-1-m_index);
+	MonomerSwing SwingStates; 
+
+	// define the object to hold neighbor alignment 
+	std::vector <OrientationFlip> v_FlipStates;
+	v_FlipStates.reserve (deg_poly-1-m_index);
+	OrientationFlip FlipStates; 
+
+	for (int m{m_index}; m < deg_poly - 1; ++m) {
+
+		SwingStates.old_loc = (*Polymers)[0].chain[m+1]->coords;
+
+		// start making the swings
+		// Eforw is the energy at a previous time 
+		IcedMonomerSwingForward  (Polymers, Cosolvent, LATTICE, InteractionMap, copy_contacts, &prob_o_to_n, &Eforw, temperature, deg_poly, p_index, m, x, y, z );
+
+		SwingStates.new_loc = (*Polymers)[0].chain[m+1]->coords;
+
+		v_SwingStates.push_back (SwingStates); 
+
+		// Eback is the energy after performing a Monomer Swing Forward 
+		Eback = Eforw; 
+
+		// start making the swing back 
+		IcedMonomerSwingBackward (Polymers, Cosolvent, LATTICE, InteractionMap, copy_contacts, &prob_n_to_o, &Eback, temperature, deg_poly, p_index, m, x, y, z );
+
+		// make the monomer swap to the new  position 
+		(*LATTICE)[lattice_index (SwingStates.old_loc, y, z)]->coords = SwingStates.new_loc;
+		(*LATTICE)[lattice_index (SwingStates.new_loc, y, z)]->coords = SwingStates.old_loc;
+
+		// perform the swap (since coords were changes)
+		(*LATTICE)[lattice_index (SwingStates.old_loc, y, z)] = (*LATTICE)[lattice_index (SwingStates.new_loc, y, z)];
+		(*LATTICE)[lattice_index (SwingStates.new_loc, y, z)] = (*Polymers)[0].chain[m_index+1];
+
+		// start flipping neighbors 
+		IcedNeighborAlignment    (Polymers, Cosolvent, LATTICE, &FlipStates, InteractionMap, copy_contacts, &prob_o_to_n, &prob_n_to_o, &Eforw, temperature, m, x, y, z);
+		v_FlipStates.push_back   (FlipStates);
+
+	}
+
+	// the head has been regrown. 
+	// now, it is time to check acceptance conditions
+
+	if ( rng_acc < prob_o_to_n/prob_n_to_o ) {
+		std::cout << "Accepted!" << std::endl;
+		*SysEnergy = Eforw;
+		*contacts  = copy_contacts; 
+	}
+	else {
+		*IMP_BOOL = false;
+		
+		// revert from back to front... 
+		for ( int i{0}; i < deg_poly-1-m_index; ++i){
+
+			// get the orientations down correctly
+			for ( j{0}; i < 26; ++j){
+				(*LATTICE)[v_FlipStates[deg_poly-2-m_index-i].locations[j]]->orientation =  v_FlipStates[deg_poly-2-m_index-i].old_orientations[j];
+			}
+
+			// make the polymer swap 
+			// make the monomer swap to the new  position 
+			(*LATTICE)[lattice_index (v_SwingStates[deg_poly-2-m_index-i].old_loc, y, z)]->coords = SwingStates.new_loc;
+			(*LATTICE)[lattice_index (v_SwingStates[deg_poly-2-m_index-i].new_loc, y, z)]->coords = SwingStates.old_loc;
+
+			// perform the swap (since coords were changes)
+			(*LATTICE)[lattice_index (v_SwingStates[deg_poly-2-m_index-i].old_loc, y, z)] = (*LATTICE)[lattice_index (v_SwingStates.new_loc, y, z)];
+			(*LATTICE)[lattice_index (v_SwingStates[deg_poly-2-m_index-i].new_loc, y, z)] = (*Polymers)[0].chain[deg_poly-1-i];
+
+		}
+
+	}
+
+	// tripwire calculations below
+	E_debug  = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_debug, x, y, z); 
+	if ( E_debug != *SysEnergy || *contacts != contacts_debug ){
+		std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+		std::cout << "E_debug = " << E_debug << ", sysEnergy " << *sysEnergy <<"." << std::endl;
+		std::cout << "contacts_debug = "; print (contacts_debug, ", "); std::cout << "*contacts = "; print(*contacts);
+		std::cout << "Shit's fucked." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	// tripwire calculations above 
+
+	return; 
+
+}
+
+
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void IcedMonomerSwingForward (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, double* prob_forw, \
+	double* energyf, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
+
+	
+	int    e_idx           = 0 ;	// this will be the index of the position i pick
+	int    c_idx           = 0 ;	// this will be the index of the contacts position i have to update
+	int    c_idx_n         = 0 ;	// same as above 
+	int    critical_idx    = -1;	// this is the index of the position of the current location in the neighbor list 
+	int    m_idx_finder    = -1;	// index of the monomer being swung
+	int    blocked_counter = 0 ;	// number of times you hit a site where you could not go 
+	double Es              = 0 ;	
+	double Em              = 0 ;
+	double Es_n            = 0 ;
+	double Em_n            = 0 ;
+	double Epair           = 0 ;
+	double Epair_n         = 0 ; 
+	double Emin            = 0 ;
+	double rsum            = 0 ;
+	double rng_acc         = 0 ;
+	double rboltzmann      = 0 ;
+	double Esys            = *energyf;
+
+	// debug variables 
+	double                E_debug        = 0;
+	std::array <double,8> contacts_debug = {0, 0, 0, 0, 0, 0, 0 ,0};
+
+	// only the above are debug variables 
+	std::array <double,8>   cm   = {0,0,0,0,0,0,0,0}; 
+	std::array <double,8>   cs   = {0,0,0,0,0,0,0,0}; 
+	std::array <double,8>   cm_n = {0,0,0,0,0,0,0,0}; 
+	std::array <double,8>   cs_n = {0,0,0,0,0,0,0,0}; 
+
+	std::array <double,8>	current_contacts = *contacts;
+	std::array <double,8>	copy_contacts    = *contacts; 
+	std::array <int,3>      loc_m            = (*Polymers)[m_index+1]->coords;
+
+
+	// stores for biased sampling 
+	std::array <double,26>			      energy_store         = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,26>			      boltzmann_store      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <std::array <double,8>,26> contacts_store;
+
+	// find the neighbors
+	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z);
+
+	while ( idx_counter < 26 ){
+
+		switch ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] ) {
+		case 'm':
+			for ( int u{0}; u<deg_poly; ++u) {
+				if ( (*Polymers)[p_index].chain[u]->coords == ne_list [idx_counter] ) {
+					m_idx_finder = u;
+					break; 
+				}
+			}
+
+			if ( m_idx_finder == m_index + 1) {
+				energy_store   [idx_counter] = Esys; 
+				contacts_store [idx_counter] = current_contacts; 
+			}
+
+			else if ( m_idx_finder < m_index ) {
+				energy_store   [idx_counter] = 1e+08;
+				contacts_store [idx_counter] = {-1, -1, -1, -1, -1, -1, -1, -1};
+				blocked_counter += 1;
+			}
+
+			else {
+
+				// get the initial neighboring energies 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_m, y, z), x, y, z);
+				Epair = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z)], InteractionMap, &c_idx, x, y, z);
+
+				// prep the swap 
+				(*LATTICE)[lattice_index (ne_list[idx_counter], y, z)] = loc_m; 
+				(*Polymers)[p_index].chain[m_index+1]->coords      = ne_list[idx_counter]; 
+
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index (loc_m, y, z)]      = (*LATTICE)[lattice_index (ne_list[idx_counter], y, z)];
+				(*LATTICE)[lattice_index (ne_list[idx_counter])] = (*Polymers)[p_index].chain[m_index+1];
+
+				// get the new energies 
+				Es_n    = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index (ne_list[idx_counter], y, z), x, y, z);
+				Em_n    = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+				Epair_n = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z);
+
+				energies [ idx_counter ] = Esys - (Es+Em-Epair) + (Es_n+Em_n-Epair_n);
+				contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
+				contacts_store [ idx_counter ][ c_idx ]   += 1;
+				contacts_store [ idx_counter ][ c_idx_n ] -= 1;
+
+				
+				// tripwire calculations below
+				E_debug  = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_debug, x, y, z); 
+				if ( E_debug != energies [idx_counter] || contacts_store[idx_counter] != contacts_debug ){
+					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+					std::cout << "E_debug = " << E_debug << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
+					std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "contacts_debug = "; print(contacts_debug);
+					std::cout << "Shit's fucked." << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				// tripwire calculations above 
+
+				// revert back to original structure 
+				(*LATTICE)[lattice_index (loc_m, y, z)]->coords = ne_list [idx_counter];
+				(*Polymers)[p_index].chain[m_index+1]->coords   = loc_m; 
+
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index (ne_list[idx_counter], y, z)] = (*LATTICE)[lattice_index (loc_m, y, z)];
+				(*LATTICE)[lattice_index (loc_m, y, z)]            = (*Polymers)[p_index].chain[m_index+1]; 
+
+			}
+			break;
+
+		case 's':
+			// perform a swap with a solvent neighbor
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_m, y, z), x, y, z);
+			Epair = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z), y, z], InteractionMap, &c_idx, x, y, z);
+
+			// prep the swap 
+			(*LATTICE)[lattice_index (ne_list[n_count], y, z)]->coords = loc_m; 
+			(*Polymers)[p_index].chain[m_index+1]->coords = ne_list[n_count]; 
+
+			// perform the swap 
+			(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]; 
+			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
+
+			// get the new energies 
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Epair_n = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z);
+
+			energies       [ idx_counter ] = Esys - (Es+Em-Epair) + (Es_n+Em_n-Epair_n); 
+			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
+			contacts_store [ idx_counter ][ c_idx ]   += 1;
+			contacts_store [ idx_counter ][ c_idx_n ] -= 1;
+
+			// tripwire calculations below
+			E_debug  = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_debug, x, y, z); 
+			if ( E_debug != energies [idx_counter] || contacts_store[idx_counter] != contacts_debug ){
+				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+				std::cout << "E_debug = " << E_debug << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
+				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "contacts_debug = "; print(contacts_debug);
+				std::cout << "Shit's fucked." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			// tripwire calculations above 
+
+
+			// revert back to original structure 
+			(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
+			(*Polymers)[p_index].chain[m_index+1]->coords  = loc_m;
+			
+			// perform the swap (since coords were changed, this swap works)
+			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
+			(*LATTICE)[lattice_index(loc_m, y, z)]         = (*Polymers)[p_index].chain[m_index+1];				
+
+			break;
+		} 
+
+	}
+
+	// make the jump, and find the flow backwards 
+	Emin = *std::min_element ( energy_store.begin(), energy_store.end() );
+
+	for (int i{0}; i<26; ++i) {
+		boltzmann_store[i] = std::exp (-1/temperature * (energy_store[i] - Emin) );
+		rboltzmann += boltzmann_store[i];
+	}
+	rng_acc = rng_uniform (0.0, 1.0);
+
+	for (int j{0}; j<26; ++j) {
+		rsum += boltzmann_store [j]/rboltzmann;
+		if ( rng_acc < rsum ){
+			e_idx = j;
+			break;
+		}
+	}
+
+	// now that i have chosen a configuration, update the polymers 
+	*prob_forw *= rboltzmann; 
+	*energyf    = energy_store   [e_idx];
+	*contacts   = contacts_store [e_idx]; 
+
+	// do the swap 
+	(*LATTICE)[lattice_index (ne_list[e_idx], y, z)]->coords = loc_m;
+	(*Polymers)[p_index].chain[m_index+1]->coords            = ne_list[e_idx];
+
+	// perform the swap 
+	(*LATTICE)[lattice_index (loc_m, y, z)] = (*LATTICE)[lattice_index (ne_list[e_idx], y, z)];
+	(*LATTICE)[lattice_index (ne_list[e_idx], y, z)] = (*Polymers)[p_index].chain[m_index+1]; 
+
+	return; 
+
+}
+
+// =========================================================================================
+// =========================================================================================
+
+void IcedMonomerSwingBackward (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
+	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, double* prob_back, \
+	double* energyb, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
+
+	
+	int    e_idx           = 0 ;	// this will be the index of the position i pick 
+	int    c_idx           = 0 ;	// this will be the index of the contacts position i have to update 
+	int    c_idx_n         = 0 ;	// same as above 
+	int    critical_idx    = -1;
+	int    m_idx_finder    = -1; 
+	int    blocked_counter = 0 ;
+	double Es              = 0 ;
+	double Em              = 0 ;
+	double Es_n            = 0 ;
+	double Em_n            = 0 ;
+	double Epair           = 0 ;
+	double Epair_n         = 0 ; 
+	double Emin            = 0 ;
+	double rsum            = 0 ;
+	double rng_acc         = 0 ;
+	double rboltzmann      = 0 ;
+	double Esys            = *energyb;
+
+	// debug variables 		
+	double                E_debug        = 0;
+	std::array <double,8> contacts_debug = {0, 0, 0, 0, 0, 0, 0 ,0};
+	// only the above are debug variables 
+
+	std::array <double,8>   cm   = {0,0,0,0,0,0,0,0}; 
+	std::array <double,8>   cs   = {0,0,0,0,0,0,0,0}; 
+	std::array <double,8>   cm_n = {0,0,0,0,0,0,0,0}; 
+	std::array <double,8>   cs_n = {0,0,0,0,0,0,0,0}; 
+
+	std::array <double,8>	current_contacts = *contacts;
+	std::array <double,8>	copy_contacts    = *contacts; 
+	std::array <int,3>      loc_m            = (*Polymers)[m_index-1]->coords;
+
+
+	// stores for biased sampling 
+	std::array <double,26>			      energy_store         = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,26>			      boltzmann_store      = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};	
+	std::array <std::array <double,8>,26> contacts_store;
+
+	// find the neighbors
+	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list ((*Polymers)[p_index].chain[m_index]->coords, x, y, z);
+
+	while ( idx_counter < 26 ){
+
+		switch ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] ) {
+		case 'm':
+			for ( int u{0}; u<deg_poly; ++u) {
+				if ( (*Polymers)[p_index].chain[u]->coords == ne_list [idx_counter] ) {
+					m_idx_finder = u;
+					break; 
+				}
+			}
+
+			if ( m_idx_finder == m_index - 1) {
+				energy_store   [idx_counter] = Esys; 
+				contacts_store [idx_counter] = current_contacts; 
+			}
+
+			else if ( m_idx_finder > m_index ) {
+				energy_store   [idx_counter] = 1e+08;
+				contacts_store [idx_counter] = {-1, -1, -1, -1, -1, -1, -1, -1};
+				blocked_counter += 1;
+			}
+
+			else {
+
+				// get the initial neighboring energies 
+				Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (ne_list[idx_counter], y, z), x, y, z);
+				Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_m, y, z), x, y, z);
+				Epair = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z)], InteractionMap, &c_idx, x, y, z);
+
+				// prep the swap 
+				(*LATTICE)[lattice_index (ne_list[idx_counter], y, z)] = loc_m; 
+				(*Polymers)[p_index].chain[m_index-1]->coords      = ne_list[idx_counter]; 
+
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index (loc_m, y, z)]      = (*LATTICE)[lattice_index (ne_list[idx_counter], y, z)];
+				(*LATTICE)[lattice_index (ne_list[idx_counter])] = (*Polymers)[p_index].chain[m_index-1];
+
+				// get the new energies 
+				Es_n    = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index (ne_list[n_count], y, z), x, y, z);
+				Em_n    = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index (loc_m, y, z), x, y, z);
+				Epair_n = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z);
+
+				energy_store   [ idx_counter ] = Esys - (Es+Em-Epair) + (Es_n+Em_n-Epair_n);
+				contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
+				contacts_store [ idx_counter ][ c_idx ]   += 1;
+				contacts_store [ idx_counter ][ c_idx_n ] -= 1;
+
+				// tripwire calculations below
+				E_debug  = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_debug, x, y, z); 
+				if ( E_debug != energies [idx_counter] || contacts_store[idx_counter] != contacts_debug ){
+					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+					std::cout << "E_debug = " << E_debug << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
+					std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "contacts_debug = "; print(contacts_debug);
+					std::cout << "Shit's fucked." << std::endl;
+					exit(EXIT_FAILURE);
+				}
+				// tripwire calculations above 
+
+
+				// revert back to original structure 
+				(*LATTICE)[lattice_index (loc_m, y, z)]->coords = ne_list [idx_counter];
+				(*Polymers)[p_index].chain[m_index-1]->coords   = loc_m; 
+
+				// perform the swap (since coords were changed, this swap works)
+				(*LATTICE)[lattice_index (ne_list[idx_counter], y, z)] = (*LATTICE)[lattice_index (loc_m, y, z)];
+				(*LATTICE)[lattice_index (loc_m, y, z)]            = (*Polymers)[p_index].chain[m_index-1]; 
+
+			}
+			break;
+
+		case 's':
+			// perform a swap with a solvent neighbor
+			Es = NeighborEnergetics (LATTICE, InteractionMap, &cs, lattice_index (ne_list[idx_counter], y, z), x, y, z);
+			Em = NeighborEnergetics (LATTICE, InteractionMap, &cm, lattice_index (loc_m, y, z), x, y, z);
+			Epair = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z), y, z], InteractionMap, &c_idx, x, y, z);
+
+			// prep the swap 
+			(*LATTICE)[lattice_index (ne_list[idx_counter], y, z)]->coords = loc_m; 
+			(*Polymers)[p_index].chain[m_index-1]->coords = ne_list[idx_counter]; 
+
+			// perform the swap 
+			(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]; 
+			(*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
+
+			// get the new energies 
+			Es_n = NeighborEnergetics (LATTICE, InteractionMap, &cs_n, lattice_index(ne_list[idx_counter], y, z), x, y, z);
+			Em_n = NeighborEnergetics (LATTICE, InteractionMap, &cm_n, lattice_index(loc_m, y, z), x, y, z);
+			Epair_n = IsolatedPairParticleInteraction ((*LATTICE)[lattice_index (ne_list[idx_counter], y, z)], (*LATTICE)[lattice_index (loc_m, y, z)], InteractionMap, &c_idx_n, x, y, z);
+
+			energy_store   [ idx_counter ] = Esys - (Es+Em-Epair) + (Es_n+Em_n-Epair_n); 
+			contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 	
+			contacts_store [ idx_counter ][ c_idx ]   += 1;
+			contacts_store [ idx_counter ][ c_idx_n ] -= 1;
+
+			// tripwire calculations below
+			E_debug  = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_debug, x, y, z); 
+			if ( E_debug != energies [idx_counter] || contacts_store[idx_counter] != contacts_debug ){
+				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+				std::cout << "E_debug = " << E_debug << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
+				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "contacts_debug = "; print(contacts_debug);
+				std::cout << "Shit's fucked." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			// tripwire calculations above 
+
+
+			// revert back to original structure 
+			(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
+			(*Polymers)[p_index].chain[m_index-1]->coords  = loc_m;
+			
+			// perform the swap (since coords were changed, this swap works)
+			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
+			(*LATTICE)[lattice_index(loc_m, y, z)]         = (*Polymers)[p_index].chain[m_index-1];				
+
+			break;
+		} 
+
+	}
+
+	// make the jump, and find the flow backwards 
+	Emin = *std::min_element ( energy_store.begin(), energy_store.end() );
+
+	for (int i{0}; i<26; ++i) {
+		boltzmann_store[i] = std::exp (-1/temperature * (energy_store[i] - Emin) );
+		rboltzmann += boltzmann_store[i];
+	}
+	rng_acc = rng_uniform (0.0, 1.0);
+
+	for (int j{0}; j<26; ++j) {
+		rsum += boltzmann_store [j]/rboltzmann;
+		if ( rng_acc < rsum ){
+			e_idx = j;
+			break;
+		}
+	}
+
+	// now that i have chosen a configuration, update the polymers 
+	*prob_back *= rboltzmann; 
+	*energyb    = energy_store   [e_idx]; 
+	*contacts   = contacts_store [e_idx]; 
+
+	// do the swap 
+	(*LATTICE)[lattice_index (ne_list[e_idx], y, z)]->coords = loc_m;
+	(*Polymers)[p_index].chain[m_index-1]->coords            = ne_list[e_idx];
+
+	// perform the swap 
+	(*LATTICE)[lattice_index (loc_m, y, z)] = (*LATTICE)[lattice_index (ne_list[e_idx], y, z)];
+	(*LATTICE)[lattice_index (ne_list[e_idx], y, z)] = (*Polymers)[p_index].chain[m_index-1]; 
+
+	return; 
+
+}
+
+// =========================================================================================
+// =========================================================================================
+
+void IcedNeighborAlignment (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, OrientationFlip* FlipStates, \
+	std::map <std::pair<std::string,std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+	std::array <double,8>* contacts, double* sysEnergy, double temperature, int m_idx, int x, int y, int z) { 
+
+	int                                   e_idx                = 0; 
+	int                                   critical_idx         = -1; 
+	int                                   l                    = 0;
+	int                                   DOP                  = static_cast<int>((*Polymers)[0].chain.size());
+	double								  rng                  = 0;
+	double                                rng_acc              = 0;
+	double								  Emin                 = 0;
+	double								  Epert                = *sysEnergy; 
+	double								  rsum                 = 0;
+	double					              rboltzmann           = 0;
+	std::array <int,27>                   l_indices            = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	std::array <int,27>                   o_indices            = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+	std::array <double,8>				  rcontacts            = *contacts;
+	std::array <double,8>                 c_contacts           = {0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,26>			      energy_store         = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,26>			      boltzmann_store      = {0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0 ,0 ,0 ,0 , 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <std::array <int,3>,26>    ne_list;
+	std::array <std::array <double,8>,26> contacts_store;
+
+	// debug variables
+	double E_debug = 0;
+	std::array <double, 8> contacts_debug = {0, 0, 0, 0, 0, 0, 0, 0};
+	// 
+
+
+	// start with the monomer itself... 
+	l_indices [0] = lattice_index ((*Polymers)[0].chain[m_idx]->coords, y, z); 
+	o_indices [0] = (*Polymers)[0].chain[m_idx]->orientation; 
+	(*FlipStates).locations[0] = l_indices [0];
+	(*FlipStates).old_orientations[0] = o_indices [0]; 
+
+	for (int i{0}; i<26; ++i){
+
+		if (i == o_indices[0]) {
+			(*Polymers)[0].chain[m_idx]->orientation = i;
+			energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[0], x, y, z);
+			critical_idx    = i;
+
+		}
+		else {
+			(*Polymers)[0].chain[m_idx]->orientation = i;
+			energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[0], x, y, z);
+		}
+
+	}
+
+	// now that everything has been sampled, make the jump to the orientation 
+	Emin = *std::min_element ( energy_store.begin(), energy_store.end() ); 
+	rsum = 0;
+	rboltzmann = 0;
+	for (int k{0}; k<ntest; ++k){
+		boltzmann_store [k] = std::exp (-1/temperature * (energy_store[k]-Emin) );
+		rboltzmann += boltzmann_store[k];
+	}
+
+	rng   = rng_uniform (0.0, 1.0);
+
+	for (int j{0}; j<26; ++j){
+		rsum += boltzmann_store [j]/rboltzmann; 
+		if (rng < rsum) {
+			e_idx = j;
+			break;
+		}
+	}
+
+	(*FlipStates).new_orientations[0] = e_idx; 
+	Epert        = Epert - energy_store[critical_idx]   + energy_store[e_idx]; 
+	rcontacts    = subtract_arrays (&rcontacts, &contacts_store [critical_idx]); 
+	rcontacts    = add_arrays      (&rcontacts, &contacts_store [e_idx]);
+	std::cout << "prob_o_to_n = " << prob_o_to_n << std::endl;
+	std::cout << "prob_n_to_o = " << prob_n_to_o << std::endl;
+	std::cout << "rboltzmann  = " << rboltzmann << std::endl;
+	std::cout << "boltzmann[e_idx] = " << boltzmann_store[e_idx] << std::endl; 
+	std::cout << "boltzmann[critical_idx] = " << boltzmann_store[critical_idx] << std::endl; 
+	(*Polymers)[0].chain[m_idx]->orientation = e_idx; 
+
+
+	// start perturbing indicies of neighboring solvent particles
+	l = 1;
+	ne_list = obtain_ne_list ( (*Polymers)[0].chain[m_idx]->coords, x, y, z) ; 
+	std::cout << "Outside solvent perturbation..." << std::endl;
+	for (std::array <int,3>& ne: ne_list) {
+
+		l_indices [l] = lattice_index (ne, y, z);
+		o_indices [l] = (*LATTICE)[lattice_index(ne, y, z)]->orientation; 
+		(*FlipStates).locations[l]        = l_indices [l]; 
+		(*FlipStates).old_orientations[l] = o_indices [l]; 
+
+		for (int i{0}; i<26; ++i){
+
+			if (i == o_indices[l]){
+				(*LATTICE)[l_indices[l]]->orientation = i;
+				energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[l], x, y, z);
+				critical_idx    = i;
+			}
+			else {
+				(*LATTICE)[l_indices[l]]->orientation = i;
+				energy_store[i] = NeighborEnergetics (LATTICE, InteractionMap, &contacts_store[i], l_indices[l], x, y, z);
+			}
+
+		}
+
+		Emin = *std::min_element ( energy_store.begin(), energy_store.end() ); 
+		rboltzmann = 0;
+
+		for (int k{0}; k<ntest; ++k){
+			boltzmann_store [k] = std::exp (-1/temperature * (energy_store[k]-Emin) );
+			rboltzmann += boltzmann_store[k];
+		}
+
+		rng   = rng_uniform (0.0, 1.0);
+		rsum  = 0;
+		e_idx = 0; 
+
+		for (int j{0}; j<26; ++j){
+			rsum += boltzmann_store [j]/rboltzmann; 
+			if (rng < rsum) {
+				e_idx = j;
+				break;
+			}
+		}
+
+		// energy of new state 
+		(*FlipStates).new_orientations[l] = e_idx; 
+		Epert        = Epert - energy_store[critical_idx] + energy_store[e_idx]; 
+		rcontacts    = subtract_arrays (&rcontacts, &contacts_store [critical_idx]); 
+		rcontacts    = add_arrays      (&rcontacts, &contacts_store [e_idx]);
+
+		(*LATTICE)[l_indices[l]]->orientation = e_idx;  
+
+		l = l + 1;
+
+	}
+
+	*sysEnergy  = Epert; 
+	*contacts   = contacts_store[e_idx];
+
+	// tripwire calculations below
+	E_debug  = CalculateEnergyRevamped (Polymers, Cosolvent, LATTICE, InteractionMap, &contacts_debug, x, y, z); 
+	if ( E_debug != energies [idx_counter] || contacts_store[idx_counter] != contacts_debug ) {
+		std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
+		std::cout << "E_debug = " << E_debug << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
+		std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "contacts_debug = "; print(contacts_debug);
+		std::cout << "Shit's fucked." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	// tripwire calculations above 
+
+	return;
+
+} 
+
+
+// =========================================================================================
+// =========================================================================================
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~

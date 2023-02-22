@@ -120,18 +120,34 @@ std::vector <std::string> ExtractContentFromFile(std::string filename);
 
 // extract topology from the topology file 
 
-class State {
+class MonomerSwing {
 public:
-    std::array <int,27> l_indices       = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    std::array <int,27> o_indices       = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    std::array <double,8> contacts      = {0, 0, 0, 0, 0, 0, 0, 0};
+    
+    std::array <int,3> old_loc = {-1, -1, -1};
+    std::array <int,3> new_loc = {-1, -1, -1}; 
 
     // constructor 
-    State (std::array <int,27> locations, std::array <int,27> orientations, std::array <double,8> ctacts): l_indices (locations), o_indices (orientations), contacts (ctacts); 
+    MonomerSwing () {};
+    MonomerSwing (std::array <int,3> ol, std::array <int,3> nl): old_loc (ol), new_loc (nl); 
 
     // destructor 
-    ~State() {};
+    ~MonomerSwing() {};
 }
 
+
+class OrientationFlip {
+public:
+
+    std::array <int,26> locations; 
+    std::array <int,26> old_orientations; 
+    std::array <int,26> new_orientations; 
+
+    // constructor 
+    OrientationFlip() {};
+
+    // destructor 
+    ~OrientationFlip () {}; 
+
+}
 
 #endif 

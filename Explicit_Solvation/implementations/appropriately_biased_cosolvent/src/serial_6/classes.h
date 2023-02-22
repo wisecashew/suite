@@ -74,9 +74,7 @@ public:
 
 
     // destructor 
-    ~Polymer (){
-
-    };
+    ~Polymer (){};
 
     // print positions of monomer present in the polymer
     void printChainCoords(); 
@@ -110,6 +108,7 @@ public:
 
 int ExtractNumberOfPolymers(std::string filename);
 std::vector <std::string> ExtractContentFromFile(std::string filename); 
+
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
@@ -119,6 +118,35 @@ std::vector <std::string> ExtractContentFromFile(std::string filename);
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 // extract topology from the topology file 
+class MonomerSwing {
+public:
+    std::array <int,3> old_loc = {-1, -1, -1};
+    std::array <int,3> new_loc = {-1, -1, -1};
+
+    // constructor 
+    MonomerSwing () {};
+
+    // destructor 
+    ~MonomerSwing () {}; 
+
+};
+
+class OrientationFlip {
+public:
+    std::array <int,27> locations        = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    std::array <int,27> old_orientations = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    std::array <int,27> new_orientations = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+
+    // constructor 
+    OrientationFlip () {};
+
+    // destructor 
+    ~OrientationFlip () {}; 
+
+};
+
+
+
 
 
 

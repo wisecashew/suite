@@ -5313,18 +5313,6 @@ void AlignNeighbors_debug (std::vector <Polymer>* Polymers, std::vector <Particl
 // THE CODE: 
 // 
 
-void IcedRegrowth_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
-	std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, int, int>>* InteractionMap, \
-	std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int x, int y, int z) {
-
-	int deg_poly = (*Polymers)[0].deg_poly; 
-	int m_index  = rng_uniform (1, deg_poly); 
-
-	return; 
-
-}
-
-
 void IcedHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
 	std::array <double,8>* contacts, bool* IMP_BOOL, \

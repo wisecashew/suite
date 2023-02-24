@@ -5590,7 +5590,7 @@ void SymmetricHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Partic
 
 	int    c_idx           = 0 ;	// this will be the index of the contacts position i have to update
 	int    c_idx_n         = 0 ;	// same as above 
-	int    m_idx_finder    = -1;	// index of the monomer being swung
+	int    m_idx_finder    = 0 ;	// index of the monomer being swung
 	int    blocked_idx     = 0 ;    // if symmetric head regrowth fails, this index will tell us where to restart from. 
 	double Es              = 0 ;	
 	double Em              = 0 ;
@@ -5748,18 +5748,6 @@ void SymmetricHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Partic
 				exit(EXIT_FAILURE);
 			}
 
-			// tripwire calculations above 
-
-			// revert back to original structure 
-			/*
-			(*LATTICE)[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
-			(*Polymers)[p_index].chain[m_index+1]->coords  = loc_m;
-			
-			// perform the swap (since coords were changed, this swap works)
-			(*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]    = (*LATTICE)[lattice_index (loc_m, y, z)];
-			(*LATTICE)[lattice_index(loc_m, y, z)]         = (*Polymers)[p_index].chain[m_index+1];				
-			*/
-
 			break;
 
 		}
@@ -5787,6 +5775,7 @@ void SymmetricHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Partic
 			// perform the swap (since coords were changed, this swap works)
 			(*LATTICE)[ final_positions   [blocked_idx-m_index-1-i] ]    = (*LATTICE)[ initial_positions [blocked_idx-m_index-1-i] ];
 			(*LATTICE)[ initial_positions [blocked_idx-m_index-1-i] ]    = (*Polymers)[p_index].chain[m_index+1+i];	
+
 		}
 
 		// tripwire calculations below
@@ -5904,11 +5893,8 @@ void IcedAlignmentPostHeadGrowth (std::vector <Polymer>* Polymers, std::vector <
 			exit (EXIT_FAILURE);
 		}
 		// tripwire calculations above 
-		count += 1;
-	}
-
-	// *sysEnergy = Epert;
-	// *contacts  = rcontacts; 
+		count += 1; 
+	} 
 
 	count = 0;
 

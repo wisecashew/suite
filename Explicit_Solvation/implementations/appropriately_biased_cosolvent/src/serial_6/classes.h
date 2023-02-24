@@ -1,6 +1,7 @@
 #ifndef _MC_CLASSES_H_
 #define _MC_CLASSES_H_ 
 #include <array>
+#include <set>
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -133,7 +134,7 @@ public:
 
 class IcedFlip {
 public:
-    std::set <Particle*> Neighbors;
+    std::vector <Particle*> Neighbors;
     std::vector <int> old_orientations;
     std::vector <int> new_orientations;
 

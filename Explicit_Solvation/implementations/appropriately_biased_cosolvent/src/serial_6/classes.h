@@ -117,31 +117,31 @@ std::vector <std::string> ExtractContentFromFile(std::string filename);
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
-// extract topology from the topology file 
-class MonomerSwing {
+class IcedSwing {
 public:
-    std::array <int,3> old_loc = {-1, -1, -1};
-    std::array <int,3> new_loc = {-1, -1, -1};
+    std::vector <Particle*> Arm;
+    std::vector <int>       old_locs;
+    std::vector <int>       new_locs;
 
     // constructor 
-    MonomerSwing () {};
+    IcedSwing () {};
 
     // destructor 
-    ~MonomerSwing () {}; 
+    ~IcedSwing () {}; 
 
 };
 
-class OrientationFlip {
+class IcedFlip {
 public:
-    std::array <int,27> locations        = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    std::array <int,27> old_orientations = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-    std::array <int,27> new_orientations = {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
+    std::set <Particle*> Neighbors;
+    std::vector <int> old_orientations;
+    std::vector <int> new_orientations;
 
     // constructor 
-    OrientationFlip () {};
+    IcedFlip () {};
 
     // destructor 
-    ~OrientationFlip () {}; 
+    ~IcedFlip () {}; 
 
 };
 

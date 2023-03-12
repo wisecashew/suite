@@ -46,6 +46,7 @@ if __name__ == "__main__":
 	start = time.time()
 	##################################
 	U_list = aux.dir2U ( os.listdir (".") )
+	U_list = ["U1", "U6", "U11"]
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	plt.rcParams["axes.labelweight"] = "bold"
@@ -53,11 +54,11 @@ if __name__ == "__main__":
 	ax.tick_params(axis='x', labelsize=8)
 	ax.tick_params(axis='y', labelsize=8)
 	ax.set (autoscale_on=False)
-	aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
+	# aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0 
 
 	##################################
-	chi_list = [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
+	chi_list = [0.1, 0, -0.2] # [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
 	df = pd.read_csv (args.df, sep='|')
 	i = 0
 	temperatures = [0.01, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] 

@@ -33,27 +33,54 @@ shebang for homemachine: #!/usr/bin/env python3
 
 def extract_loc_from_string(a_string):
     loc = [int(word) for word in a_string.split() if word.isdigit()]
-    
-    return loc     
+
+    return loc
 
 # End of function. 
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-def get_frac (topology):
-    
-    f = open (topology)
-    frac = "frac"
-    
+def get_info (topology):
 
+    f = open (topology, 'r')
+    frac = "frac"
+    x    = "x"
+    y    = "y"
+    z    = "z"
+    T    = "kT"
     for line in f:
         if re.findall (frac, line):
-            r = re.findall("[0-9]+\.[0-9]+", line)
-            break 
+            frac_ = re.findall("[0-9]+\.[0-9]+", line)
+            continue
+        elif re.findall (x, line):
+            x_ = re.findall("[0-9]+", line)
+            continue
+        elif re.findall (y, line):
+            y_ = re.findall("[0-9]+", line)
+            continue
+        elif re.findall (z, line):
+            z_ = re.findall("[0-9]+", line)
+            continue
+        elif re.findall (T, line):
+            T_ = re.findall ("[0-9]+\.[0-9]+|[0-9]+\.|[0-9]+", line)
+            continue
 
     f.close()
-    
-    return float(r[0])
 
+    return np.array ( [float(x_[0]), float (y_[0]), float (z_[0]), float (T_[0]), float (frac_[0])] )
+
+
+def get_frac (topology):
+
+    f = open (topology, 'r')
+    frac = "frac"
+    for line in f:
+        if re.findall (frac, line):
+            frac_ = re.findall("[0-9]+\.[0-9]+", line)
+            break
+
+    f.close()
+
+    return frac_[0]
 
 def get_energy_cg (topology):
 	f = open (topology, 'r')
@@ -77,7 +104,6 @@ def get_energy_cg (topology):
 
 def get_energy (topology):
 	f = open (topology, 'r')
-	f = open (topology)
 	Emm_a   = "Emm_a"
 	Emm_n   = "Emm_n"
 	Ems1_a  = "Ems1_a"

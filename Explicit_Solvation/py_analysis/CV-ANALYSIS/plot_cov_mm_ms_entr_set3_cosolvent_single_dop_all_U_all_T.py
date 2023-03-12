@@ -27,7 +27,7 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1 ) # this is f
 if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
-    U_list = aux.dir2U ( os.listdir (".") )
+    U_list = ["U1", "U5", "U11"]# aux.dir2U ( os.listdir (".") )
     plt.figure( figsize=(8,6) )
 
     PLOT_DICT = {}
@@ -68,10 +68,10 @@ if __name__=="__main__":
     i=0
     ymin = 1
     ms_max = 1
-    # chi_list = [0.1, 0.05, 0.01, 0.001, 0, -0.001, -0.01, -0.1, -0.2]
+    chi_list = [0.1, 0., -0.2] # [0.1, 0.05, 0.01, 0.001, 0, -0.001, -0.01, -0.1, -0.2]
     for U in U_list:
-        chi_1      = aux.get_chi_cosolvent ( str(U) + "/DOP_32/0.1/geom_and_esurf.txt")[0]
-        rgba_color = cm.PiYG (divnorm ( chi_1 ) )
+        # chi_1      = aux.get_chi_cosolvent ( str(U) + "/DOP_32/0.1/geom_and_esurf.txt")[0]
+        rgba_color = cm.PiYG_r (divnorm ( chi_list[i] ) )
         plt.errorbar ( temperatures, PLOT_DICT[U][0] , yerr=PLOT_DICT[U][1], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
         plt.plot     ( temperatures, PLOT_DICT[U][0] , linestyle='-', marker='o',  markeredgecolor='k', linewidth=3, color=rgba_color, label="_nolabel_", markersize=10)
         if ymin > np.min( PLOT_DICT[U][0]/ms_max ):

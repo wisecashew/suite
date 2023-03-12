@@ -11955,7 +11955,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 
 	switch (r) {
 
-		case(0):
+		case (0):
 			if (v) {
 				std::cout << "Performing end rotations..." << std::endl; 
 			}

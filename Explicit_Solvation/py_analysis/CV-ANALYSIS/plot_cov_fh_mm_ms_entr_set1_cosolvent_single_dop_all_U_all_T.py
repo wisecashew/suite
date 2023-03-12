@@ -27,7 +27,7 @@ divnorm = matplotlib.colors.SymLogNorm (0.0001, vmin=-0.2, vmax=0.1 ) # this is 
 if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
-    U_list = aux.dir2U ( os.listdir(".") ) 
+    U_list = ["U1"] # aux.dir2U ( os.listdir(".") ) 
     plt.figure( figsize=(8,6) )
 
     PLOT_DICT = {}

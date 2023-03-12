@@ -48,7 +48,7 @@ if __name__ == "__main__":
 	##################################
 
 	U_list = aux.dir2U ( os.listdir (".") )
-	
+	U_list = ["U1", "U5", "U11"]
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	plt.rcParams["axes.labelweight"] = "bold"
@@ -56,11 +56,11 @@ if __name__ == "__main__":
 	ax.tick_params(axis='x', labelsize=8)
 	ax.tick_params(axis='y', labelsize=8)
 	ax.set (autoscale_on=False)
-	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
+	# aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0 
 
 	##################################
-	chi_list = [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
+	chi_list = [-0.2, 0, 0.1]# [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
 	df = pd.read_csv (args.df, sep='|')
 	i = 0
 	for U in U_list:
@@ -69,8 +69,8 @@ if __name__ == "__main__":
 		nu_averaged = nu["nu_mean"]/2
 		nu_err      = nu["nu_err" ]/2
 		temperatures = nu["T"]
-		ax.errorbar (temperatures, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
-		ax.plot(temperatures, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
+		ax.errorbar (temperatures[::2], nu_err[::2], yerr=nu_err[::2], ecolor='k', linewidth=0)
+		ax.plot(temperatures[::2], nu_averaged[::2], linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-', c=rgba_color)
 		i += 1
 	stop = time.time() 

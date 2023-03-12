@@ -48,7 +48,7 @@ def color_finder (H_mix):
 	if H_mix <= -0.1:
 		return cm.Greens_r (green_norm (H_mix) )
 	elif H_mix >-0.1:
-		return cm.Greys (grey_norm (H_mix) )
+		return cm.binary_r (grey_norm (H_mix) )
 
 if __name__ == "__main__":
 	start = time.time()
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 	##################################
 	df = pd.read_csv (args.df, sep='|', header=0)
 	# print (df.columns)
-	enthalpies = np.unique(df["H"])
+	enthalpies = [-3.0]# , -3.0] # np.unique(df["H"])
 	# print (enthalpies)
 	i = 0
 	for H in enthalpies:

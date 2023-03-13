@@ -82,7 +82,7 @@ def get_frac (topology):
 
     return frac_[0]
 
-def get_energy_cg (topology):
+def get_energy_cg1 (topology):
 	f = open (topology, 'r')
 	Emm   = "Emm"
 	Ems   = "Ems"
@@ -99,6 +99,30 @@ def get_energy_cg (topology):
 			ms = float( r[0] ) 
 
 	return np.array([mm, ms])
+
+
+
+def get_energy_cg2 (topology):
+	f = open (topology, 'r')
+	Emm_a   = "Emm_a"
+	Emm_n   = "Emm_n"
+	Ems   = "Ems"
+	num_re  = "\s+-[0-9]+\.[0-9]+|\s+[0-9]+\.[0-9]+|\s+-[0-9]+\.|\s+[0-9]+\.|\s+-[0-9]+|\s+[0-9]+"
+
+	for line in f:
+		if re.findall (Emm_a, line):
+			r = re.findall (num_re, line)
+			# print(r)
+			mm_a = float ( r[0] )
+		elif re.findall (Emm_n, line):
+			r = re.findall (num_re, line)
+			mm_n = float ( r[0] )
+		elif re.findall ( Ems, line):
+			r = re.findall (num_re, line)
+			# print(r)
+			ms = float( r[0] ) 
+
+	return np.array([mm_a, mm_n, ms])
 
 
 

@@ -27,41 +27,44 @@ if __name__=="__main__":
 	lambdas = W[0]
 	weights = W[1]
 	du_dl   = np.zeros (nlambda)
+
 	print ("lambdas = ",lambdas)
 	info = aux.get_info ("TARGET/geom_and_esurf.txt")
 	x = info[0]; y = info[1]; z = info[2]; T = info[3]; frac = info[4]
 	beta = 1
 
-	# get parameters from TARGET
+	# get parameters from TARGET (HR)
 	energy_target_list     = np.array(aux.get_energy ("TARGET/geom_and_esurf.txt"))
-	energy_model_list_raw  = aux.get_energy_cg ("MODEL" + str(args.m) +"/geom_and_esurf.txt")
+	print ("high res hamiltonian = ",energy_target_list)
+
+	# get parameters from MODEL (CG)
+	energy_model_list_raw  = aux.get_energy_cg1 ("MODEL" + str(args.m) +"/geom_and_esurf.txt")
 
 	# print ("target energies = ",energy_target_list)
 	energy_model_list = copy.copy(energy_target_list)
 	energy_model_list[0] = energy_model_list_raw[0]; energy_model_list[1] = energy_model_list_raw[0];
 	energy_model_list[2] = energy_model_list_raw[1]; energy_model_list[3] = energy_model_list_raw[1];
 	energy_model_list = np.array (energy_model_list)
+	print ("cg hamiltonian = ",energy_model_list)
 
 	deltaU = (energy_model_list - energy_target_list)/2
 	print ("deltaU = ",deltaU)
 
 	for i in range (1, nlambda+1, 1):
-		df = pd.read_csv ("ThermodynamicIntegration/MODEL"+str(args.m)+"_TI/ITER"+str(i)+"/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot", "ms1s2_aligned", "ms1s2_naligned", "time_step"], skiprows=0)
-		# print (df)
-		# print ("i = {}".format(i))
-		du_dl[i-1] = 0.5 * np.mean ( deltaU[0]*df["mm_tot"].values[-2000:] + deltaU[2]*df["ms1_aligned"].values[-2000:] + deltaU[3]*df["ms1_naligned"].values[-2000:] )
+		df_model = pd.read_csv ("ThermodynamicIntegration/MODEL"+str(args.m)+"_TI/ITER"+str(i)+"/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot", "ms1s2_aligned", "ms1s2_naligned", "time_step"], skiprows=0)
+		du_dl[i-1] = np.mean ( deltaU[0]*df_model["mm_tot"].values[-2000:] + deltaU[2]*df_model["ms1_aligned"].values[-2000:] + deltaU[3]*df_model["ms1_naligned"].values[-2000:] )
 
 	dF = np.sum (weights * du_dl)
 
-	df = pd.read_csv ("TARGET/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot", "ms1s2_aligned", "ms1s2_naligned", "time_step"], skiprows=0)
-	dU = np.mean (df["mm_aligned"].values[-2000:]*energy_model_list[0] + df["mm_naligned"].values[-2000:]*energy_model_list[1] + df["ms1_aligned"].values[-2000:]*energy_model_list[2] + df["ms1_naligned"].values[-2000:]*energy_model_list[3]) - np.mean (df["energy"].values[-2000:])
+	df_target = pd.read_csv ("TARGET/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot", "ms1s2_aligned", "ms1s2_naligned", "time_step"], skiprows=0)
+	dU = np.mean (df_target["mm_aligned"].values[-2000:]*energy_model_list[0] + df_target["mm_naligned"].values[-2000:]*energy_model_list[1] + df_target["ms1_aligned"].values[-2000:]*energy_model_list[2] + df_target["ms1_naligned"].values[-2000:]*energy_model_list[3]) - np.mean (df_target["energy"].values[-2000:])
 
-	Srel = beta*dU - beta*dF
-	print ("deltaU           = {}".format (dU))
-	print ("deltaF           = {}".format (dF))
-	print ("Relative entropy = {}".format (Srel))
+	Srel = (beta*dU - beta*dF)/32
+	print  ("deltaU           = {}".format (dU)  )
+	print  ("deltaF           = {}".format (dF)  )
+	print  ("Relative entropy = {}".format (Srel))
 
-	plt.plot (lambdas, du_dl, color='steelblue', marker='o')
-	plt.ylabel ("$\\langle dU/d\\lambda \\rangle_{\\lambda}$")
-	plt.xlabel ("$\\lambda$")
-	plt.show()
+	# plt.plot (lambdas, du_dl, color='steelblue', marker='o')
+	# plt.ylabel ("$\\langle dU/d\\lambda \\rangle_{\\lambda}$")
+	# plt.xlabel ("$\\lambda$")
+	# plt.show()

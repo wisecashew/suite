@@ -635,8 +635,9 @@ void create_linked_list ( std::vector<std::array<int,3>> v1, std::vector<std::ar
 std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len, int y_len, int z_len){
 	std::vector <std::vector <int>> nl;
 	nl.reserve(6); 
+	std::vector <int> v;
 	for (std::vector <int> d: drns){
-		std::vector <int> v = add (&loc, &d); 
+		v = add (&loc, &d); 
 		impose_pbc(&v, x_len, y_len, z_len); 
 		nl.push_back(v);
 	}
@@ -650,9 +651,10 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 
 std::array <std::array <int,3>, 26> obtain_ne_list(std::array <int,3> loc, int x_len, int y_len, int z_len){
 	std::array <std::array <int,3>,26> nl;
+	std::array <int,3> a;
 	int i {0}; 
 	for (std::array <int,3> d: adrns) {
-		std::array <int,3>  a = add(&loc, &d); 
+		a = add(&loc, &d); 
 		impose_pbc(&a, x_len, y_len, z_len); 
 		nl[i] = a;
 		++i; 

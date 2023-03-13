@@ -33,13 +33,13 @@ if __name__=="__main__":
 	# get parameters from TARGET
 	energy_target_list     = np.array(aux.get_energy ("TARGET/geom_and_esurf.txt"))
 	energy_model_list_raw  = aux.get_energy_cg ("MODEL" + str(args.m) +"/geom_and_esurf.txt")
-	# print ("target energies = ",energy_target_list)
+	print ("target energies = ",energy_target_list)
 	energy_model_list = copy.copy(energy_target_list)
 	energy_model_list[0] = energy_model_list_raw[0]; energy_model_list[1] = energy_model_list_raw[0];
 	energy_model_list[2] = energy_model_list_raw[1]; energy_model_list[3] = energy_model_list_raw[1];
-	# print ("cg energies = ",energy_model_list)
+	print ("cg energies = ",energy_model_list)
 	energy_model_list = np.array (energy_model_list)
-	
+
 	for i in range (nlambda):
 		q_pts = (1-lambdas[i])/2 * energy_target_list + (1+lambdas[i])/2 * energy_model_list
 		# print ("q_pts = ",q_pts)
@@ -63,3 +63,4 @@ if __name__=="__main__":
 		f.write (f"Es1s2_n = {q_pts[7]}\n")
 		f.write (f"END OF FILE")
 		f.close ()
+

@@ -119,7 +119,7 @@ std::vector <std::string> ExtractContentFromFile(std::string filename);
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 // extract topology from the topology file 
-
+/*
 class MonomerSwing {
 public:
     
@@ -132,7 +132,7 @@ public:
 
     // destructor 
     ~MonomerSwing() {};
-}
+};
 
 
 class OrientationFlip {
@@ -148,6 +148,6 @@ public:
     // destructor 
     ~OrientationFlip () {}; 
 
-}
-
+};
+*/
 #endif 

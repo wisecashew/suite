@@ -147,16 +147,17 @@ void Polymer::ChainToConnectivityMap(){
 //
 // THE CODE: 
 
-
+/*
 std::vector <int> Polymer::findKinks(){
+
     const int chainLength = this->deg_poly; 
     // std::cout << "chain length is " << chainLength << std::endl;
     std::vector <int> kink_indices; 
 
     // obtain all location where kinks exist in the polymer 
     for (int i{0}; i<chainLength-2; ++i){
-        std::array <int,3> a1 = subtract_arrays(&(this->chain[(i+1)]->coords), &(this->chain[(i)]->coords) ); 
-        std::array <int,3> a2 = subtract_arrays(&(this->chain[(i+2)]->coords), &(this->chain[(i+1)]->coords) );
+        std::array <int,3> a1 = subtract (&(this->chain[(i+1)]->coords), &(this->chain[(i)]->coords) ); 
+        std::array <int,3> a2 = subtract (&(this->chain[(i+2)]->coords), &(this->chain[(i+1)]->coords) );
 
         if (a1==a2){
             continue;
@@ -173,7 +174,7 @@ std::vector <int> Polymer::findKinks(){
     return kink_indices; 
 
 }
-
+*/
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //                End of findKinks. 
@@ -195,15 +196,15 @@ std::vector <int> Polymer::findKinks(){
 //
 // THE CODE: 
 
-
+/*
 std::vector <int> Polymer::findCranks(){
     const int chainLength = this->chain.size(); 
     std::vector <int> crank_indices; 
 
     // obtain all location where the crank exists in the polymer
     for (int i{0}; i< chainLength-3; ++i){
-        std::array <int,3> a1 = subtract_arrays(&(this->chain[i+1]->coords), &(this->chain[i]->coords) ); 
-        std::array <int,3> a2 = subtract_arrays(&(this->chain[i+2]->coords), &(this->chain[i+3]->coords) );
+        std::array <int,3> a1 = subtract (&(this->chain[i+1]->coords), &(this->chain[i]->coords) ); 
+        std::array <int,3> a2 = subtract (&(this->chain[i+2]->coords), &(this->chain[i+3]->coords) );
 
         //
 
@@ -222,7 +223,7 @@ std::vector <int> Polymer::findCranks(){
     // print(crank_indices);
     return crank_indices;
 }
-
+*/
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

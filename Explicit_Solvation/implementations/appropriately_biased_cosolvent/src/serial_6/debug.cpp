@@ -161,9 +161,9 @@ int main (int argc, char** argv) {
     bool   IMP_BOOL       {true}; 
     std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double, int, int> > InteractionMap; 
 
-    std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
-    std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
-    std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
+    std::array <int,11>    attempts    = {0,0,0,0,0,0,0,0,0,0,0};
+    std::array <int,11>    acceptances = {0,0,0,0,0,0,0,0,0,0,0}; 
+    std::array <double,8>  contacts    = {0,0,0,0,0,0,0,0}; 
     
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 

@@ -211,7 +211,7 @@ void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, 
 void dumpEnergy              (double sysEnergy, int step, std::array<double,8>* contacts, std::string filename);
 void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
-void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,9>* acceptances, int step, std::string stats_file); 
+void dumpMoveStatistics      (std::array  <int,11>   * attempts, std::array <int,11>* acceptances, int step, std::string stats_file); 
 void dumpLATTICE             (std::vector <Particle*>* LATTICE, int step, int y, int z, std::string filename);
 void BiasTheStart            (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z);
 void AlignTheSolvationShell  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z);
@@ -358,7 +358,7 @@ void                  AlignNeighbors_debug       (std::vector <Polymer>* Polymer
 
 void                  IcedRegrowth                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int p_index, int x, int y, int z); 
 void                  SymmetricHeadRegrowth         (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, IcedSwing* IS, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, bool*IMP_BOOL, double* sysEnergy, int deg_poly, int p_index, int m_index, int x, int y, int z); 
-void                  IcedAlignmentPostHeadRegrowth (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, IcedFlip*  IF, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, bool* IMP_BOOL , double* sysEnergy, double E_i, double temperature, int deg_poly, int m_idx, int x, int y, int z); 
+void                  IcedAlignmentPostHeadGrowth   (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, IcedFlip*  IF, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, bool* IMP_BOOL , double* sysEnergy, double E_i, double temperature, int deg_poly, int x, int y, int z); 
 void                  SymmetricHeadRegrowthBackflow (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, IcedSwing* IS, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, double* sysEnergy, int deg_poly, int p_index, int m_idx, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -366,7 +366,7 @@ void                  SymmetricHeadRegrowthBackflow (std::vector <Polymer>* Poly
 
 void                  PerturbSystem_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
-void                  PerturbSystem_BIASED_debug   (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,9>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
+void                  PerturbSystem_BIASED_debug   (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,11>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

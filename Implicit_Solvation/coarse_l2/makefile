@@ -12,12 +12,12 @@ OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror
 
 CoarseGround: main.cpp misc.cpp classes.cpp 
 	@echo "Compiling the coarse-grained simulation..."
-	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround
+	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround_L2
 	@echo "Compiled!"
 
 dCoarseGround: debug.cpp misc.cpp classes.cpp
 	@echo "Compiling the debugging script..."
-	@$(CC) $(LINUXFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround
+	@$(CC) $(LINUXFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround_L2
 	@echo "Compiled!" 
 
 iCoarseGround: main.cpp misc.cpp classes.cpp 
@@ -25,10 +25,10 @@ iCoarseGround: main.cpp misc.cpp classes.cpp
 
 mac_CG: main.cpp misc.cpp classes.cpp
 	@echo "Compiling the coarse-grained simulation..."
-	@$(CC) $(MACFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround 
+	@$(CC) $(MACFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround_L2
 	@echo "Compiled!" 
 
 mac_dCG: debug.cpp misc.cpp classes.cpp 
 	@echo "Compiling the debugging script..."
-	@$(CC) $(MACFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround
+	@$(CC) $(MACFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround_L2
 	@echo "Compiled!"

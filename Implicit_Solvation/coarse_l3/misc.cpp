@@ -34,7 +34,17 @@ std::array <int,3> ax     = {1,0,0}, ay     = {0,1,0} , az     = {0,0,1} , nx   
 std::array <int,3> axay   = {1,1,0}, axaz   = {1,0,1} , axny   = {1,-1,0}, axnz   = {1,0,-1} , nxay    = {-1,1,0}, nxaz   =  {-1,0,1} , nxny = {-1,-1,0} , nxnz = {-1,0,-1}; 
 std::array <int,3> ayaz   = {0,1,1}, aynz   = {0,1,-1}, nyaz   = {0,-1,1}, nynz   = {0,-1,-1};  
 std::array <int,3> axayaz = {1,1,1}, axaynz = {1,1,-1}, axnyaz = {1,-1,1}, axnynz = {1,-1,-1},  nxayaz = {-1,1,1}, nxaynz = {-1,1,-1}, nxnyaz = {-1,-1,1}, nxnynz = {-1,-1,-1}; 
-std::array <std::array <int,3>, 26> adrns = { ax, ay, az, nx, ny, nz, axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
+std::array <std::array <int,3>, 26> adrns  = { ax, ay, az, nx, ny, nz, axay, axaz, axny, axnz, nxay, nxaz, nxny, nxnz, ayaz, aynz, nyaz, nynz, axayaz, axnyaz, axaynz, axnynz, nxayaz, nxaynz, nxnyaz, nxnynz }; 
+std::array <std::array <int,3>, 98> nadrns = { { { 2, 0, 0 }, { 2, 1, 0 }, { 2, -1, 0 }, { 2, 0, 1 }, { 2, 0, -1 }, { 2, 1, 1 }, { 2, -1, 1 }, { 2, 1, -1 }, { 2, -1, -1 }, { -2, 0, 0 }, { -2, 1, 0 }, \
+{ -2, -1, 0 }, { -2, 0, 1 }, { -2, 0, -1 }, { -2, 1, 1 }, { -2, -1, 1 }, { -2, 1, -1 }, { -2, -1, -1 }, { 0, 2, 0 }, { 1, 2, 0 }, { -1, 2, 0 }, { 0, 2, 1 }, { 0, 2, -1 }, { 1, 2, 1 }, { -1, 2, 1 }, \
+{ 1, 2, -1 }, { -1, 2, -1 }, { 0, -2, 0 }, { 1, -2, 0 }, { -1, -2, 0 }, { 0, -2, 1 }, { 0, -2, -1 }, { 1, -2, 1 }, { -1, -2, 1 }, { 1, -2, -1 }, { -1, -2, -1 }, { 0, 0, 2 }, { 0, 1, 2 }, { 0, -1, 2 }, \
+{ 1, 0, 2 }, { -1, 0, 2 }, { 1, 1, 2 }, { -1, 1, 2 }, { 1, -1, 2 }, { -1, -1, 2 }, { 0, 0, -2 }, { 0, 1, -2 }, { 0, -1, -2 }, { 1, 0, -2 }, { -1, 0, -2 }, { 1, 1, -2 }, { -1, 1, -2 }, { 1, -1, -2 }, \
+{ -1, -1, -2 }, { 2, 2, 0 }, { 2, 2, 1 }, { 2, 2, -1 }, { -2, 2, 0 }, { -2, 2, 1 }, { -2, 2, -1 }, { 2, -2, 0 }, { 2, -2, 1 }, { 2, -2, -1 }, { -2, -2, 0 }, { -2, -2, 1 }, { -2, -2, -1 }, { 0, 2, 2 },\
+{ 1, 2, 2 }, { -1, 2, 2 }, { 0, -2, 2 }, { 1, -2, 2 }, { -1, -2, 2 }, { 0, 2, -2 }, { 1, 2, -2 }, { -1, 2, -2 }, { 0, -2, -2 }, { 1, -2, -2 }, { -1, -2, -2 }, { 2, 0, 2 }, { 2, 1, 2 }, { 2, -1, 2 }, \
+{ -2, 0, 2 }, { -2, 1, 2 }, { -2, -1, 2 }, { 2, 0, -2 }, { 2, 1, -2 }, { 2, -1, -2 }, { -2, 0, -2 }, { -2, 1, -2 }, { -2, -1, -2 }, { 2, 2, 2 }, { -2, 2, 2 }, { 2, -2, 2 }, { 2, 2, -2 }, { -2, -2, 2 }, { -2, 2, -2 }, \
+{ 2, -2, -2 }, { -2, -2, -2 } } }; 
+
+
 
 std::map <int, std::array<double,3>> Or2Dir = { {0, {1.0,0,0}}, {1, {0,1.0,0}}, {2, {0,0,1}}, {3, {-1,0,0}}, {4, {0,-1,0}}, {5, {0,0,-1}}, {6, {1.0/(std::sqrt(2)), 1.0/(std::sqrt(2)), 0}}, {7, {1.0/(std::sqrt(2)), 0, 1.0/(std::sqrt(2))}}, {8, {1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {9, {1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {10, {-1.0/(std::sqrt(2)),1.0/(std::sqrt(2)),0}}, {11, {-1.0/(std::sqrt(2)),0,1.0/(std::sqrt(2))}}, {12, {-1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}}, {13, {-1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}}, {14, {0,1.0/(std::sqrt(2)),1.0/(std::sqrt(2))}}, {15, {0,1.0/(std::sqrt(2)),-1.0/(std::sqrt(2))}}, {16, {0,-1.0/(std::sqrt(2)), 1.0/(std::sqrt(2))}}, {17, {0,-1.0/(std::sqrt(2)), -1.0/(std::sqrt(2))}}, {18, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {19, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {20, {1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {21, {1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {22, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {23, {-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}}, {24, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}}, {25, {-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}} };
 std::map <std::array<double,3>, int> Dir2Or = { {{1.0,0,0}, 0}, {{0,1.0,0}, 1}, {{0,0,1}, 2}, {{-1,0,0}, 3}, {{0,-1,0}, 4}, {{0,0,-1}, 5}, {{1.0/(std::sqrt(2)), 1.0/(std::sqrt(2)), 0}, 6}, {{1.0/(std::sqrt(2)), 0, 1.0/(std::sqrt(2))}, 7}, {{1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}, 8}, {{1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}, 9}, {{-1.0/(std::sqrt(2)),1.0/(std::sqrt(2)),0}, 10}, {{-1.0/(std::sqrt(2)),0,1.0/(std::sqrt(2))}, 11}, {{-1.0/(std::sqrt(2)),-1.0/(std::sqrt(2)),0}, 12}, {{-1.0/(std::sqrt(2)),0,-1.0/(std::sqrt(2))}, 13}, {{0,1.0/(std::sqrt(2)),1.0/(std::sqrt(2))}, 14}, {{0,1.0/(std::sqrt(2)),-1.0/(std::sqrt(2))}, 15}, {{0,-1.0/(std::sqrt(2)), 1.0/(std::sqrt(2))}, 16}, {{0,-1.0/(std::sqrt(2)), -1.0/(std::sqrt(2))}, 17}, {{1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 18}, {{1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 19}, {{1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 20}, {{1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 21}, {{-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 22}, {{-1.0/(std::sqrt(3)),1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 23}, {{-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),1.0/(std::sqrt(3))}, 24}, {{-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3)),-1.0/(std::sqrt(3))}, 25} };
@@ -626,12 +636,17 @@ std::array <std::array <int,3>, 26> obtain_ne_list(std::array <int,3> loc, int x
 std::array <std::array <int,3>,98> obtain_next_ne_list (std::array <int,3> loc, int x_len, int y_len, int z_len) {
 
 	std::array <int,3> a = {0,0,0};
-	// std::set   <std::array <int,3>>    set_nnl;
-	std::array <std::array <int,3>,98> next_nl; next_nl [0] = {-1,-1,-1};
-
-	std::array <std::array <int,3>,26> ne_list = obtain_ne_list (loc, x_len, y_len, z_len); 
+	std::array <std::array <int,3>,98> next_nl; // next_nl [0] = {-1,-1,-1};
 	int i{0};
 
+	for ( std::array <int,3>& d1: nadrns ) {
+		a = add (&loc, &d1);
+		impose_pbc (&a, x_len, y_len, z_len);
+		next_nl[i] = a;
+		++i; 
+	}
+
+	/*
 	for ( std::array <int,3>& d1: adrns ) {
 		for ( std::array <int,3>& d2: adrns ) {
 			// std::cout << "d1 = "; print (d1);
@@ -658,7 +673,7 @@ std::array <std::array <int,3>,98> obtain_next_ne_list (std::array <int,3> loc, 
 			}
 		}
 	}
-
+	*/
 	if (i != 98) {
 		std::cout << "Problem with next ne list." << std::endl;
 		std::cout << "loc = "; print (loc);
@@ -668,13 +683,6 @@ std::array <std::array <int,3>,98> obtain_next_ne_list (std::array <int,3> loc, 
 	}
 
 	
-	// int i{0}; 
-	// for ( std::set<std::array<int,3>>::iterator it=set_nnl.begin(); it!=set_nnl.end(); ++it ){
-	//	next_nl [i] = *it;
-	//	i += 1;
-	// }
-	// std::cout << "Number of elements in set = " << i << std::endl;
-
 	return next_nl;
 
 }

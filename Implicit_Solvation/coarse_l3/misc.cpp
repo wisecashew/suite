@@ -459,7 +459,7 @@ double take_dot_product (std::array <double,3> o1, std::array <double,3> o2){
 // function to check for avoidance in the walk 
 //==============================================================================================
 
-bool check_avoidance(const std::vector <int> to_check, const std::vector<std::vector <int>> loc_list){
+bool check_avoidance (const std::vector <int> to_check, const std::vector<std::vector <int>> loc_list){
 	for (std::vector <int> v: loc_list){
 		if (v==to_check){
 			return false;
@@ -474,7 +474,7 @@ bool check_avoidance(const std::vector <int> to_check, const std::vector<std::ve
 // executing self-avoiding random walk
 //==============================================================================================
 
-void sarw(std::vector<std::vector<int>>* loc_list, int dop){
+void sarw (std::vector<std::vector<int>>* loc_list, int dop){
 	
 	if (dop == 0){
 		return; // once the degree of polymerization hits zero, you are done
@@ -503,7 +503,7 @@ void sarw(std::vector<std::vector<int>>* loc_list, int dop){
 // executing sarw with pbc
 //==============================================================================================
 
-void sarw_pbc(std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y_len, int z_len){
+void sarw_pbc (std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y_len, int z_len){
 	
 	if (dop == 0){
 		return; // once the degree of polymerization hits zero, you are done
@@ -636,7 +636,7 @@ std::array <std::array <int,3>, 26> obtain_ne_list(std::array <int,3> loc, int x
 std::array <std::array <int,3>,98> obtain_next_ne_list (std::array <int,3> loc, int x_len, int y_len, int z_len) {
 
 	std::array <int,3> a = {0,0,0};
-	std::array <std::array <int,3>,98> next_nl; // next_nl [0] = {-1,-1,-1};
+	std::array <std::array <int,3>,98> next_nl; 
 	int i{0};
 
 	for ( std::array <int,3>& d1: nadrns ) {
@@ -646,34 +646,6 @@ std::array <std::array <int,3>,98> obtain_next_ne_list (std::array <int,3> loc, 
 		++i; 
 	}
 
-	/*
-	for ( std::array <int,3>& d1: adrns ) {
-		for ( std::array <int,3>& d2: adrns ) {
-			// std::cout << "d1 = "; print (d1);
-			// std::cout << "d2 = "; print (d2);
-			a = add (&loc, &d1);
-			a = add (&a  , &d2);
-			impose_pbc (&a, x_len, y_len, z_len);
-
-			if ( a == loc ) {
-				continue;
-			}
-			else if ( std::find (ne_list.begin(), ne_list.end(), a) != ne_list.end() ) {
-				continue;
-			}
-			else if ( i == 0 ){
-				next_nl.at(i) = a;
-				i += 1;
-				continue;
-			}
-			else if (std::find (next_nl.begin(), next_nl.begin()+i, a) == next_nl.begin()+i ) {
-				next_nl.at(i) = a;
-				i += 1;
-				continue;
-			}
-		}
-	}
-	*/
 	if (i != 98) {
 		std::cout << "Problem with next ne list." << std::endl;
 		std::cout << "loc = "; print (loc);

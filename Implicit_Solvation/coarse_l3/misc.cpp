@@ -2352,111 +2352,6 @@ double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,ned
 
 }
 
-/*
-double PairEnergy (Particle* p1, Particle* p2, std::array <double,8>* E, int* c_idx, int x, int y, int z){
-
-	double             pE = 0; 
-	double             dot_prod = 0; 
-	double             magnitude = 0; 
-	double             theta_1   = 0;
-	double             theta_2   = 0;
-	std::array <int,3> connvec = {0,0,0};  
-
-
-	// std::cout << "p1: type = " << p1->ptype << ", or = " << p1->orientation << ", dir = "; print (Or2Dir[p1->orientation], ", "); std::cout << "coords = "; print (p1->coords); 
-	// std::cout << "p2: type = " << p2->ptype << ", or = " << p2->orientation << ", dir = "; print (Or2Dir[p2->orientation], ", "); std::cout << "coords = "; print (p2->coords); 
-	// std::cout << "dot product = " << take_dot_product (p1->orientation, p2->orientation) << std::endl;
-	
-	if ( p1->ptype == "m1" ){
-		if ( p2->ptype == "m1" ){
-			dot_prod = take_dot_product (p1->orientation, p2->orientation); 
-			if ( dot_prod > 0.54 ){
-				pE = (*E)[0]; 
-				*c_idx = 0; 
-			}
-			else {
-				pE = (*E)[1];
-				*c_idx = 1; 
-			}
-		}
-		else if ( p2->ptype == "s1" ){
-			dot_prod = take_dot_product (p1->orientation, p2->orientation); 
-			if ( dot_prod > 0.54 ){
-				pE = (*E)[2];
-				*c_idx = 2;  
-			}
-			else {
-				pE = (*E)[3];
-				*c_idx = 3; 
-			}
-		}
-		else {
-			pE = (*E)[4];
-			*c_idx = 4; 
-		}
-	} // end of p1->orientation = m1 
-	
-	else if ( p1->ptype == "s1" ){
-		if (p2->ptype == "m1" ){
-			dot_prod = take_dot_product (p1->orientation, p2->orientation); 
-			if ( dot_prod > 0.54 ){
-				pE = (*E)[2];
-				*c_idx = 2;  
-			}
-			else {
-				pE = (*E)[3]; 
-				*c_idx = 3; 
-			}
-		}
-		else if (p2->ptype == "s2"){
-
-			connvec = subtract (&(p2->coords), &(p1->coords));
-			modified_direction ( &connvec, x, y, z); 
-			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
-			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
-
-			if ( theta_1 + theta_2 > M_PI/2 ){
-				pE = (*E)[7];
-				*c_idx = 7; 
-			}
-			else {
-				pE = (*E)[6]; 
-				*c_idx = 6; 
-			}
-		}
-	} // end of p1->orientation = s1 
-
-	else {
-		if (p2->ptype == "m1"){
-			pE = (*E)[4]; 
-			*c_idx = 4; 
-		}
-		else if ( p2->ptype == "s1") {
-
-			connvec = subtract (&(p2->coords), &(p1->coords));
-			modified_direction ( &connvec, x, y, z); 
-			magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude,  &connvec), Or2Dir[p1->orientation]) ); 
-			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
-
-			if ( theta_1 + theta_2 > M_PI/2 ){
-				pE = (*E)[7];
-				*c_idx = 7; 
-			}
-			else {
-				pE = (*E)[6]; 
-				*c_idx = 6; 
-			}
-		}
-
-	}
-
-	return pE; 
-
-}
-*/
-
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 //             End of calculateEnergy. 
@@ -3953,70 +3848,6 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 
-
-//==============================================================================================
-//==============================================================================================
-//
-// 
-// NAME OF FUNCTION: SolventFlip_UNBIASED, SolvationShellFlip_BIASED, PolymerFlip_BIASED, PolymerFlip_UNBIASED
-//
-// PARAMETERS: LATTICE, Polymers, and everything that goes into calculating energies
-// 
-// WHAT THE FUNCTION DOES: randomly picks a region of space, and perturbs the orientation of the solvent molecule 
-// in that region. this function is a bit aggressive, imo. 
-//
-// DEPENDENCIES: metropolis, calculateenergy 
-//
-// THE CODE: 
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of SolventFlip_UNBIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             Start of FirstSolvationShellFlip_BIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of FirstSolvationShellFlip_BIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             Start of SecondSolvationShellFlip_BIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             Start of PolymerFlip_BIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of PolymerFlip_BIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// 			End of unbiased orientation flipping moves 
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-
-
 //==============================================================================================
 //==============================================================================================
 //
@@ -4145,9 +3976,7 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 		}
 
 		if ( old_cut == new_cut ){
-			// std::cout << "------------------------------------------------------------------------"  << std::endl;
-			// std::cout << "POLYMER CONFIGURATION WAS NOT CHANGED. RETURN BACK TO MAIN."               << std::endl;
-			// std::cout << "------------------------------------------------------------------------"  << std::endl << std::endl;
+
 			return; 
 		}
 

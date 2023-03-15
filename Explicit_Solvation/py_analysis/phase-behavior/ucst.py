@@ -16,7 +16,7 @@ import scipy.optimize as opt
 
 if __name__=="__main__":
 
-    fig = plt.figure( figsize=(8,6) )
+    fig = plt.figure( figsize=(6,4) )
     ax  = plt.axes()
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=16)
     ax.tick_params(axis='x', labelsize=16)
@@ -72,7 +72,7 @@ if __name__=="__main__":
             roots = roots [hold]
             root_error = root_error [hold]
 
-            hold = root_error < 1
+            hold = root_error < 1e-6
             roots = roots [hold]
             root_error = root_error [hold]
             try:
@@ -90,14 +90,13 @@ if __name__=="__main__":
         plt.plot (my_phi, T_list, marker='o', markeredgecolor='k', c=rgba_color)
 
     ax.minorticks_on ()
-    fig.tight_layout()
     ax.set_xticks (np.linspace (0, 1, 6))
     ax.set_yticklabels (ax.get_yticks(), weight='bold')
     ax.set_xticklabels (ax.get_xticks(), weight='bold')
     plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
    
-    plt.savefig ("glob_envelope.png", dpi=1200)
+    plt.savefig ("glob_envelope.png", bbox_inches='tight', dpi=1200)
 
 
 

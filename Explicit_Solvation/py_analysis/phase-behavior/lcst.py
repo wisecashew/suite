@@ -19,9 +19,9 @@ if __name__=="__main__":
 
     fig = plt.figure( figsize=(6,4) )
     ax  = plt.axes()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=8)
-    ax.tick_params(axis='x', labelsize=8)
-    ax.tick_params(axis='y', labelsize=8)
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=16)
+    ax.tick_params(axis='x', labelsize=16)
+    ax.tick_params(axis='y', labelsize=16)
 
     g    = 0.2514
     zmm  = lambda emma, emmn, T: g*np.exp (-1/T * emma) + (1-g)*np.exp (-1/T * emmn)
@@ -56,7 +56,7 @@ if __name__=="__main__":
     _emma = -3; _emmn = -3; _emsn = 0; 
     my_phi = []
 
-    for _emsa in emsa_list[-2:-1]:
+    for _emsa in emsa_list:
         print ("emsa = ", _emsa)
         T_lower.clear ()
         T_upper.clear ()
@@ -81,9 +81,9 @@ if __name__=="__main__":
             roots = roots [hold]
             root_error = root_error [hold]
 
-            print ("phi = ", _phi)    
-            print ("roots = ", roots)
-            print ("root_error = ", root_error)
+            # print ("phi = ", _phi)    
+            # print ("roots = ", roots)
+            # print ("root_error = ", root_error)
             
             try:
                 T_lower.append (np.min (roots))
@@ -94,19 +94,24 @@ if __name__=="__main__":
 
             
         rgba_color   = cm.summer ( norm (_emsa) )
+        # if _emsa > -1.5:
+        #     my_phi.insert  (0, 0)
+        #     T_lower.insert (0, 0)
+        #     T_upper.insert (0, 0)
         plt.plot (my_phi, T_lower, marker='o', markeredgecolor='k', c=rgba_color)
         plt.plot (my_phi, T_upper, marker='o', markeredgecolor='k', c=rgba_color)
 
     ax.minorticks_on ()
-    fig.tight_layout()
     ax.set_xticks (np.linspace (0, 1, 6))
     ax.set_yticklabels (ax.get_yticks(), weight='bold')
     ax.set_xticklabels (ax.get_xticks(), weight='bold')
     ax.set_yscale ("log")
-    plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
+    ax.set_yticks ([1e-1, 1, 1e+1])
+    ax.set_yticklabels (["$\\mathbf{10^{-1} }$", "$\\mathbf{10^{0} }$", "$\\mathbf{10^1}$"], weight='bold')
+    # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
    
-    plt.savefig ("loop.png", dpi=1200)
+    plt.savefig ("loop.png", bbox_inches='tight', dpi=1200)
 
 
 

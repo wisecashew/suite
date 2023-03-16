@@ -48,11 +48,11 @@ class MinorSymLogLocator(Locator):
 
 if __name__=="__main__":
 
-    fig = plt.figure(figsize=(6,4))
+    fig = plt.figure(figsize=(4/1.6,3/1.6), constrained_layout=True)
     ax  = plt.axes ()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=16)
-    ax.tick_params(axis='x', labelsize=16, pad=10)
-    ax.tick_params(axis='y', labelsize=16)
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=8)
+    ax.tick_params(axis='x', labelsize=8)
+    ax.tick_params(axis='y', labelsize=8)
 
     ehigh  = -2
     elow   = -3
@@ -61,7 +61,9 @@ if __name__=="__main__":
     zms  = lambda emsa, emsn, T: g*np.exp (-1/T * emsa) + (1-g)*np.exp (-1/T * emsn)
     fmma = lambda emma, emmn, T: g*np.exp (-1/T * emma)/zmm(emma, emmn, T)
     fmsa = lambda emsa, emsn, T: g*np.exp (-1/T * emsa)/zms(emsa, emsn, T)
-    norm = matplotlib.colors.Normalize (vmin=elow, vmax=ehigh)
+
+    norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=-1.5, vmax=ehigh)
+    
     def chi (emma, emmn, emsa, emsn, T):
         t1 = fmsa(emsa, emsn, T)*emsa + (1-fmsa(emsa, emsn, T))*emsn
         t2 = fmma(emma, emmn, T)*emma + (1-fmma(emma, emmn, T))*emmn
@@ -70,10 +72,10 @@ if __name__=="__main__":
 
     E_mm_a = -3; E_ms_a = -1.4; E_ms_n = -1.4;
     E_mm_n = np.arange (elow, ehigh+0.1, 0.2)
-    T_range = np.logspace (-2, 2, 25)
+    T_range = np.logspace (-2, 2, 25)[::3]
 
     for e_mm_n in E_mm_n:
-        rgba_color = cm.summer (norm(e_mm_n))
+        rgba_color = cm.PiYG (norm(e_mm_n))
         plt.plot (T_range, chi(E_mm_a, e_mm_n, E_ms_a, E_ms_n, T_range), marker='o', markeredgecolor='k', c=rgba_color)
         
 

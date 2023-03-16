@@ -17,11 +17,11 @@ import mpmath as mp
 
 if __name__=="__main__":
 
-    fig = plt.figure( figsize=(6,4) )
-    ax  = plt.axes()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=16)
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
+    fig = plt.figure(figsize=(4/1.6,3/1.6), constrained_layout=True)
+    ax  = plt.axes ()
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=8)
+    ax.tick_params(axis='x', labelsize=8)
+    ax.tick_params(axis='y', labelsize=8)
 
     g    = 0.2514
     zmm  = lambda emma, emmn, T: g*np.exp (-1/T * emma) + (1-g)*np.exp (-1/T * emmn)
@@ -51,7 +51,7 @@ if __name__=="__main__":
     ehigh = -1.4
 
     emsa_list = np.arange (elow, ehigh+0.1, 0.1)
-    norm = matplotlib.colors.Normalize (vmin=elow, vmax=ehigh)
+    norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=-1.5, vmax=ehigh)
 
     _emma = -3; _emmn = -3; _emsn = 0; 
     my_phi = []
@@ -93,13 +93,13 @@ if __name__=="__main__":
                 print ("Root finding was unstable.")
 
             
-        rgba_color   = cm.summer ( norm (_emsa) )
-        # if _emsa > -1.5:
+        rgba_color   = cm.PiYG( norm (_emsa) )
+        # if _emsa > -1.45:
         #     my_phi.insert  (0, 0)
         #     T_lower.insert (0, 0)
         #     T_upper.insert (0, 0)
-        plt.plot (my_phi, T_lower, marker='o', markeredgecolor='k', c=rgba_color)
-        plt.plot (my_phi, T_upper, marker='o', markeredgecolor='k', c=rgba_color)
+        plt.plot (my_phi[::3], T_lower[::3], marker='o', markeredgecolor='k', c=rgba_color)
+        plt.plot (my_phi[::3], T_upper[::3], marker='o', markeredgecolor='k', c=rgba_color)
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))

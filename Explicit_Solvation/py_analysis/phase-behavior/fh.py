@@ -42,17 +42,16 @@ if __name__=="__main__":
     roots      = np.array([])
     root_error = np.array([])
     T_list   = []
-    elow  = -3
-    ehigh = -2
+    elow  = -1.7
+    ehigh = -1.4
 
-    emmn_list = np.arange (elow, ehigh+0.1, 0.1)
-    
+    ems_list = np.arange (elow, ehigh+0.05, 0.05)
     norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=-1.5, vmax=ehigh)
 
-    _emma = -3; _emsa = -1.4; _emsn = -1.4; 
+    _emm = -3;  
     my_phi = []
 
-    for _emmn in emmn_list:
+    for _ems in ems_list:
 
         T_list.clear()
         my_phi = []
@@ -63,7 +62,7 @@ if __name__=="__main__":
 
             roots      = np.array([])
             root_error = np.array([])
-            specific_chi = lambda T: chi (_emma, _emmn, _emsa, _emsn, T) - rhs (_phi, 32)
+            specific_chi = lambda T: chi (_emm, _emm, _ems, _ems, T) - rhs (_phi, 32)
             
             for s in seeds:
                 roots = np.hstack ( ( roots, fsolve (specific_chi, s) ) )
@@ -87,8 +86,11 @@ if __name__=="__main__":
         my_phi = np.hstack ((0, my_phi))
         my_phi = np.hstack ((my_phi, 1))
         T_list.append (0)
-        rgba_color   = cm.PiYG ( norm (_emmn) )
-        plt.plot (my_phi[::3], T_list[::3], marker='o', markeredgecolor='k', c=rgba_color)
+        rgba_color   = cm.PiYG( norm (_ems) )
+        if len(T_list) == 2:
+            pass
+        else:
+            plt.plot (my_phi[::3], T_list[::3], marker='o', markeredgecolor='k', c=rgba_color)
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))
@@ -97,7 +99,7 @@ if __name__=="__main__":
     plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
    
-    plt.savefig ("glob_envelope.png", bbox_inches='tight', dpi=1200)
+    plt.savefig ("fh.png", bbox_inches='tight', dpi=1200)
 
 
 

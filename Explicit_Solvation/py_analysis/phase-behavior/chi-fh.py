@@ -70,14 +70,14 @@ if __name__=="__main__":
         return 24/T * (t1 - 0.5 * t2)
 
 
-    E_mm_a = -3; E_mm_n = -3; E_ms_n = -0;
-    E_ms_a = np.arange (elow, ehigh+0.1, 0.1)
+    E_mm = -3; 
+    E_ms = np.arange (elow, ehigh+0.05, 0.05)
     T_range = np.logspace (-2, 2, 25)[::3]
-    print (E_ms_a)
-    for e_ms_a in E_ms_a:
-        rgba_color = cm.PiYG (norm(e_ms_a))
+    
+    for e_ms in E_ms:
+        rgba_color = cm.PiYG (norm(e_ms))
         print ("hello?")
-        plt.plot (T_range, chi(E_mm_a, E_mm_n, e_ms_a, E_ms_n, T_range), marker='o', markeredgecolor='k', c=rgba_color)
+        plt.plot (T_range, chi(E_mm, E_mm, e_ms, e_ms, T_range), marker='o', markeredgecolor='k', c=rgba_color)
         
 
     ax.set_xscale ("log")
@@ -97,6 +97,6 @@ if __name__=="__main__":
     # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     # plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
    
-    plt.savefig ("c-to-g.png", bbox_inches='tight', dpi=1200)
+    plt.savefig ("flory-chi.png", bbox_inches='tight', dpi=1200)
 
 

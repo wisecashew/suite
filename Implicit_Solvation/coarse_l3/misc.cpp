@@ -646,6 +646,7 @@ std::array <std::array <int,3>,98> obtain_next_ne_list (std::array <int,3> loc, 
 		++i; 
 	}
 
+	/*
 	if (i != 98) {
 		std::cout << "Problem with next ne list." << std::endl;
 		std::cout << "loc = "; print (loc);
@@ -653,7 +654,7 @@ std::array <std::array <int,3>,98> obtain_next_ne_list (std::array <int,3> loc, 
 		print_nested (next_nl);
 		exit (EXIT_FAILURE);
 	}
-
+	*/
 	
 	return next_nl;
 

@@ -566,7 +566,7 @@ def get_Rh(master_dict, xlen, ylen, zlen):
 # Description: Given a trajectory, grab the coordinates of the polymer and load them into a dictionary. 
 # this will allow easy access to these coordinates. 
 
-def get_pdict(filename, starting_step, dop, x, y, z):
+def get_pdict (filename, starting_step, dop, x, y, z):
     
     st_b_str = "Dumping coordinates at step" 
     pmer_num_str = "Dumping coordinates of Polymer"

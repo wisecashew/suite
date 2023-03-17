@@ -15,29 +15,61 @@ import aux
 import os
 import re
 
-def delta_scale_finder (filename):
-	with open (filename) as f:
-		for line in f:
-			if re.search ("<N_mm>", line):
-				delta = re.search ("-\d+\.\d+|\d+\.\d+", line)
-				delta = float(delta.group(0))
-			elif re.search ("scale", line):
-				scale = re.search ("\d+\.\d+|\d+", line)
-				scale = float (scale.group(0))
-	return delta, scale
-
 
 parser = argparse.ArgumentParser(description="Run a coarse-grained simulation of the next-nearest neighbor variety.")
 parser.add_argument ("--model", dest='m', action='store', type=int, help="Select model directory.")
 parser.add_argument ("-T", dest='T', action='store', type=float, help="Select temperature.")
+parser.add_argument ("-s", dest='s', action='store', type=int, help="Number of values to consider.")
 args = parser.parse_args()
+
+
+next_nearest_neighbor = np.array ([[2, 0, 0], [2, 1, 0], [2, -1, 0], [2, 0, 1], [2, 0, -1], [2, 1, 1], [2, -1, 1], [2, 1, -1], [2, -1, -1], \
+[-2, 0, 0], [-2, 1, 0], [-2, -1, 0], [-2, 0, 1], [-2, 0, -1], [-2, 1, 1], [-2, -1, 1], [-2, 1, -1], [-2, -1, -1], [0, 2, 0], \
+[1, 2, 0], [-1, 2, 0], [0, 2, 1], [0, 2, -1], [1, 2, 1], [-1, 2, 1], [1, 2, -1], [-1, 2, -1], [0, -2, 0], [1, -2, 0], [-1, -2, 0], \
+[0, -2, 1], [0, -2, -1], [1, -2, 1], [-1, -2, 1], [1, -2, -1], [-1, -2, -1], [0, 0, 2], [0, 1, 2], [0, -1, 2], [1, 0, 2], [-1, 0, 2], \
+[1, 1, 2], [-1, 1, 2], [1, -1, 2], [-1, -1, 2], [0, 0, -2], [0, 1, -2], [0, -1, -2], [1, 0, -2], [-1, 0, -2], [1, 1, -2], [-1, 1, -2], \
+[1, -1, -2], [-1, -1, -2], [2, 2, 0], [2, 2, 1], [2, 2, -1], [-2, 2, 0], [-2, 2, 1], [-2, 2, -1], [2, -2, 0], [2, -2, 1], [2, -2, -1], \
+[-2, -2, 0], [-2, -2, 1], [-2, -2, -1], [0, 2, 2], [1, 2, 2], [-1, 2, 2], [0, -2, 2], [1, -2, 2], [-1, -2, 2], [0, 2, -2], [1, 2, -2], \
+[-1, 2, -2], [0, -2, -2], [1, -2, -2], [-1, -2, -2], [2, 0, 2], [2, 1, 2], [2, -1, 2], [-2, 0, 2], [-2, 1, 2], [-2, -1, 2], [2, 0, -2], \
+[2, 1, -2], [2, -1, -2], [-2, 0, -2], [-2, 1, -2], [-2, -1, -2], [2, 2, 2], [-2, 2, 2], [2, -2, 2], [2, 2, -2], [-2, -2, 2], [-2, 2, -2], \
+[2, -2, -2], [-2, -2, -2]] )
+
+def get_starting_ind (temp, s):
+    filename = str(temp) + "/TARGET/energydump_1.mc"
+    df = pd.read_csv (filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+    L = len(df["energy"])
+
+    return int(df["time_step"].values[L-2000])
+
+
+def infiltrate_coords_get_next_nearest_contacts (dop, temp, coords_file, starting_index):
+	filename = str(temp) + "/TARGET/coords_1.mc"
+	edge     = aux.edge_length (dop)
+	master_dict = aux.get_pdict (filename, starting_index, dop, edge, edge, edge)
+
+	next_nearest_contacts = []
+
+	for key in master_dict:
+		polymer = master_dict[key][0]
+		polymer = unfuck_polymer (polymer, edge, edge, edge)
+		count = 0
+		for monomer in polymer:
+			for n_neigh in next_nearest_neighbor:
+				next_neigh = monomer + n_neigh 
+				if next_neigh  
+
+
+
+
 
 if __name__=="__main__":
 
 	T = args.T
 	k = 1
+	s = args.s
 	info = aux.get_info (str(T)+"/TARGET/geom_and_esurf.txt")
 	x = info[0]; y = info[1]; z = info[2]; T = info[3]; frac = info[4]
+
 	beta = 1/(k*T)
 	chi = 0.05
 	# obtain target parameters 
@@ -47,7 +79,7 @@ if __name__=="__main__":
 
 	# energy_upd[2] = 0
 	# get the target contacts 
-	df_target = pd.read_csv ("TARGET/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "time_step"], skiprows=0)
+	df_target = pd.read_csv (str(T)+"/TARGET/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "s1s2_tot", "s1s2_aligned", "s1s2_naligned", "time_step"], skiprows=0)
 	df_model  = pd.read_csv (str(T)"/FORM3/MODEL"+str(args.m)+"/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "time_step"], skiprows=0)
 
 

@@ -15,6 +15,7 @@ import itertools
 import sys 
 import copy
 import time
+from numba import jit
 import scipy.spatial.distance as ssd
 from sklearn.linear_model import LinearRegression 
 
@@ -128,23 +129,17 @@ def get_energy_form_3 (topology):
 	f = open (topology, 'r')
 	Emm_1   = "Emm_1"
 	Emm_2   = "Emm_2"
-	Ems   = "Ems"
 	num_re  = "\s+-[0-9]+\.[0-9]+|\s+[0-9]+\.[0-9]+|\s+-[0-9]+\.|\s+[0-9]+\.|\s+-[0-9]+|\s+[0-9]+"
 
 	for line in f:
 		if re.findall (Emm_1, line):
 			r = re.findall (num_re, line)
-			# print(r)
 			mm_1 = float ( r[0] )
 		elif re.findall (Emm_2, line):
 			r = re.findall (num_re, line)
 			mm_2 = float ( r[0] )
-		elif re.findall ( Ems, line):
-			r = re.findall (num_re, line)
-			# print(r)
-			ms = float( r[0] )
 
-	return np.array([mm_1, mm_2, ms])
+	return np.array([mm_1, mm_2])
 
 
 def get_energy_target (topology):
@@ -197,7 +192,7 @@ def get_energy_target (topology):
 
 
 def get_chi_fh (topology):
-    
+
     f = open (topology)
     E_mm = "Emm_a"
     E_ms = "Ems_a"
@@ -373,16 +368,16 @@ def dir2dop (list_of_dirs):
 
 def unfuck_polymer(polymer, x, y, z): 
     unfucked_polymer = copy.copy(polymer) # np.asarray([polymer[0,:]])
-     
+
     for i in range ( polymer.shape[0]-1 ) :
         diff = polymer[i+1,:] - polymer[i,:]
-        
+
         for j in range(3):
             diff[j] = diff[j] if np.abs(diff[j])==1 else -1*np.sign(diff[j])
-        
+
         unfucked_polymer[i+1] = unfucked_polymer[i]+diff # np.vstack( (unfucked_polymer, unfucked_polymer[i]+diff ) )
-    
-    return unfucked_polymer         
+
+    return unfucked_polymer
 
 
 def unfuck_polymer_modified (polymer, x, y, z): 

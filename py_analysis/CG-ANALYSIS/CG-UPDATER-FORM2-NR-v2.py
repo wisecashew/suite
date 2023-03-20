@@ -31,6 +31,7 @@ parser = argparse.ArgumentParser(description="Run a coarse-grained simulation wi
 parser.add_argument ("--model", dest='m', action='store', type=int, help="Select model directory.")
 parser.add_argument ("-T", dest='T', action='store', type=float, help="Select temperature.")
 parser.add_argument ("-s", dest='s', action='store', type=int, help="Number of values to consider.")
+parser.add_argument ("--chi", dest='chi', action='store', type=float, help="chi value")
 args = parser.parse_args()
 
 def det_chi (T, error_scale):
@@ -78,9 +79,9 @@ if __name__=="__main__":
 	aligned_error_scale  = np.abs(np.mean(df_target["mm_aligned" ].values[-s:]  - df_model["mm_aligned" ].values[-s:] ))
 	naligned_error_scale = np.abs(np.mean(df_target["mm_naligned"].values[-s:] - df_model["mm_naligned"].values[-s:]))
 
-	chi_aligned  = 0.1  # det_chi  (beta, aligned_error_scale)
+	chi_aligned  = args.chi  # det_chi  (beta, aligned_error_scale)
 	print (f"chi_aligned = {chi_aligned}")
-	chi_naligned = 0.1 # det_chi (beta, naligned_error_scale)
+	chi_naligned = args.chi # det_chi (beta, naligned_error_scale)
 	print (f"chi_naligned = {chi_naligned}")
 
 	print ("Energetic parameters initial =", energy_upd)

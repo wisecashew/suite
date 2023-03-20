@@ -53,10 +53,9 @@ if __name__=="__main__":
 
 	print ("Energetic parameters initial =", energy_upd)
 	diff_mm = np.mean (df_model["mm_tot"].values[-2000:]) - np.mean (df_target["mm_tot"].values[-2000:])
-
-	delta_file = open (str(T)+"/FORM1/MODEL"+str(args.m+1)+"/delta_new.mc", 'w')
-	delta_file.write (f"<N_mm>_model - <N_mm>_target = {diff_mm}")
-	delta_file.close()
+	delta_file = open (str(T)+"/FORM1/MODEL"+str(args.m+1)+"/delta.mc", 'w')
+	delta_file.write  (f"<N_mm>_model - <N_mm>_target = {diff_mm}")
+	delta_file.close  ()
 
 	# now perform the update
 	energy_upd[0] = energy_upd[0] - chi * ( np.mean ( df_target["mm_tot"].values[-2000:] )  - np.mean ( df_model["mm_tot"].values[-2000:] ) ) / ( beta * np.mean (df_model["mm_tot"].values[-2000:]**2) - beta * np.mean(df_model["mm_tot"].values[-2000:])**2  )

@@ -20,6 +20,7 @@ parser = argparse.ArgumentParser(description="Run a coarse-grained simulation of
 # parser.add_argument ("--tenergy-file", dest="energy", action='store', type=str, help="Provide address for energy dump file.")
 parser.add_argument ("--model", dest='m', action='store', type=int, help="Select model directory.")
 parser.add_argument ("--dop", dest='dop', action='store', type=int, help="Select degree of polymerization.")
+parser.add_argument ("--chi", dest='chi', action='store', type=float, help="chi value")
 parser.add_argument ("-T", dest='T', action='store', type=float, help="Select temperature.")
 # parser.add_argument ("-s", dest='s', action='store', type=int, help="Number of values to consider.")
 args = parser.parse_args()
@@ -88,8 +89,8 @@ if __name__=="__main__":
 	nearest_error_scale      = np.abs(np.mean(df_target  ["mm_tot"].values[-s:]        - df_model["mm_1"].values[-s:]))
 	next_nearest_error_scale = np.abs(np.mean(df_target_n["next_neighbor"].values[-s:] - df_model["mm_2"].values[-s:]))
 
-	chi_nearest      = 1.0 # 0.1
-	chi_next_nearest = 1.0 # 0.1
+	chi_nearest      = args.chi # 0.1
+	chi_next_nearest = args.chi # 0.1
 
 	print (f"chi_nearest = {chi_nearest}")
 	print (f"chi_next_nearest = {chi_next_nearest}")

@@ -10,25 +10,25 @@ INTELFLAFS = -O3 -std=c++14 -lto -ipa -Wall -Wextra -Wdisabled-optimization -Wer
 MACFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -mcpu=apple-a10
 OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Wnonnull -Wnull-dereference -Wno-return-local-addr -Wreturn-type
 
-lin_CG: main.cpp misc.cpp classes.cpp 
+lin_CG: main.cpp misc.cpp classes.cpp
 	@echo "Compiling the coarse-grained simulation..."
-	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround_L1
+	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround_L3
 	@echo "Compiled!"
 
 lin_dCG: debug.cpp misc.cpp classes.cpp
 	@echo "Compiling the debugging script..."
-	@$(CC) $(LINUXFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround_L1
+	@$(CC) $(LINUXFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround_L3
 	@echo "Compiled!" 
 
-lin_iCGd: main.cpp misc.cpp classes.cpp 
-	@$(ICC) $(INTELFLAGS) main.cpp misc.cpp classes.cpp -o iCoarseGround_L1
+lin_iCGd: main.cpp misc.cpp classes.cpp
+	@$(ICC) $(INTELFLAGS) main.cpp misc.cpp classes.cpp -o iCoarseGround_L3
 
 mac_CG: main.cpp misc.cpp classes.cpp
 	@echo "Compiling the coarse-grained simulation..."
-	@$(CC) $(MACFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround_L1
+	@$(CC) $(MACFLAGS) main.cpp misc.cpp classes.cpp -o CoarseGround_L3
 	@echo "Compiled!" 
 
-mac_dCG: debug.cpp misc.cpp classes.cpp 
+mac_dCG: debug.cpp misc.cpp classes.cpp
 	@echo "Compiling the debugging script..."
-	@$(CC) $(MACFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround_L1
+	@$(CC) $(MACFLAGS) debug.cpp misc.cpp classes.cpp -o dCoarseGround_L3
 	@echo "Compiled!"

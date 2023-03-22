@@ -13,6 +13,7 @@
 #include "classes.h"
 #include "misc.h"
 
+
 // obtained all necessary libraries. 
 // TO-DO: Check later for redundant calls. 
 
@@ -141,7 +142,7 @@ int main (int argc, char** argv) {
 
     std::array <int,3>    attempts    = {0,0,0};
     std::array <int,3>    acceptances = {0,0,0}; 
-    std::array <double,2> contacts    = {0,0}; 
+    std::array <double,ncdim> contacts    = {0,0,0}; 
     
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
@@ -159,11 +160,11 @@ int main (int argc, char** argv) {
 
     // info_vec is the vector with all the information that constitutes the toplogy of the simulation
     // assign values from info vec to relevant variables 
-    const int x             =   info_vec[0] ;
-    const int y             =   info_vec[1] ; 
-    const int z             =   info_vec[2] ; 
-    const double T          =   info_vec[3] ; 
-    std::array <double,2> E =  {info_vec[4], info_vec[5]}; 
+    const int x                 =   info_vec[0] ;
+    const int y                 =   info_vec[1] ; 
+    const int z                 =   info_vec[2] ; 
+    const double T              =   info_vec[3] ; 
+    std::array <double,nedim> E =   {info_vec[4], info_vec[5]}; 
     
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
@@ -185,7 +186,7 @@ int main (int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm = " << E[0] <<", Ems_n = " << E[1] <<".\n";
+    std::cout << "Emm_1 = " << E[0] <<", Emm_2 = " << E[1] <<".\n";
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
@@ -221,7 +222,6 @@ int main (int argc, char** argv) {
         std::cout << "Simulation cell has been made! \n\n" ;
 
     }
-
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#

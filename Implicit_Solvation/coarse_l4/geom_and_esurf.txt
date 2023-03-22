@@ -1,7 +1,7 @@
 x = 34
 y = 34
 z = 34
-kT = 0.1
+kT = 1.0
 Emm    = -1
-Ems    = -0
+B      = 1
 END OF FILE

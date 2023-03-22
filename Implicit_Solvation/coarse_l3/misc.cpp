@@ -2228,7 +2228,7 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,nedim>* E, std::array<double,ncdim>* contacts, int x, int y, int z) {
     
     double Energy {0.0};
-    (*contacts) = {0,0}; 
+    (*contacts) = {0,0,0}; 
     std::array <std::array <int,3>, 26> ne_list; 
     std::array <std::array <int,3>, 98> next_ne_list;
     // run energy computations for every monomer bead 

@@ -95,7 +95,7 @@ if __name__=="__main__":
 	print (f"chi_nearest = {chi_nearest}")
 	print (f"chi_next_nearest = {chi_next_nearest}")
 
-	neighbor_contacts_target      = df_target   ["mm_aligned"].values[-s:]
+	neighbor_contacts_target      = df_target   ["mm_tot"].values[-s:]
 	neighbor_contacts_model       = df_model    ["mm_1"].values[-s:]
 	next_neighbor_contacts_target = df_target_n ["next_neighbor"].values[-s:]
 	next_neighbor_contacts_model  = df_model    ["mm_2"].values[-s:]
@@ -118,8 +118,6 @@ if __name__=="__main__":
 
 	energy_upd[0] = energy_upd[0] - chi_nearest * nearest_num / nearest_denom
 
-	# (np.mean(neighbor_contacts_target) - np.mean(neighbor_contacts_model)) / ( beta * np.mean (neighbor_contacts_model**2) - beta * np.mean (neighbor_contacts_model)**2 + regularizer )
-
 	next_nearest_num   = np.mean (next_neighbor_contacts_target) - np.mean (next_neighbor_contacts_model)
 	next_nearest_denom = beta * np.mean (next_neighbor_contacts_model**2) - beta * np.mean(next_neighbor_contacts_model) **2
 
@@ -127,8 +125,6 @@ if __name__=="__main__":
 		next_nearest_denom = 0.01
 
 	energy_upd[1] = energy_upd[1] - chi_next_nearest * next_nearest_num / next_nearest_denom
-
-	# (np.mean (next_neighbor_contacts_target) - np.mean (next_neighbor_contacts_model)) / (beta * np.mean (next_neighbor_contacts_model**2) - beta * np.mean(next_neighbor_contacts_model) **2 + regularizer)
 
 	delta_file.write ("nearest update numerator   = {}\n".format( np.mean(neighbor_contacts_target) - np.mean(neighbor_contacts_model)))
 	delta_file.write ("nearest update denominator = {}\n".format( beta * np.mean (neighbor_contacts_model**2) - beta * np.mean (neighbor_contacts_model)**2 + regularizer ) )

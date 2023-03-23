@@ -3,9 +3,8 @@
 #include "classes.h"
 
 // THESE ARE THE DIMENSIONS OF THE ENERGY PARAMETER VECTOR AND THE CONTACTS VECTOR
-#define ncdim 4
+#define ncdim 2
 #define nedim 2
-
 
 // this is a bunch of miscellaneous functions I use 
 // to manipulate std::vectors. Furthermore, this will be used 
@@ -179,8 +178,7 @@ double                   NumberExtractor            (std::string s);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // energy calculator and metropolis 
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-double CalculateEnergy               (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,nedim>* E, std::array<double,ncdim>* contacts, int x, int y, int z);
-// double CalculateEnergy_parallel      (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,2>* E, std::array<double,ncdim>* contacts, int x, int y, int z);
+double CalculateEnergy               (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,nedim>* E, std::array<double,ncdim>* contacts, std::array <double,3>* magnetization, int x, int y, int z);
 double NeighborEnergy                (std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, int ss_index, int x, int y, int z); 
 double PairEnergy                    (Particle* p1, Particle* p2, std::array <double,nedim>* E, int* c_idx, int x, int y, int z);
 
@@ -198,7 +196,7 @@ void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, 
 void dumpEnergy              (double sysEnergy, int step, std::array<double,ncdim>* contacts, std::string filename);
 void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
-void dumpMoveStatistics      (std::array  <int,3>   * attempts, std::array <int,3>* acceptances, int step, std::string stats_file); 
+void dumpMoveStatistics      (std::array  <int,4>   * attempts, std::array <int,4>* acceptances, int step, std::string stats_file); 
 void dumpLATTICE             (std::vector <Particle*>* LATTICE, int step, int y, int z, std::string filename);
 void BiasTheStart            (std::vector <Polymer>* Polymers, int x, int y, int z);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -321,8 +319,8 @@ void                  PolymerFlip_BIASED                        (std::vector <Po
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  PolymerFlip_BIASED                        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
-void                  PolymerFlip_BIASED_debug                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  PolymerFlip_BIASED                        (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array<double,3>* magnetization, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
+void                  PolymerFlip_BIASED_debug                  (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <double,3>* magnetization, bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -336,9 +334,9 @@ void                  BackFlowFromTailRegrowthPlusOrientationFlip_BIASED  (std::
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-void                  PerturbSystem_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,3>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
-void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <int,3>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
-void                  PerturbSystem_BIASED_debug   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <int,3>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
+void                  PerturbSystem_UNBIASED       (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, std::array <double,8>* E, std::array <double,8>* contacts, std::array <int,4>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
+void                  PerturbSystem_BIASED         (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <int,4>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
+void                  PerturbSystem_BIASED_debug   (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <int,4>* attempts, bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, int* move_number, int x, int y, int z);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -347,7 +345,7 @@ void                  PerturbSystem_BIASED_debug   (std::vector <Polymer>* Polym
 
 template <typename T>
 void reset(T &x){
-    x = T();
+    x = T ();
 }
 
 

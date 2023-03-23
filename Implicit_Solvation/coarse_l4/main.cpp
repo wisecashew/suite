@@ -140,10 +140,11 @@ int main (int argc, char** argv) {
     double sysEnergy      {0};
     bool   IMP_BOOL       {true}; 
 
-    std::array <int,3>    attempts    = {0,0,0};
-    std::array <int,3>    acceptances = {0,0,0}; 
-    std::array <double,ncdim> contacts    = {0,0,0}; 
-    
+    std::array <int,4>        attempts      = {0,0,0,0};
+    std::array <int,4>        acceptances   = {0,0,0,0}; 
+    std::array <double,3>     magnetization = {0,0,0};
+    std::array <double,ncdim> contacts      = {0,0}; 
+
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
@@ -186,7 +187,7 @@ int main (int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm_1 = " << E[0] <<", Emm_2 = " << E[1] <<".\n";
+    std::cout << "Emm = " << E[0] <<", B = " << E[1] <<".\n";
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 

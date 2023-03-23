@@ -316,6 +316,36 @@ void print ( std::vector <std::vector <std::array<int,3>>> V){
 // functions to perform arithmetic with vectors and arrays 
 //==============================================================================================
 
+template <typename T>
+bool equal_arr (T a, T b) {
+	double eps = 1e-6;
+	T c = subtract (a, b);
+	size_t s = c.size(); 
+	double err = 0;
+	for (size_t i{0}; i < s; ++i) {
+		err += c[i]*c[i]
+	}
+	err = std::sqrt(err/3);
+	if (fabs (err) < eps){
+		return true;
+	}
+	else {
+		return false;
+	}
+
+}
+
+template <typename T>
+bool equal (T a, T b) {
+	double eps = 1e-6;
+	if (fabs(a-b) < eps){
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 template <typename T> 
 T add (T a, T b){
 	
@@ -873,7 +903,7 @@ std::array <double,6> ExtractTopologyFromFile(std::string filename){
     double info; 
     std::string mystring; 
     std::vector <std::string> contents = ExtractContentFromFile(filename); 
-    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm ("Emm_1"),\
+    std::regex x ("x"), y ("y"), z ("z"), kT ("kT"), Emm ("Emm"),\
     B ("B"), eof ("END OF FILE"); 
     //bool out_mat = true; 
 
@@ -2224,11 +2254,13 @@ bool MonomerNeighborReporter ( std::vector <Polymer>* Polymers, std::array <int,
 //
 // THE CODE: 
 
-double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,nedim>* E, std::array<double,ncdim>* contacts, std::array <int,3>* magnetization, int x, int y, int z) {
+double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array<double,NEDIM>* E, std::array<double,NCDIM>* contacts, std::array <double,3>* magnetization, int x, int y, int z) {
     
+    int    deg_poly  = (*Polymers)[0].deg_poly; 
     double Energy      {0.0};
+    double dot_product {0.0};
     (*magnetization) = {0,0,0};
-    (*contacts)      = {0,0};
+    (*contacts)      = {};
 
     std::array <std::array <int,3>, 26> ne_list; 
 
@@ -2239,7 +2271,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     for (Polymer& pmer: (*Polymers)) {
         for (Particle*& p: pmer.chain){
 
-        	(*magnetization) = add (magnetization, &Or2Dir[p->orientation]);
+        	(*magnetization) = add (magnetization, &(Or2Dir[p->orientation]));
 
         	// first neighbor list 
             ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
@@ -2247,11 +2279,17 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
             	switch ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype[0] ) {
             		case 'm':
             			Energy += 0.5 * (*E)[0];
-            			(*contacts)[0] += 0.5; 
+            			dot_product = take_dot_product (p->orientation, (*LATTICE)[lattice_index (loc, y, z) ]->orientation);
+            			if (dot_product > 0.54){
+            				(*contacts)[0] += 0.5;
+            			}
+            			else {
+            				(*contacts)[1] += 0.5;
+            			}
             			break;
 
             		case 'v':
-            			(*contacts)[1] += 1;
+            			(*contacts)[2] += 1;
             			break;
             	}
             }
@@ -2259,7 +2297,7 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
     }
 
     // add the final component: arising from the magnetization
-    Energy += (*E)[1] * std::sqrt( (*magnetization)[0]*(*magnetization)[0] + (*magnetization)[1]*(*magnetization)[1] + (*magnetization)[2]*(*magnetization)[2] );
+    Energy += (*E)[1] * std::sqrt( ( (*magnetization)[0]*(*magnetization)[0] + (*magnetization)[1]*(*magnetization)[1] + (*magnetization)[2]*(*magnetization)[2] ) / deg_poly );
 
     return Energy; 
 }
@@ -2268,17 +2306,17 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 //==============================================================================================
 
 
-double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, int ss_index, int x, int y, int z){
+double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, int ss_index, int x, int y, int z){
 
 	// reinitialize contacts 
-	(*contacts) = {0,0}; 
+	(*contacts) = {}; 
 
 	// information of particle whose neighbor list is being calculated 
-	std::array <std::array<int,3>, 98> next_ne_list = obtain_next_ne_list ( (*LATTICE)[ss_index]->coords, x, y, z );
 	std::array <std::array<int,3>, 26> ne_list      = obtain_ne_list ( (*LATTICE)[ss_index]->coords, x, y, z ); 
 	std::string particle_type                       = (*LATTICE).at(ss_index)->ptype; 
 	
-	double Ei       = 0; 
+	double Ei          = 0; 
+	double dot_product = 0;
 
 	// std::cout << "Coords of particle of interest = "; print ( ploc );
 	// start of neighbor loop 
@@ -2293,7 +2331,14 @@ double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,ned
 
 					case 'm':
 						Ei += (*E)[0];
-						(*contacts)[0] += 1;
+						dot_product = take_dot_product ((*LATTICE)[ss_index]->orientation, (*LATTICE)[lattice_index(loc, y, z)]->orientation);
+						if (dot_product > 0.54){
+							(*contacts)[0] += 1;	
+						}
+						else{
+							(*contacts)[1] += 1;
+						}
+						
 						break;
 
 					case 'v':
@@ -2301,26 +2346,7 @@ double NeighborEnergy ( std::vector <Particle*>* LATTICE, std::array <double,ned
 						break; 
 				} 
 				
-			} // end of neighbor loop 
-
-			for ( std::array <int,3>& loc: next_ne_list ) {
-				// if neighbor is m1
-				switch ((*LATTICE)[lattice_index(loc, y, z)]->ptype[0]) {
-
-					case 'm':
-						Ei += (*E)[1];
-						(*contacts)[1] += 1;
-						break;
-
-					case 'v':
-						break;
-
-				} 
-				
-			} // end of next neighbor loop			
-
-
-
+			} // end of neighbor loop 	
 			break; 
 
 		case 'v':
@@ -2477,9 +2503,9 @@ void dumpPositionOfSolvent(std::vector <Particle*>* LATTICE, int step, std::stri
 // THE CODE: 
 
 
-void dumpEnergy (double sysEnergy, int step, std::array<double,ncdim>* contacts, std::array<int,3>* magnetization, int deg_poly, std::arraystd::string filename) {
+void dumpEnergy (double sysEnergy, int step, std::array<double,NCDIM>* contacts, std::array<double,3>* magnetization, int deg_poly, std::string filename) {
 
-	normalized_m = std::sqrt ( ( (*magnetization)[0] * (*magnetization)[0] + (*magnetization)[1] * (*magnetization)[1] + (*magnetization)[2] * (*magnetization)[2] ) / deg_poly);
+	double normalized_m = std::sqrt ( ( (*magnetization)[0] * (*magnetization)[0] + (*magnetization)[1] * (*magnetization)[1] + (*magnetization)[2] * (*magnetization)[2] ) / deg_poly);
     std::ofstream dump_file(filename, std::ios::app); 
     // std::ostringstream os; 
 
@@ -2511,7 +2537,7 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,ncdim>* contacts,
 //
 // THE CODE: 
 
-void dumpMoveStatistics (std::array <int,4>* attempts, std::array <int,4>* acceptances, int step, std::string stats_file) {
+void dumpMoveStatistics (std::array <int,NADIM>* attempts, std::array <int,NADIM>* acceptances, int step, std::string stats_file) {
     
     std::ofstream dump_file (stats_file, std::ios::out); 
     dump_file << "At step " << step << "...\n";
@@ -2638,7 +2664,7 @@ void dumpLATTICE ( std::vector <Particle*> *LATTICE, int step, int y, int z, std
 // THE CODE: 
 
 void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,nedim>* E, std::array<double,ncdim>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::array<double,NEDIM>* E, std::array<double,NCDIM>* contacts, std::array <double,3>* magnetization, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
 	
@@ -2648,10 +2674,13 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 
-    std::array <double,ncdim> cm, cm_n;
-    std::array <double,ncdim> cs, cs_n;
-    std::array <double,ncdim> final_contacts; 
-    std::array <double,ncdim> c_contacts = *contacts;
+    std::array <double,NCDIM> cm   = {}; 
+    std::array <double,NCDIM> cm_n = {};
+    std::array <double,NCDIM> cs   = {}; 
+    std::array <double,NCDIM> cs_n = {};
+    std::array <double,NCDIM> final_contacts = {}; 
+    std::array <double,NCDIM> c_contacts = *contacts;
+    std::array <double,3> c_magnetization   = *magnetization;
 
 	int choice = rng_uniform(0, 25); 
 
@@ -2691,14 +2720,16 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 	final_contacts = add(subtract(*contacts, add(cs, cm)), add(cs_n, cm_n)); 
 
 	// DELETE THIS LATER 
-	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &c_contacts, x, y, z); 
-	if (Ef != energy_n || final_contacts != c_contacts) {
+	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &c_contacts, &c_magnetization, x, y, z); 
+	// if (Ef != energy_n || final_contacts != c_contacts || c_magnetization != *magnetization) {
+	if ( !equal (Ef, energy_n) || final_contacts != c_contacts || c_magnetization != *magnetization) {
+		std::cout << "C1: " << (Ef != energy_n) << ", C2: " << (final_contacts != c_contacts) << ", C3: " << (c_magnetization != *magnetization) << std::endl;
 		std::cout << "Either energy or contacts is messed up in end rotation... " << std::endl;
 		std::cout << "Ef = " << Ef << ", energy_n = " << energy_n << ". " << std::endl; 
-		std::cout << "final_contacts = "; print (final_contacts, ", "); std::cout << "c_contacts = "; print(c_contacts);
+		std::cout << "final_contacts  = "; print (final_contacts, ", "); std::cout << "c_contacts = "     ; print(c_contacts);
+		std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 		exit(EXIT_FAILURE);
 	} 
-
 	// DELETE ABOVE LATER 
 	if ( MetropolisAcceptance (*sysEnergy, Ef, temperature)){
 		*sysEnergy        = Ef; 
@@ -2726,7 +2757,7 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 //==============================================================================================
 
 void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,nedim>* E, std::array<double,ncdim>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::array<double,NEDIM>* E, std::array<double,NCDIM>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
 	
@@ -2736,9 +2767,9 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 
-    std::array <double,ncdim> cs, cs_n; 
-    std::array <double,ncdim> cm, cm_n; 
-    std::array <double,ncdim> final_contacts; 
+    std::array <double,NCDIM> cs, cs_n; 
+    std::array <double,NCDIM> cm, cm_n; 
+    std::array <double,NCDIM> final_contacts; 
 
 	int choice = rng_uniform(0, 25); 
 
@@ -2831,7 +2862,8 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 // THE CODE: 
 
 void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,nedim>* E, std::array<double,ncdim>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::array<double,NEDIM>* E, std::array<double,NCDIM>* contacts, std::array <double,3>* magnetization, \
+	bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
     // get the neighborlist of particle at index 1 
@@ -2839,10 +2871,13 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
     std::array <int,3> loc_0 = (*Polymers)[index].chain[dop-1]->coords; 
     std::array <int,3> loc_1 = (*Polymers)[index].chain[dop-2]->coords; 
 
-    std::array <double,ncdim> c_contacts         = *contacts;
-    std::array <double,ncdim> cs, cs_n;
-    std::array <double,ncdim> cm, cm_n;
-    std::array <double,ncdim> final_contacts; 
+    std::array <double,NCDIM> c_contacts         = *contacts;
+    std::array <double,NCDIM> cs   = {};
+    std::array <double,NCDIM> cs_n = {};
+    std::array <double,NCDIM> cm   = {}; 
+    std::array <double,NCDIM> cm_n = {};
+    std::array <double,NCDIM> final_contacts = {}; 
+    std::array <double,3> c_magnetization   = *magnetization;
 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 
@@ -2883,11 +2918,13 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 	final_contacts = add( subtract(*contacts, add(cm, cs)), add(cm_n, cs_n) ); 
 
 	// DELETE THIS LATER 
-	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &c_contacts, x, y, z); 
-	if (Ef != energy_n || final_contacts != c_contacts) {
+	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &c_contacts, &c_magnetization, x, y, z); 
+	// if (Ef != energy_n || final_contacts != c_contacts || c_magnetization != *magnetization) {
+	if ( !equal(Ef, energy_n) || final_contacts != c_contacts || c_magnetization != *magnetization) {
 		std::cout << "Either energy or contacts is messed up in end rotation... " << std::endl; 
 		std::cout << "Ef = " << Ef << ", energy_n = " << energy_n << ". " << std::endl; 
 		std::cout << "final_contacts = "; print (final_contacts, ", "); std::cout << "c_contacts = "; print(c_contacts); 
+		std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 		exit (EXIT_FAILURE); 
 	}
 	// DELETE ABOVE LATER 
@@ -2920,7 +2957,7 @@ void HeadRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,nedim>* E, std::array<double,ncdim>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::array<double,NEDIM>* E, std::array<double,NCDIM>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
     // get the neighborlist of particle at index 1 
@@ -2929,9 +2966,9 @@ void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
     std::array <int,3> loc_1 = (*Polymers)[index].chain[dop-2]->coords; 
 
     // these are contacts arrays which are necessary to check validity of code 
-    std::array <double,ncdim> cs, cs_n;
-    std::array <double,ncdim> cm, cm_n;
-    std::array <double,ncdim> final_contacts; 
+    std::array <double,NCDIM> cs, cs_n;
+    std::array <double,NCDIM> cm, cm_n;
+    std::array <double,NCDIM> final_contacts; 
 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 	int choice = rng_uniform(0, 25); 
@@ -3024,7 +3061,7 @@ void HeadRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 // THE CODE: 
 
 void EndRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, \
 	int index, int x, int y, int z){
 
@@ -3035,12 +3072,12 @@ void EndRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
     // std::cout << "rng is " << num << std::endl;
     if (num==0){
         std::cout << "Zero index rotation!" << std::endl;
-        TailRotation_UNBIASED_debug (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        TailRotation_UNBIASED_debug (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
     else {
         std::cout << "Final index rotation!" << std::endl;
-        HeadRotation_UNBIASED_debug (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        HeadRotation_UNBIASED_debug (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
 
@@ -3050,7 +3087,7 @@ void EndRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void EndRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, \
 	int index, int x, int y, int z){
 
@@ -3121,7 +3158,7 @@ void forward_reptation_with_tail_biting (std::vector <Polymer>* Polymers, std::v
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
+void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
 
 	// start performing exchanges 
 	// doubles for energy transfer 
@@ -3132,11 +3169,11 @@ void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, st
 	double Esys        = *frontflow_energy; 
 
 	// ARRAY INITIALIZATION BLOCK 
-	std::array <double,ncdim> cm1               = {0,0};
-	std::array <double,ncdim> cm2               = {0,0};
-	std::array <double,ncdim> cm1_n             = {0,0};
-	std::array <double,ncdim> cm2_n             = {0,0};
-	std::array <double,ncdim> current_contacts  = *contacts;
+	std::array <double,NCDIM> cm1               = {};
+	std::array <double,NCDIM> cm2               = {};
+	std::array <double,NCDIM> cm1_n             = {};
+	std::array <double,NCDIM> cm2_n             = {};
+	std::array <double,NCDIM> current_contacts  = *contacts;
 	std::array <int,3>    loc_m1                = {0,0,0}; 
 	std::array <int,3>    loc_m2                = {0,0,0}; 
 	// ARRAY INITIALIZATION BLOCK 
@@ -3201,7 +3238,7 @@ void forward_reptation_without_tail_biting (std::vector <Polymer>* Polymers, std
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void forward_reptation_without_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, \
+void forward_reptation_without_tail_biting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, \
 	std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
 
 	// start performing exchanges 
@@ -3212,11 +3249,11 @@ void forward_reptation_without_tail_biting_new (std::vector <Polymer>* Polymers,
 	double Es_n       = 0; 
 	double Esys       = *frontflow_energy; 
 
-	std::array <double,ncdim> cm               = {0,0,0};
-	std::array <double,ncdim> cm_n             = {0,0,0};
-	std::array <double,ncdim> cs               = {0,0,0};
-	std::array <double,ncdim> cs_n             = {0,0,0};
-	std::array <double,ncdim> current_contacts = *contacts;
+	std::array <double,NCDIM> cm               = {};
+	std::array <double,NCDIM> cm_n             = {};
+	std::array <double,NCDIM> cs               = {};
+	std::array <double,NCDIM> cs_n             = {};
+	std::array <double,NCDIM> current_contacts = *contacts;
 	std::array <int,3>    loc_s            = *to_slither; 
 	std::array <int,3>    loc_m            = {0,0,0}; 
 
@@ -3277,7 +3314,7 @@ void backward_reptation_with_head_butting (std::vector <Polymer>* Polymers, std:
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void backward_reptation_with_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, \
+void backward_reptation_with_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, \
 	double* frontflow_energy, int deg_poly, int index, int x, int y, int z){
 
 	// start performing exchanges 
@@ -3288,11 +3325,11 @@ void backward_reptation_with_head_butting_new (std::vector <Polymer>* Polymers, 
 	double Em2_n       = 0; 
 	double Esys        = *frontflow_energy; 
 
-	std::array <double,ncdim> cm1                = {0,0,0};
-	std::array <double,ncdim> cm2                = {0,0,0};
-	std::array <double,ncdim> cm1_n              = {0,0,0};
-	std::array <double,ncdim> cm2_n              = {0,0,0};
-	std::array <double,ncdim> current_contacts   = *contacts;
+	std::array <double,NCDIM> cm1                = {};
+	std::array <double,NCDIM> cm2                = {};
+	std::array <double,NCDIM> cm1_n              = {};
+	std::array <double,NCDIM> cm2_n              = {};
+	std::array <double,NCDIM> current_contacts   = *contacts;
 	std::array <int,3>    loc_m1             = {0,0,0}; 
 	std::array <int,3>    loc_m2             = {0,0,0}; 
 
@@ -3353,7 +3390,7 @@ void backward_reptation_without_head_butting (std::vector <Polymer>* Polymers, s
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z) {
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <int,3>* to_slither, double* frontflow_energy, int deg_poly, int index, int x, int y, int z) {
 
 	// start performing exchanges 
 	// doubles for energy transfer 
@@ -3365,11 +3402,11 @@ void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymer
 
 	// ARRAY INITIALIZATION BLOCK
 
-	std::array <double,ncdim> cm               = {0,0};
-	std::array <double,ncdim> cs               = {0,0};
-	std::array <double,ncdim> cm_n             = {0,0};
-	std::array <double,ncdim> cs_n             = {0,0};
-	std::array <double,ncdim> current_contacts = *contacts;
+	std::array <double,NCDIM> cm               = {};
+	std::array <double,NCDIM> cs               = {};
+	std::array <double,NCDIM> cm_n             = {};
+	std::array <double,NCDIM> cs_n             = {};
+	std::array <double,NCDIM> current_contacts = *contacts;
 	std::array <int,3>    loc_s            = *to_slither; 
 	std::array <int,3>    loc_m            = {0,0,0}; 
 
@@ -3434,7 +3471,7 @@ void backward_reptation_without_head_butting_new (std::vector <Polymer>* Polymer
 // THE CODE: 
 
 void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array<double,3>* magnetization, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
 	std::cout << "In forward reptation unbiased." <<std::endl;
@@ -3442,9 +3479,10 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 	int                   deg_poly             = (*Polymers)[index].deg_poly; 
 	std::array <int,3>    loc0                 = (*Polymers)[index].chain[0]->coords; 
 	std::array <int,3>    locf                 = (*Polymers)[index].chain[deg_poly-1]->coords; 
-	std::array <double,ncdim> current_contacts = *contacts; 
-	std::array <double,ncdim> copy_contacts    = *contacts; 
-	double                Esys                 = *sysEnergy; 
+	std::array <double,NCDIM> current_contacts = *contacts; 
+	std::array <double,NCDIM> copy_contacts    = *contacts; 
+	std::array <double,3>     c_magnetization  = *magnetization; 
+	double                    Esys             = *sysEnergy; 
 
 
 	// first check if tail rotation can be performed at all 	
@@ -3481,11 +3519,13 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 	// calculate energy of current state 
 	// delete later 
 
-	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z);
-	if ( Esys != energy_n || current_contacts != copy_contacts){
+	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z);
+	// if ( Esys != energy_n || current_contacts != copy_contacts || c_magnetization != *magnetization){
+	if ( !equal(Esys, energy_n) || current_contacts != copy_contacts || c_magnetization != *magnetization){
 		std::cout << "Either energy or contacts is messed up in forward reptation... " << std::endl; 
 		std::cout << "Esys = " << Esys << ", energy_n = " << energy_n << ". " << std::endl; 
 		std::cout << "current_contacts = "; print (current_contacts, ", "); std::cout << "copy_contacts = "; print(copy_contacts); 
+		std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 		exit (EXIT_FAILURE); 
 	}
 	// delete above 
@@ -3525,7 +3565,7 @@ void ForwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vect
 //==============================================================================================
 
 void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
 	// std::cout << "In forward reptation unbiased." <<std::endl;
@@ -3533,7 +3573,7 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 	int                       deg_poly         = (*Polymers)[index].deg_poly; 
 	std::array <int,3>        loc0             = (*Polymers)[index].chain[0]->coords; 
 	std::array <int,3>        locf             = (*Polymers)[index].chain[deg_poly-1]->coords; 
-	std::array <double,ncdim> current_contacts = *contacts; 
+	std::array <double,NCDIM> current_contacts = *contacts; 
 	double                    Esys             = *sysEnergy; 
 
 
@@ -3617,7 +3657,7 @@ void ForwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Pa
 // THE CODE: 
 
 void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
 	std::cout << "In backward reptation unbiased." <<std::endl;
@@ -3625,9 +3665,10 @@ void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vec
 	int                   deg_poly         = (*Polymers)[index].deg_poly; 
 	std::array <int,3>    loc0             = (*Polymers)[index].chain[0]->coords; 
 	std::array <int,3>    locf             = (*Polymers)[index].chain[deg_poly-1]->coords; 
-	std::array <double,ncdim> current_contacts = *contacts; 
-	std::array <double,ncdim> copy_contacts    = *contacts;
-	double                Esys             = *sysEnergy; 
+	std::array <double,NCDIM> current_contacts = *contacts; 
+	std::array <double,NCDIM> copy_contacts    = *contacts;
+	std::array <double,3>        c_magnetization  = *magnetization; 
+	double                Esys                 = *sysEnergy; 
 
 	// first check if tail rotation can be performed at all 
     std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( loc0, x, y, z ); 
@@ -3663,11 +3704,14 @@ void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vec
 
 	// delete later 
 	
-	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z);
-	if ( Esys != energy_n || current_contacts != copy_contacts){
+	double energy_n = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z);
+	// if ( Esys != energy_n || current_contacts != copy_contacts || c_magnetization != *magnetization){
+	if ( !equal(Esys, energy_n) || current_contacts != copy_contacts || c_magnetization != *magnetization){
 		std::cout << "Either energy or contacts is messed up in forward reptation... " << std::endl; 
 		std::cout << "Esys = " << Esys << ", energy_n = " << energy_n << ". " << std::endl; 
 		std::cout << "current_contacts = "; print (current_contacts, ", "); std::cout << "copy_contacts = "; print(copy_contacts); 
+		std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
+
 		exit (EXIT_FAILURE); 
 	}
 	
@@ -3707,7 +3751,7 @@ void BackwardReptation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vec
 
 
 void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
 	// std::cout << "In backward reptation unbiased." <<std::endl;
@@ -3715,7 +3759,7 @@ void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <P
 	int                       deg_poly         = (*Polymers)[index].deg_poly; 
 	std::array <int,3>        loc0             = (*Polymers)[index].chain[0]->coords; 
 	std::array <int,3>        locf             = (*Polymers)[index].chain[deg_poly-1]->coords; 
-	std::array <double,ncdim> current_contacts = *contacts; 
+	std::array <double,NCDIM> current_contacts = *contacts; 
 	double                    Esys             = *sysEnergy; 
 
 	// first check if tail rotation can be performed at all 
@@ -3789,7 +3833,7 @@ void BackwardReptation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <P
 
 
 void Reptation_UNBIASED_debug (std::vector<Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
@@ -3799,12 +3843,12 @@ void Reptation_UNBIASED_debug (std::vector<Polymer>* Polymers, std::vector <Part
 
     if (num==0){
         std::cout << "Backward reptation only!" << std::endl;
-        BackwardReptation_UNBIASED_debug (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+        BackwardReptation_UNBIASED_debug (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
         return; 
     }
     else {
         std::cout << "Forward reptation!" << std::endl;
-        ForwardReptation_UNBIASED_debug  (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+        ForwardReptation_UNBIASED_debug  (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
         return; 
     }
     
@@ -3814,7 +3858,7 @@ void Reptation_UNBIASED_debug (std::vector<Polymer>* Polymers, std::vector <Part
 //==============================================================================================
 
 void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int index, int x, int y, int z){
 
     unsigned seed = static_cast<unsigned> (std::chrono::system_clock::now().time_since_epoch().count());
@@ -3858,7 +3902,7 @@ void Reptation_UNBIASED (std::vector<Polymer>* Polymers, std::vector <Particle*>
 // THE CODE: 
 
 void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int p_index, int x, int y, int z){
 
 
@@ -3866,8 +3910,8 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	int m_index  = rng_uniform (1, deg_poly-2); 
 
 
-	std::array <double,ncdim> c1_contacts     = *contacts; 
-	std::array <double,ncdim> c2_contacts     = *contacts; 
+	std::array <double,NCDIM> c1_contacts     = *contacts; 
+	std::array <double,NCDIM> c2_contacts     = *contacts; 
 
 	double prob_o_to_n {1}; 
 	double prob_n_to_o {1}; 
@@ -4014,17 +4058,18 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, bool* IMP_BOOL, \
 	double* sysEnergy, double temperature, int p_index, int x, int y, int z){
 
 
 	int deg_poly = (*Polymers)[p_index].deg_poly; 
 	std::cout << "deg_poly = " << deg_poly << std::endl;
-	int m_index  = rng_uniform (deg_poly/2, deg_poly-2); 
+	int m_index  = rng_uniform (1, deg_poly-2); 
 
 
-	std::array <double,ncdim> c1_contacts     = *contacts; 
-	std::array <double,ncdim> c2_contacts     = *contacts; 
+	std::array <double,NCDIM> c1_contacts     = *contacts; 
+	std::array <double,NCDIM> c2_contacts     = *contacts; 
+	std::array <double,3>     c_magnetization = *magnetization;
 
 	double prob_o_to_n {1}; 
 	double prob_n_to_o {1}; 
@@ -4068,7 +4113,7 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 		// regrow the polymer frontwards
 		// std::cout << "Regrowth time!" << std::endl;
 		
-		HeadRegrowth_BIASED_debug (Polymers, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
+		HeadRegrowth_BIASED_debug (Polymers, LATTICE, E, &c1_contacts, &c_magnetization, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
 		
 		// std::cout << "Worked!" << std::endl;
 		
@@ -4092,14 +4137,14 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 			return; 
 		}
 
-		c2_contacts = c1_contacts; 
+		c2_contacts     = c1_contacts; 
 		backflow_energy = frontflow_energy; 
 
 		std::cout << "-------------------" << std::endl;
 		std::cout << "Backflow time!" << std::endl;
-		BackFlowFromHeadRegrowth_BIASED_debug (Polymers, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
+		BackFlowFromHeadRegrowth_BIASED_debug (Polymers, LATTICE, &old_cut, E, &c2_contacts, &c_magnetization, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
-		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
+		if ( !equal(*sysEnergy, backflow_energy) || c2_contacts != *contacts || c_magnetization != *magnetization ){
 			std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 			std::cout << "*sysEnergy = " << *sysEnergy << ", backflow_energy = " << backflow_energy << "." << std::endl;
 			std::cout << "c2_contacts = "; print (c2_contacts, ", "); std::cout << "*contacts = "; print(*contacts);
@@ -4132,7 +4177,7 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 		}
 
 		// regrow the polymer backwards
-		TailRegrowth_BIASED_debug (Polymers, LATTICE, E, &c1_contacts, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
+		TailRegrowth_BIASED_debug (Polymers, LATTICE, E, &c1_contacts, &c_magnetization, IMP_BOOL, &prob_o_to_n, &frontflow_energy, temperature, deg_poly, p_index, m_index, x, y, z); 
 
 		for (int i {0}; i<m_index; ++i){
 			new_cut.push_back ((*Polymers)[p_index].chain[i]->coords) ;
@@ -4157,12 +4202,13 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 
 		// std::cout << "BEGIN BACK FLOW! " << std::endl;
 
-		BackFlowFromTailRegrowth_BIASED_debug (Polymers, LATTICE, &old_cut, E, &c2_contacts, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
+		BackFlowFromTailRegrowth_BIASED_debug (Polymers, LATTICE, &old_cut, E, &c2_contacts, &c_magnetization, IMP_BOOL, &prob_n_to_o, &backflow_energy, temperature, deg_poly, p_index, m_index, recursion_depth, x, y, z); 
 
-		if ( *sysEnergy != backflow_energy || c2_contacts != *contacts ){
+		if ( !equal(*sysEnergy, backflow_energy) || c2_contacts != *contacts || c_magnetization != *magnetization){
 			std::cout << "Energies are bad, or contacts are not right." << std::endl;
 			std::cout << "*sysEnergy = " << *sysEnergy << ", backflow_energy = " << backflow_energy << "." << std::endl;
 			std::cout << "c2_contacts = "; print (c2_contacts, ", "); std::cout << "*contacts = "; print(*contacts);
+			std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 			std::cout << "Shit's fucked." << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -4196,7 +4242,7 @@ void ChainRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
 
@@ -4207,12 +4253,12 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 	// std::cout << "m_index = " << m_index << std::endl;
 	// generate an array for energies 
-	std::array <double,ncdim>               current_contacts = *contacts; 
+	std::array <double,NCDIM>               current_contacts = *contacts; 
 
 	// current contacts will be perturbed, and eventually merged with *contacts. 
 
 	std::array <double,5>               energies; 
-	std::array <std::array<double,ncdim>,5> contacts_store; 
+	std::array <std::array<double,NCDIM>,5> contacts_store; 
 	std::array <double,5>               boltzmann; 
 	std::array <int,3>                  loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; 
 
@@ -4232,10 +4278,10 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 	double Esys       = *frontflow_energy; 
 
 	// ARRAY INITIALIZATION BLOCK
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 	// ARRAY INITIALIZATION BLOCK
 
 	// start attempting jumps 
@@ -4399,7 +4445,7 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3> *magnetization, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z) {
 
 
@@ -4410,13 +4456,13 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 
 	// std::cout << "m_index = " << m_index << std::endl;
 	// generate an array for energies 
-	std::array <double,ncdim>               current_contacts = *contacts; 
-	std::array <double,ncdim>				copy_contacts    = *contacts; // this is only for the checks with brute force calculation
-
+	std::array <double,NCDIM>               current_contacts = *contacts; 
+	std::array <double,NCDIM>				copy_contacts    = *contacts; // this is only for the checks with brute force calculation
+	std::array <double,3>					c_magnetization  = *magnetization;
 	// current contacts will be perturbed, and eventually merged with *contacts. 
 
 	std::array <double,5>                   energies; 
-	std::array <std::array<double,ncdim>,5> contacts_store; 
+	std::array <std::array<double,NCDIM>,5> contacts_store; 
 	std::array <double,5>                   boltzmann; 
 	std::array <int,3>                      loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; 
 
@@ -4437,10 +4483,10 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 	double Etest      = 0;
 
 	// ARRAY INITIALIZATION BLOCK 
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 	// ARRAY INITIALIZATION BLOCK 
 
 	// start attempting jumps 
@@ -4485,7 +4531,7 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 
 				energies[idx_counter] = 1e+08; // very unfavorable state 
 				// ARRAY INITIALIZATION BLOCK
-				contacts_store[idx_counter] = {-1,-1}; 
+				contacts_store[idx_counter] = {-1,-1,-1}; 
 				// ARRAY INITIALIZATION BLOCK 
 				block_counter += 1; 
 			}
@@ -4513,11 +4559,12 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 				// get the energy
 				// delete later 
 				
-				Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-				if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+				Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+				if ( !equal(Etest, energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts ){
 					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 					std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 					std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
+					std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 					std::cout << "Shit's fucked." << std::endl;
 					exit(EXIT_FAILURE);
 				}
@@ -4560,16 +4607,17 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 			// get the energy
 			// delete later 
 			
-			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+			if ( !equal(Etest, energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts || c_magnetization != *magnetization){
 				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 				std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
 				std::cout << "lattice index = " << lattice_index( ne_list[idx_counter], y, z ) << ", loc = "; print (ne_list[idx_counter]); 
 				std::cout << "lattice index = " << lattice_index( loc_m, y, z ) << ", loc = "; print (loc_m);
+				std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 				std::cout << "Shit's fucked." << std::endl;
-				dumpLATTICE(LATTICE, 1, y, z, "debug.lattice");
-				dumpPositionsOfPolymers (Polymers, 1, "debug.coords");
+				// dumpLATTICE(LATTICE, 1, y, z, "debug.lattice");
+				// dumpPositionsOfPolymers (Polymers, 1, "debug.coords");
 				exit(EXIT_FAILURE);
 			}
 			
@@ -4635,7 +4683,7 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 	(*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	// else { do nothing and maintain structure, because suggested index is in the maintain index vector }
-	HeadRegrowth_BIASED_debug (Polymers, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
+	HeadRegrowth_BIASED_debug (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index+1, x, y, z);
 
 	return; 
 
@@ -4650,7 +4698,7 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
+	std::vector<std::array<int,3>>* old_cut, std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
 
@@ -4664,8 +4712,8 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	double                                   rboltzmann       = 0; // running sum for boltzmann weights 
 	std::array <double,5>                    energies         = {0,0,0,0,0}; 
 	std::array <double,5>                    boltzmann        = {0,0,0,0,0};  
-	std::array <double,ncdim>                current_contacts = *contacts; 
-	std::array <std::array<double,ncdim>,5>  contacts_store; 
+	std::array <double,NCDIM>                current_contacts = *contacts; 
+	std::array <std::array<double,NCDIM>,5>  contacts_store; 
 
 	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; // this is the key item of interest
 
@@ -4691,10 +4739,10 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	double Esys    = *backflow_energy; 
 
 	// ARRAY INITIALIZATION BLOCK 
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 	// ARRAY INITIALIZATION BLOCK 
 
 	// start attempting jumps 
@@ -4829,7 +4877,7 @@ void BackFlowFromHeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::vector <std::array<int,3>>* old_cut, std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* prob_n_to_o, \
+	std::vector <std::array<int,3>>* old_cut, std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, bool* IMP_BOOL, double* prob_n_to_o, \
 	double* backflow_energy, double temperature, int deg_poly, int p_index, int m_index, int recursion_depth, int x, int y, int z) {
 
 
@@ -4843,9 +4891,10 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 	
 	std::array <double,5>                   energies; 
 	std::array <double,5>                   boltzmann; 
-	std::array <double,ncdim>               copy_contacts    = *contacts; 
-	std::array <double,ncdim>               current_contacts = *contacts; 
-	std::array <std::array<double,ncdim>,5> contacts_store; 
+	std::array <double,NCDIM>               copy_contacts    = *contacts; 
+	std::array <double,NCDIM>               current_contacts = *contacts; 
+	std::array <double,3>                   c_magnetization  = *magnetization;
+	std::array <std::array<double,NCDIM>,5> contacts_store; 
 	double                                  rboltzmann       = 0; // running sum for boltzmann weights 
 
 	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index+1]->coords; // this is the key item of interest
@@ -4875,10 +4924,10 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 
 	// ARRAY INITIALIZATION BLOCK 
 
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 
 	// ARRAY INITIALIZATION BLOCK
 
@@ -4936,11 +4985,12 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 				
 				// delete later 
 				
-				Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-				if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+				Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+				if ( !equal(Etest, energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts || c_magnetization != *magnetization ){
 					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 					std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 					std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
+					std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 					std::cout << "Shit's fucked." << std::endl;
 					exit(EXIT_FAILURE);
 				}
@@ -4980,13 +5030,14 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 			
 			// delete later
 			
-			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+			if ( !equal(Etest, energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts ){
 				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 				std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
 				std::cout << "lattice index = " << lattice_index( ne_list[idx_counter], y, z ) << ", loc = "; print (ne_list[idx_counter]); 
 				std::cout << "lattice index = " << lattice_index( loc_m, y, z ) << ", loc = "; print (loc_m);
+				std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 				std::cout << "Shit's fucked." << std::endl;
 				// dumpLATTICE(LATTICE, 1, y, z, "debug.lattice");
 				// dumpPositionsOfPolymers (Polymers, 1, "debug.coords");
@@ -5039,7 +5090,7 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 	(*LATTICE)[ lattice_index (ne_list[0], y, z) ]  = (*Polymers)[p_index].chain[m_index+1];
 
 	// else { do nothing, MAINTAIN, because suggested index is in the maintain index vector }
-	BackFlowFromHeadRegrowth_BIASED_debug (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
+	BackFlowFromHeadRegrowth_BIASED_debug (Polymers, LATTICE, old_cut, E, contacts, magnetization, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index+1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -5054,7 +5105,7 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
 
@@ -5065,12 +5116,12 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 	// std::cout << "m_index = " << m_index << std::endl; 
 	// generate an array for energies 
-	std::array <double,ncdim>               current_contacts = *contacts; 
+	std::array <double,NCDIM>               current_contacts = *contacts; 
 
 	// current contacts will be perturbed, and eventually merged with *contacts. 
 
 	std::array <double,5>                   energies; 
-	std::array <std::array<double,ncdim>,5> contacts_store; 
+	std::array <std::array<double,NCDIM>,5> contacts_store; 
 	std::array <double,5>                   boltzmann; 
 	std::array <int,3>                      loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; 
 
@@ -5091,10 +5142,10 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 	
 	// contacts for energy transfer 
 	// ARRAY INITIALIZATION BLOCK 
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 	// ARRAY INITIALIZATION BLOCK 
 
 	// start attempting jumps 
@@ -5127,7 +5178,7 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 			if ( self_swap_idx > m_index ){
 				energies[idx_counter] = 1e+08; 
 				// ARRAY INITIALIZATION BLOCK
-				contacts_store[idx_counter] = {-1,-1}; 
+				contacts_store[idx_counter] = {-1,-1,-1}; 
 				// ARRAY INITIALIZATION BLOCK 
 				block_counter += 1; 
 			}
@@ -5254,7 +5305,7 @@ void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 
 void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, bool* IMP_BOOL, double* prob_o_to_n, \
 	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
 
 
@@ -5265,13 +5316,14 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 
 	// std::cout << "m_index = " << m_index << std::endl; 
 	// generate an array for energies 
-	std::array <double,ncdim>               current_contacts = *contacts; 
-	std::array <double,ncdim>				copy_contacts    = *contacts; // this is only for the checks with brute force calculation
+	std::array <double,NCDIM>               current_contacts = *contacts; 
+	std::array <double,NCDIM>				copy_contacts    = *contacts; // this is only for the checks with brute force calculation
+	std::array <double,3>                      c_magnetization  = *magnetization;
 
 	// current contacts will be perturbed, and eventually merged with *contacts. 
 
 	std::array <double,5>                   energies; 
-	std::array <std::array<double,ncdim>,5> contacts_store; 
+	std::array <std::array<double,NCDIM>,5> contacts_store; 
 	std::array <double,5>                   boltzmann; 
 	std::array <int,3>                      loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; 
 
@@ -5293,10 +5345,10 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 	
 	// contacts for energy transfer 
 	// ARRAY INITIALIZATION BLOCK
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 	// ARRAY INITIALIZATION BLOCK 
 
 	// start attempting jumps 
@@ -5335,7 +5387,7 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 				// std::cout << "You have run into an undoable swap. " << std::endl; 
 				// std::cout << "Selected position is "; print (ne_list[idx_counter]);	
 				energies[idx_counter] = 1e+08; 
-				contacts_store[idx_counter] = {-1,-1,-1}; 
+				contacts_store[idx_counter] = {-1,-1}; 
 				block_counter += 1; 
 			}
 			else {
@@ -5361,11 +5413,12 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 				// get the energy 
 				// delete below
 				
-				Etest = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-				if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+				Etest = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+				if ( !equal(Etest,energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts || c_magnetization != *magnetization){
 					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 					std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 					std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
+					std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 					std::cout << "Shit's fucked." << std::endl;
 					exit(EXIT_FAILURE);
 				}
@@ -5405,13 +5458,14 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 
 			// delete this later 
 			
-			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+			if ( !equal(Etest, energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts ){
 				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 				std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
 				std::cout << "lattice index = " << lattice_index( ne_list[idx_counter], y, z ) << ", loc = "; print (ne_list[idx_counter]); 
 				std::cout << "lattice index = " << lattice_index( loc_m, y, z ) << ", loc = "; print (loc_m);
+				std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 				std::cout << "Shit's fucked." << std::endl;
 				dumpLATTICE(LATTICE, 1, y, z, "debug.lattice");
 				dumpPositionsOfPolymers (Polymers, 1, "debug.coords");
@@ -5488,7 +5542,7 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 	
 
 	// else { do nothing and maintain structure, because the suggested index is in the the maintain index vector }
-	TailRegrowth_BIASED_debug (Polymers, LATTICE, E, contacts, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
+	TailRegrowth_BIASED_debug (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, prob_o_to_n, frontflow_energy, temperature, deg_poly, p_index, m_index-1, x, y, z);
 
 	return; 
 
@@ -5503,7 +5557,7 @@ void TailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::array<double,nedim>* E, std::array <double,ncdim>* contacts, \
+	std::vector<std::array<int,3>>* old_cut, std::array<double,NEDIM>* E, std::array <double,NCDIM>* contacts, \
 	bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, \
 	int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
@@ -5518,8 +5572,8 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	
 	std::array <double,5>               energies; 
 	std::array <double,5>               boltzmann; 
-	std::array <double,ncdim>               current_contacts = *contacts; 
-	std::array <std::array<double,ncdim>,5> contacts_store; 
+	std::array <double,NCDIM>               current_contacts = *contacts; 
+	std::array <std::array<double,NCDIM>,5> contacts_store; 
 	double                              rboltzmann       = 0; // running sum for boltzmann weights  
 
 	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; // key item of interest 
@@ -5547,10 +5601,10 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 	double Esys = *backflow_energy; 
 
 	// ARRAY INITIALIZATION BLOCK 
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 	// ARRAY INITIALIZATION BLOCK 
 
 	// start attempting jumps 
@@ -5577,7 +5631,7 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 
 			if ( self_swap_idx > m_index ){
 				energies[idx_counter] = 1e+08; 
-				contacts_store[idx_counter] = {-1,-1,-1}; 
+				contacts_store[idx_counter] = {-1,-1}; 
 			}
 
 			else {
@@ -5684,7 +5738,7 @@ void BackFlowFromTailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vect
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::vector<std::array<int,3>>* old_cut, std::array<double,nedim>* E, std::array <double,ncdim>* contacts, \
+	std::vector<std::array<int,3>>* old_cut, std::array<double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, \
 	bool* IMP_BOOL, double* prob_n_to_o, double* backflow_energy, double temperature, int deg_poly, \
 	int p_index, int m_index, int recursion_depth, int x, int y, int z){
 
@@ -5699,9 +5753,10 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 	
 	std::array <double,5>                   energies; 
 	std::array <double,5>                   boltzmann; 
-	std::array <double,ncdim>               copy_contacts    = *contacts; 
-	std::array <double,ncdim>               current_contacts = *contacts; 
-	std::array <std::array<double,ncdim>,5>     contacts_store; 
+	std::array <double,NCDIM>               copy_contacts    = *contacts; 
+	std::array <double,NCDIM>               current_contacts = *contacts; 
+	std::array <double,3>						c_magnetization  = *magnetization; 
+	std::array <std::array<double,NCDIM>,5> contacts_store; 
 	double                                  rboltzmann       = 0; // running sum for boltzmann weights  
 
 	std::array <int,3> loc_m = (*Polymers)[p_index].chain[m_index-1]->coords; // key item of interest 
@@ -5730,10 +5785,10 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 	double Etest = 0;
 
 	// ARRAY INITIALIZATION BLOCK
-	std::array <double,ncdim> cm   = {0,0};
-	std::array <double,ncdim> cs   = {0,0};
-	std::array <double,ncdim> cm_n = {0,0};
-	std::array <double,ncdim> cs_n = {0,0};
+	std::array <double,NCDIM> cm   = {};
+	std::array <double,NCDIM> cs   = {};
+	std::array <double,NCDIM> cm_n = {};
+	std::array <double,NCDIM> cs_n = {};
 	// ARRAY INITIALIZATION BLOCK 
 
 
@@ -5761,7 +5816,7 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 			if ( self_swap_idx > m_index ){
 				energies[idx_counter] = 1e+08; 
 				// ARRAY INITIALIZATION BLOCK 
-				contacts_store[idx_counter] = {-1,-1}; 
+				contacts_store[idx_counter] = {-1,-1,-1}; 
 				// ARRAY INITIALIZATION BLOCK 
 			}
 
@@ -5789,11 +5844,12 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 
 				// delete later 
 				
-				Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-				if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+				Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+				if ( !equal(Etest, energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts || c_magnetization != *magnetization){
 					std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 					std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 					std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
+					std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 					std::cout << "Shit's fucked." << std::endl;
 					exit(EXIT_FAILURE);
 				}
@@ -5832,13 +5888,14 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 
 			// delete later
 			
-			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, x, y, z); 
-			if ( Etest != energies [idx_counter] || contacts_store[idx_counter] != copy_contacts ){
+			Etest  = CalculateEnergy (Polymers, LATTICE, E, &copy_contacts, &c_magnetization, x, y, z); 
+			if ( !equal(Etest, energies [idx_counter]) || contacts_store[idx_counter] != copy_contacts || c_magnetization != *magnetization ){
 				std::cout << "Energies are bad, or contacts are not right, or solvation shells are messed up." << std::endl;
 				std::cout << "Etest = " << Etest << ", energies [" << idx_counter <<"] = " << energies[idx_counter] << "." << std::endl;
 				std::cout << "contacts_store = "; print (contacts_store[idx_counter], ", "); std::cout << "copy_contacts = "; print(copy_contacts);
 				std::cout << "lattice index = " << lattice_index( ne_list[idx_counter], y, z ) << ", loc = "; print (ne_list[idx_counter]); 
 				std::cout << "lattice index = " << lattice_index( loc_m, y, z ) << ", loc = "; print (loc_m);
+				std::cout << "*magnetization = "; print (*magnetization, ", ");  std::cout << "c_magnetization = "; print (c_magnetization);
 				std::cout << "Shit's fucked." << std::endl;
 				// dumpLATTICE(LATTICE, 1, y, z, "debug.lattice");
 				// dumpPositionsOfPolymers (Polymers, 1, "debug.coords");
@@ -5889,7 +5946,7 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 	(*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[0], y, z)];
 	(*LATTICE)[ lattice_index (ne_list[0], y, z) ] = (*Polymers)[p_index].chain[m_index-1];
 
-	BackFlowFromTailRegrowth_BIASED_debug (Polymers, LATTICE, old_cut, E, contacts, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
+	BackFlowFromTailRegrowth_BIASED_debug (Polymers, LATTICE, old_cut, E, contacts, magnetization, IMP_BOOL, prob_n_to_o, backflow_energy, temperature, deg_poly, p_index, m_index-1, recursion_depth+1, x, y, z); 
 
 	return; 
 
@@ -6106,7 +6163,7 @@ void acceptance_after_tail_regrowth (std::vector <Particle*>* LATTICE, \
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,nedim>* E, std::array<double,ndim>* contacts, std::array <double,3>* magnetization, \
+	std::array<double,NEDIM>* E, std::array<double,NCDIM>* contacts, std::array <double,3>* magnetization, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z ){
 
 	int deg_poly = (*Polymers)[0].deg_poly; 
@@ -6130,14 +6187,14 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 	std::array<double,5>                   energies           = {0,0,0,0,0}; 
 	std::array<double,5>                   boltzmann          = {0,0,0,0,0};
 	std::array<int,5>                      orientations       = {0,0,0,0,0};
-	std::array<std::array<double,ncdim>,5> contacts_store     = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
+	std::array<std::array<double,NCDIM>,5> contacts_store     = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
 	std::array<std::array<double,3>,5>     magnet_store            = {*magnetization, *magnetization, *magnetization, *magnetization, *magnetization};
 	std::array<double,3>                   magnet_sys              = *magnetization;
-	std::array<double,3>                   frontflow_magnetization = {0,0,0};
-	std::array<double,ncdim>               contacts_sys		  = *contacts; 
-	std::array<double,ncdim>			   contacts_i         = {0,0};
-	std::array<double,ncdim>			   contacts_pert      = {0,0};
-	std::array<double,ncdim>			   frontflow_contacts = {0,0};
+	std::array<double,3>                   frontflow_magnet   = {0,0,0};
+	std::array<double,NCDIM>               contacts_sys		  = *contacts; 
+	std::array<double,NCDIM>			   contacts_i         = {};
+	std::array<double,NCDIM>			   contacts_pert      = {};
+	std::array<double,NCDIM>			   frontflow_contacts = {};
 	double                                 rboltzmann         = 0;
 	double                                 frontflow_energy   = 0; 
 	double                                 prob_o_to_n        = 1; 
@@ -6164,9 +6221,9 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 
 		for ( int j{0}; j < ntest; ++j ){
 
-			magnet_store[j]   = subtract (&magnet_sys, &Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]);
+			magnet_store[j]   = subtract (&magnet_sys, &(Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]));
 			(*Polymers)[index].chain[ polymer_indices[i] ]->orientation = rng_uniform (0, 25); 
-			magnet_store[j]   = add (&magnet_sys, &Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]);
+			magnet_store[j]   = add (&magnet_sys, &(Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]));
 
 			orientations[j]   = (*Polymers)[index].chain[ polymer_indices[i] ]->orientation;
 			Epert             = NeighborEnergy ( LATTICE, E, &contacts_pert, m_lattice_idx, x, y, z );
@@ -6210,7 +6267,7 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 
 	frontflow_energy        = energies       [e_idx]; 
 	frontflow_contacts      = contacts_store [e_idx]; 
-	frontflow_magnetization = magnet_store   [e_idx];
+	frontflow_magnet        = magnet_store   [e_idx];
 
 	// std::cout << "Starting backflow... " << std::endl;
 	// figure out the backflow energy 
@@ -6269,7 +6326,7 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 
 		*sysEnergy = frontflow_energy; 
 		*contacts  = frontflow_contacts;  
-		*magnetization = frontflow_magnetization;
+		*magnetization = frontflow_magnet;
 
 	}
 
@@ -6284,7 +6341,7 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array<double,3>* E, std::array<double,3>* contacts, std::array <double,3>* magnetization, \
+	std::array<double,NEDIM>* E, std::array<double,NCDIM>* contacts, std::array <double,3>* magnetization, \
 	bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z ){
 
 	int deg_poly = (*Polymers)[0].deg_poly; 
@@ -6308,16 +6365,18 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 	std::array<double,5>               energies           = {0,0,0,0,0}; 
 	std::array<double,5>               boltzmann          = {0,0,0,0,0};
 	std::array<int,5>                  orientations       = {0,0,0,0,0};
-	std::array<std::array<double,3>,5> contacts_store     = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
-	std::array<double,3>               contacts_sys		  = *contacts; 
-	std::array<double,3>			   contacts_i         = {0,0,0};
-	std::array<double,3>			   contacts_pert      = {0,0,0};
-	std::array<double,3>			   frontflow_contacts = {0,0,0};
-	std::array<double,3>			   backflow_contacts  = {0,0,0};
-	std::array<double,3>			   contacts_test      = {0,0,0};
+	std::array<std::array<double,NCDIM>,5> contacts_store     = {*contacts, *contacts, *contacts, *contacts, *contacts}; 
+	std::array<double,NCDIM>               contacts_sys		  = *contacts; 
+	std::array<double,NCDIM>			   contacts_i         = {};
+	std::array<double,NCDIM>			   contacts_pert      = {};
+	std::array<double,NCDIM>			   frontflow_contacts = {};
+	std::array<double,NCDIM>			   backflow_contacts  = {};
+	std::array<double,NCDIM>			   contacts_test      = {};
 	std::array<std::array<double,3>,5>     magnet_store            = {*magnetization, *magnetization, *magnetization, *magnetization, *magnetization};
 	std::array<double,3>                   magnet_sys              = *magnetization;
-	std::array<double,3>                   frontflow_magnetization = {0,0,0};
+	// std::array<double,3>                   magnet_i                = {0,0,0};
+	std::array<double,3>                   frontflow_magnet        = {0,0,0};
+	std::array<double,3>				   backflow_magnet         = {0,0,0};
 	std::array<double,3>				   magnet_test             = {0,0,0};
 	double                             rboltzmann         = 0;
 	double                             frontflow_energy   = 0; 
@@ -6325,6 +6384,8 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 	double                             prob_o_to_n        = 1; 
 	double 							   prob_n_to_o        = 1; 
 	double                             Emin               = 0; 
+	double                             magnetic_moment_pert    = 0;
+	double                             magnetic_moment_i       = 0;
 
 
 	double rng   = 0; 
@@ -6337,30 +6398,43 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 	double E_test  = 0; 
 	int    m_lattice_idx   = -1; 
 	// loop over all solvent_indices 
+
+	std::cout << "magnet_sys = "; print (magnet_sys); 
+
 	for ( int i{0}; i < nflip; ++i ){
 
 		rboltzmann = 0; 
 		old_ori.push_back ( (*Polymers)[index].chain[ polymer_indices[i] ]->orientation ); 
 		m_lattice_idx = lattice_index((*Polymers)[index].chain[polymer_indices[i]]->coords, y, z);
 		Ei    = NeighborEnergy ( LATTICE, E, &contacts_i, m_lattice_idx, x, y, z); 
+		magnetic_moment_i = std::sqrt ( (magnet_sys[0]*magnet_sys[0] + magnet_sys[1]*magnet_sys[1] + magnet_sys[2]*magnet_sys[2]) / deg_poly );
 
 		for ( int j{0}; j < ntest; ++j ){
 
-			magnet_store[j]   = subtract (&magnet_sys, &Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]);
+			
+
 			(*Polymers)[index].chain[ polymer_indices[i] ]->orientation = rng_uniform (0, 25); 
-			magnet_store[j]   = add (&magnet_sys, &Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]);
 
 			orientations[j]   = (*Polymers)[index].chain[ polymer_indices[i] ]->orientation;
 			Epert             = NeighborEnergy ( LATTICE, E, &contacts_pert, m_lattice_idx, x, y, z );
-			energies[j]       = Esys - Ei + Epert;
+			
+			magnet_store[j]        = subtract (&(magnet_sys), &(Or2Dir[old_ori[i]] ));
+			magnet_store[j]        = add      (&(magnet_store[j]), &Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]);
+			
+			magnetic_moment_pert   = std::sqrt( (magnet_store[j][0]*magnet_store[j][0] + magnet_store[j][1]*magnet_store[j][1] + magnet_store[j][2]*magnet_store[j][2]) / deg_poly ); 
+			
 			contacts_store[j] = subtract (&contacts_sys, &contacts_i); 
 			contacts_store[j] = add      (&contacts_store[j], &contacts_pert); 
+
+			energies[j]       = Esys - Ei + Epert + (*E)[1] * magnetic_moment_pert - (*E)[1] * magnetic_moment_i;
 
 			// DELETE THIS LATER 
 		
 			E_test         = CalculateEnergy ( Polymers, LATTICE, E, &contacts_test, &magnet_test, x, y, z); 
-			if ( E_test != energies[j] || contacts_store[j] != contacts_test  || magnet_store[j] != magnet_test ){
-				std::cout << "Something is fucked. Either energies do not match or..." << std::endl;
+			// if ( E_test != energies[j] || contacts_store[j] != contacts_test  || magnet_store[j] != magnet_test ){
+			if ( !equal (E_test, energies[j]) || contacts_store[j] != contacts_test  || magnet_store[j] != magnet_test ){
+				std::cout << "C1: " << (!equal (E_test, energies[j])) << ", C2: " << (contacts_store[j] != contacts_test) << ", C3: " << (magnet_store[j] != magnet_test) << std::endl;
+				std::cout << "Something is fucked in frontflow, iteration " << j << " . Either energies do not match or..." << std::endl;
 				std::cout << "E_test = " << E_test << ", energies[j] = " << energies[j] << std::endl;
 				std::cout << "contacts_store[j] = "; print (contacts_store[j], ", "); std::cout << "contacts_test = "; print (contacts_test); 
 				std::cout << "magnet_store[j] = "; print (magnet_store[j], ", "); std::cout << "magnet_test = "; print (magnet_test); 
@@ -6404,7 +6478,7 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 
 	frontflow_energy        = energies[e_idx]; 
 	frontflow_contacts      = contacts_store[e_idx]; 
-	frontflow_magnetization = magnet_store[e_idx];
+	frontflow_magnet        = magnet_store[e_idx];
 
 	// std::cout << "Starting backflow... " << std::endl;
 
@@ -6417,22 +6491,24 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 		m_lattice_idx = lattice_index((*Polymers)[index].chain[polymer_indices[i]]->coords, y, z);
 
 		Ei = NeighborEnergy ( LATTICE, E, &contacts_i, m_lattice_idx, x, y, z); 
+		magnetic_moment_i = std::sqrt ( (magnet_sys[0]*magnet_sys[0] + magnet_sys[1]*magnet_sys[1] + magnet_sys[2]*magnet_sys[2]) / deg_poly );
 
-		magnet_store[0] = subtract (&magnet_sys, Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]);
+		magnet_store[0] = subtract (&magnet_sys, &(Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]));
 		(*Polymers)[index].chain[ polymer_indices[i] ]->orientation = old_ori[i]; 
-		magnet_store[0] = add (&magnet_store[0], Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]);
-
+		magnet_store[0] = add (&magnet_store[0], &(Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]));
+		magnetic_moment_pert   = std::sqrt( (magnet_store[0][0]*magnet_store[0][0] + magnet_store[0][1]*magnet_store[0][1] + magnet_store[0][2]*magnet_store[0][2])/deg_poly ); 
 
 		Epert       = NeighborEnergy  (LATTICE, E, &contacts_pert, m_lattice_idx, x, y, z); 
-		energies[0] = Esys - Ei + Epert; // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
+		energies[0] = Esys - Ei + Epert + (*E)[1] * magnetic_moment_pert - (*E)[1] * magnetic_moment_i; // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
 		contacts_store [0]  = subtract ( &contacts_sys, &contacts_i ); 
     	contacts_store [0]  = add ( &contacts_store[0], &contacts_pert );  
 
     	// DELETE THIS LATER 
     	
 	    E_test         = CalculateEnergy ( Polymers, LATTICE, E, &contacts_test, &magnet_test, x, y, z); 
-	    if ( E_test != energies[0] || contacts_store[0] != contacts_test || magnet_store[0] != magnet_test ){
-	    	std::cout << "Something is fucked. Either energies do not match or..." << std::endl;
+	    // if ( E_test != energies[0] || contacts_store[0] != contacts_test || magnet_store[0] != magnet_test ){
+	    if ( !equal(E_test, energies[0]) || contacts_store[0] != contacts_test || magnet_store[0] != magnet_test ){
+	    	std::cout << "Something is fucked in backflow0. Either energies do not match or..." << std::endl;
 			std::cout << "E_test = " << E_test << ", energies[j] = " << energies[0] << std::endl;
 			std::cout << "contacts_store[j] = "; print (contacts_store[0], ", "); std::cout << "contacts_test = "; print (contacts_test); 
 			exit(EXIT_FAILURE); 
@@ -6441,16 +6517,22 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
     	// DELETE ABOVE 
 
 		for (int j{1}; j<ntest; ++j){
+
+			magnet_store[j] = subtract (&magnet_sys, &(Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]));
 			(*Polymers)[index].chain[ polymer_indices[i] ]->orientation = rng_uniform (0, 25); 
+			magnet_store[j] = add (&magnet_store[j], &(Or2Dir[(*Polymers)[index].chain[ polymer_indices[i] ]->orientation]));
+			magnetic_moment_pert   = std::sqrt( (magnet_store[j][0]*magnet_store[j][0] + magnet_store[j][1]*magnet_store[j][1] + magnet_store[j][2]*magnet_store[j][2])/deg_poly ); 
+
 			Epert       = NeighborEnergy  (LATTICE, E, &contacts_pert, m_lattice_idx, x, y, z); 
-			energies[j] = Esys - Ei + Epert; // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
+			energies[j] = Esys - Ei + Epert + (*E)[1] * magnetic_moment_pert - (*E)[1] * magnetic_moment_i; // CalculateEnergy (Polymers, Cosolvent, LATTICE, E, &c_contacts2, x, y, z); 
 			contacts_store [j]  = subtract ( &contacts_sys, &contacts_i ); 
     	    contacts_store [j]  = add      ( &contacts_store[j], &contacts_pert ); 
+
     	    // DELETE THIS LATER 
-    	    
-    	    E_test         = CalculateEnergy ( Polymers, LATTICE, E, &contacts_test, x, y, z); 
-    	    if ( E_test != energies[j] || contacts_store[j] != contacts_test  ){
-    	    	std::cout << "Something is fucked. Either energies do not match or..." << std::endl;
+
+    	    E_test         = CalculateEnergy ( Polymers, LATTICE, E, &contacts_test, &magnet_test, x, y, z); 
+    	    if ( E_test != energies[j] || contacts_store[j] != contacts_test  || magnet_store[j] != magnet_test){
+    	    	std::cout << "Something is fucked in backflow. Either energies do not match or..." << std::endl;
     			std::cout << "E_test = " << E_test << ", energies[j] = " << energies[j] << std::endl;
     			std::cout << "contacts_store[j] = "; print (contacts_store[j], ", "); std::cout << "contacts_test = "; print (contacts_test); 
     			std::cout << "magnet_store[j] = "; print (magnet_store[j], ", "); std::cout << "magnet_test = "; print (magnet_test); 
@@ -6483,7 +6565,7 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 	backflow_magnet   = magnet_store[0];
 
 	if ( backflow_energy != *sysEnergy || backflow_contacts != *contacts || backflow_magnet != *magnetization){
-    	std::cout << "Something is fucked. Energies do not match." << std::endl;
+    	std::cout << "Something is fucked post backflow. Energies do not match." << std::endl;
     	std::cout << "backflow_energy = " << backflow_energy << ", sysEnergy = " << *sysEnergy << std::endl;
     	std::cout << "backflow_contacts = "; print (backflow_contacts, ", "); std::cout << "contacts = "; print (*contacts); 
     	std::cout << "backflow magnets = "; print (backflow_magnet, ", "); std::cout << "magnet_test = "; print (magnet_test); 
@@ -6505,7 +6587,7 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
     	
 		double en = CalculateEnergy (Polymers, LATTICE, E, &contacts_test, &magnet_test, x, y, z); 
 		
-		if ( en != frontflow_energy || contacts_test != frontflow_contacts || &magnet_test != frontflow_magnet){
+		if ( en != frontflow_energy || contacts_test != frontflow_contacts || magnet_test != frontflow_magnet){
     		std::cout << "Something is fucked. Energies do not match." << std::endl;
     		std::cout << "en = " << en << ", frontflow energy = " << frontflow_energy << std::endl;
     		std::cout << "contacts_test = "; print (contacts_test, ", "); std::cout << "frontflow_contacts = "; print (frontflow_contacts); 
@@ -6515,9 +6597,9 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
     	 
     	// DELETE LATER
 
-		*sysEnergy = frontflow_energy; 
-		*contacts  = frontflow_contacts;  
-		*magnetization = frontflow_magnet;
+		*sysEnergy     = frontflow_energy; 
+		*contacts      = frontflow_contacts;  
+		*magnetization = frontflow_magnet; 
     }
     else {
     	*IMP_BOOL = false; 
@@ -6552,13 +6634,12 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 
 
 void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <double,3>* magnetization, std::array <int,4>* attempts, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array <double,3>* magnetization, std::array <int,NADIM>* attempts, \
 	bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, \
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
 	int r     = rng_uniform (0, 3); 
-	// std::array <double,4> c_contacts = *contacts; 
 
 	switch (r) {
 
@@ -6596,6 +6677,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			PolymerFlip_BIASED (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
 			*move_number    = r;
 			(*attempts)[r] += 1;
+			break;
 
 	}
 
@@ -6610,19 +6692,19 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 
 
 void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
-	std::array <double,nedim>* E, std::array <double,ncdim>* contacts, std::array <int,4>* attempts, \
+	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, std::array<double,3>* magnetization, std::array <int,NADIM>* attempts, \
 	bool* IMP_BOOL, bool v, double* sysEnergy, double temperature, \
 	int* move_number, int x, int y, int z) {
 
 	int index = 0; // rng_uniform (0, static_cast<int>((*Polymers).size()-1) ); 
-	int r     = rng_uniform(0, 3); 
+	int r     = 3; //rng_uniform(3); 
 	switch (r) {
 
 		case (0):
 			if (v) {
 				std::cout << "Performing end rotations..." << std::endl; 
 			}
-			EndRotation_UNBIASED_debug  (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			EndRotation_UNBIASED_debug  (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
 			*move_number    = r; 
 			(*attempts)[r] += 1; 
 			break; 
@@ -6631,7 +6713,7 @@ void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 			if (v) {
 				std::cout << "Performing reptation..." << std::endl; 
 			}
-			Reptation_UNBIASED_debug    (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
+			Reptation_UNBIASED_debug    (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z); 
 			*move_number    = r;
 			(*attempts)[r] += 1; 
 			break;
@@ -6640,7 +6722,7 @@ void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 			if (v) {
 				std::cout << "Performing biased chain regrowth..." << std::endl;
 			}
-			ChainRegrowth_BIASED_debug (Polymers, LATTICE, E, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
+			ChainRegrowth_BIASED_debug (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
 			*move_number    = r; 
 			(*attempts)[r] += 1;			
 			break; 
@@ -6652,6 +6734,7 @@ void PerturbSystem_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <P
 			PolymerFlip_BIASED_debug (Polymers, LATTICE, E, contacts, magnetization, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
 			*move_number    = r;
 			(*attempts)[r] += 1;
+			break;
 
 	}
 

@@ -140,10 +140,10 @@ int main (int argc, char** argv) {
     double sysEnergy      {0};
     bool   IMP_BOOL       {true}; 
 
-    std::array <int,4>        attempts      = {0,0,0,0};
-    std::array <int,4>        acceptances   = {0,0,0,0}; 
-    std::array <double,3>     magnetization = {0,0,0};
-    std::array <double,ncdim> contacts      = {0,0}; 
+    std::array <int,NADIM>    attempts      = {};
+    std::array <int,NADIM>    acceptances   = {}; 
+    std::array <double,NCDIM> contacts      = {};
+    std::array <double,3>     magnetization = {0,0,0}; 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
@@ -165,13 +165,14 @@ int main (int argc, char** argv) {
     const int y                 =   info_vec[1] ; 
     const int z                 =   info_vec[2] ; 
     const double T              =   info_vec[3] ; 
-    std::array <double,nedim> E =   {info_vec[4], info_vec[5]}; 
+    std::array <double,NEDIM> E =   {info_vec[4], info_vec[5]}; 
     
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
     Polymers.reserve(N);
-
+    const int deg_poly = Polymers[0].deg_poly; 
+    
     // this data structure will hold the coordinates of the solvent 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
@@ -231,7 +232,7 @@ int main (int argc, char** argv) {
     std::cout <<"\nCalculating energy..." << std::endl;
     
     start = std::chrono::high_resolution_clock::now(); 
-    sysEnergy   = CalculateEnergy(&Polymers, &LATTICE, &E, &contacts, x, y, z); 
+    sysEnergy   = CalculateEnergy(&Polymers, &LATTICE, &E, &contacts, &magnetization, x, y, z); 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
     std::cout << "Time required for serial computation = " << duration.count() << " microseconds. " << std::endl;
@@ -240,7 +241,7 @@ int main (int argc, char** argv) {
 
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
-        dumpEnergy      (sysEnergy, step_number, &contacts, efile); 
+        dumpEnergy      (sysEnergy, step_number, &contacts, &magnetization, deg_poly, efile); 
         dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
     }
     
@@ -276,7 +277,7 @@ int main (int argc, char** argv) {
         }
 
         // perform move on the system! 
-        PerturbSystem_BIASED (&Polymers, &LATTICE, &E, &contacts, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
+        PerturbSystem_BIASED (&Polymers, &LATTICE, &E, &contacts, &magnetization, &attempts, &IMP_BOOL, v, &sysEnergy, T, &move_number, x, y, z); 
 
 
         if ( IMP_BOOL ) {
@@ -302,7 +303,7 @@ int main (int argc, char** argv) {
                 dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
                 // dumpLATTICE ( &LATTICE, i, y, z, lattice_file_write ); 
             }
-            dumpEnergy (sysEnergy, i, &contacts, efile);
+            dumpEnergy (sysEnergy, i, &contacts, &magnetization,  deg_poly, efile);
         }
 
         IMP_BOOL = true;      

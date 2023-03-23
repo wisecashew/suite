@@ -84,17 +84,16 @@ if __name__=="__main__":
 	df_target   = pd.read_csv (str(T)+"/TARGET/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "s1s2_tot", "s1s2_aligned", "s1s2_naligned", "time_step"], skiprows=0)
 	df_model    = pd.read_csv (str(T)+"/FORM3/MODEL"+str(args.m)+"/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_1", "mm_2", "ms1_tot", "time_step"], skiprows=0)
 
-
 	nearest_error_scale      = np.abs(np.mean(df_target  ["mm_tot"].values[-s:]        - df_model["mm_1"].values[-s:]))
 	next_nearest_error_scale = np.abs(np.mean(df_target_n["next_neighbor"].values[-s:] - df_model["mm_2"].values[-s:]))
 
-	chi_nearest      = 0.05 # 0.1
-	chi_next_nearest = 0.05 # 0.1
+	chi_nearest      = 0.05
+	chi_next_nearest = 0.05
 
 	print (f"chi_nearest = {chi_nearest}")
 	print (f"chi_next_nearest = {chi_next_nearest}")
 
-	neighbor_contacts_target      = df_target   ["mm_aligned"].values[-s:]
+	neighbor_contacts_target      = df_target   ["mm_tot"].values[-s:]
 	neighbor_contacts_model       = df_model    ["mm_1"].values[-s:]
 	next_neighbor_contacts_target = df_target_n ["next_neighbor"].values[-s:]
 	next_neighbor_contacts_model  = df_model    ["mm_2"].values[-s:]
@@ -110,7 +109,7 @@ if __name__=="__main__":
 
 	# now perform the update
 	nearest_num   = np.mean(neighbor_contacts_target) - np.mean(neighbor_contacts_model)
-	nearest_denom = beta * np.mean (neighbor_contacts_model**2) - beta * np.mean (neighbor_contacts_model)**2 + regularizer
+	nearest_denom = beta * np.mean (neighbor_contacts_model**2) - beta * np.mean (neighbor_contacts_model)**2
 
 	if np.abs(nearest_denom) < 1e-4:
 		nearest_denom = 0.01
@@ -132,7 +131,7 @@ if __name__=="__main__":
 	delta_file.write ("next nearest update numerator   = {}\n".format( np.mean(np.mean (next_neighbor_contacts_target) - np.mean (next_neighbor_contacts_model) ) ) )
 	delta_file.write ("next nearest update denominator = {}\n".format( beta * np.mean (next_neighbor_contacts_model**2) - beta * np.mean(next_neighbor_contacts_model) **2 + regularizer) )
 	delta_file.write ("next nearest chi = {}\n".format ( chi_next_nearest ) )
-	delta_file.write ("next nearest update = {}\n".format (chi_next_nearest * (np.mean (next_neighbor_contacts_target) - np.mean (next_neighbor_contacts_model)) / (beta * np.mean (next_neighbor_contacts_model**2) - beta * np.mean(next_neighbor_contacts_model) **2 + regularizer) ) )
+	delta_file.write ("next nearest update = {}\n".format ( chi_next_nearest * (np.mean (next_neighbor_contacts_target) - np.mean (next_neighbor_contacts_model)) / ( beta * np.mean (next_neighbor_contacts_model**2) - beta * np.mean(next_neighbor_contacts_model) **2 ) ) )
 	delta_file.close ()
 	print ("Energetic parameters initial =", energy_upd)
 

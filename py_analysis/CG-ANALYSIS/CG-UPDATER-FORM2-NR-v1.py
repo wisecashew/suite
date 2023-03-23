@@ -62,7 +62,7 @@ if __name__=="__main__":
 	s           = args.s
 	info        = aux.get_info (str(T)+"/TARGET/geom_and_esurf.txt")
 	x           = info[0]; y = info[1]; z = info[2]; T = info[3]; frac = info[4]
-	beta = 1/(k*T)
+	beta        = 1/(k*T)
 
 	# obtain target parameters 
 	energy_target = np.array  ( aux.get_energy_target (str(T)+"/TARGET/geom_and_esurf.txt") )
@@ -84,9 +84,9 @@ if __name__=="__main__":
 	print (f"chi_naligned = {chi_naligned}")
 
 	print ("Energetic parameters initial =", energy_upd)
-	diff_mm  = np.mean (df_model["mm_tot"].values[-s:]) - np.mean (df_target["mm_tot"].values[-s:])
-	diff_mma = np.mean (df_model["mm_aligned"].values[-s:] ) - np.mean (df_target["mm_aligned"].values[-s:] )
-	diff_mmn = np.mean (df_model["mm_naligned"].values[-s:]) - np.mean (df_target["mm_naligned"].values[-s:])
+	diff_mm  = -(np.mean (df_model["mm_tot"].values[-s:]) - np.mean (df_target["mm_tot"].values[-s:]))
+	diff_mma = -(np.mean (df_model["mm_aligned"].values[-s:] ) - np.mean (df_target["mm_aligned"].values[-s:] ))
+	diff_mmn = -(np.mean (df_model["mm_naligned"].values[-s:]) - np.mean (df_target["mm_naligned"].values[-s:]))
 
 	delta_file = open (str(T)+"/FORM2/MODEL"+str(args.m)+"/delta.mc", 'w')
 	delta_file.write  (f"beta = {beta}\n")
@@ -95,19 +95,20 @@ if __name__=="__main__":
 	delta_file.write  (f"<N_mm_n>_model - <N_mm_n>_target = {diff_mmn}\n")
 
 	# now perform the update
-	aligned_denom  = beta * np.mean (df_model["mm_aligned"].values[-s:]**2) - beta * np.mean(df_model["mm_aligned"].values[-s:])**2
 	aligned_num    = np.mean ( df_target["mm_aligned"].values[-s:] )  - np.mean ( df_model["mm_aligned"].values[-s:] )
+	aligned_denom  = beta * np.mean (df_model["mm_aligned"].values[-s:]**2) - beta * np.mean(df_model["mm_aligned"].values[-s:])**2
 
 	if np.abs(aligned_denom) < 1e-4:
 		aligned_denom = 0.01
 
-	energy_upd[0] = energy_upd[0] - chi_aligned  * aligned_num / aligned_denom 
+	energy_upd[0] = energy_upd[0] - chi_aligned  * aligned_num / aligned_denom
 
 	naligned_num   = np.mean ( df_target["mm_naligned"].values[-s:] ) - np.mean ( df_model["mm_naligned"].values[-s:] )
 	naligned_denom = beta * np.mean (df_model["mm_naligned"].values[-s:]**2) - beta * np.mean (df_model["mm_naligned"].values[-s:])**2
 
 	if np.abs (naligned_denom) < 1e-4:
 		naligned_denom = 0.01
+
 	energy_upd[1] = energy_upd[1] - chi_naligned * naligned_num / naligned_denom
 
 	delta_file.write ("aligned update numerator   = {}\n".format ( np.mean ( df_target["mm_aligned"].values[-s:] )  - np.mean ( df_model["mm_aligned"].values[-s:] ) ) )

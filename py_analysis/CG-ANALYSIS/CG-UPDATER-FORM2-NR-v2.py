@@ -31,7 +31,6 @@ parser = argparse.ArgumentParser(description="Run a coarse-grained simulation wi
 parser.add_argument ("--model", dest='m', action='store', type=int, help="Select model directory.")
 parser.add_argument ("-T", dest='T', action='store', type=float, help="Select temperature.")
 parser.add_argument ("-s", dest='s', action='store', type=int, help="Number of values to consider.")
-parser.add_argument ("--chi", dest='chi', action='store', type=float, help="chi value")
 args = parser.parse_args()
 
 def det_chi (T, error_scale):
@@ -69,6 +68,8 @@ if __name__=="__main__":
 	energy_target = np.array  ( aux.get_energy_target (str(T)+"/TARGET/geom_and_esurf.txt") )
 	energy_model  = np.array  ( aux.get_energy_form_2 (str(T)+"/FORM2/MODEL"+str(args.m)+"/geom_and_esurf.txt") )
 	energy_upd    = copy.copy ( energy_model )
+	lambda1       = energy_upd[1]
+	lambda2       = energy_upd[0] - energy_upd[1]
 
 	# energy_upd[2] = 0
 	# get the target contacts 
@@ -76,13 +77,8 @@ if __name__=="__main__":
 	# print (df_target)
 	df_model  = pd.read_csv ( str(T)+"/FORM2/MODEL"+str(args.m)+"/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "time_step"], skiprows=0)
 
-	aligned_error_scale  = np.abs(np.mean(df_target["mm_aligned" ].values[-s:]  - df_model["mm_aligned" ].values[-s:] ))
-	naligned_error_scale = np.abs(np.mean(df_target["mm_naligned"].values[-s:] - df_model["mm_naligned"].values[-s:]))
-
-	chi_aligned  = args.chi  # det_chi  (beta, aligned_error_scale)
-	print (f"chi_aligned = {chi_aligned}")
-	chi_naligned = args.chi # det_chi (beta, naligned_error_scale)
-	print (f"chi_naligned = {chi_naligned}")
+	total_chi  = 0.1
+	comb_chi   = 0.1
 
 	print ("Energetic parameters initial =", energy_upd)
 	diff_mm  = np.mean (df_model["mm_tot"].values[-s:]) - np.mean (df_target["mm_tot"].values[-s:])
@@ -96,43 +92,45 @@ if __name__=="__main__":
 	delta_file.write  (f"<N_mm_n>_model - <N_mm_n>_target = {diff_mmn}\n")
 
 	# now perform the update
-	aligned_denom  = beta * np.mean (df_model["mm_aligned"].values[-s:]**2) - beta * np.mean(df_model["mm_aligned"].values[-s:])**2
-	aligned_num    = np.mean ( df_target["mm_aligned"].values[-s:] )  - np.mean ( df_model["mm_aligned"].values[-s:] )
+	total_num    = np.mean ( df_target["mm_tot"].values[-s:] )  - np.mean ( df_model["mm_tot"].values[-s:] )
+	total_denom  = beta * np.mean (df_model["mm_tot"].values[-s:]**2) - beta * np.mean(df_model["mm_tot"].values[-s:])**2
 
-	if np.abs(aligned_denom) < 1e-4:
-		aligned_denom = 0.01
+	if np.abs(total_denom) < 1e-4:
+		total_denom = 0.01
 
-	energy_upd[0] = energy_upd[0] - chi_aligned  * aligned_num / aligned_denom 
+	energy_upd[1] = lambda1 - total_chi * total_num / total_denom
 
-	naligned_num   = np.mean ( df_target["mm_naligned"].values[-s:] ) - np.mean ( df_model["mm_naligned"].values[-s:] )
-	naligned_denom = beta * np.mean (df_model["mm_naligned"].values[-s:]**2) - beta * np.mean (df_model["mm_naligned"].values[-s:])**2
+	comb_num   = np.mean ( df_target["mm_aligned"].values[-s:] ) - np.mean ( df_model["mm_aligned"].values[-s:] )
+	comb_denom = beta * np.mean (df_model["mm_aligned"].values[-s:]**2) - beta * np.mean (df_model["mm_aligned"].values[-s:])**2
 
-	if np.abs (naligned_denom) < 1e-4:
-		aligned_denom = 0.01
-	energy_upd[1] = energy_upd[1] - chi_naligned * naligned_num / naligned_denom
+	if np.abs (comb_denom) < 1e-4:
+		comb_denom = 0.01
 
-	delta_file.write ("aligned update numerator   = {}\n".format ( np.mean ( df_target["mm_aligned"].values[-s:] )  - np.mean ( df_model["mm_aligned"].values[-s:] ) ) )
-	delta_file.write ("aligned update denominator = {}\n".format ( beta * np.mean (df_model["mm_aligned"].values[-s:]**2) - beta * np.mean(df_model["mm_aligned"].values[-s:])**2 + regularizer ) )
-	delta_file.write ("aligned chi    = {}\n".format (chi_aligned))
-	delta_file.write ("aligned update = {}\n".format (chi_aligned  * ( np.mean ( df_target["mm_aligned"].values[-s:] )  - np.mean ( df_model["mm_aligned"].values[-s:] ) ) / ( beta * np.mean (df_model["mm_aligned"].values[-s:]**2) - beta * np.mean(df_model["mm_aligned"].values[-s:])**2 + regularizer ) ) )
+	lambda2         = lambda2 - comb_chi * comb_num / comb_denom
+	energy_upd[0]   = lambda2 + lambda1
 
-	delta_file.write ("naligned update numerator   = {}\n".format ( np.mean ( df_target["mm_naligned"].values[-s:] )  - np.mean ( df_model["mm_naligned"].values[-s:] ) ) )
-	delta_file.write ("naligned update denominator = {}\n".format ( beta * np.mean (df_model["mm_naligned"].values[-s:]**2) - beta * np.mean(df_model["mm_naligned"].values[-s:])**2 + regularizer ) )
-	delta_file.write ("naligned chi    = {}\n".format (chi_naligned) )
-	delta_file.write ("naligned update = {}\n".format (chi_naligned  * ( np.mean ( df_target["mm_naligned"].values[-s:] )  - np.mean ( df_model["mm_naligned"].values[-s:] ) ) / ( beta * np.mean (df_model["mm_naligned"].values[-s:]**2) - beta * np.mean(df_model["mm_naligned"].values[-s:])**2 + regularizer ) ) )
+	delta_file.write ("total update numerator   = {}\n".format (total_num) )
+	delta_file.write ("total update denominator = {}\n".format (total_denom) )
+	delta_file.write ("total chi    = {}\n".format (total_chi) )
+	delta_file.write ("total update = {}\n".format (total_chi * total_num / total_denom) )
+	delta_file.write ("#--------------------------------------------------------------------#\n")
+	delta_file.write ("combined update numerator   = {}\n".format (comb_num) )
+	delta_file.write ("combined update denominator = {}\n".format (comb_denom) )
+	delta_file.write ("combined chi    = {}\n".format (comb_chi) )
+	delta_file.write ("combined update = {}\n".format (comb_chi * comb_num/comb_denom ) )
 	delta_file.close ()
 
 	print ("Energetic parameters final =", energy_upd)
 
 	file_new = open (str(T)+"/FORM2/MODEL"+str(args.m+1)+"/geom_and_esurf.txt", 'w')
-	file_new.write (f"x = {x}\n" )
-	file_new.write (f"y = {y}\n" )
-	file_new.write (f"z = {z}\n" )
-	file_new.write (f"kT = {T}\n")
-	file_new.write (f"Emm_a = {energy_upd[0]}\n")
-	file_new.write (f"Emm_n = {energy_upd[1]}\n")
-	file_new.write (f"Ems   = 0\n")
-	file_new.write ("END OF FILE" )
-	file_new.close()
+	file_new.write  (f"x = {x}\n" )
+	file_new.write  (f"y = {y}\n" )
+	file_new.write  (f"z = {z}\n" )
+	file_new.write  (f"kT = {T}\n")
+	file_new.write  ("Emm_a = {:2.10f}\n".format(energy_upd[0]) )
+	file_new.write  ("Emm_n = {:2.10f}\n".format(energy_upd[1]) )
+	file_new.write  (f"Ems   = 0\n")
+	file_new.write  ("END OF FILE" )
+	file_new.close  ()
 
 

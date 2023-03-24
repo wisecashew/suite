@@ -157,7 +157,7 @@ int main (int argc, char** argv) {
     const int N = ExtractNumberOfPolymers(positions); 
     
     // EXTRACT TOPOLOGY FROM FILE 
-    std::array <double,6> info_vec {ExtractTopologyFromFile(topology)}; 
+    std::array <double,NTDIM> info_vec {ExtractTopologyFromFile(topology)}; 
 
     // info_vec is the vector with all the information that constitutes the toplogy of the simulation
     // assign values from info vec to relevant variables 
@@ -165,14 +165,13 @@ int main (int argc, char** argv) {
     const int y                 =   info_vec[1] ; 
     const int z                 =   info_vec[2] ; 
     const double T              =   info_vec[3] ; 
-    std::array <double,NEDIM> E =   {info_vec[4], info_vec[5]}; 
+    std::array <double,NEDIM> E =   {info_vec[4], info_vec[5], info_vec[6]}; 
     
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
     std::vector <Polymer> Polymers; 
     Polymers.reserve(N);
-    const int deg_poly = Polymers[0].deg_poly; 
-    
+
     // this data structure will hold the coordinates of the solvent 
     std::vector <Particle*> LATTICE;
     LATTICE.reserve (x*y*z); 
@@ -188,7 +187,7 @@ int main (int argc, char** argv) {
     std::cout << "x = " << x <<", y = " << y << ", z = "<< z << "." << std::endl << std::endl;
     std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
     std::cout << "Temperature = " << T << "." << std::endl; 
-    std::cout << "Emm = " << E[0] <<", B = " << E[1] <<".\n";
+    std::cout << "Emm_a = " << E[0] <<", Emm_n = " << E[1] << ", B = " << E[2] <<".\n";
     std::cout << "Off to a good start. \n\n";
     std::cout << "--------------------------------------------------------------------\n" << std::endl;
     std::cout << "Running some more checks on input... \n\n" ; 
@@ -241,7 +240,7 @@ int main (int argc, char** argv) {
 
     // if i am not restarting, i do not need to dump anything. All the information is already present. 
     if (!r) {
-        dumpEnergy      (sysEnergy, step_number, &contacts, &magnetization, deg_poly, efile); 
+        dumpEnergy      (sysEnergy, step_number, &contacts, &magnetization, efile); 
         dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
     }
     
@@ -303,7 +302,7 @@ int main (int argc, char** argv) {
                 dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
                 // dumpLATTICE ( &LATTICE, i, y, z, lattice_file_write ); 
             }
-            dumpEnergy (sysEnergy, i, &contacts, &magnetization,  deg_poly, efile);
+            dumpEnergy (sysEnergy, i, &contacts, &magnetization, efile);
         }
 
         IMP_BOOL = true;      

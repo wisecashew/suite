@@ -4,8 +4,9 @@
 
 // THESE ARE THE DIMENSIONS OF THE ENERGY PARAMETER VECTOR AND THE CONTACTS VECTOR
 #define NCDIM 3
-#define NEDIM 2
+#define NEDIM 3
 #define NADIM 4
+#define NTDIM 7
 
 // this is a bunch of miscellaneous functions I use 
 // to manipulate std::vectors. Furthermore, this will be used 
@@ -164,15 +165,15 @@ int  SolventIndexReporter                 (std::vector <Particle>* Solvent, std:
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // extraction methods 
-std::vector <Polymer>    ExtractPolymersFromFile    (std::string filename, int x, int y, int z);
-std::vector <Polymer>    ExtractPolymersFromFile    (std::string filename);
-std::vector <Polymer>    ExtractPolymersFromTraj    (std::string trajectory, std::string position, int step_number, int x, int y, int z);
-int                      ExtractIndexOfFinalMove    (std::string trajectory);
-double                   ExtractEnergyOfFinalMove   (std::string energy_file); 
-int                      ExtractNumberOfPolymers    (std::string filename);
-std::array <double, 6>  ExtractTopologyFromFile     (std::string filename);
-std::vector <Particle*>  ExtractLatticeFromRestart  (std::string rfile, int* step_num, int x, int y, int z);
-double                   NumberExtractor            (std::string s);
+std::vector <Polymer>       ExtractPolymersFromFile    (std::string filename, int x, int y, int z);
+std::vector <Polymer>       ExtractPolymersFromFile    (std::string filename);
+std::vector <Polymer>       ExtractPolymersFromTraj    (std::string trajectory, std::string position, int step_number, int x, int y, int z);
+int                         ExtractIndexOfFinalMove    (std::string trajectory);
+double                      ExtractEnergyOfFinalMove   (std::string energy_file); 
+int                         ExtractNumberOfPolymers    (std::string filename);
+std::array <double, NTDIM>  ExtractTopologyFromFile    (std::string filename);
+std::vector <Particle*>     ExtractLatticeFromRestart  (std::string rfile, int* step_num, int x, int y, int z);
+double                      NumberExtractor            (std::string s);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -194,7 +195,7 @@ bool   MetropolisAcceptance          (double E1, double E2, double kT, double rw
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // dump methods 
 void dumpPositionsOfPolymers (std::vector <Polymer> * PolymersInGrid, int step, std::string filename);
-void dumpEnergy              (double sysEnergy, int step, std::array<double,NCDIM>* contacts, std::array<double,3>* magnetization, int deg_poly, std::string filename);
+void dumpEnergy              (double sysEnergy, int step, std::array<double,NCDIM>* contacts, std::array<double,3>* magnetization, std::string filename);
 void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::string filename);
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
 void dumpMoveStatistics      (std::array  <int,NADIM> * attempts, std::array <int,NADIM>* acceptances, int step, std::string stats_file); 

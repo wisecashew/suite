@@ -142,6 +142,29 @@ def get_energy_form_3 (topology):
 	return np.array([mm_1, mm_2])
 
 
+def get_energy_form_4 (topology):
+	f = open (topology, 'r')
+	Emm_1   = "Emm_a"
+	Emm_2   = "Emm_n"
+	B       = "B"
+	num_re  = "\s+-[0-9]+\.[0-9]+|\s+[0-9]+\.[0-9]+|\s+-[0-9]+\.|\s+[0-9]+\.|\s+-[0-9]+|\s+[0-9]+"
+
+	for line in f:
+		if re.findall (Emm_1, line):
+			r = re.findall (num_re, line)
+			mm_1 = float ( r[0] )
+		elif re.findall (Emm_2, line):
+			r = re.findall (num_re, line)
+			mm_2 = float ( r[0] )
+		elif re.findall (B, line):
+			r = re.findall (num_re, line)
+			b = float ( r[0] )
+
+	return np.array([mm_1, mm_2, b])
+
+
+
+
 def get_energy_target (topology):
 	f = open (topology, 'r')
 	Emm_a   = "Emm_a"
@@ -2440,7 +2463,6 @@ def plot_fh_shape_parameter_parallelized_single_dop_all_U_all_T ( dop, starting_
 # d. For a given degree of polymerization 
 
 def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index, norm ):
-    
     Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \
             3: np.asarray([-1,0,0]), 4: np.asarray([0,-1,0]), 5: np.asarray([0,0,-1]), \
             6: np.asarray([1/np.sqrt(2),1/np.sqrt(2),0]), 7: np.asarray([1/np.sqrt(2), 0, 1/np.sqrt(2)]), 8: np.asarray ([1/np.sqrt(2),-1/np.sqrt(2),0]), \
@@ -2453,51 +2475,95 @@ def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index, norm 
     start_str = "START for Step"
     end_str   = "END"
 
-    
-
-
     f = open(U+"/DOP_"+str(N)+"/"+str(T)+"/"+ortn_file_name+"_"+str(idx)+".mc", 'r')
 
     extract_orr = False
     start_bool  = False
-    monomer_order  = []
-    oparam_list    = []
-    alignment      = [] 
-    
+    monomer_order  = np.array([0,0,0])
+    magnetization  = []
+
     for line in f:
         if re.match ( start_str, line ):
             a = re.search ("\d+", line)
             extract_orr = True
+            monomer_order = np.array([0,0,0])
             if int ( a.group(0) ) == starting_index:
                 start_bool = True
             count          = 0
 
         elif re.match ( end_str, line ) and start_bool:
+            magnetization.append (np.mean (monomer_order))
+            monomer_order = np.array ([0,0,0])
             extract_orr = False
-            oparam_list.append ( np.mean(monomer_order) )
-            monomer_order.clear()
-            alignment.clear() 
 
         elif extract_orr and start_bool:
-            or_list    = extract_loc_from_string ( line ) [1:] # [1:]  these takes all the orientations of the solvent molecules
             monomer_or = extract_loc_from_string ( line ) [0]
             count = 0
-            for cnum in or_list:
-                alignment.append( np.dot (Or2Dir[monomer_or], Or2Dir[cnum]) )
-                # count += 1
-            if len(alignment) == 0:
-                # monomer_order.append (0)
-                continue
-            else:
-                # if norm == 'z':
-                    # monomer_order.append (alignment/26)
-                # elif norm == 'mm':
-                    # monomer_order.append (alignment/count)
-                monomer_order.append (  np.mean( np.asarray(alignment)**2  ) - (np.mean(alignment))**2 ) 
+            monomer_order += Or2Dir[monomer_or]
 
     f.close()
-    fluctuation = np.mean(oparam_list) 
-    return fluctuation 
+
+    return np.mean (magnetization)
+
+
+##########################################################################
+##########################################################################
+
+
+
+def dump_magnetization ( ortn_file_name, idx, starting_index ):
+    Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \
+            3: np.asarray([-1,0,0]), 4: np.asarray([0,-1,0]), 5: np.asarray([0,0,-1]), \
+            6: np.asarray([1/np.sqrt(2),1/np.sqrt(2),0]), 7: np.asarray([1/np.sqrt(2), 0, 1/np.sqrt(2)]), 8: np.asarray ([1/np.sqrt(2),-1/np.sqrt(2),0]), \
+            9: np.asarray([1/np.sqrt(2),0,-1/np.sqrt(2)]), 10: np.asarray([-1/np.sqrt(2),1/np.sqrt(2),0]), 11: np.asarray([-1/np.sqrt(2),0,1/np.sqrt(2)]), \
+            12: np.asarray([-1/np.sqrt(2),-1/np.sqrt(2),0]), 13: np.asarray([-1/np.sqrt(2),0,-1/np.sqrt(2)]), 14: np.asarray([0,1/np.sqrt(2),1/np.sqrt(2)]), \
+            15: np.asarray([0,1/np.sqrt(2),-1/np.sqrt(2)]), 16: np.asarray([0,-1/np.sqrt(2),1/np.sqrt(2)]), 17: np.asarray([0,-1/np.sqrt(2),-1/np.sqrt(2)]), \
+            18: np.asarray([1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 19: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 20: np.asarray([1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            21: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]), 22: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 23: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            24: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 25: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]) }
+    start_str = "Dumping coordinates at step"
+    end_str   = "END"
+
+    f = open(ortn_file_name+"/coords_"+str(idx)+".mc", 'r')
+
+    extract_orr = False
+    start_bool  = False
+    monomer_order  = np.array([0,0,0])
+    magnetization  = []
+
+    for line in f:
+        if re.match ( start_str, line ):
+            a = re.search ("\d+", line)
+            # extract_orr = True
+            monomer_order = np.array([0,0,0], dtype=np.float64)
+            if int ( a.group(0) ) == starting_index:
+                start_bool = True
+            count          = 0
+
+        elif re.match ("START", line):
+            extract_orr = True
+
+        elif re.match ( end_str, line ) and start_bool:
+            magnetization.append (np.linalg.norm(monomer_order))
+            monomer_order = np.array ([0,0,0])
+            extract_orr = False
+
+        elif extract_orr and start_bool:
+            # print (line, )
+            # print (extract_loc_from_string(line))
+            monomer_or = extract_loc_from_string ( line ) [3]
+            count = 0
+            monomer_order += Or2Dir[monomer_or]
+
+    f.close()
+    step = np.arange (len(magnetization))
+    d = {"step": step, "magnetization": magnetization}
+    df = pd.DataFrame.from_dict(d)
+    df.to_csv (ortn_file_name+"/magnetization_dump_1.mc", index=False, sep='|')
+
+    return
+
+
 
 ##########################################################################
 ##########################################################################
@@ -2521,13 +2587,10 @@ def obtain_monomer_alignment ( U, N, T, coords_files, idx, starting_index, norm 
     monomer_alignment = []
     monomer_monomer = 0
     count = 0
-    
+
     for key in master_dict:
         (coord_arr, orientations) = unfuck_polymer_modified ( master_dict[key][0], edge, edge, edge)
-        # print (master_dict[key])
-        # print (len(orientations))
-        # exit()
-        monomer_alignment.clear() 
+        monomer_alignment.clear()
         monomer_monomer   = 0
         # identify all neighbors
         for i in range(N-1):
@@ -2536,17 +2599,12 @@ def obtain_monomer_alignment ( U, N, T, coords_files, idx, starting_index, norm 
                 # print ("diff = ",diff)
                 if (np.abs(int(diff[0])) == 1 or int(diff[0]) == 0) and (np.abs(int(diff[1])) == 1 or int(diff[1]) == 0) and (np.abs(int(diff[2])) == 1 or int(diff[2]) == 0):
                     monomer_alignment.append( np.dot (Or2Dir[orientations[i]], Or2Dir[orientations[j]]) )
-                    # 
-        if len(monomer_alignment) == 0: # monomer_monomer == 0:
+        if len(monomer_alignment) == 0:
             continue
         else:
-            # if norm == 'z':
-            #     alignment_lists.append ( monomer_alignment/26 )
-            # elif norm == 'mm':
-            #    alignment_lists.append ( monomer_alignment/monomer_monomer )
             alignment_lists.append (np.mean( np.asarray(monomer_alignment)**2) - (np.mean(monomer_alignment))**2  )
 
-    fluctuations = np.mean (alignment_lists) 
+    fluctuations = np.mean (alignment_lists)
     return fluctuations
 
 

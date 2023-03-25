@@ -61,7 +61,7 @@ if __name__=="__main__":
     U_list    = aux.dir2U ( os.listdir (".") ) 
     # U_list    = ["U1", "U2", "U4", "U5", "U10"]
     PLOT_DICT = {} 
-    
+
     starting_index = args.s
     ortn_file      = args.of
     dop            = args.dop

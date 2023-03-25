@@ -340,6 +340,19 @@ def dir2nsim (list_of_dirs):
 # End of function.
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+
+def dir2nmodel (list_of_dirs):
+    l = [] 
+    for dir_name in list_of_dirs:
+        r = re.findall ("^MODEL[0-9]+$", dir_name) 
+        if ( r ):
+            x = re.findall("\d+", r[0] ) 
+            l.append ( int (x[0] ) )
+    l.sort() 
+    return l
+
+
+
 ############################################################################
 ############################################################################
 # Description: When inside a directory, this function will find all the RG_DATA files

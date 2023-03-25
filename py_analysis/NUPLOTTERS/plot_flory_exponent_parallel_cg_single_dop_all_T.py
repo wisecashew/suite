@@ -8,7 +8,6 @@ import matplotlib.cm as cm
 import matplotlib.pyplot as plt 
 import pandas as pd
 import os
-# import aux 
 import time 
 import sys 
 sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
@@ -48,31 +47,32 @@ args = parser.parse_args()
 divnorm = matplotlib.colors.SymLogNorm (0.005, vmin=-0.1, vmax=0.1)
 
 
-def get_starting_ind ( T, model, num, dop, dumpfile):
+def get_starting_ind (T, model, num, dumpfile):
     filename = str(T) + "/FORM1/" + model + "/" + dumpfile + "_" + str(num) + ".mc"
     df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "ms_tot", "time_step"], engine='python', skiprows=0)
     L = len(df["energy"])
 
-    return 0 # int(df["time_step"].values[L-3000])
+    return int(df["time_step"].values[L-2000])
 
 
-def get_avg_amounts (U, T, num, dop, coords_file, starting_index, d1, d2):
-	x = list (np.arange (d1, d2+1))
-	y = []
-	starting_index = get_starting_ind (U, T, num, dop, "energydump")
-	for delta in x:
-		y.append ( aux.single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta) )
+# def get_avg_amounts (U, T, num, dop, coords_file, starting_index, d1, d2):
+# 	x = list (np.arange (d1, d2+1))
+# 	y = []
+#	starting_index = get_starting_ind (U, T, num, dop, "energydump")
+#	for delta in x:
+#		y.append ( aux.single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta) )
 
-	return (np.array (x), np.array (y))
+#	return (np.array (x), np.array (y))
 
-def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
-	filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(num)+".mc"
-	edge     = edge_length (dop)
-	master_dict  = get_pdict( filename, starting_index, dop, edge, edge, edge) 
-	offset_list = []
+
+def single_sim_flory_exp ( T, model, num, coords_file, starting_index, delta ):
+	filename = str(T)+"/FORM1/"+coords_file+"_"+str(num)+".mc"
+	edge     = aux.edge_length (dop)
+	master_dict  = aux.get_pdict( filename, starting_index, dop, edge, edge, edge) 
+	offset_list  = []
 
 	for key in master_dict:
-		coord_arr    = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
+		coord_arr    = aux.unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
 		delta_coords = coord_arr [0:dop-delta] - coord_arr [delta:]
 		offset = list(np.linalg.norm ( delta_coords, axis=1 ) **2 )
 		offset_list.extend(offset)
@@ -80,12 +80,12 @@ def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
 	return np.mean (offset_list)
 
 
-def get_flory (T, num, dop, coords_file, starting_index, d1, d2):
+def get_flory (T, model, num, coords_file, d1, d2):
     x = list (np.arange(d1, d2+1))
     y = []
-    starting_index = get_starting_ind (T, num, dop, "energydump")
+    starting_index = get_starting_ind (T, model, num, "energydump")
     for delta in x:
-        y.append ( aux.single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta ) )
+        y.append ( single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta ) )
 
     x = np.asarray (np.log(x)).reshape((-1,1))
     y = np.asarray (np.log(y))
@@ -100,9 +100,9 @@ if __name__ == "__main__":
 
     start = time.time() 
     ##################################
-    T_list  = [0.01, 0.02, 0.05, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 17.5, 25.0, 50.0, 100.0]
+    T_list    = [0.01, 0.02, 0.05, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 17.5, 25.0, 50.0, 100.0]
+    nmod_list = []
     DB_DICT = {}
-    DB_DICT["U"]  = []
     DB_DICT["T"]  = []
     DB_DICT["d1"] = []
     DB_DICT["d2"] = []
@@ -124,15 +124,28 @@ if __name__ == "__main__":
     ax.tick_params(axis='y', labelsize=16)
     i = 0
 
+    for T in T_list:
+        nmod_list.append ( np.max ( aux.dir2nmodel( os.listdir (str(T) + "/FORM1/.") ) ) )
+
     # instantiating pool
     pool1 = multiprocessing.Pool ( processes=nproc )
-    
     pool_list = [pool1]
-    
 
-    for U in U_list:
-        print ( "Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
-        temperatures = [0.01] # aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
+    # find the max model numbers 
+    results = pool_list[0].starmap ( get_flory, zip(T_list, nmod_list, itertools.repeat(1), itertools.repeat(coords_files), itertools.repeat (args.d1), itertools.repeat(args.d2) ) )
+    
+    DB_DICT["T"].extend (T_list)
+    DB_DICT["nu_mean"].extend (results[0])
+    DB_DICT["r2"].extend (results[1])
+    DB_DICT["d1"].extend ([args.d1]*len(T_list))
+    DB_DICT["d2"].extend ([args.d2]*len(T_list))
+    df = pd.DataFrame.from_dict (DB_DICT)
+    df.to_csv ("FLORY-FORM1-"+str(args.d1)+"-"+str(args.d2)+".mc", sep='|', index=False)
+
+    '''
+    for T in T_list:
+        print ( "Inside T = " + str(T) + "...", flush=True )
+        
         
         # get num_list for each temperature
         master_temp_list = []
@@ -145,7 +158,7 @@ if __name__ == "__main__":
         ntraj_dict.clear()
         for T in temperatures:
             # print ("T is " + str(T), flush=True)
-            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
+            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(T) + "/FORM1" ) ) ) )
             master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )
@@ -191,4 +204,4 @@ if __name__ == "__main__":
     stop = time.time()
     
     print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)
-    
+    '''

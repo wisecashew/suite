@@ -5086,7 +5086,7 @@ void BackFlowFromHeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 
 void TailRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE,  \
 	std::array <double,NEDIM>* E, std::array <double,NCDIM>* contacts, bool* IMP_BOOL, double* prob_o_to_n, \
-	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z){
+	double* frontflow_energy, double temperature, int deg_poly, int p_index, int m_index, int x, int y, int z) {
 
 
 	if (m_index == 0){
@@ -5935,41 +5935,6 @@ void BackFlowFromTailRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-//==============================================================================================
-//==============================================================================================
-//
-// 
-// NAME OF FUNCTION: ChainRegrowth_UNBIASED, HeadRegrowth_UNBIASED, TailRegrowth_UNBIASED
-//
-// PARAMETERS: Polymers, LATTICE, and all the stuff that goes into calculating energy 
-// 
-// WHAT THE FUNCTION DOES: Performs a chain regrowth on a polymer. 
-//
-// DEPENDENCIES: metropolis, calculateenergy 
-//
-// THE CODE: 
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of ChainRegrowth_UNBIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             Start of HeadRegrowth_UNBIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of HeadRegrowth_UNBIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             Start of TailRegrowth_UNBIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of TailRegrowth_UNBIASED
-// ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
 
 //==============================================================================================
 //==============================================================================================
@@ -6144,7 +6109,7 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 	bool* IMP_BOOL, double* sysEnergy, double temperature, int index, int x, int y, int z ) {
 
 
-	std::cout << "Original magnetization = "; print (*magnetization);
+	// std::cout << "Original magnetization = "; print (*magnetization);
 	int deg_poly = (*Polymers)[0].deg_poly; 
 	std::vector <int> polymer_indices (deg_poly);
 	std::iota (polymer_indices.begin(), polymer_indices.end(), 0);
@@ -6226,9 +6191,6 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 			rboltzmann  += boltzmann [k]; 
 		}
 
-		// std::cout << "normalization = " << rboltzmann << std::endl;
-		// std::cout << "rng = " << rng_acc << std::endl;
-
 		rng   = rng_uniform (0.0, 1.0); 
 		rsum  = 0; 
 		e_idx = 0;
@@ -6253,11 +6215,10 @@ void PolymerFlip_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle*
 	frontflow_energy        = energies       [e_idx]; 
 	frontflow_contacts      = contacts_store [e_idx]; 
 	frontflow_magnet        = magnet_store   [e_idx];
-	// std::cout << "frontflow magnetization: "; print (frontflow_magnet);
 
-	// std::cout << "Starting backflow... " << std::endl;
+	
 	// figure out the backflow energy 
-	// double backflow_energy = 1;
+
 
 	for ( int i{0}; i < nflip; ++i ) {
 
@@ -6550,7 +6511,7 @@ void PolymerFlip_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Par
 
 		// make the jump to the old state 
 		(*Polymers)[index].chain[ polymer_indices[i] ]->orientation = old_ori[i]; 
-		Esys = energies[0]; 
+		Esys         = energies[0]; 
 		contacts_sys = contacts_store[0]; 
 		magnet_sys   = magnet_store[0]; 
 

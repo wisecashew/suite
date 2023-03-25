@@ -48,9 +48,9 @@ args = parser.parse_args()
 divnorm = matplotlib.colors.SymLogNorm (0.005, vmin=-0.1, vmax=0.1)
 
 
-def get_starting_ind ( U, T, num, dop, dumpfile):
-    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
-    df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+def get_starting_ind ( T, model, num, dop, dumpfile):
+    filename = str(T) + "/FORM1/" + model + "/" + dumpfile + "_" + str(num) + ".mc"
+    df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "ms_tot", "time_step"], engine='python', skiprows=0)
     L = len(df["energy"])
 
     return 0 # int(df["time_step"].values[L-3000])
@@ -65,12 +65,25 @@ def get_avg_amounts (U, T, num, dop, coords_file, starting_index, d1, d2):
 
 	return (np.array (x), np.array (y))
 
+def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
+	filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(num)+".mc"
+	edge     = edge_length (dop)
+	master_dict  = get_pdict( filename, starting_index, dop, edge, edge, edge) 
+	offset_list = []
+
+	for key in master_dict:
+		coord_arr    = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
+		delta_coords = coord_arr [0:dop-delta] - coord_arr [delta:]
+		offset = list(np.linalg.norm ( delta_coords, axis=1 ) **2 )
+		offset_list.extend(offset)
+
+	return np.mean (offset_list)
 
 
-def get_flory (U, T, num, dop, coords_file, starting_index, d1, d2):
+def get_flory (T, num, dop, coords_file, starting_index, d1, d2):
     x = list (np.arange(d1, d2+1))
     y = []
-    starting_index = get_starting_ind (U, T, num, dop, "energydump")
+    starting_index = get_starting_ind (T, num, dop, "energydump")
     for delta in x:
         y.append ( aux.single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta ) )
 
@@ -87,11 +100,8 @@ if __name__ == "__main__":
 
     start = time.time() 
     ##################################
-
-    U_list = aux.dir2U ( os.listdir (".") )
-    # U_list.append("Uexcl")
-    U_list = ["U1"]
-    DB_DICT = {} 
+    T_list  = [0.01, 0.02, 0.05, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 17.5, 25.0, 50.0, 100.0]
+    DB_DICT = {}
     DB_DICT["U"]  = []
     DB_DICT["T"]  = []
     DB_DICT["d1"] = []

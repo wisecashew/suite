@@ -73,23 +73,24 @@ if __name__=="__main__":
 	# get the target contacts 
 	df_target = pd.read_csv (str(T)+"/TARGET/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "s1s2_tot", "s1s2_aligned", "s1s2_naligned", "time_step"], skiprows=0)
 	df_target_magnet = pd.read_csv (str(T)+"/TARGET/magnetization_dump_1.mc", sep='\|', engine='python', names=["time", "magnetization"], skiprows=1)
-	df_model  = pd.read_csv ( str(T)+"/FORM2/MODEL"+str(args.m)+"/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "magnetization", "time_step"], skiprows=0)
+	df_model  = pd.read_csv ( str(T)+"/FORM4/MODEL"+str(args.m)+"/energydump_1.mc", sep='\|', engine='python', names=["energy", "mm_aligned", "mm_naligned", "ms1_tot", "magnetization", "time_step"], skiprows=0)
+
+	print (df_model)
 
 	aligned_error_scale  = np.abs(np.mean(df_target["mm_aligned" ].values[-s:]  - df_model["mm_aligned" ].values[-s:] ))
 	naligned_error_scale = np.abs(np.mean(df_target["mm_naligned"].values[-s:]  - df_model["mm_naligned"].values[-s:] ))
-	
 
-	chi_aligned  = 0.1  # det_chi  (beta, aligned_error_scale)
+	chi_aligned  = 0.1
 	print (f"chi_aligned = {chi_aligned}")
-	chi_naligned = 0.1 # det_chi (beta, naligned_error_scale)
+	chi_naligned = 0.1
 	print (f"chi_naligned = {chi_naligned}")
 
 	print ("Energetic parameters initial =", energy_upd)
-	diff_mm  = -(np.mean (df_model["mm_tot"].values[-s:]) - np.mean (df_target["mm_tot"].values[-s:]))
+	diff_mm  = -(np.mean (df_model["mm_aligned"].values[-s:] + df_model["mm_naligned"].values[-s:]) - np.mean (df_target["mm_tot"].values[-s:]))
 	diff_mma = -(np.mean (df_model["mm_aligned"].values[-s:] ) - np.mean (df_target["mm_aligned"].values[-s:] ))
 	diff_mmn = -(np.mean (df_model["mm_naligned"].values[-s:]) - np.mean (df_target["mm_naligned"].values[-s:]))
 	diff_mag = -(np.mean (df_model["magnetization"].values[-s:]) - np.mean (df_target_magnet["magnetization"].values[-s:]))
-	delta_file = open (str(T)+"/FORM2/MODEL"+str(args.m)+"/delta.mc", 'w')
+	delta_file = open (str(T)+"/FORM4/MODEL"+str(args.m)+"/delta.mc", 'w')
 	delta_file.write  (f"beta = {beta}\n")
 	delta_file.write  (f"<N_mm>_model   - <N_mm>_target   = {diff_mm}\n" )
 	delta_file.write  (f"<N_mm_a>_model - <N_mm_a>_target = {diff_mma}\n")
@@ -116,6 +117,9 @@ if __name__=="__main__":
 	bfield_num    = np.mean (df_target_magnet["magnetization"].values[-s:]) - np.mean (df_model["magnetization"].values[-s:])
 	bfield_den    = beta * np.mean (df_model["magnetization"].values[-s:]**2) - beta * np.mean (df_model["magnetization"].values[-s:])**2
 
+	if np.abs (bfield_den) < 1e-4:
+		bfield_den = 0.01
+
 	energy_upd[2] = energy_upd[2] - 0.1 * bfield_num / bfield_den
 
 	delta_file.write ("aligned update numerator   = {}\n".format (aligned_num) )
@@ -136,7 +140,7 @@ if __name__=="__main__":
 
 	print ("Energetic parameters final =", energy_upd)
 
-	file_new = open (str(T)+"/FORM2/MODEL"+str(args.m+1)+"/geom_and_esurf.txt", 'w')
+	file_new = open (str(T)+"/FORM4/MODEL"+str(args.m+1)+"/geom_and_esurf.txt", 'w')
 	file_new.write (f"x = {x}\n" )
 	file_new.write (f"y = {y}\n" )
 	file_new.write (f"z = {z}\n" )
@@ -145,6 +149,6 @@ if __name__=="__main__":
 	file_new.write ("Emm_n = {:2.10f}\n".format(energy_upd[1]))
 	file_new.write ("B     = {:2.10f}\n".format(energy_upd[2]))
 	file_new.write ("END OF FILE" )
-	file_new.close()
+	file_new.close ()
 
 

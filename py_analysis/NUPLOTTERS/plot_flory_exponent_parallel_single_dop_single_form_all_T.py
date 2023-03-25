@@ -173,12 +173,12 @@ if __name__ == "__main__":
 
     pool1.close()
     pool1.join()
-    
+
     i=0
     df = pd.DataFrame.from_dict (DB_DICT)
     df.to_csv ("FLORY-EXCL-"+str(args.d1)+"-"+str(args.d2)+".mc", sep='|', index=False)
-    
+
     stop = time.time()
-    
+
     print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)
-    
+

@@ -2517,11 +2517,10 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,NCDIM>* contacts,
 
 	double normalized_m = std::sqrt ( ( (*magnetization)[0] * (*magnetization)[0] + (*magnetization)[1] * (*magnetization)[1] + (*magnetization)[2] * (*magnetization)[2] ) );
     std::ofstream dump_file(filename, std::ios::app); 
-    // std::ostringstream os; 
 
-    dump_file << sysEnergy << " | " << (*contacts)[0] << " | " << (*contacts)[1] << " | " << normalized_m << "|" << step << "\n";
+    dump_file << sysEnergy << " | " << (*contacts)[0] << " | " << (*contacts)[1] << " | " << (*contacts)[2] << " | " << normalized_m << "|" << step << "\n";
 
-    return; 
+    return;
 }
 
 

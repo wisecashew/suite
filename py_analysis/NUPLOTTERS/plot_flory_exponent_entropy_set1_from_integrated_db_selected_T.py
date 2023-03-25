@@ -11,7 +11,7 @@ import pandas as pd
 import os
 import time 
 import sys 
-sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis')
 import aux 
 import multiprocessing 
 import itertools
@@ -37,6 +37,7 @@ shebang for homemachine: #!/usr/bin/env python3
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('--integrated-database', dest='df', metavar='df', action='store', type=str, help='Name of dump file.')
+parser.add_argument('-T', dest='T', nargs='+', action='store', type=float, help='temperature list')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
 args = parser.parse_args() 
 
@@ -45,9 +46,9 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
 if __name__ == "__main__":
 	start = time.time()
 	##################################
-
-	U_list = aux.dir2U ( os.listdir (".") )
-	U_list = ["U10"] # ["U1", "U7", "U10"]
+	# U_list = aux.dir2U ( os.listdir (".") )
+	U_list = ["U10"]
+	T_list = args.T
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	plt.rcParams["axes.labelweight"] = "bold"
@@ -67,11 +68,13 @@ if __name__ == "__main__":
 		# nu_averaged.clear()
 		rgba_color = cm.PiYG (divnorm(chi_list[i]))
 		nu = df.loc[df["U"] == U]
+		nu = nu.loc[nu["T"].isin(T_list)]
+		print (nu)
 		nu_averaged = nu["nu_mean"]/2
 		nu_err      = nu["nu_err" ]/2
 		temperatures = nu["T"]
-		ax.errorbar (temperatures[::2], nu_err[::2], yerr=nu_err[::2], ecolor='k', linewidth=0)
-		ax.plot(temperatures[::2], nu_averaged[::2], linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
+		ax.errorbar (T_list, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
+		ax.plot(T_list, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-', c=rgba_color)
 		i += 1
 	stop = time.time() 

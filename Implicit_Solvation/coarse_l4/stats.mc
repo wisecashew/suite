@@ -1,5 +1,5 @@
-At step 10000...
-End rotations without bias         - attempts: 2580, acceptances: 2, acceptance fraction: 0.000775194
-Reptation without bias             - attempts: 2399, acceptances: 104, acceptance fraction: 0.0433514
-Chain regrowth with overlap bias   - attempts: 2487, acceptances: 245, acceptance fraction: 0.0985123
-Polymer flip with bias             - attempts: 2534, acceptances: 118, acceptance fraction: 0.0465667
+At step 10...
+End rotations without bias         - attempts: 3, acceptances: 1, acceptance fraction: 0.333333
+Reptation without bias             - attempts: 0, acceptances: 0, acceptance fraction: -nan
+Chain regrowth with overlap bias   - attempts: 2, acceptances: 0, acceptance fraction: 0
+Polymer flip with bias             - attempts: 5, acceptances: 3, acceptance fraction: 0.6

@@ -8,6 +8,13 @@ from scipy.optimize import fsolve
 from matplotlib.ticker import StrMethodFormatter
 import scipy.optimize as opt 
 import mpmath as mp 
+import argparse 
+
+parser = argparse.ArgumentParser (description="Plots phase diagrams.")
+parser.add_argument ("--png-name", dest="pn", type=str, action='store', help="Name of image to be made.")
+parser.add_argument ("--pv", dest="pv", type=np.float128, action='store', help="Value of pv.")
+
+args = parser.parse_args() 
 
 # f           = lambda phi, m, x: phi/m * np.log (phi) + (1-phi)*np.log (1-phi) + x * phi * (1-phi)
 # dfdphi      = lambda phi, m, x: -1 + 1/m + (1 - phi)*x - phi*x - np.log (1-phi) + np.log(phi)/m
@@ -24,14 +31,14 @@ if __name__=="__main__":
     ax.tick_params(axis='y', labelsize=8)
 
     g    = 0.25
-    zmm  = lambda emma, emmn, T: g*np.exp (-1/T * emma) + (1-g)*np.exp (-1/T * emmn)
-    zms  = lambda emsa, emsn, T: g*np.exp (-1/T * emsa) + (1-g)*np.exp (-1/T * emsn)
-    fmma = lambda emma, emmn, T: g*np.exp (-1/T * emma)/zmm(emma, emmn, T)
-    fmsa = lambda emsa, emsn, T: g*np.exp (-1/T * emsa)/zms(emsa, emsn, T)
+    zmm  = lambda emma, emmn, T: g*np.exp (-1/T * emma, dtype=np.float64) + (1-g)*np.exp (-1/T * emmn, dtype=np.float64)
+    zms  = lambda emsa, emsn, T: g*np.exp (-1/T * emsa, dtype=np.float64) + (1-g)*np.exp (-1/T * emsn, dtype=np.float64)
+    fmma = lambda emma, emmn, T: g*np.exp (-1/T * emma, dtype=np.float64)/zmm(emma, emmn, T)
+    fmsa = lambda emsa, emsn, T: g*np.exp (-1/T * emsa, dtype=np.float64)/zms(emsa, emsn, T)
 
-    def chi (emma, emmn, emsa, emsn, T):
-        t1 = fmsa(emsa, emsn, T)*emsa + (1-fmsa(emsa, emsn, T))*emsn
-        t2 = fmma(emma, emmn, T)*emma + (1-fmma(emma, emmn, T))*emmn
+    def chi (emma, emmn, emsa, emsn, pv, T):
+        t1 = pv*(fmsa(emsa, emsn, T)*emsa + (1-fmsa(emsa, emsn, T))*emsn) + (1-pv)*emsn
+        t2 = pv*(fmma(emma, emmn, T)*emma + (1-fmma(emma, emmn, T))*emmn) + (1-pv)*emmn
         return 24/T * (t1 - 0.5 * t2)
 
     def rhs (phi, _m):
@@ -49,11 +56,14 @@ if __name__=="__main__":
 
     elow    = -0.6
     ehigh   = -0.4
+    pv      = args.pv
     ecenter = (elow+ehigh)/2
 
-    emsa_list = [-0.6]# np.arange (elow, ehigh+0.05, 0.05)
+    emsa_list = [-0.6, -0.4] # np.arange (elow, ehigh+0.05, 0.05)
     norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=ecenter, vmax=ehigh)
 
+
+    # energies 
     _emma = -1; _emmn = -1; _emsn = 0; 
     my_phi = []
 
@@ -67,12 +77,12 @@ if __name__=="__main__":
 
             roots      = np.array([])
             root_error = np.array([])
-            specific_chi = lambda T: chi (_emma, _emmn, _emsa, _emsn, T) - rhs (_phi, 32)
+            specific_chi = lambda T: chi (_emma, _emmn, _emsa, _emsn, pv, T) - rhs (_phi, 32)
             
 
             for s in seeds:
                 roots = np.hstack ( ( roots, fsolve (specific_chi, s) ) )
-                root_error = np.hstack ( ( root_error,abs (specific_chi(roots[-1]) ) ) )
+                root_error = np.hstack ( ( root_error, abs (specific_chi(roots[-1]) ) ) )
             
             hold = roots > 0
             roots = roots [hold]
@@ -104,15 +114,15 @@ if __name__=="__main__":
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))
+    ax.set_yscale ("log")
+    ax.set_yticks ([0.1, 0.5, 1, 5, 10, 50])
     ax.set_yticklabels (ax.get_yticks(), weight='bold')
     ax.set_xticklabels (ax.get_xticks(), weight='bold')
-    ax.set_yscale ("log")
-    ax.set_yticks ([1e-1, 1, 1e+1])
-    ax.set_yticklabels (["$\\mathbf{10^{-1} }$", "$\\mathbf{10^{0} }$", "$\\mathbf{10^1}$"], weight='bold')
+    ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{0.5}$", "$\\mathbf{1.0}$", "$\\mathbf{5.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
     # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
    
-    plt.savefig ("loop_2.png", bbox_inches='tight', dpi=1200)
+    plt.savefig (args.pn+".png", bbox_inches='tight', dpi=1200)
 
 
 

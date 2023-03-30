@@ -49,13 +49,11 @@ class MinorSymLogLocator(Locator):
 if __name__=="__main__":
 
 
-    ems_list = [-50, -25, -15, -10, -8, -5, -3, -1.7, 0]
+    ems_list = [-0.6, -0.55, -0.5, -0.45, -0.4]
     # elow    = -50
     # ehigh   = -1.4
-    g  = 0.2514
+    g  = 0.25
     
- 
-
     zmm  = lambda emma, emmn, T: g*np.exp ((-1/T * emma), dtype=np.float128) + (1-g)*np.exp ((-1/T * emmn), dtype = np.float128)
     zms  = lambda emsa, emsn, T: g*np.exp ((-1/T * emsa), dtype=np.float128) + (1-g)*np.exp ((-1/T * emsn), dtype = np.float128)
     fmma = lambda emma, emmn, T: g*np.exp ((-1/T * emma), dtype=np.float128) / zmm(emma, emmn, T)
@@ -70,13 +68,13 @@ if __name__=="__main__":
 
 
 
-    E_mm_a = -3; 
-    E_mm_n = -3;
+    E_mm_a = -1; 
+    E_mm_n = -1;
     E_ms_n =  0;
 
     T_range = np.logspace (-2, 2, 10)
     it = 0
-    for pv in [0, 0.1, 0.3, 0.5, 0.8, 1.0]:
+    for pv in [0, 0.5, 1.0]:
 
         print (f"In pv = {pv}...")
         fig = plt.figure(it) #figsize=(4/1.6,3/1.6), constrained_layout=True)

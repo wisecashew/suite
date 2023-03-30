@@ -11,7 +11,7 @@ import os
 # import aux 
 import time 
 import sys 
-sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis')
 import aux 
 import multiprocessing 
 import itertools
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     coords_files   = args.c
     nproc          = args.nproc
     starting_index = 0
-    
+
     fig = plt.figure( figsize=(8,6) )
     ax  = plt.axes() 
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
@@ -135,7 +135,7 @@ if __name__ == "__main__":
                 results = pool_list[ 0 ] .starmap ( get_avg_amounts, zip( itertools.repeat(U), master_temp_list[uidx*nproc:], master_num_list[uidx*nproc:], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
             else:
                 results = pool_list[ 0 ] .starmap ( get_avg_amounts, zip( itertools.repeat(U), master_temp_list[uidx*nproc:(uidx+1)*nproc], master_num_list[uidx*nproc:(uidx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
-                
+
             print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )
             for k in range(len(master_temp_list[uidx*nproc:(uidx+1)*nproc])):
                 y_dict[master_temp_list[uidx*nproc+k]].append ( results[k] )

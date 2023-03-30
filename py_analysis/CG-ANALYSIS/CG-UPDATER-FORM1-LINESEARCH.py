@@ -10,13 +10,14 @@ from matplotlib.ticker import StrMethodFormatter
 import re
 import argparse
 import sys
-sys.path.insert (0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
+sys.path.insert (0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis')
 import aux
 import os
 
 
 parser = argparse.ArgumentParser(description="Get the contacts for simulation for every energy surface, provided you give the volume fraction.")
 parser.add_argument ("--model", dest='m', type=int, help="Select model directory.")
+parser.add_argument ("-T", dest='T', type=float, help="Select temperature.")
 args = parser.parse_args()
 
 
@@ -42,23 +43,34 @@ if __name__=="__main__":
 	# two lambdas: E_mm, E_ms. 
 	# step 1 involves finding <N_mm> and <N_ms>
 	# step 1 (recast): find <N_mm> and <N_ms> 
-	temps = aux.dir2float ( os.listdir(".") )
+
+	temps = [args.T]
 	for T in temps:
 		print (f"In T = {T}...", flush=True)
-		df_T = pd.read_csv (str(T)+"/TARGET/energydump_1.mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
-		avg_Nmm_T = np.mean  (df_T["mm_tot" ].values[-2000:])
+		num_list_T = aux.dir2nsim (os.listdir(str(T)+"/TARGET/."))
+		print ("len(num_list_T) = " + str(len(num_list_T)))
+		avg_Nmm_T = 0
+		for i in num_list_T:
+			df_T = pd.read_csv (str(T)+"/TARGET/energydump_"+str(i)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+			avg_Nmm_T += np.mean  (df_T["mm_tot" ].values[-2000:])
+		avg_Nmm_T = avg_Nmm_T / len(num_list_T)
 		print  ("target average mm contacts = " + str(avg_Nmm_T))
 	
+		
 		print (f"\tIn MODEL{args.m}...", flush=True)
-		df_M  = pd.read_csv (str(T)+"/MODEL"+str(args.m)+"/energydump_1.mc",  sep=' \| ', names=["energy", "mm_tot", "ms_tot", "time_step"], engine='python', skiprows=0)
-		avg_Nmm_M = np.mean (df_M["mm_tot"].values[-2000:])
+		num_list_M = aux.dir2nsim (os.listdir(str(T)+"/FORM1/MODEL"+str(args.m)+"/."))
+		avg_Nmm_M = 0
+		for i in num_list_M:
+			df_M  = pd.read_csv (str(T)+"/FORM1/MODEL"+str(args.m)+"/energydump_1.mc",  sep=' \| ', names=["energy", "mm_tot", "ms_tot", "time_step"], engine='python', skiprows=0)
+			avg_Nmm_M += np.mean (df_M["mm_tot"].values[-2000:])
 
+		avg_Nmm_M = avg_Nmm_M / len (num_list_M)
 		delta = avg_Nmm_T - avg_Nmm_M
-		f = open (str(T)+"/MODEL"+str(args.m)+"/delta.mc", 'w')
-		f.write ("<N_mm>_T - <N_mm>_M = {}\n".format (delta))
+		f = open (str(T)+"/FORM1/MODEL"+str(args.m)+"/delta.mc", 'w')
+		f.write ("<N_mm>_T - <N_mm>_M = {:2.10f}\n".format (delta))
 
 		try:
-			delta_old, scale_old = delta_scale_finder (str(T)+"/MODEL"+str(args.m-1)+"/delta.mc")
+			delta_old, scale_old = delta_scale_finder (str(T)+"/FORM1/MODEL"+str(args.m-1)+"/delta.mc")
 			if np.sign (delta) * np.sign (delta_old) == -1:
 				scale = scale_old*0.5
 			else:

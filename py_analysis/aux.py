@@ -2525,8 +2525,8 @@ def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index, norm 
 ##########################################################################
 
 
-
-def dump_magnetization ( ortn_file_name, idx, starting_index ):
+'''
+def dump_magnetization ( ortn_file_path, starting_index ):
     Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \
             3: np.asarray([-1,0,0]), 4: np.asarray([0,-1,0]), 5: np.asarray([0,0,-1]), \
             6: np.asarray([1/np.sqrt(2),1/np.sqrt(2),0]), 7: np.asarray([1/np.sqrt(2), 0, 1/np.sqrt(2)]), 8: np.asarray ([1/np.sqrt(2),-1/np.sqrt(2),0]), \
@@ -2536,48 +2536,53 @@ def dump_magnetization ( ortn_file_name, idx, starting_index ):
             18: np.asarray([1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 19: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 20: np.asarray([1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
             21: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]), 22: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 23: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
             24: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 25: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]) }
+
     start_str = "Dumping coordinates at step"
     end_str   = "END"
+    magnetization_equi  = []
+    magnetization = []
+    num_list = aux.dir2nsim (os.listdir(ortn_file_path))
+    for idx in num_list:
+	f = open(ortn_file_name+"/coords_"+str(idx)+".mc", 'r')
 
-    f = open(ortn_file_name+"/coords_"+str(idx)+".mc", 'r')
+	extract_orr = False
+	start_bool  = False
+	monomer_order  = np.array([0,0,0])
+	magnetization.clear()
 
-    extract_orr = False
-    start_bool  = False
-    monomer_order  = np.array([0,0,0])
-    magnetization  = []
+	for line in f:
+	    if re.match ( start_str, line ):
+		a = re.search ("\d+", line)
+		# extract_orr = True
+		monomer_order = np.array([0,0,0], dtype=np.float64)
+		if int ( a.group(0) ) == 0:
+		    start_bool = True
+		count          = 0
 
-    for line in f:
-        if re.match ( start_str, line ):
-            a = re.search ("\d+", line)
-            # extract_orr = True
-            monomer_order = np.array([0,0,0], dtype=np.float64)
-            if int ( a.group(0) ) == starting_index:
-                start_bool = True
-            count          = 0
+	    elif re.match ("START", line):
+		extract_orr = True
 
-        elif re.match ("START", line):
-            extract_orr = True
+	    elif re.match ( end_str, line ) and start_bool:
+		magnetization.append (np.linalg.norm(monomer_order))
+		monomer_order = np.array ([0,0,0])
+		extract_orr = False
 
-        elif re.match ( end_str, line ) and start_bool:
-            magnetization.append (np.linalg.norm(monomer_order))
-            monomer_order = np.array ([0,0,0])
-            extract_orr = False
+	    elif extract_orr and start_bool:
+		# print (line, )
+		# print (extract_loc_from_string(line))
+		monomer_or = extract_loc_from_string ( line ) [3]
+		count = 0
+		monomer_order += Or2Dir[monomer_or]
 
-        elif extract_orr and start_bool:
-            # print (line, )
-            # print (extract_loc_from_string(line))
-            monomer_or = extract_loc_from_string ( line ) [3]
-            count = 0
-            monomer_order += Or2Dir[monomer_or]
-
-    f.close()
+	magnetization_equi.extend (magnetization[-starting_index:]
+	f.close()
     step = np.arange (len(magnetization))
-    d = {"step": step, "magnetization": magnetization}
+    d = {"step": [1], "magnetization": [np.mean(magnetization_equi)] }
     df = pd.DataFrame.from_dict(d)
-    df.to_csv (ortn_file_name+"/magnetization_dump_1.mc", index=False, sep='|')
+    df.to_csv (ortn_file_name+"/magnetization_dump.mc", index=False, sep='|')
 
     return
-
+'''
 
 
 ##########################################################################

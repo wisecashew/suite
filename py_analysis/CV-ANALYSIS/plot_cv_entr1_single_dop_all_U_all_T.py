@@ -1,7 +1,7 @@
 #!/usr/licensed/anaconda3/2020.7/bin/python
 
 import sys
-sys.path.insert(0, "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/Explicit_Solvation/py_analysis")
+sys.path.insert(0, "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/current/py_analysis")
 
 import pandas as pd 
 import numpy as np 
@@ -28,7 +28,7 @@ divnorm = matplotlib.colors.SymLogNorm ( 0.001, vmin=-0.2, vmax=0.1 ) # this is 
 if __name__=="__main__":
 
 	# get the entire list of potential energy surfaces 
-	U_list = aux.dir2U ( os.listdir(".") )
+	U_list = ["U10"] # aux.dir2U ( os.listdir(".") )
 	plt.figure( figsize=(8,6) )
 
 	PLOT_DICT = {}
@@ -50,8 +50,8 @@ if __name__=="__main__":
 			num_list = np.unique ( aux.dir2nsim ( os.listdir ( str(U)+"/DOP_"+str(args.dop)+"/"+str(temp) ) ) )
 			for num in num_list: 
 				df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(temp)+"/"+args.e+"_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
-				f = df["energy"].values[-400:]
-				ms_list = np.hstack ( (ms_list, ( np.mean( f**2 ) - np.mean (f)**2 ) / temp**2  ) )
+				f = df["energy"].values[-2000:]
+				ms_list = np.hstack ( (ms_list, ( np.mean( f**2 ) - np.mean (f)**2 ) ) ) # / temp**2  ) )
 			ms_err  = np.hstack ( (ms_err,  (np.std(ms_list)/np.sqrt(len(num_list)) ) ) )
 			ms_mean = np.hstack ( (ms_mean, np.mean(ms_list) ) )
 

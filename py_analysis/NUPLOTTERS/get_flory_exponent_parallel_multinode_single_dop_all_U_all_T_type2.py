@@ -11,7 +11,7 @@ import os
 # import aux 
 import time 
 import sys 
-sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis')
 import aux 
 import multiprocessing 
 import itertools
@@ -163,12 +163,12 @@ if __name__ == "__main__":
 
     pool1.close()
     pool1.join()
-    
+
     i=0
     df = pd.DataFrame.from_dict (DB_DICT)
     df.to_csv ("FLORY-EXPONENTS-"+str(args.d1)+"-"+str(args.d2)+"_set_"+str(args.set)+"_type2.mc", sep='|', index=False)
-    
+
     stop = time.time()
-    
+
     print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)
-    
+

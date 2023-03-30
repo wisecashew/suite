@@ -11,7 +11,7 @@ import os
 # import aux 
 import time 
 import sys 
-sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis')
 import aux 
 import multiprocessing 
 import itertools
@@ -55,7 +55,7 @@ def get_starting_ind ( U, T, num, dop, dumpfile):
     df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
     L = len(df["energy"])
 
-    return int(df["time_step"].values[L-3000])
+    return int(df["time_step"].values[L-2000])
 
 
 def get_avg_amounts (U, T, num, dop, coords_file, starting_index, d1, d2):
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         flory_err  = []
         ntraj_dict.clear()
         for T in temperatures:
-            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
+            num_list = [1] # list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
             master_temp_list.extend ( [T]*len( num_list ) )
             ntraj_dict[T] = len ( num_list )

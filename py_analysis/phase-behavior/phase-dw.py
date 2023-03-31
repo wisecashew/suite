@@ -12,7 +12,7 @@ import argparse
 
 parser = argparse.ArgumentParser (description="Plots phase diagrams.")
 parser.add_argument ("--png-name", dest="pn", type=str, action='store', help="Name of image to be made.")
-parser.add_argument ("--pv", dest="pv", type=np.float128, action='store', help="Value of pv.")
+parser.add_argument ("--pv", dest="pv", type=np.float64, action='store', help="Value of pv.")
 
 args = parser.parse_args() 
 
@@ -54,13 +54,14 @@ if __name__=="__main__":
     T_lower    = []
     T_upper    = []
 
-    elow    = -0.6
-    ehigh   = -0.4
+
+
+    emsa_list = [-10, -5, -2.5, -1, -0.75, -0.1] # [-0.6, -0.4] # np.arange (elow, ehigh+0.05, 0.05)
+    elow    = np.min(emsa_list)
+    ehigh   = np.max (emsa_list)
     pv      = args.pv
     ecenter = (elow+ehigh)/2
-
-    emsa_list = [-0.6, -0.4] # np.arange (elow, ehigh+0.05, 0.05)
-    norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=ecenter, vmax=ehigh)
+    norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=-1, vmax=ehigh)
 
 
     # energies 
@@ -109,19 +110,20 @@ if __name__=="__main__":
         #     my_phi.insert  (0, 0)
         #     T_lower.insert (0, 0)
         #     T_upper.insert (0, 0)
-        plt.plot (my_phi[::3], T_lower[::3], marker='o', markeredgecolor='k', c=rgba_color)
-        plt.plot (my_phi[::3], T_upper[::3], marker='o', markeredgecolor='k', c=rgba_color)
+        plt.plot (my_phi[::3], T_lower[::3], marker='o', markeredgecolor='k', c=rgba_color, label=f"{_emsa}")
+        plt.plot (my_phi[::3], T_upper[::3], marker='o', markeredgecolor='k', c=rgba_color, label="_nolabel_")
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))
     ax.set_yscale ("log")
-    ax.set_yticks ([0.1, 0.5, 1, 5, 10, 50])
+    ax.set_yticks ([0.1, 1, 10, 50 ])
     ax.set_yticklabels (ax.get_yticks(), weight='bold')
     ax.set_xticklabels (ax.get_xticks(), weight='bold')
-    ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{0.5}$", "$\\mathbf{1.0}$", "$\\mathbf{5.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
+    ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{1.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
     # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
-   
+    # plt.legend (prop = { "size": 2.5 }, loc="upper right")
+    ax.set_ylim (0.1, 50)
     plt.savefig (args.pn+".png", bbox_inches='tight', dpi=1200)
 
 

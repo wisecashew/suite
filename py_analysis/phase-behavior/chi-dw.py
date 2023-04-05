@@ -49,7 +49,7 @@ class MinorSymLogLocator(Locator):
 if __name__=="__main__":
 
 
-    ems_list = [-0.6, -0.55, -0.5, -0.45, -0.4]
+    ems_list = [-1.4,-1.5]
     # elow    = -50
     # ehigh   = -1.4
     g  = 0.25
@@ -64,17 +64,25 @@ if __name__=="__main__":
         t2 = pv*(fmma(emma, emmn, T)*emma + (1-fmma(emma, emmn, T))*emmn) + (1-pv)*emmn
         return 24/T * (t1 - 0.5 * t2)   
 
-    norm = matplotlib.colors.TwoSlopeNorm (vmin=np.min(ems_list), vcenter=(ems_list[len(ems_list)//2]), vmax=np.max(ems_list))
+    norm = matplotlib.colors.TwoSlopeNorm (vmin=np.min(ems_list), vcenter=np.mean(ems_list), vmax=np.max(ems_list))
 
 
 
-    E_mm_a = -1; 
-    E_mm_n = -1;
-    E_ms_n =  0;
+
+    E_mm_a = -2.81; 
+    E_mm_n = -2;
+    E_ms_n =  -1.4;
+
+    T = np.arange (0.01, 1.5, 0.01)
+    for t in T:
+        print ("{}, {}".format(t, chi (E_mm_a, E_mm_n, -1.4, E_ms_n, 1.0, t) ))
+
+    exit()
+
 
     T_range = np.logspace (-2, 2, 10)
     it = 0
-    for pv in [0, 0.5, 1.0]:
+    for pv in [1.0]:
 
         print (f"In pv = {pv}...")
         fig = plt.figure(it) #figsize=(4/1.6,3/1.6), constrained_layout=True)

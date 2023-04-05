@@ -16,19 +16,16 @@ parser.add_argument ("--pv", dest="pv", type=np.float64, action='store', help="V
 
 args = parser.parse_args() 
 
-# f           = lambda phi, m, x: phi/m * np.log (phi) + (1-phi)*np.log (1-phi) + x * phi * (1-phi)
-# dfdphi      = lambda phi, m, x: -1 + 1/m + (1 - phi)*x - phi*x - np.log (1-phi) + np.log(phi)/m
-# d2fdphi2    = lambda phi, m, x: 1/(1-phi) + 1/(m*phi) - 2*x
-# d3fdphi3    = lambda phi, m, x: 1/(1-phi)**2 - 1/(m*phi*phi)
-
 
 if __name__=="__main__":
 
+    lsize = 11
     fig = plt.figure(figsize=(4/1.6,3/1.6), constrained_layout=True)
+    fig.tight_layout()
     ax  = plt.axes ()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=8)
-    ax.tick_params(axis='x', labelsize=8)
-    ax.tick_params(axis='y', labelsize=8)
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=lsize)
+    ax.tick_params(axis='x', labelsize=lsize)
+    ax.tick_params(axis='y', labelsize=lsize)
 
     g    = 0.25
     zmm  = lambda emma, emmn, T: g*np.exp (-1/T * emma, dtype=np.float64) + (1-g)*np.exp (-1/T * emmn, dtype=np.float64)
@@ -110,8 +107,8 @@ if __name__=="__main__":
         #     my_phi.insert  (0, 0)
         #     T_lower.insert (0, 0)
         #     T_upper.insert (0, 0)
-        plt.plot (my_phi[::3], T_lower[::3], marker='o', markeredgecolor='k', c=rgba_color, label=f"{_emsa}")
-        plt.plot (my_phi[::3], T_upper[::3], marker='o', markeredgecolor='k', c=rgba_color, label="_nolabel_")
+        plt.plot (my_phi[::3], T_lower[::3], marker='o', markeredgecolor='k', c=rgba_color, zorder=10) # , clip_on=False)
+        plt.plot (my_phi[::3], T_upper[::3], marker='o', markeredgecolor='k', c=rgba_color, zorder=10) #, clip_on=False)
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))
@@ -124,7 +121,8 @@ if __name__=="__main__":
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     # plt.legend (prop = { "size": 2.5 }, loc="upper right")
     ax.set_ylim (0.1, 50)
-    plt.savefig (args.pn+".png", bbox_inches='tight', dpi=1200)
+    ax.set_xlim (0, 1)
+    plt.savefig (args.pn+".png", dpi=1200) # bbox_inches='tight', dpi=1200)
 
 
 

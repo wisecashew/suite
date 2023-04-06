@@ -7,6 +7,7 @@ import matplotlib.cm as cm
 from matplotlib.ticker import StrMethodFormatter
 from matplotlib.ticker import Locator
 import matplotlib.colors as colors
+import time
 
 import argparse 
 parser = argparse.ArgumentParser (description="Create images based on g and pv.")
@@ -64,7 +65,65 @@ if __name__=="__main__":
     ax.tick_params(axis='x', labelsize=8)
     ax.tick_params(axis='y', labelsize=8)
 
- 
+     
+    zmm  = lambda emma, emmn, g, T: g*np.exp ((-1/T * emma), dtype=np.float128) + (1-g)*np.exp ((-1/T * emmn), dtype = np.float128)
+    zms  = lambda emsa, emsn, g, T: g*np.exp ((-1/T * emsa), dtype=np.float128) + (1-g)*np.exp ((-1/T * emsn), dtype = np.float128)
+    fmma = lambda emma, emmn, g, T: g*np.exp ((-1/T * emma), dtype=np.float128) / zmm(emma, emmn, g, T)
+    fmsa = lambda emsa, emsn, g, T: g*np.exp ((-1/T * emsa), dtype=np.float128) / zms(emsa, emsn, g, T)
+    chi  = lambda emma, emmn, emsa, emsn, g, pv, T: 24/T * ( (pv*(fmsa(emsa, emsn, g, T)*emsa + (1-fmsa(emsa, emsn, g, T))*emsn) + (1-pv)*emsn) - 0.5 *(pv*(fmma(emma, emmn, g, T)*emma + (1-fmma(emma, emmn, g, T))*emmn) + (1-pv)*emmn) )
+
+
+    # def make_heatmap(x, y, T, g, pv, linrange):
+    start = time.time()
+    
+    E_mm_a = -3 
+    E_mm_n = -3
+    g  = args.g
+    pv = args.p
+    T_range  = np.logspace (-2,np.log10(25),100)
+    linrange = 1000
+    plot_lim = 5
+    y, x = np.meshgrid (np.linspace (-plot_lim,plot_lim,linrange), np.linspace (-plot_lim,plot_lim,linrange) )
+
+    z = np.zeros (x.shape)
+    for x_idx in range (linrange):
+        for y_idx in range(linrange):
+            chi_T = chi (E_mm_a, E_mm_n, x[x_idx, y_idx], y[x_idx, y_idx], g, pv, T_range)
+            chi_min = np.min(chi_T) # * T_range[np.argmin(chi_T)]
+            chi_max = np.max(chi_T) # * T_range[np.argmax(chi_T)]
+            if (chi_min * chi_max) < 0:
+                z[x_idx, y_idx] = np.max (chi_T)
+            elif (chi_min * chi_max) > 0:
+                z[x_idx, y_idx] = 0
+            elif chi_min * chi_max == 0:
+                z[x_idx, y_idx] = 0
+
+    z_min = np.min(z)
+    z_max = np.max(z)
+
+    print ("z_min = {}".format(z_min))
+    print ("z_max = {}".format(z_max))
+    try:
+        ax.pcolormesh (x, y, z, cmap='Reds', norm=colors.Normalize(vmin=z_min, vmax=50), shading="auto")   
+    except ValueError:
+        ax.pcolormesh (x, y, z, cmap='Reds', vmin=0, vmax=1)   
+
+    # ax.set_xscale ("log")
+    # ax.set_yscale ("symlog")
+    # ax.set_ylim (bottom=-500, top=500)
+    # ax.set_xlim (left=0.01,right=100)
+    # ax.axhline (y=0, c='crimson')
+    # ax.set_xticks ([1e-2, 1e-1, 1, 1e+1, 1e+2])
+
+    ax.minorticks_on()
+    # ax.legend(fontsize="xx-small", loc="lower right")
+   
+    plt.savefig (f"phases-g-{g}-pv-{pv}.png", bbox_inches='tight', dpi=1200)
+    stop = time.time()
+
+    print ("Time for simulation {} seconds.".format (stop-start))
+        
+    """
     def zmm (emma, emmn, g, T):
         return g*np.exp ((-1/T * emma), dtype=np.float128) + (1-g)*np.exp ((-1/T * emmn), dtype = np.float128)
 
@@ -82,62 +141,5 @@ if __name__=="__main__":
         t1 = pv*(fmsa(emsa, emsn, g, T)*emsa + (1-fmsa(emsa, emsn, g, T))*emsn) + (1-pv)*emsn
         t2 = pv*(fmma(emma, emmn, g, T)*emma + (1-fmma(emma, emmn, g, T))*emmn) + (1-pv)*emmn
         return 24 / T * (t1 - 0.5 * t2) # 24/T * (t1 - 0.5 * t2)  
-
-    def make_heatmap(x, y, T, g, pv, linrange):
-
-        
-        E_mm_a = -3 
-        E_mm_n = -3
-
-        z = np.zeros (x.shape)
-
-        for x_idx in range (linrange):
-            for y_idx in range(linrange):
-                chi_T = chi (E_mm_a, E_mm_n, x[x_idx, y_idx], y[x_idx, y_idx], g, pv, T_range)
-                chi_min = np.min(chi_T) # * T_range[np.argmin(chi_T)]
-                chi_max = np.max(chi_T) # * T_range[np.argmax(chi_T)]
-                z[x_idx, y_idx] = np.sign(chi_min * chi_max) * np.max(chi_T)
-
-        return z
-
-    g  = args.g
-    pv = args.p
-    T_range  = np.logspace (-2,np.log10(25),100)
-    linrange = 100
-    plot_lim = 50
-    y, x = np.meshgrid (np.linspace (-plot_lim,plot_lim*2,linrange), np.linspace (-plot_lim,plot_lim,linrange))
-
-
-    z = make_heatmap(x, y, T_range, g, pv, linrange)
-
-    z[z>0] = z[z>0]/np.max(z[z>0])
-    z_max = 1
-
-    try:
-        z[z<0] = -z[z<0]/np.min(z[z<0])
-        z_min = -1
-    except ValueError:
-        z_min = -1
-        pass
-      
-
-    print ("z_min = {}".format(z_min))
-    print ("z_max = {}".format(z_max))
-    ax.pcolormesh (x, y, z, cmap='RdBu', norm=colors.TwoSlopeNorm (vmin=z_min, vcenter=0, vmax=z_max), shading="auto")  
-    
-
-    # ax.set_xscale ("log")
-    # ax.set_yscale ("symlog")
-    # ax.set_ylim (bottom=-500, top=500)
-    # ax.set_xlim (left=0.01,right=100)
-    # ax.axhline (y=0, c='crimson')
-    # ax.set_xticks ([1e-2, 1e-1, 1, 1e+1, 1e+2])
-
-    ax.minorticks_on()
-    # ax.legend(fontsize="xx-small", loc="lower right")
-   
-    plt.savefig (f"phases-g-{g}-pv-{pv}.png", bbox_inches='tight', dpi=1200)
-
-        
-
+    """
 

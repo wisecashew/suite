@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib 
 import matplotlib.pyplot as plt 
 import matplotlib.cm as cm 
+import matplotlib.patheffects as pe 
 from scipy.optimize import fsolve
 from matplotlib.ticker import StrMethodFormatter
 import scipy.optimize as opt 
@@ -44,7 +45,7 @@ if __name__=="__main__":
 
 
     # parameter list
-    phi_list   = np.arange (0.01, 1.0, 0.01)
+    phi_list   = np.arange (0.01, 1.0, 0.001)
     seeds      = [0.005, 0.01, 0.05, 0.1, 1.0, 10.0, 25.0, 50.0]
     roots      = np.array([])
     root_error = np.array([])
@@ -107,8 +108,8 @@ if __name__=="__main__":
         #     my_phi.insert  (0, 0)
         #     T_lower.insert (0, 0)
         #     T_upper.insert (0, 0)
-        plt.plot (my_phi[::3], T_lower[::3], marker='o', markeredgecolor='k', c=rgba_color, zorder=10) # , clip_on=False)
-        plt.plot (my_phi[::3], T_upper[::3], marker='o', markeredgecolor='k', c=rgba_color, zorder=10) #, clip_on=False)
+        plt.plot (my_phi[::1], T_lower[::1], ls='-', lw=3, c=rgba_color, zorder=10, solid_capstyle='round', path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) # , clip_on=False)
+        plt.plot (my_phi[::1], T_upper[::1], ls='-', lw=3, c=rgba_color, zorder=10, solid_capstyle='round', path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) #, clip_on=False)
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))

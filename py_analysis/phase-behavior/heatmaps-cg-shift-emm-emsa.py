@@ -10,9 +10,9 @@ import matplotlib.colors as colors
 import time
 
 import argparse 
-parser = argparse.ArgumentParser (description="Create images based on g and pv.")
-parser.add_argument ("-g", dest='g', action='store', type=float, help="Enter g value.")
-parser.add_argument ("-p", dest='p', action='store', type=float, help="Enter p value.")
+parser = argparse.ArgumentParser (description="Create images based on emsa and emsn.")
+# parser.add_argument ("-g", dest='g', action='store', type=float, help="Enter g value.")
+# parser.add_argument ("-p", dest='p', action='store', type=float, help="Enter p value.")
 
 args = parser.parse_args()
 
@@ -76,27 +76,33 @@ if __name__=="__main__":
     # def make_heatmap(x, y, T, g, pv, linrange):
     start = time.time()
     
-    E_mm_a = -3 
-    E_mm_n = -3
-    g  = args.g
-    pv = args.p
+    E_mm_n = -3 
+    E_ms_n = 0
+    g  = 0.25
+    pv = 1.0
     T_range  = np.logspace (-2, np.log10(50), 100)
     linrange = 100
-    plot_lim = 5
+    plot_lim = 10
 
     y, x = np.meshgrid (np.linspace (-plot_lim,plot_lim,linrange), np.linspace (-plot_lim,plot_lim,linrange) )
 
     z = np.zeros (x.shape)
     for x_idx in range (linrange):
         for y_idx in range(linrange):
-            chi_T = chi (E_mm_a, E_mm_n, x[x_idx, y_idx], y[x_idx, y_idx], g, pv, T_range)
+            chi_T = chi (y[x_idx, y_idx], E_mm_n, x[x_idx, y_idx], E_ms_n, g, pv, T_range)
             chi_min = np.min(chi_T) # * T_range[np.argmin(chi_T)]
             chi_max = np.max(chi_T) # * T_range[np.argmax(chi_T)]
-            if (chi_min * chi_max) < 0:
+            if (chi_min * chi_max) < 0 and chi_max > 0:
                 z[x_idx, y_idx] = np.max (chi_T)
+                print ("e_mm_a = ",y[x_idx, y_idx])
+                print ("e_ms_a = ",x[x_idx, y_idx])
+                print ("max chi_T  = ",np.max(chi_T))
+                print ("min chi_T  = ",np.min(chi_T))
             elif (chi_min * chi_max) > 0:
                 z[x_idx, y_idx] = 0
             elif chi_min * chi_max == 0:
+                z[x_idx, y_idx] = 0
+            else:
                 z[x_idx, y_idx] = 0
 
     z_min = np.min(z)
@@ -111,14 +117,14 @@ if __name__=="__main__":
 
     ax.set_xlim (-plot_lim, plot_lim)
     ax.set_ylim (-plot_lim, plot_lim)
-    ax.set_yticks([-5,0,5])
-    ax.set_xticks([-5,0,5])
+    ax.set_yticks([-plot_lim,0,plot_lim])
+    ax.set_xticks([-plot_lim,0,plot_lim])
     ax.set_xticklabels (ax.get_xticks(), weight='bold')
     ax.set_yticklabels (ax.get_yticks(), weight='bold')
     ax.minorticks_on()
     
    
-    plt.savefig (f"phases-g-{g}-pv-{pv}.png", bbox_inches='tight', dpi=1200)
+    plt.savefig (f"phases-emsa-emsa.png", bbox_inches='tight', dpi=1200)
     stop = time.time()
 
     print ("Time for simulation {} seconds.".format (stop-start))

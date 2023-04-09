@@ -59,11 +59,7 @@ class MinorSymLogLocator(Locator):
 if __name__=="__main__":
     
 
-    fig = plt.figure(figsize=(4/1.6,3/1.6), constrained_layout=True)
-    ax  = plt.axes ()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=11)
-    ax.tick_params(axis='x', labelsize=11)
-    ax.tick_params(axis='y', labelsize=11)
+
 
      
     zmm  = lambda emma, emmn, g, T: g*np.exp ((-1/T * emma), dtype=np.float128) + (1-g)*np.exp ((-1/T * emmn), dtype = np.float128)
@@ -72,62 +68,70 @@ if __name__=="__main__":
     fmsa = lambda emsa, emsn, g, T: g*np.exp ((-1/T * emsa), dtype=np.float128) / zms(emsa, emsn, g, T)
     chi  = lambda emma, emmn, emsa, emsn, g, pv, T: 24/T * ( (pv*(fmsa(emsa, emsn, g, T)*emsa + (1-fmsa(emsa, emsn, g, T))*emsn) + (1-pv)*emsn) - 0.5 *(pv*(fmma(emma, emmn, g, T)*emma + (1-fmma(emma, emmn, g, T))*emmn) + (1-pv)*emmn) )
 
+    g  = 0.25
+    pv = 1.0
+    T_range  = np.logspace (-2, 2, 100)
+    linrange = 100
+    plot_lim = 1
 
+    y, x = np.meshgrid (np.linspace (-plot_lim,0,linrange), np.linspace (-plot_lim,0,linrange) )
+
+    E_mm_n_list = [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
+    E_ms_n_list = [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
     # def make_heatmap(x, y, T, g, pv, linrange):
     start = time.time()
     
-    E_mm_n = -3 
-    E_ms_n = 0
-    g  = 0.25
-    pv = 1.0
-    T_range  = np.logspace (-2, np.log10(50), 100)
-    linrange = 100
-    plot_lim = 10
+    count = 0
+    for E_mm_n in E_mm_n_list:
+        fig_count = 0
+        for E_ms_n in E_ms_n_list:
+            print (f"E_mm_n = {E_mm_n} and E_ms_n = {E_ms_n}")
+            fig = plt.figure(num=count, figsize=(4/1.6,3/1.6), constrained_layout=True)
+            ax  = plt.axes ()
+            ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=11)
+            ax.tick_params(axis='x', labelsize=11)
+            ax.tick_params(axis='y', labelsize=11)
+            z = np.zeros (x.shape)
+            for x_idx in range (linrange):
+                for y_idx in range(linrange):
 
-    y, x = np.meshgrid (np.linspace (-plot_lim,plot_lim,linrange), np.linspace (-plot_lim,plot_lim,linrange) )
+                    chi_T = chi (y[x_idx, y_idx], E_mm_n, x[x_idx, y_idx], E_ms_n, g, pv, T_range)
+                    chi_min = np.min(chi_T) # * T_range[np.argmin(chi_T)]
+                    chi_max = np.max(chi_T) # * T_range[np.argmax(chi_T)]
+                    if (chi_min * chi_max) < 0 and chi_max > 0:
+                        z[x_idx, y_idx] = chi_max - chi_min
+                    elif (chi_min * chi_max) > 0:
+                        z[x_idx, y_idx] = 0
+                    elif chi_min * chi_max == 0:
+                        z[x_idx, y_idx] = 0
+                    else:
+                        z[x_idx, y_idx] = 0
 
-    z = np.zeros (x.shape)
-    for x_idx in range (linrange):
-        for y_idx in range(linrange):
-            chi_T = chi (y[x_idx, y_idx], E_mm_n, x[x_idx, y_idx], E_ms_n, g, pv, T_range)
-            chi_min = np.min(chi_T) # * T_range[np.argmin(chi_T)]
-            chi_max = np.max(chi_T) # * T_range[np.argmax(chi_T)]
-            if (chi_min * chi_max) < 0 and chi_max > 0:
-                z[x_idx, y_idx] = np.max (chi_T)
-                print ("e_mm_a = ",y[x_idx, y_idx])
-                print ("e_ms_a = ",x[x_idx, y_idx])
-                print ("max chi_T  = ",np.max(chi_T))
-                print ("min chi_T  = ",np.min(chi_T))
-            elif (chi_min * chi_max) > 0:
-                z[x_idx, y_idx] = 0
-            elif chi_min * chi_max == 0:
-                z[x_idx, y_idx] = 0
-            else:
-                z[x_idx, y_idx] = 0
+            z_min = np.min(z)
+            z_max = np.max(z)
 
-    z_min = np.min(z)
-    z_max = np.max(z)
+            print ("z_min = {}".format(z_min))
+            print ("z_max = {}".format(z_max))
+            try:
+                ax.pcolormesh (x, y, z, cmap='Reds', norm=colors.SymLogNorm(linthresh=0.001, vmin=0, vmax=3000), shading="auto")   
+            except ValueError:
+                ax.pcolormesh (x, y, z, cmap='Reds', vmin=0, vmax=1)   
 
-    print ("z_min = {}".format(z_min))
-    print ("z_max = {}".format(z_max))
-    try:
-        ax.pcolormesh (x, y, z, cmap='Reds', norm=colors.Normalize(vmin=z_min, vmax=50), shading="auto")   
-    except ValueError:
-        ax.pcolormesh (x, y, z, cmap='Reds', vmin=0, vmax=1)   
+            ax.set_xlim (-plot_lim, 0)
+            ax.set_ylim (-plot_lim, 0)
+            ax.set_yticks([-plot_lim,-0.5,0])
+            ax.set_xticks([-plot_lim,-0.5,0])
+            ax.set_xticklabels (ax.get_xticks(), weight='bold')
+            ax.set_yticklabels (ax.get_yticks(), weight='bold')
+            ax.minorticks_on()
+            # plt.show()      
+            plt.savefig (f"Emmn_{E_mm_n}/fig{fig_count}.png", bbox_inches='tight', dpi=1200)
 
-    ax.set_xlim (-plot_lim, plot_lim)
-    ax.set_ylim (-plot_lim, plot_lim)
-    ax.set_yticks([-plot_lim,0,plot_lim])
-    ax.set_xticks([-plot_lim,0,plot_lim])
-    ax.set_xticklabels (ax.get_xticks(), weight='bold')
-    ax.set_yticklabels (ax.get_yticks(), weight='bold')
-    ax.minorticks_on()
-    
-   
-    plt.savefig (f"phases-emsa-emsa.png", bbox_inches='tight', dpi=1200)
-    stop = time.time()
+            stop = time.time()
+            count += 1
+            fig_count += 1
 
-    print ("Time for simulation {} seconds.".format (stop-start))
+            print ("Time for plot {} seconds.".format (stop-start))
         
     """
     def zmm (emma, emmn, g, T):

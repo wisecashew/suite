@@ -58,10 +58,11 @@ class MinorSymLogLocator(Locator):
 
 if __name__=="__main__":
     
+    fig, axes = plt.subplots(nrows=9, ncols=9)
+    
+    
 
-
-
-     
+    
     zmm  = lambda emma, emmn, g, T: g*np.exp ((-1/T * emma), dtype=np.float128) + (1-g)*np.exp ((-1/T * emmn), dtype = np.float128)
     zms  = lambda emsa, emsn, g, T: g*np.exp ((-1/T * emsa), dtype=np.float128) + (1-g)*np.exp ((-1/T * emsn), dtype = np.float128)
     fmma = lambda emma, emmn, g, T: g*np.exp ((-1/T * emma), dtype=np.float128) / zmm(emma, emmn, g, T)
@@ -72,9 +73,9 @@ if __name__=="__main__":
     pv = 1.0
     T_range  = np.logspace (-2, 2, 100)
     linrange = 100
-    plot_lim = 1
+    plot_lim = 10
 
-    y, x = np.meshgrid (np.linspace (-plot_lim,0,linrange), np.linspace (-plot_lim,0,linrange) )
+    y, x = np.meshgrid (np.linspace (-plot_lim,plot_lim,linrange), np.linspace (-plot_lim,plot_lim,linrange) )
 
     E_mm_n_list = [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
     E_ms_n_list = [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
@@ -82,15 +83,15 @@ if __name__=="__main__":
     start = time.time()
     
     count = 0
+    i = 0
     for E_mm_n in E_mm_n_list:
-        fig_count = 0
+        j = 0
         for E_ms_n in E_ms_n_list:
             print (f"E_mm_n = {E_mm_n} and E_ms_n = {E_ms_n}")
-            fig = plt.figure(num=count, figsize=(4/1.6,3/1.6), constrained_layout=True)
-            ax  = plt.axes ()
-            ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=11)
-            ax.tick_params(axis='x', labelsize=11)
-            ax.tick_params(axis='y', labelsize=11)
+            ax = axes[i][j]
+            ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
+            # ax.tick_params(axis='x', labelsize=11)
+            # ax.tick_params(axis='y', labelsize=11)
             z = np.zeros (x.shape)
             for x_idx in range (linrange):
                 for y_idx in range(linrange):
@@ -110,46 +111,29 @@ if __name__=="__main__":
             z_min = np.min(z)
             z_max = np.max(z)
 
-            print ("z_min = {}".format(z_min))
-            print ("z_max = {}".format(z_max))
+            # print ("z_min = {}".format(z_min))
+            # print ("z_max = {}".format(z_max))
             try:
                 ax.pcolormesh (x, y, z, cmap='Reds', norm=colors.SymLogNorm(linthresh=0.001, vmin=0, vmax=3000), shading="auto")   
             except ValueError:
                 ax.pcolormesh (x, y, z, cmap='Reds', vmin=0, vmax=1)   
 
-            ax.set_xlim (-plot_lim, 0)
-            ax.set_ylim (-plot_lim, 0)
-            ax.set_yticks([-plot_lim,-0.5,0])
-            ax.set_xticks([-plot_lim,-0.5,0])
-            ax.set_xticklabels (ax.get_xticks(), weight='bold')
-            ax.set_yticklabels (ax.get_yticks(), weight='bold')
+            ax.set_xlim (-plot_lim, plot_lim)
+            ax.set_ylim (-plot_lim, plot_lim)
+            ax.set_yticks([-plot_lim,0,plot_lim])
+            ax.set_xticks([-plot_lim,0,plot_lim])
+            ax.set_xticklabels ([])
+            ax.set_yticklabels ([])
             ax.minorticks_on()
             # plt.show()      
-            plt.savefig (f"Emmn_{E_mm_n}/fig{fig_count}.png", bbox_inches='tight', dpi=1200)
+            j += 1
 
             stop = time.time()
-            count += 1
-            fig_count += 1
 
             print ("Time for plot {} seconds.".format (stop-start))
-        
-    """
-    def zmm (emma, emmn, g, T):
-        return g*np.exp ((-1/T * emma), dtype=np.float128) + (1-g)*np.exp ((-1/T * emmn), dtype = np.float128)
 
-    def zms (emsa, emsn, g, T):
-        return g*np.exp ((-1/T * emsa), dtype=np.float128) + (1-g)*np.exp ((-1/T * emsn), dtype = np.float128)
+        i += 1
 
-    def fmma (emma, emmn, g, T):
-        return g*np.exp ((-1/T * emma), dtype=np.float128) / zmm(emma, emmn, g, T)
+    fig.savefig (f"subplots.png", bbox_inches='tight', dpi=1200)
 
-    def fmsa (emsa, emsn, g, T):
-        return g*np.exp ((-1/T * emsa), dtype=np.float128) / zms(emsa, emsn, g, T)
-
-
-    def chi (emma, emmn, emsa, emsn, g, pv, T):
-        t1 = pv*(fmsa(emsa, emsn, g, T)*emsa + (1-fmsa(emsa, emsn, g, T))*emsn) + (1-pv)*emsn
-        t2 = pv*(fmma(emma, emmn, g, T)*emma + (1-fmma(emma, emmn, g, T))*emmn) + (1-pv)*emmn
-        return 24 / T * (t1 - 0.5 * t2) # 24/T * (t1 - 0.5 * t2)  
-    """
 

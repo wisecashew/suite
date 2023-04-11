@@ -43,12 +43,12 @@ def chi(emmn, emma, emsn, emsa, g, pv, T):
 
 if __name__=="__main__":
 
-    fig, axes = plt.subplots(nrows=9, ncols=9, figsize=(4,3), constrained_layout=True)
+    fig, axes = plt.subplots(nrows=9, ncols=9, figsize=(8,6), constrained_layout=True)
     start = time.time()
 
     # define density of time points and range of plots
     linrange = 1000
-    plot_lim = 1
+    plot_lim = 10
 
     # define energies to plot things over 
     E_mm_a, E_mm_n = np.meshgrid (np.linspace(-plot_lim, plot_lim, linrange), np.linspace (-plot_lim, plot_lim, linrange))
@@ -105,7 +105,7 @@ if __name__=="__main__":
 
             print ("begin plotting...", flush=True)
             try:
-                ax.pcolormesh (E_mm_n, E_mm_a, Z, cmap='Reds', norm=colors.SymLogNorm(linthresh=0.001, vmin=0, vmax=3000), shading="auto")
+                ax.pcolormesh (E_mm_n, E_mm_a, Z, cmap='Reds', norm=colors.SymLogNorm(linthresh=0.001, vmin=0, vmax=3000), shading="auto")   
             except ValueError:
                 ax.pcolormesh (E_mm_n, E_mm_a, Z, cmap='Reds', vmin=0, vmax=1)   
 
@@ -119,6 +119,8 @@ if __name__=="__main__":
             ax.set_ylim (-plot_lim, plot_lim)
             ax.set_yticks([-plot_lim,0,plot_lim])
             ax.set_xticks([-plot_lim,0,plot_lim])
+            ax.set_xlabel ("$\\epsilon _{mm} ^{n}$", fontsize=3, weight='bold', labelpad=2)
+            ax.set_ylabel ("$\\epsilon _{mm} ^{a}$", fontsize=3, labelpad=2)
             ax.set_xticklabels (ax.get_xticks(), weight='bold')
             ax.set_yticklabels (ax.get_yticks(), weight='bold')
             ax.minorticks_on()
@@ -127,7 +129,7 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig ("fast-plots-v2.png", bbox_inches="tight")
+    fig.savefig ("fast-plots-longer-v2.png", dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

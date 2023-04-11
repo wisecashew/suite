@@ -10,29 +10,29 @@ import time
 import numexpr as ne
 
 
-@nb.njit # (parallel=True)
+@nb.njit
 def zmm(emmn, emma, g, T):
     return (1-g)*np.exp(-emmn/T) + g * np.exp(-emma/T)
     # return ne.evaluate("(1-g) * exp(-emmn/T) + g * exp(-emma/T)")
 
-@nb.njit # (parallel=True)
+@nb.njit
 def zms(emsn, emsa, g, T):
     return (1-g)*np.exp(-emsn/T) + g * np.exp(-emsa/T)
     # return ne.evaluate("(1-g) * exp(-emsn/T) + g * exp(-emsa/T)")
 
-@nb.njit # (parallel=True)
+@nb.njit
 def fmma(emmn, emma, g, T):
     z = zmm(emmn, emma, g, T)
     return g*np.exp(-emma/T) / z
     # return ne.evaluate("g * exp(-emma/T) / z")
 
-@nb.njit # (parallel=True)
+@nb.njit
 def fmsa(emsn, emsa, g, T):
     z = zms(emsn, emsa, g, T)
     return g*np.exp(-emsa/T) / z
     # return ne.evaluate("g * exp(-emsa/T) / z")
 
-@nb.njit # (parallel=True)
+@nb.njit
 def chi(emmn, emma, emsn, emsa, g, pv, T):
     fmsa_val = fmsa(emsn, emsa, g, T)
     fmma_val = fmma(emmn, emma, g, T)
@@ -43,7 +43,7 @@ def chi(emmn, emma, emsn, emsa, g, pv, T):
 
 if __name__=="__main__":
 
-    fig, axes = plt.subplots(nrows=9, ncols=9, figsize=(4,3), constrained_layout=True)
+    fig, axes = plt.subplots(nrows=9, ncols=9, figsize=(8,6), constrained_layout=True)
     start = time.time()
 
     # define density of time points and range of plots
@@ -127,7 +127,7 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig ("fast-plots-v2.png", bbox_inches="tight")
+    fig.savefig ("fast-plots-v2.png", dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

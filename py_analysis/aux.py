@@ -2525,6 +2525,60 @@ def obtain_order_parameter ( U, N, T, ortn_file_name, idx, starting_index, norm 
 ##########################################################################
 
 
+def obtain_correlation ( U, N, T, ortn_file_name, idx, skip_index ):
+
+    Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \
+            3: np.asarray([-1,0,0]), 4: np.asarray([0,-1,0]), 5: np.asarray([0,0,-1]), \
+            6: np.asarray([1/np.sqrt(2),1/np.sqrt(2),0]), 7: np.asarray([1/np.sqrt(2), 0, 1/np.sqrt(2)]), 8: np.asarray ([1/np.sqrt(2),-1/np.sqrt(2),0]), \
+            9: np.asarray([1/np.sqrt(2),0,-1/np.sqrt(2)]), 10: np.asarray([-1/np.sqrt(2),1/np.sqrt(2),0]), 11: np.asarray([-1/np.sqrt(2),0,1/np.sqrt(2)]), \
+            12: np.asarray([-1/np.sqrt(2),-1/np.sqrt(2),0]), 13: np.asarray([-1/np.sqrt(2),0,-1/np.sqrt(2)]), 14: np.asarray([0,1/np.sqrt(2),1/np.sqrt(2)]), \
+            15: np.asarray([0,1/np.sqrt(2),-1/np.sqrt(2)]), 16: np.asarray([0,-1/np.sqrt(2),1/np.sqrt(2)]), 17: np.asarray([0,-1/np.sqrt(2),-1/np.sqrt(2)]), \
+            18: np.asarray([1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 19: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 20: np.asarray([1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            21: np.asarray([1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]), 22: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),1/np.sqrt(3)]), 23: np.asarray([-1/np.sqrt(3),1/np.sqrt(3),-1/np.sqrt(3)]), \
+            24: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),1/np.sqrt(3)]), 25: np.asarray([-1/np.sqrt(3),-1/np.sqrt(3),-1/np.sqrt(3)]) }
+    start_str = "START for Step"
+    end_str   = "END"
+
+    df = pd.read_csv(U+"/DOP_"+str(N)+"/"+str(T)+"/energydump_"+str(idx)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+
+    starting_index =  int(df["time_step"].values[-1]-skip_index)
+    # print ("df_fin_val = {}, T = {}, idx = {}, start = {}".format (df["time_step"].values[-1], T, idx, starting_index))
+
+    f = open(U+"/DOP_"+str(N)+"/"+str(T)+"/"+ortn_file_name+"_"+str(idx)+".mc", 'r')
+
+    extract_orr = False
+    start_bool  = False
+    correlation  = 0
+    corr_list    = []
+
+    for line in f:
+        if re.match ( start_str, line ):
+            a = re.search ("\d+", line)
+            extract_orr = True
+            correlation = 0
+            if int ( a.group(0) ) == starting_index:
+                # print (starting_index)
+                start_bool = True
+            count          = 0
+
+        elif re.match ( end_str, line ) and start_bool:
+            corr_list.append (correlation)
+            correlation = 0
+            extract_orr = False
+
+        elif extract_orr and start_bool:
+            monomer_or = extract_loc_from_string ( line ) [0]
+            solvent_or = extract_loc_from_string ( line ) [1:]
+            for s in solvent_or:
+                correlation += (np.dot(Or2Dir[monomer_or], Or2Dir[s]) > 0.54)
+
+    f.close()
+
+    return np.mean (corr_list)
+
+
+##########################################################################
+##########################################################################
 '''
 def dump_magnetization ( ortn_file_path, starting_index ):
     Or2Dir = { 0: np.asarray([1,0,0]), 1: np.asarray ([0,1,0]), 2: np.asarray([0,0,1]), \

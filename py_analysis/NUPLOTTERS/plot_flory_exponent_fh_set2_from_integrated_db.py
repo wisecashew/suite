@@ -10,7 +10,7 @@ import pandas as pd
 import os
 import time 
 import sys 
-sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/Explicit_Solvation/py_analysis')
+sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis')
 import aux 
 import multiprocessing 
 import itertools
@@ -44,21 +44,23 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
 if __name__ == "__main__":
 	print ("It's FLORY-EXPONENTS-1-20_SET_COMBINED.csv for this regime.", flush=True)
 	start = time.time()
+
 	##################################
+
 	U_list = aux.dir2U ( os.listdir (".") )
 	U_list = ["U1", "U6", "U11"]
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
 	plt.rcParams["axes.labelweight"] = "bold"
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-	ax.tick_params(axis='x', labelsize=8)
-	ax.tick_params(axis='y', labelsize=8)
+	ax.tick_params(axis='x', labelsize=10)
+	ax.tick_params(axis='y', labelsize=10)
 	ax.set (autoscale_on=False)
-	# aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
+	aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
 	i = 0 
 
 	##################################
-	chi_list = [0.1, 0, -0.2] # [0.1, 0.05, 0.01, 0.005, 0.001, 0, -0.005, -0.01, -0.05, -0.1, -0.2]
+	chi_list = [0.1, 0, -0.2]
 	df = pd.read_csv (args.df, sep='|')
 	i = 0
 	temperatures = [0.01, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] 
@@ -72,16 +74,16 @@ if __name__ == "__main__":
 		nu_err      = nu["nu_err" ]/2
 		ax.errorbar (temperatures, nu_averaged, yerr = nu_err, ecolor='k', linewidth=0)
 		ax.plot(temperatures, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
-		label="_nolabel_", linestyle='-', c=rgba_color)
+		label="_nolabel_", linestyle='-', c=rgba_color, clip_on=False, zorder=10)
 		i += 1
 	stop = time.time()
 	
 	# ax.axhline ( y=0.12, color='steelblue', linewidth=3/1.3, linestyle='--')
 	# ax.axhline ( y=0.56, color='darkred',   linewidth=3/1.3, linestyle='--')
-	ax.axhline ( y=0.12, color='midnightblue', linestyle='--', mec='k')
-	ax.axhline ( y=0.56, color='darkred',   linestyle='--', mec='k')
+	ax.axhline ( y=0.12, color='midnightblue', linestyle='--', mec='k', zorder=11)
+	ax.axhline ( y=0.56, color='darkred',   linestyle='--', mec='k', zorder=11)
 	ax.set_xscale('log')
-	ax.set_xlim   ( 0.008, 125 )
+	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
 	ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
 	yticks = np.arange(0.0, 0.9, 0.1) 

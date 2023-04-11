@@ -28,11 +28,17 @@ divnorm = matplotlib.colors.SymLogNorm ( 0.001, vmin=-0.2, vmax=0.1 ) # this is 
 if __name__=="__main__":
 
     # get the entire list of potential energy surfaces 
-    U_list = aux.dir2U ( os.listdir(".") )
-    U_list = aux.dir2U ( os.listdir(".") )
+    # U_list = aux.dir2U ( os.listdir(".") )
+    U_list = ["U1", "U3", "U6", "U9", "U11"] # aux.dir2U ( os.listdir(".") )
     temperatures = [0.01, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] # df[ df["U"] == U ]["T"]
-    plt.figure( figsize=(8,6) )
-    
+    fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
+    ax  = plt.axes() 
+    plt.rcParams["axes.labelweight"] = "bold"
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
+    ax.tick_params(axis='x', labelsize=8)
+    ax.tick_params(axis='y', labelsize=8)
+    ax.set (autoscale_on=False)
+    aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
     PLOT_DICT = {}
 
     i=0
@@ -98,11 +104,7 @@ if __name__=="__main__":
     # plot excluded volume
     contacts =  np.ones ( len(temperatures) ) 
 
-    ax = plt.axes ()
-    ax.tick_params ( direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=16)
-    ax.tick_params ( axis='x', labelsize=16, direction="in", left="off", labelleft="on" )
-    ax.tick_params ( axis='y', labelsize=16, direction="in", left="off", labelleft="on" )
-    
+
     ax.set_xscale('log')
     plt.gca().yaxis.set_major_formatter (StrMethodFormatter('{x:1.1f}'))
     ax.minorticks_on()

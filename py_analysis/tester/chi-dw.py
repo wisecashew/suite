@@ -63,11 +63,11 @@ if __name__=="__main__":
     norm = matplotlib.colors.TwoSlopeNorm (vmin=0, vcenter=0.5, vmax=1.0)
 
     ems_list = [-1]
-    E_mm_a = -0.5055055055055055
-    E_mm_n = -0.5035035035035035
-    E_ms_n =  -0;
+    E_mm_a = 0
+    E_mm_n = 0
+    E_ms_n = -1;
 
-    T_range = np.logspace (-2, 2, 50)
+    T_range = np.logspace (-2, 2, 100)
 
     it = 0
     for pv in [1.0]:
@@ -85,10 +85,11 @@ if __name__=="__main__":
             c = chi(E_mm_a, E_mm_n, E_ms_a, E_ms_n, pv, T_range)
             print (f"c[0] = {c[0]}")
             if c[0] > 0:
-                print ("Expanded at cold temperature.")
-            print ("max chi = {}".format(np.max(c)-c[0]))
-            ax.plot (T_range, chi(E_mm_a, E_mm_n, E_ms_a, E_ms_n, pv, T_range) - chi(E_mm_a, E_mm_n, E_ms_a, E_ms_n, pv, 0.01), marker='o', markeredgecolor='k', c=rgba_color, label=f"$p_v = {pv}, E_{{ms}}^{{a}} = {E_ms_a}$")
-            
+                print ("Collapsed at cold temperature.")
+                print ("max chi = {}".format(np.max(c)-c[0]))
+                ax.plot (T_range, chi(E_mm_a, E_mm_n, E_ms_a, E_ms_n, pv, T_range) - chi(E_mm_a, E_mm_n, E_ms_a, E_ms_n, pv, 0.01), marker='o', markeredgecolor='k', c=rgba_color, label=f"$p_v = {pv}, E_{{ms}}^{{a}} = {E_ms_a}$")
+            else:
+                ax.plot (T_range, chi(E_mm_a, E_mm_n, E_ms_a, E_ms_n, pv, T_range), marker='o', markeredgecolor='k', c=rgba_color, label=f"$p_v = {pv}, E_{{ms}}^{{a}} = {E_ms_a}$")
 
         ax.set_xscale ("log")
         ax.set_yscale ("symlog")

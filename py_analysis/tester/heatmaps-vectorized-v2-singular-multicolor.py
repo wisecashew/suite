@@ -6,12 +6,10 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
+from matplotlib.colors import Normalize
+from matplotlib.cm import ScalarMappable
 import time
 import copy 
-import sys
-
-sys.setrecursionlimit(5000)
-np.set_printoptions(threshold=sys.maxsize)
 
 
 def has_adjacent_zero(matrix):
@@ -23,41 +21,6 @@ def has_adjacent_zero(matrix):
     zero_adjacency = (shifted_up == 0) | (shifted_down == 0) | (shifted_left == 0) | (shifted_right == 0)
     nonzeros = matrix != 0
     return (zero_adjacency & nonzeros)*1
-
-
-def get_neighbor_indices(matrix, tup):
-    """
-    Returns indices of all neighbors in a 3x3 neighborhood that are 1s.
-    """
-    rows, cols = matrix.shape
-    rmin, rmax = max(0, tup[0]-1), min(rows, tup[0]+2)
-    cmin, cmax = max(0, tup[1]-1), min(cols, tup[1]+2)
-    idx = np.ix_(range(rmin, rmax), range(cmin, cmax))
-    neighbors = matrix[idx]
-    idx_neighbors = np.column_stack(np.where(neighbors == 1))
-    idx_neighbors[:, 0] += rmin
-    idx_neighbors[:, 1] += cmin
-    idx_neighbors = np.delete(idx_neighbors, np.argwhere(np.all(idx_neighbors == [tup[0], tup[1]], axis=1)), axis=0)
-    idx_neighbors = [ tuple(elem) for elem in idx_neighbors ]
-    return idx_neighbors
-
-def graph_traversal (trav, cleaned_mat, indices):
-
-    for ind in indices:
-        trav.add (ind)
-        cleaned_mat[ind] = 0
-    
-    for ind in indices:
-        l_of_indices = get_neighbor_indices (cleaned_mat, ind)
-        print (l_of_indices)
-        if len(l_of_indices) == 0:
-            return 
-        else:
-            graph_traversal (trav, cleaned_mat, l_of_indices)
-
-    return
-
-
 
 
 @nb.njit
@@ -93,8 +56,8 @@ def chi(emmn, emma, emsn, emsa, g, pv, T):
 
 if __name__=="__main__":
 
-    E_ms_a_list = [-1] # [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
-    E_ms_n_list = [0 ] # [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
+    E_ms_a_list = [0] # [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
+    E_ms_n_list = [0] # [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
 
     fig, axes = plt.subplots(nrows=len(E_ms_a_list), ncols=len(E_ms_n_list), figsize=(8,6), constrained_layout=True)
     start = time.time()
@@ -145,7 +108,6 @@ if __name__=="__main__":
         E_ms_a_expanded = E_ms_a [:, :, np.newaxis]
 
         for e_ms_n in E_ms_n_list:
-            branch = set () 
             print (f"ccount = {ccount}", flush=True)
             ccount += 1
 
@@ -163,47 +125,51 @@ if __name__=="__main__":
 
             print ("Processing the calculated chis...", flush=True)
             hold   = (np.max(Z_expanded, axis=-1)>0) & (Z_expanded[:,:,0]<0)
-            Z      = np.where (hold, np.max(Z_expanded, axis=-1) - (Z_expanded[:,:,0]), 0)
+            # Z_cg   = np.where (hold, np.max(Z_expanded, axis=-1), 0)
+            Z_cg   = np.where (hold, np.max(Z_expanded, axis=-1) - (Z_expanded[:,:,0]), 0)
+            
+            hold   = (np.max(Z_expanded, axis=-1)<0) & (Z_expanded[:,:,0]<0)
+            # Z_cc   = np.where (hold, np.max(Z_expanded, axis=-1), 0)    
+            Z_cc   = np.where (hold, np.max(Z_expanded, axis=-1) - (Z_expanded[:,:,0]), 0)    
 
-            Z_copy = has_adjacent_zero (Z)
+            hold   = (np.min(Z_expanded, axis=-1)>0) & (Z_expanded[:,:,0]>0)
+            # Z_gg   = np.where (hold, np.min(Z_expanded, axis=-1) , 0)    
+            Z_gg   = np.where (hold, (Z_expanded[:,:,0]) - np.min(Z_expanded, axis=-1) , 0)    
 
-            # we have the boundaries. 
-            # now let's segregate this into arms. 
-            # let's get rid of the mostly perpendicular arms. 
-            # for the first part, let's get indices of the boundary points 
-            # find a boundary point first from the left, and then burn everything in contact with it
+            hold   = (np.min(Z_expanded, axis=-1)<0) & (Z_expanded[:,:,0]>0)
+            # Z_gc   = np.where (hold, np.min(Z_expanded, axis=-1) , 0)    
+            Z_gc   = np.where (hold, (Z_expanded[:,:,0]) - np.min(Z_expanded, axis=-1) , 0)    
 
+            print ("Processed!", flush=True)
             
             print ("begin plotting...", flush=True)
             try:
-                # ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', norm=colors.LogNorm(vmin=np.min(Z[Z>0]), vmax=np.max(Z[Z>0])), shading="auto" )
-                ax.pcolormesh ( E_mm_n, E_mm_a, Z_copy, cmap="Reds", norm=colors.Normalize(vmin=0, vmax=1), shading="auto" )
-                ax.pcolormesh ( E_mm_n[400:500,350:550], E_mm_a[400:500,350:550], Z_copy[400:500,350:550], cmap="Greys", norm=colors.Normalize(vmin=0, vmax=1), shading="auto" )
+                
+                # sm1 = ScalarMappable (cmap='Reds', norm=Normalize(vmin=0, vmax=1))
+                # sm1.set_array([])
+                # p1 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_cg, cmap="Reds"    , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_cg[Z_cg>0]), vmax=np.max(Z_cg[Z_cg>0])), shading="auto" )
+
+                sm2 = ScalarMappable (cmap='Greens', norm=Normalize(vmin=0, vmax=1))
+                sm2.set_array([])
+                p2 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap="Greens"  , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_cc[Z_cc>0]), vmax=np.max(Z_cc[Z_cc>0])), shading="auto" )
+                
+                sm3 = ScalarMappable (cmap='Blues', norm=Normalize(vmin=0, vmax=1))
+                sm3.set_array([])
+                p3 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap="Blues"   , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_gg[Z_gg>0]), vmax=np.max(Z_gg[Z_gg>0])), shading="auto" )
+
+                
+                sm4 = ScalarMappable (cmap='Purples', norm=Normalize(vmin=0, vmax=1))
+                sm4.set_array([])
+                p4 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap="Purples" , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_gc[Z_gc>0]), vmax=np.max(Z_gc[Z_gc>0])), shading="auto" )
+
             except ValueError:
                 # ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', vmin=0, vmax=1 )   
                 pass
 
-            indices_of_ones = np.argwhere (Z_copy[400:500, 350:550])
-            # print (indices_of_ones)
-            x_vals = [ E_mm_n[tuple(elem)] for elem in indices_of_ones ]
-            y_vals = [ E_mm_a[tuple(elem)] for elem in indices_of_ones ]
-            # print(x_vals)
-            # print(y_vals)
-
-            slope, intercept = np.polyfit (x_vals, y_vals, 1)
-            corr_matrix = np.corrcoef(x_vals, y_vals)
-            r2 = corr_matrix[0,1]**2
-
-            print (f"Slope: {slope}")
-            print (f"Intercept: {intercept}")
-            print (f"R-squared: {r2}")
-
-            
-
             del E_ms_n         
             del E_ms_n_expanded
             del Z_expanded     
-            del Z              
+            # del Z              
             del hold
             # del mask           
 
@@ -219,7 +185,7 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig ("fast-singular-plots.png", dpi=1200, bbox_inches="tight")
+    fig.savefig ("fast-singular-plots-multicolor.png", dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

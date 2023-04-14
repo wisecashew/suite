@@ -45,7 +45,7 @@ if __name__=="__main__":
 
 
     # parameter list
-    phi_list   = np.arange (0.01, 1.0, 0.001)
+    phi_list   = np.arange (0.01, 1.0, 0.0005)
     seeds      = [0.005, 0.01, 0.05, 0.1, 1.0, 10.0, 25.0, 50.0]
     roots      = np.array([])
     root_error = np.array([])
@@ -103,21 +103,21 @@ if __name__=="__main__":
                 print ("Root finding was unstable.")
 
             
-        rgba_color   = cm.PiYG( norm (_emsa) )
+        rgba_color   = cm.winter( norm (_emsa) )
         # if _emsa > -1.45:
         #     my_phi.insert  (0, 0)
         #     T_lower.insert (0, 0)
         #     T_upper.insert (0, 0)
-        plt.plot (my_phi[::1], T_lower[::1], ls='-', lw=3, c=rgba_color, zorder=10, solid_capstyle='round', path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) # , clip_on=False)
-        plt.plot (my_phi[::1], T_upper[::1], ls='-', lw=3, c=rgba_color, zorder=10, solid_capstyle='round', path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) #, clip_on=False)
+        plt.plot (my_phi[::1], T_lower[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round')# , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) # , clip_on=False)
+        plt.plot (my_phi[::1], T_upper[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round')# , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) #, clip_on=False)
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))
     ax.set_yscale ("log")
     ax.set_yticks ([0.1, 1, 10, 50 ])
-    ax.set_yticklabels (ax.get_yticks(), weight='bold')
-    ax.set_xticklabels (ax.get_xticks(), weight='bold')
-    ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{1.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
+    ax.set_yticklabels (ax.get_yticks()) # , weight='bold')
+    ax.set_xticklabels (ax.get_xticks()) # , weight='bold')
+    # ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{1.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
     # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     # plt.legend (prop = { "size": 2.5 }, loc="upper right")

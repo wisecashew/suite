@@ -62,10 +62,10 @@ if __name__=="__main__":
 
     norm = matplotlib.colors.TwoSlopeNorm (vmin=0, vcenter=0.5, vmax=1.0)
 
-    ems_list = [-1]
-    E_mm_a = 0
+    ems_list = [0]
+    E_mm_a = 1
     E_mm_n = 0
-    E_ms_n = -1;
+    E_ms_n = 0
 
     T_range = np.logspace (-2, 2, 100)
 

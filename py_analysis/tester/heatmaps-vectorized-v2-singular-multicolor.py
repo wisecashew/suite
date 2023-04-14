@@ -140,31 +140,36 @@ if __name__=="__main__":
             # Z_gc   = np.where (hold, np.min(Z_expanded, axis=-1) , 0)    
             Z_gc   = np.where (hold, (Z_expanded[:,:,0]) - np.min(Z_expanded, axis=-1) , 0)    
 
+            min_list = [np.min(Z_cc[Z_cc>0]), np.min(Z_gg[Z_gg>0]), np.min(Z_gc[Z_gc>0])]
+            max_list = [np.max(Z_cc[Z_cc>0]), np.max(Z_gg[Z_gg>0]), np.max(Z_gc[Z_gc>0])]
+
+            print (f"min_list = {min_list}") 
+            print (f"max_list = {max_list}") 
+
             print ("Processed!", flush=True)
             
             print ("begin plotting...", flush=True)
-            try:
-                
-                # sm1 = ScalarMappable (cmap='Reds', norm=Normalize(vmin=0, vmax=1))
-                # sm1.set_array([])
-                # p1 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_cg, cmap="Reds"    , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_cg[Z_cg>0]), vmax=np.max(Z_cg[Z_cg>0])), shading="auto" )
+            # try:
+            # hold_cg = Z_cg > 0
+            # ax.scatter (E_mm_n[hold_cg], E_mm_a[hold_cg], c=Z_cg[hold_cg], cmap="Reds"   , norm=colors.Normalize(vmin=np.min(Z_cg[hold_cg]), vmax=np.max(Z_cg[hold_cg]) ) )
 
-                sm2 = ScalarMappable (cmap='Greens', norm=Normalize(vmin=0, vmax=1))
-                sm2.set_array([])
-                p2 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap="Greens"  , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_cc[Z_cc>0]), vmax=np.max(Z_cc[Z_cc>0])), shading="auto" )
-                
-                sm3 = ScalarMappable (cmap='Blues', norm=Normalize(vmin=0, vmax=1))
-                sm3.set_array([])
-                p3 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap="Blues"   , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_gg[Z_gg>0]), vmax=np.max(Z_gg[Z_gg>0])), shading="auto" )
+            hold_cc = Z_cc > 0
+            ax.scatter (E_mm_n[hold_cc], E_mm_a[hold_cc], c=Z_cc[hold_cc], cmap="Greens" , norm=colors.LogNorm(vmin=np.min(Z_cc[hold_cc]), vmax=np.max(Z_cc[hold_cc]) ) )                
 
-                
-                sm4 = ScalarMappable (cmap='Purples', norm=Normalize(vmin=0, vmax=1))
-                sm4.set_array([])
-                p4 = ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap="Purples" , shading="auto") # ,   norm=colors.LogNorm(vmin=np.min(Z_gc[Z_gc>0]), vmax=np.max(Z_gc[Z_gc>0])), shading="auto" )
+            hold_gg = Z_gg > 0
+            ax.scatter (E_mm_n[hold_gg], E_mm_a[hold_gg], c=Z_gg[hold_gg], cmap="Blues"  , norm=colors.LogNorm(vmin=np.min(Z_gg[hold_gg]), vmax=np.max(Z_gg[hold_gg]) ) )
 
-            except ValueError:
-                # ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', vmin=0, vmax=1 )   
-                pass
+            hold_gc = Z_gc > 0
+            ax.scatter (E_mm_n[hold_gc], E_mm_a[hold_gc], c=Z_gc[hold_gc], cmap="Purples", norm=colors.LogNorm(vmin=np.min(Z_gc[hold_gc]), vmax=np.max(Z_gc[hold_gc]) ) )
+
+            # ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap="Greens"  , norm=colors.LogNorm(vmin=np.min(Z_cc[Z_cc>0]), vmax=np.max(Z_cc[Z_cc>0])), shading="auto" )
+            # ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap="Blues"   , norm=colors.LogNorm(vmin=np.min(Z_gg[Z_gg>0]), vmax=np.max(Z_gg[Z_gg>0])), shading="auto" )
+            # ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap="Purples" , norm=colors.LogNorm(vmin=np.min(Z_gc[Z_gc>0]), vmax=np.max(Z_gc[Z_gc>0])), shading="auto" )
+
+            # except ValueError:
+            #     print ("Something is fucked.")
+            # ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', vmin=0, vmax=1 )   
+            #     pass
 
             del E_ms_n         
             del E_ms_n_expanded
@@ -185,7 +190,9 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
+    print ("Generating image...", flush=True)
     fig.savefig ("fast-singular-plots-multicolor.png", dpi=1200, bbox_inches="tight")
+    print ("Generated image!", flush=True)
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

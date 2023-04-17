@@ -53,18 +53,23 @@ def map_maker (hex_code):
 if __name__=="__main__":
 
     #41CA27 (green), '#D8CA27' (ochre yellow), '#EE9EFE' (pink), '#00A8FF' (coolblue)
-    hexcolor_cg = '#1FB967' 
+    hexcolor_cg = '#B91F72'
     cmap_cg     = map_maker (hexcolor_cg)
 
     hexcolor_cc = '#369DE8'
     cmap_cc     = map_maker (hexcolor_cc)
 
-    hexcolor_gg = '#B91F72'
+    hexcolor_gg = '#1FB967' 
     cmap_gg     = map_maker (hexcolor_gg) 
 
     hexcolor_gc = '#B9B41F'
     cmap_gc     = map_maker (hexcolor_gc)
 
+
+    font = {'family': 'helvetica',
+        'color':  'black',
+        'weight': 'normal',
+        'size': 11}
 
     E_ms_a_list = [-1, -0.5, 0]
     E_ms_n_list = [-1, -0.5, 0]
@@ -84,7 +89,7 @@ if __name__=="__main__":
     T_broadcast = np.broadcast_to (T, (E_mm_a.shape[0], E_mm_a.shape[1], len(T)))
 
     # get the other data structures
-    g = 0.25
+    g = 0.5
     G = g * np.ones (E_mm_a.shape)
 
     pv = 1.0
@@ -110,10 +115,10 @@ if __name__=="__main__":
             print (f"ccount = {ccount}", flush=True)
             ccount += 1
 
-            ax = axes[rcount][ccount]
+            ax = axes[2-rcount][ccount]
             ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', labelsize=10, pad=5)
-            ax.tick_params(axis='x', labelsize=10, width=2)
-            ax.tick_params(axis='y', labelsize=10, width=2)
+            ax.tick_params(axis='x', labelsize=10)
+            ax.tick_params(axis='y', labelsize=10)
 
 
             E_ms_n = e_ms_n * np.ones (E_mm_a.shape)
@@ -229,8 +234,8 @@ if __name__=="__main__":
             ax.set_xticks([-plot_lim,0,plot_lim])
             # ax.set_xlabel ("$\\mathbf{ \\epsilon _{mm} } ^{\\perp}$ ", fontsize=6, weight='bold', labelpad=2)
             # ax.set_ylabel ("$\\mathbf{ \\epsilon _{mm} ^{\\parallel} }$", fontsize=6, labelpad=2)
-            ax.set_xticklabels (ax.get_xticks(), weight='bold')
-            ax.set_yticklabels (ax.get_yticks(), weight='bold')
+            ax.set_xticklabels (ax.get_xticks(), fontdict=font)
+            ax.set_yticklabels (ax.get_yticks(), fontdict=font)
             ax.minorticks_on()
             print ("plotted!", flush=True)
 

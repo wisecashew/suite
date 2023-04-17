@@ -20,12 +20,19 @@ args = parser.parse_args()
 
 if __name__=="__main__":
 
+# Set tick label font properties
+    font = {'family': 'helvetica',
+        'color':  'black',
+        'weight': 'normal',
+        'size': 11}
+
+
     lsize = 11
     fig = plt.figure(figsize=(4/1.6,3/1.6), constrained_layout=True)
     fig.tight_layout()
     ax  = plt.axes ()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5, labelsize=lsize)
-    ax.tick_params(axis='x', labelsize=lsize)
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
+    ax.tick_params(axis='x', labelsize=0)
     ax.tick_params(axis='y', labelsize=lsize)
 
     g    = 0.25
@@ -45,7 +52,7 @@ if __name__=="__main__":
 
 
     # parameter list
-    phi_list   = np.arange (0.01, 1.0, 0.0005)
+    phi_list   = np.arange (0.01, 1.0, 0.001)
     seeds      = [0.005, 0.01, 0.05, 0.1, 1.0, 10.0, 25.0, 50.0]
     roots      = np.array([])
     root_error = np.array([])
@@ -108,21 +115,26 @@ if __name__=="__main__":
         #     my_phi.insert  (0, 0)
         #     T_lower.insert (0, 0)
         #     T_upper.insert (0, 0)
-        plt.plot (my_phi[::1], T_lower[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round')# , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) # , clip_on=False)
-        plt.plot (my_phi[::1], T_upper[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round')# , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) #, clip_on=False)
+        ax.plot (my_phi[::1], T_lower[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round', label="$\\epsilon _{ms} ^{\\parallel}$ = " + str(_emsa) ) # , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) # , clip_on=False)
+        ax.plot (my_phi[::1], T_upper[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round')# , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) #, clip_on=False)
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 1, 6))
     ax.set_yscale ("log")
     ax.set_yticks ([0.1, 1, 10, 50 ])
-    ax.set_yticklabels (ax.get_yticks()) # , weight='bold')
-    ax.set_xticklabels (ax.get_xticks()) # , weight='bold')
+    ax.set_yticklabels (ax.get_yticks(), fontdict=font) # , weight='bold')
+    if pv == 1.0:
+        ax.set_xticklabels (ax.get_xticks(), fontdict=font) # , weight='bold')
+        plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
+    else:
+        ax.set_xticklabels([])
     # ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{1.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
     # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
-    plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
+    
     # plt.legend (prop = { "size": 2.5 }, loc="upper right")
     ax.set_ylim (0.1, 50)
     ax.set_xlim (0, 1)
+    ax.legend(loc="upper right", fontsize=4, frameon=False, ncol=2)
     plt.savefig (args.pn+".png", dpi=1200) # bbox_inches='tight', dpi=1200)
 
 

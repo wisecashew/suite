@@ -80,8 +80,6 @@ def range_finder (E_mm_a_range, E_mm_n_range, E_ms_list, pv):
     return no_overlap, with_overlap
 
 
-
-
 def bisection (E_list, pv, interval, itermax):
 
     for i in range(itermax):
@@ -142,30 +140,6 @@ def line_search (E_list, E_mm_n_range, pv):
         return [True, (E_left, E_right)]
 
 
-def find_elbow(x, y):
-    """
-    Identify the elbow point in the data by calculating the angle of the tangent
-    line at each point and finding the point with the maximum change in angle.
-    
-    Parameters:
-    x (numpy.ndarray): The x-coordinates of the data.
-    y (numpy.ndarray): The y-coordinates of the data.
-    
-    Returns:
-    tuple: The x-coordinate and y-coordinate of the elbow point.
-    """
-    # Calculate the angles of the tangent line at each point
-    dx = np.gradient(x)
-    dy = np.gradient(y)
-    angles = np.arctan2(dy, dx)
-
-    # Find the point with the maximum change in angle
-    angle_diff = np.abs(np.diff(angles))
-    elbow_idx = np.argmax(angle_diff)
-
-    return x[elbow_idx], y[elbow_idx]
-
-
 
 if __name__=="__main__":
 
@@ -186,14 +160,13 @@ if __name__=="__main__":
     E_mm_n_list = []
 
     # for points with no overlap, I can use bisection 
-
     for E_mm_a in E_mm_a_no_overlap:
         E_list = [E_mm_a, 0, E_ms_a, E_ms_n]
         E_mm_n_interval = [-1.9, 2.5]
         E_mm_n_list.append ( bisection (E_list, pv, E_mm_n_interval, 100) )
 
 
-    data = {"E_mm_n": E_mm_a_no_overlap, "E_mm_a": E_mm_n_list}
+    data = {"E_mm_a": E_mm_a_no_overlap, "E_mm_n": E_mm_n_list}
     df = pd.DataFrame.from_dict (data)
     df.to_csv ("boundaries_tophalf.csv", index=False)
 
@@ -211,6 +184,11 @@ if __name__=="__main__":
             E_mm_a_wo_plot.append (E_mm_a)
         else:
             continue
+
+
+    data = {"E_mm_a": E_mm_a_wo_plot, "E_mm_n": right_arm}
+    df   = pd.DataFrame.from_dict (data)
+    df.to_csv ("boundaries_rightarm.csv", index=False)
 
 
     plt.figure(1)
@@ -234,7 +212,7 @@ if __name__=="__main__":
 
     data = {"E_mm_n": x, "E_mm_a": y}
     df = pd.DataFrame.from_dict (data)
-    df.to_csv ("boundaried.csv", index=False)
+    df.to_csv ("boundaries_total.csv", index=False)
 
     """
     data = np.vstack ((x, y)).T
@@ -247,7 +225,6 @@ if __name__=="__main__":
     plt.scatter(x, y, c=labels, cmap='viridis')
     plt.savefig("division", dpi=1200, bbox_inches="tight")
     """
-    
 
     """
     y = np.arange (-1.5, 2.5, 0.1)
@@ -273,9 +250,3 @@ if __name__=="__main__":
     plt.ylim (-2.5, 2.5)
     plt.show ()
     """
-    
-    
-    
-
-    
-    

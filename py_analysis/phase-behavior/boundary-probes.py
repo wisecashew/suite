@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 from scipy.stats import linregress
 import scipy.optimize as so
 import time
+import argparse
+
+
 
 # set up the functions that calculate chi_eff
 
@@ -86,9 +89,17 @@ def range_finder_for_c_to_g (E_mm_a_range, E_mm_n_range, E_ms_list, pv):
 
     for E_mm_a in E_mm_a_range:
         E_list = [E_mm_a, E_mm_n_range[0 ], E_ms_list[0], E_ms_list[1]]
+        if E_mm_a == -1.6740000000000348:
+            print (f"E_list = {E_list}")    
         c1 = check_temp_interval_for_c_to_g (E_list, pv)
         E_list = [E_mm_a, E_mm_n_range[-1], E_ms_list[0], E_ms_list[1]]
+        if E_mm_a == -1.6740000000000348:
+            print (f"E_list = {E_list}")
         c2 = check_temp_interval_for_c_to_g (E_list, pv)
+
+        if E_mm_a == -1.6740000000000348:
+            print (f"c1 = {c1}")
+            print (f"c2 = {c2}")
 
         if c1 + c2 == 1:
             no_overlap.append   (E_mm_a)
@@ -111,6 +122,7 @@ def bisection_for_c_to_g (E_list, pv, interval, itermax):
         res_r = check_temp_interval_for_c_to_g (E_list_r, pv) 
 
         if res_l + res_r != 1:
+            
             print (f"Low T sign = {np.sign( chi (E_list_l[0], E_list_l[1], E_list_l[2], E_list_l[3], pv, 0.01) )}")
             print (f"High T sign = {np.sign( np.max ( chi (E_list_l[0], E_list_l[1], E_list_l[2], E_list_l[3], pv,  np.logspace(-2,2,100) ) ) ) }")
             print (f"E_list_l = {E_list_l}")
@@ -122,7 +134,7 @@ def bisection_for_c_to_g (E_list, pv, interval, itermax):
         else:
             E_list_m = copy.copy(E_list)
             E_list_m[1] = np.mean(interval)
-            res_m = check_temp_interval (E_list_m, pv)
+            res_m = check_temp_interval_for_c_to_g (E_list_m, pv)
 
         if res_l + res_m == 1:
             interval[1] = np.mean(interval)
@@ -181,16 +193,16 @@ def get_slope_top_left_c_to_g (infile1, infile2, outfile):
         range_of_indices = [range_of_indices[0]+elbow_loc * L, range_of_indices[0]+(elbow_loc+1)*L] # np.arange (elbow_loc*L,(elbow_loc+1)*L)
 
     m1, b1, r1, p1, se1 = linregress (X[0, 0:range_of_indices[0]], X[1, 0:range_of_indices[0]])
-    m2, b2, r2, p2, se2 = linregress (X[0, range_of_indices[1]:], X[1, range_of_indices[1]:])
+    m2, b2, r2, p2, se2 = linregress (X[0, range_of_indices[1]:] , X[1, range_of_indices[1]:] )
 
     f = open (outfile, 'a')
-    f.write (f"Slope of top part of the c-g boundary = {m1}, and R-squared = {r1**2}\n")
-    f.write (f"Slope of bottom part of the c-g boundary = {m2}, and R-squared = {r2**2}\n")
+    f.write (f"Slope of bottom part of the c-g boundary = {m1}, and R-squared = {r1**2}\n")
+    f.write (f"Slope of left part of the c-g boundary   = {m2}, and R-squared = {r2**2}\n")
 
 
-    df = pd.read_csv (infile2, names=["Emma", "Emmn"], sep=',', engine='python', skiprows=1)
+    df = pd.read_csv (infile2, names=["Emma", "Emmn_left", "Emmn_right"], sep=',', engine='python', skiprows=1)
 
-    x = df["Emmn"].values
+    x = df["Emmn_right"].values
     y = df["Emma"].values 
 
     m3, b3, r3, p3, se3 = linregress (x, y)    
@@ -207,7 +219,9 @@ def generate_boundaries_for_c_to_g (E_ms_a, E_ms_n, pv, outfile, ax):
     E_mm_min  = E_ms_min * 2
 
     E_mm_a_range = np.arange (E_mm_min+0.01, 2.5, 0.001)
+    E_mm_a_range[-1] = 2.5
     E_mm_n_range = np.arange (E_mm_min+0.01, 2.5, 0.001)
+    E_mm_n_range[-1] = 2.5
 
     E_mm_a_no_overlap, E_mm_a_with_overlap = range_finder_for_c_to_g ( E_mm_a_range, E_mm_n_range, E_ms_list, pv)
 
@@ -216,7 +230,7 @@ def generate_boundaries_for_c_to_g (E_ms_a, E_ms_n, pv, outfile, ax):
     # for points with no c->g taking place on the other side, use bisection
     for E_mm_a in E_mm_a_no_overlap:
         E_list = [E_mm_a, 0, E_ms_a, E_ms_n]
-        E_mm_n_interval = [E_ms_min+0.01, 2.5]
+        E_mm_n_interval = [E_mm_min+0.01, 2.5]
         E_mm_n_list.append ( bisection_for_c_to_g (E_list, pv, E_mm_n_interval, 100) )
 
     # we have the top half of the c->g curve
@@ -401,7 +415,7 @@ def generate_boundaries_for_g_to_c (E_ms_a, E_ms_n, pv, outfile, ax):
         E_mm_n_to_append = bisection_for_g_to_c_horizontal (E_list, pv, search_interval, 1000)
         E_mm_n_sol.append (E_mm_n_to_append)
 
-    m_hori, b_hori, r_hori, p_hori, s_hori = linregress (E_mm_a_range, E_mm_n_sol)
+    m_hori, b_hori, r_hori, p_hori, s_hori = linregress (E_mm_n_sol, E_mm_a_range)
 
     ax.plot (E_mm_n_sol, E_mm_a_range, color='steelblue', lw=1, solid_capstyle="round", label="GG/CG")
     ax.plot (E_mm_n_range, E_mm_n_sol, color='steelblue', lw=1, solid_capstyle="round", label="_nolabel_")
@@ -430,7 +444,7 @@ if __name__=="__main__":
     f = open (outfile, 'w')
     f.close ()
 
-    E_ms_n  =  0
+    E_ms_n  = -1
     E_ms_a  = -1
     pv      = 1.0
 
@@ -444,8 +458,8 @@ if __name__=="__main__":
     ax.set_xticks ([-2.5, 0, 2.5])
     ax.set_yticks ([-2.5, 0, 2.5])
 
-    ax.plot ( [-2, -2], [-2, 2.5], c='lightgray', lw=0.25, linestyle='-', label="Primary")
-    ax.plot ( [-2, 2.5], [-2, -2], c='lightgray', lw=0.25, linestyle='-', label="_nolabel_")
+    ax.plot ( [-2, -2], [-2, 2.5], c='dimgray', lw=0.5, linestyle='-', label="Primary")
+    ax.plot ( [-2, 2.5], [-2, -2], c='dimgray', lw=0.5, linestyle='-', label="_nolabel_")
 
     generate_boundaries_for_g_to_c (E_ms_a, E_ms_n, pv, outfile, ax)
     generate_boundaries_for_c_to_g (E_ms_a, E_ms_n, pv, outfile, ax)

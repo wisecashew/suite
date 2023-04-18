@@ -154,9 +154,6 @@ if __name__=="__main__":
 
     E_mm_a_no_overlap, E_mm_a_with_overlap = range_finder (E_mm_a_range, E_mm_n_range, E_ms_list, pv)
 
-    # print (f"no_overlap = {no_overlap}")
-    # print (f"with_overlap = {with_overlap}")
-
     E_mm_n_list = []
 
     # for points with no overlap, I can use bisection 
@@ -198,7 +195,7 @@ if __name__=="__main__":
     plt.xlim (-2.5, 2.5)
     plt.ylim (-2.5, 2.5)
     end = time.time()
-    plt.savefig ("boundaries.png", dpi=1200, bbox_inches="tight")
+    plt.savefig ("just-cg-bounds.png", dpi=1200, bbox_inches="tight")
 
     print (f"Time for finding boundaries is {end-start} seconds")
     x = []

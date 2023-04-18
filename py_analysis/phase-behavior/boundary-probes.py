@@ -9,8 +9,6 @@ import scipy.optimize as so
 import time
 import argparse
 
-
-
 # set up the functions that calculate chi_eff
 
 # g is the density of states fraction
@@ -401,7 +399,7 @@ def generate_boundaries_for_g_to_c (E_ms_a, E_ms_n, pv, outfile, ax):
     # perform the vertical search 
     for E_mm_n in E_mm_n_range:
         E_list [1] = E_mm_n
-        search_interval = [-2.5, 2.5]
+        search_interval = [-3.5, 3.5]
         E_mm_a_to_append = bisection_for_g_to_c_vertical (E_list, pv, search_interval, 1000)
         E_mm_a_sol.append (E_mm_a_to_append)
 
@@ -411,7 +409,7 @@ def generate_boundaries_for_g_to_c (E_ms_a, E_ms_n, pv, outfile, ax):
 
     for E_mm_a in E_mm_a_range:
         E_list [0] = E_mm_a
-        search_interval = [-2.5, 2.5]
+        search_interval = [-3.5, 3.5]
         E_mm_n_to_append = bisection_for_g_to_c_horizontal (E_list, pv, search_interval, 1000)
         E_mm_n_sol.append (E_mm_n_to_append)
 
@@ -435,17 +433,21 @@ def generate_boundaries_for_g_to_c (E_ms_a, E_ms_n, pv, outfile, ax):
 ####################################################################################################
 ####################################################################################################
 
+parser = argparse.ArgumentParser (description="Create boundary plots and calculate slopes.")
+parser.add_argument ("--EMSA", dest='ea', action='store', type=float, help="Value of aligned E_MS energy.")
+parser.add_argument ("--EMSN", dest='en', action='store', type=float, help="Value of misaligned E_MS energy.")
+args = parser.parse_args ()
 
 if __name__=="__main__":
     
     start = time.time()
     # set up the file which will hold all our results
-    outfile = "results.out"
+    outfile = "results_EA_" + str(args.ea) + "_EN_" + str(args.en) + ".out"
     f = open (outfile, 'w')
     f.close ()
 
-    E_ms_n  = -1
-    E_ms_a  = -1
+    E_ms_n  = args.ea
+    E_ms_a  = args.en
     pv      = 1.0
 
     E_min   = np.min ([E_ms_a, E_ms_n])
@@ -455,18 +457,22 @@ if __name__=="__main__":
 
     ax.set_ylim (-2.5, 2.5)
     ax.set_xlim (-2.5, 2.5)
-    ax.set_xticks ([-2.5, 0, 2.5])
-    ax.set_yticks ([-2.5, 0, 2.5])
+    ax.set_xticks ([-2.5, -1, 0, 1, 2.5])
+    ax.set_yticks ([-2.5, -1, 0, 1, 2.5])
 
-    ax.plot ( [-2, -2], [-2, 2.5], c='dimgray', lw=0.5, linestyle='-', label="Primary")
-    ax.plot ( [-2, 2.5], [-2, -2], c='dimgray', lw=0.5, linestyle='-', label="_nolabel_")
+    ax.plot ( [2*E_min, 2*E_min], [2*E_min, 2.5], c='dimgray', lw=0.5, linestyle='-', label="Primary")
+    ax.plot ( [2*E_min, 2.5], [2*E_min, 2*E_min], c='dimgray', lw=0.5, linestyle='-', label="_nolabel_")
 
     generate_boundaries_for_g_to_c (E_ms_a, E_ms_n, pv, outfile, ax)
-    generate_boundaries_for_c_to_g (E_ms_a, E_ms_n, pv, outfile, ax)
 
-    ax.legend(loc="upper right", prop={'size':5})
+    if np.abs(E_ms_n - E_ms_a) > 1e-4:
+        generate_boundaries_for_c_to_g (E_ms_a, E_ms_n, pv, outfile, ax)
+    else:
+        pass
 
-    fig.savefig ("boundaries.png", dpi=1200, bbox_inches="tight")
+    ax.legend(loc="upper right", prop={'size':5}, frameon=False, fancybox=True)
+
+    fig.savefig ("boundaries_EA_" + str(args.ea) + "_EN_" + str(args.en) + ".png", dpi=1200, bbox_inches="tight")
     end = time.time()
 
     print (f"Time required for computation is {end-start} seconds.")

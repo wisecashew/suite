@@ -52,7 +52,7 @@ if __name__=="__main__":
 
 
     # parameter list
-    phi_list   = np.arange (0.01, 1.0, 0.001)
+    phi_list   = np.arange (0.01, 1.0, 0.0001)
     seeds      = [0.005, 0.01, 0.05, 0.1, 1.0, 10.0, 25.0, 50.0]
     roots      = np.array([])
     root_error = np.array([])
@@ -131,7 +131,7 @@ if __name__=="__main__":
     # ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{1.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
     # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     
-    # plt.legend (prop = { "size": 2.5 }, loc="upper right")
+    plt.legend (prop = { "size": 2.5 }, loc="upper right")
     ax.set_ylim (0.1, 50)
     ax.set_xlim (0, 1)
     ax.legend(loc="upper right", fontsize=4, frameon=False, ncol=2)

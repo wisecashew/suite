@@ -46,18 +46,9 @@ if __name__=="__main__":
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
     ax.tick_params(axis='x', labelsize=8)
     ax.tick_params(axis='y', labelsize=8)
-    # ax.set (autoscale_on=False)
-    # aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
-
-    # fig = plt.figure( figsize=(8,6) )
-    # ax  = plt.axes  () 
-    # ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-    # ax.tick_params (axis='x', labelsize=16)
-    # ax.tick_params (axis='y', labelsize=16)
     norm = matplotlib.colors.SymLogNorm ( 0.02, vmin=-0.2, vmax=0.1 ) # this is for entropy 
 
     U_list    = aux.dir2U ( os.listdir (".") ) 
-    # U_list    = ["U6", "U7", "U8", "U9", "U10"]
     PLOT_DICT = {} 
     how_much_to_skip = args.s
     ortn_file      = args.of
@@ -160,7 +151,7 @@ if __name__=="__main__":
     # ax.set_yticks (np.arange (0, 0.45, 0.1) )
     # ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
     # ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.1}') )
-    plt.savefig   ( args.pn + ".png", dpi=1000)
+    plt.savefig   ( args.pn + ".png", dpi=1200)
 
     ##################################
     stop = time.time() 

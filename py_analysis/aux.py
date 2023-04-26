@@ -2324,8 +2324,8 @@ def shape_factor ( U, T, num, dop, coords_file, starting_index ):
 def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
 	filename = U+"/DOP_"+str(dop)+"/"+str(T)+"/"+coords_file+"_"+str(num)+".mc"
 	edge     = edge_length (dop)
-	master_dict  = get_pdict( filename, starting_index, dop, edge, edge, edge) 
-	offset_list = []
+	master_dict  = get_pdict(filename, starting_index, dop, edge, edge, edge)
+	offset_list  = []
 
 	for key in master_dict:
 		coord_arr    = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
@@ -3124,8 +3124,8 @@ class PiecewiseNormalize(Normalize):
 
 
 def gradient_image(ax, extent, direction, cmap_range=(0, 1), **kwargs):
-    # divnorm = matplotlib.colors.TwoSlopeNorm (vcenter=0.33, vmin=0.2, vmax=0.8)
-    divnorm = PiecewiseNormalize ([0.2, 0.3, 0.7, 0.8], [0.1, 0.2, 0.9, 1.0])
+    divnorm = matplotlib.colors.TwoSlopeNorm (vcenter=0.34, vmin=0, vmax=1)
+    # divnorm = PiecewiseNormalize ([0.2, 0.3, 0.7, 0.8], [0.1, 0.2, 0.9, 1.0])
     """
     Draw a gradient image based on a colormap.
 

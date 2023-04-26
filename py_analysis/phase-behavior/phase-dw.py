@@ -20,15 +20,15 @@ args = parser.parse_args()
 
 if __name__=="__main__":
 
-# Set tick label font properties
-    font = {'family': 'helvetica',
-        'color':  'black',
+    plt.rcParams["font.family"] = "Arial"
+    # Set tick label font properties
+    font = {'color':  'black',
         'weight': 'normal',
-        'size': 11}
+        'size': 10}
 
 
     lsize = 11
-    fig = plt.figure(figsize=(4/1.6,3/1.6), constrained_layout=True)
+    fig = plt.figure(figsize=(3,3.375), constrained_layout=True)
     fig.tight_layout()
     ax  = plt.axes ()
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
@@ -52,7 +52,7 @@ if __name__=="__main__":
 
 
     # parameter list
-    phi_list   = np.arange (0.01, 1.0, 0.0001)
+    phi_list   = np.arange (0.01, 1.0, 0.001)
     seeds      = [0.005, 0.01, 0.05, 0.1, 1.0, 10.0, 25.0, 50.0]
     roots      = np.array([])
     root_error = np.array([])
@@ -128,10 +128,6 @@ if __name__=="__main__":
         plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     else:
         ax.set_xticklabels([])
-    # ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{1.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
-    # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
-    
-    plt.legend (prop = { "size": 2.5 }, loc="upper right")
     ax.set_ylim (0.1, 50)
     ax.set_xlim (0, 1)
     ax.legend(loc="upper right", fontsize=4, frameon=False, ncol=2)

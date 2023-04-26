@@ -5,8 +5,9 @@ import re
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.cm as cm
-import matplotlib.pyplot as plt 
+import matplotlib.pyplot as plt
 import matplotlib.ticker as tck
+import matplotlib.colors as colors
 import pandas as pd
 import os
 import time 
@@ -45,23 +46,30 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
 if __name__ == "__main__":
 	start = time.time()
 	##################################
+	font = {'family': 'helvetica', 'color': 'black', 'weight': 'normal', 'size':11}
 
 	U_list = aux.dir2U ( os.listdir (".") )
-	U_list = ["U10"] # ["U1", "U7", "U10"]
+	U_list = ["U9"] # ["U1", "U7", "U10"]
 	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
 	ax  = plt.axes() 
-	plt.rcParams["axes.labelweight"] = "bold"
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-	ax.tick_params(axis='x', labelsize=10)
-	ax.tick_params(axis='y', labelsize=10)
+	ax.tick_params(axis='x', labelsize=9, pad=5)
+	ax.tick_params(axis='y', labelsize=9)
 	ax.set (autoscale_on=False)
-	aux.gradient_image (ax, direction=0, extent=(0, 1, 0, 1), transform=ax.transAxes, cmap=plt.cm.RdBu_r, cmap_range=(0.2, 0.8), alpha=1)
+
+	# Define the gradient colors
+	color1 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
+	color2 = np.array([241, 156, 118]) / 255.0   # #ED8151 in RGB
+	cmap = colors.LinearSegmentedColormap.from_list('custom', [color1, "white", color2])
+	aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=cmap, cmap_range=(0, 1), alpha=1)
 	i = 0 
 
 	##################################
-	chi_list = [-0.2]# [0.1, 0.05, 0.01, 0.005, 0, -0.01, -0.05, -0.1, -0.2]
-	df = pd.read_csv (args.df, sep='|')
+	chi_list = [-0.2] # [0.1, 0.05, 0.01, 0.005, 0, -0.01, -0.05, -0.1, -0.2]
+	df = pd.read_csv (args.df, sep='|', names=["U", "T", "nu_mean", "nu_err"], skiprows=1)
 	i = 0
+	temperatures = [0.01, 0.03, 0.05, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] 
+	df = df[df["T"].isin (temperatures)]
 	# temperatures = np.unique(df[ df["U"] == U_list[0] ]["T"])
 	for U in U_list:
 		# nu_averaged.clear()
@@ -70,23 +78,28 @@ if __name__ == "__main__":
 		nu_averaged = nu["nu_mean"]/2
 		nu_err      = nu["nu_err" ]/2
 		temperatures = nu["T"]
-		ax.errorbar (temperatures[::2], nu_err[::2], yerr=nu_err[::2], ecolor='k', linewidth=0)
-		ax.plot(temperatures[::2], nu_averaged[::2], linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
+		ax.errorbar (temperatures, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
+		ax.plot(temperatures, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
 		label="_nolabel_", linestyle='-', c=rgba_color, clip_on=False, zorder=10)
 		i += 1
+		del nu
+		del nu_averaged
+		del nu_err 
+
 	stop = time.time() 
 	# ax.axhline ( y=0.12, color='steelblue', linewidth=3/1.3, linestyle='--')
 	# ax.axhline ( y=0.56, color='darkred',   linewidth=3/1.3, linestyle='--')
-	ax.axhline ( y=0.12, color='midnightblue', linestyle='--', markeredgecolor='k')
-	ax.axhline ( y=0.56, color='darkred' , linestyle='--', markeredgecolor='k')
+	ax.axhline ( y=0.33, color='midnightblue', linestyle='--', mec='k', linewidth=1, zorder=11)
+	ax.axhline ( y=0.588, color='dimgray', linestyle='--', mec='k', linewidth=1, zorder=11)
 	ax.set_xscale('log')
-	yticks = np.arange(0.0, 0.9, 0.1) 
+	yticks = np.arange(0.3, 0.9, 0.1) 
 	ax.set_yticks ( yticks )
-	ax.set_yticklabels (ax.get_yticks(), weight='bold') 
-	ax.set_ylim   ( 0.0, 0.8 )
+	ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+	ax.set_ylim   ( 0.3, 0.8 )
 	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
-	ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
+	ax.set_xticklabels (["${10^{-2}}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
+	# ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
 	ax.set_aspect('auto')

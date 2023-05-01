@@ -75,6 +75,15 @@ def get_avg_flory (U, T, num, dop, coords_file, starting_index, d1, d2):
 	nu = []
 	y = np.asarray (np.log(y))
 	x = np.asarray (np.log(x)).reshape((-1,1))
+	model = HuberRegressor ()
+	model.fit (x, y)
+	r2 = model.score (x, y)
+	print ("slope = " + str (model.coef_[0]))
+	plt.plot (x, y, marker='o', mec='k', c='steelblue')
+	plt.ylabel ("$\\Delta r_{ij}$")
+	plt.xlabel ("$\\Delta _{ij}$" )
+	plt.savefig ("RAW-FITS.png", dpi=1200, bbox_inches="tight")
+
 	for j in range (1, len(x)-1):
 		model = HuberRegressor()
 		model.fit(x[j-1:j+2], y[j-1:j+2])

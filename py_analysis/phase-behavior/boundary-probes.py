@@ -1,8 +1,10 @@
-#!/Users/satyend/opt/anaconda3/envs/CG/bin/python
+#!~/.conda/envs/data_analysis/bin/python
 
 import numpy as np
 import pandas as pd
 import copy 
+import matplotlib
+matplotlib.use ('agg')
 import matplotlib.pyplot as plt 
 from scipy.stats import linregress
 import scipy.optimize as so
@@ -235,7 +237,7 @@ def generate_boundaries_for_c_to_g (E_ms_a, E_ms_n, pv, outfile, ax):
     # let's put it out so I can look at it later 
     data = {"E_mm_a": E_mm_a_no_overlap, "E_mm_n": E_mm_n_list}
     df   = pd.DataFrame.from_dict (data)
-    infile1 = "boundaries_top_left_half_c_to_g.csv"
+    infile1 = "boundaries_top_left_half_c_to_g_EMSA_"+str(E_ms_a)+"_EMSN_"+str(E_ms_n)+".csv"
     df.to_csv (infile1, index=False)
 
     ax.plot (E_mm_n_list, E_mm_a_no_overlap, c='coral', lw=1, linestyle='-', label="CG/CC")
@@ -262,7 +264,7 @@ def generate_boundaries_for_c_to_g (E_ms_a, E_ms_n, pv, outfile, ax):
 
     data = {"E_mm_a": E_mm_a_wo_plot, "E_mm_n_left": left_arm, "E_mm_n_right": right_arm}
     df   = pd.DataFrame.from_dict (data)
-    infile2 = "boundaries_bottom_right_half_c_to_g.csv"
+    infile2 = "boundaries_bottom_right_half_c_to_g_EMSA_"+str(E_ms_a)+"_EMSN_"+str(E_ms_n)+".csv"
     df.to_csv (infile2, index=False) 
 
     get_slope_top_left_c_to_g (infile1, infile2, outfile)

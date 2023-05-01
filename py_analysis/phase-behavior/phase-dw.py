@@ -20,7 +20,6 @@ args = parser.parse_args()
 
 if __name__=="__main__":
 
-
     plt.rcParams['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
@@ -124,10 +123,7 @@ if __name__=="__main__":
         plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     else:
         ax.set_xticklabels([])
-    # ax.set_yticklabels (["$\\mathbf{0.1}$", "$\\mathbf{1.0}$", "$\\mathbf{10}$", "$\\mathbf{50}$"], weight='bold')
-    # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     
-    # plt.legend (prop = { "size": 2.5 }, loc="upper right")
     ax.set_ylim (0.1, 50)
     ax.set_xlim (0, 1)
     # ax.legend(loc="upper right", fontsize=4, frameon=False, ncol=2)

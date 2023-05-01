@@ -20,15 +20,15 @@ args = parser.parse_args()
 
 if __name__=="__main__":
 
-
-    plt.rcParams['font.family'] = 'Arial'
-    font = {'color':  'black',
+# Set tick label font properties
+    font = {'family': 'helvetica',
+        'color':  'black',
         'weight': 'normal',
-        'size': 10}
+        'size': 11}
 
 
     lsize = 11
-    fig = plt.figure(figsize=(3.375,3), constrained_layout=True)
+    fig = plt.figure(figsize=(4/1.6,3/1.6), constrained_layout=True)
     fig.tight_layout()
     ax  = plt.axes ()
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
@@ -52,7 +52,7 @@ if __name__=="__main__":
 
 
     # parameter list
-    phi_list   = np.arange (0.01, 1.0, 0.01)
+    phi_list   = np.arange (0.01, 1.0, 0.001)
     seeds      = [0.005, 0.01, 0.05, 0.1, 1.0, 10.0, 25.0, 50.0]
     roots      = np.array([])
     root_error = np.array([])
@@ -61,7 +61,7 @@ if __name__=="__main__":
 
 
 
-    emsa_list = [-10, -1, -0.1] # [-0.6, -0.4] # np.arange (elow, ehigh+0.05, 0.05)
+    emsa_list = [-1,-1.01,-0.99] #,-0.99,-0.95] # [-0.6, -0.4] # np.arange (elow, ehigh+0.05, 0.05)
     elow    = np.min(emsa_list)
     ehigh   = np.max (emsa_list)
     pv      = args.pv
@@ -70,7 +70,7 @@ if __name__=="__main__":
 
 
     # energies 
-    _emma = -1; _emmn = -1; _emsn = 0; 
+    _emma = -2.01; _emmn = -0; _emsn = 0; 
     my_phi = []
 
     for _emsa in emsa_list:
@@ -111,6 +111,10 @@ if __name__=="__main__":
 
             
         rgba_color   = cm.winter( norm (_emsa) )
+        # if _emsa > -1.45:
+        #     my_phi.insert  (0, 0)
+        #     T_lower.insert (0, 0)
+        #     T_upper.insert (0, 0)
         ax.plot (my_phi[::1], T_lower[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round', label="$\\epsilon _{ms} ^{\\parallel}$ = " + str(_emsa) ) # , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) # , clip_on=False)
         ax.plot (my_phi[::1], T_upper[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round')# , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) #, clip_on=False)
 
@@ -128,9 +132,9 @@ if __name__=="__main__":
     # plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     
     # plt.legend (prop = { "size": 2.5 }, loc="upper right")
-    ax.set_ylim (0.1, 50)
+    ax.set_ylim (0.01, 50)
     ax.set_xlim (0, 1)
-    # ax.legend(loc="upper right", fontsize=4, frameon=False, ncol=2)
+    ax.legend(loc="upper right", fontsize=4, frameon=False, ncol=2)
     plt.savefig (args.pn+".png", dpi=1200) # bbox_inches='tight', dpi=1200)
 
 

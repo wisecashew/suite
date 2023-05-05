@@ -65,11 +65,8 @@ if __name__=="__main__":
     hexcolor_gc = '#B9B41F'
     cmap_gc     = map_maker (hexcolor_gc)
 
-
-    font = {'family': 'helvetica',
-        'color':  'black',
-        'weight': 'normal',
-        'size': 11}
+    plt.rcParams['font.family'] = 'Arial'
+    font = {'color':  'black','weight': 'normal', 'size': 8}
 
     E_ms_a_list = [-1, -0.5, 0]
     E_ms_n_list = [-1, -0.5, 0]

@@ -1,4 +1,4 @@
-#!/Users/satyend/opt/anaconda3/envs/CG/bin/python
+#!~/.conda/envs/data_analysis/bin/python
 
 import numpy as np
 import matplotlib 
@@ -20,18 +20,18 @@ args = parser.parse_args()
 
 if __name__=="__main__":
 
+    lsize = 8
     plt.rcParams['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
-        'size': 10}
+        'size': lsize}
 
 
-    lsize = 11
-    fig = plt.figure(figsize=(3.375,3), constrained_layout=True)
+    fig = plt.figure(figsize=(2.5,2.0), constrained_layout=True)
     fig.tight_layout()
     ax  = plt.axes ()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
-    ax.tick_params(axis='x', labelsize=0)
+    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
+    ax.tick_params(axis='x', labelsize=0, pad=5)
     ax.tick_params(axis='y', labelsize=lsize)
 
     g    = 0.25
@@ -51,28 +51,29 @@ if __name__=="__main__":
 
 
     # parameter list
-    phi_list   = np.arange (0.01, 1.0, 0.01)
+    phi_list   = np.arange (0.01, 1.0, 0.0001)
     seeds      = [0.005, 0.01, 0.05, 0.1, 1.0, 10.0, 25.0, 50.0]
     roots      = np.array([])
     root_error = np.array([])
     T_lower    = []
     T_upper    = []
 
-
-
-    emsa_list = [-10, -1, -0.1] # [-0.6, -0.4] # np.arange (elow, ehigh+0.05, 0.05)
+    # blue, red, green -> green, blue, red
+    colours   = ["#33CC37", "#3733CC", "#CC3733", "#936C77", "#936C77", "#936C77"]
+    emsa_list = [-3.5, -3.25, -3.1, -3, -2.5, -2, -1.75, -1.5, -1.3, -1.2, -1.1, -1, -0.8, -0.75, -0.65,  -0.5, -0.25, -0.1]
     elow    = np.min(emsa_list)
     ehigh   = np.max (emsa_list)
     pv      = args.pv
     ecenter = (elow+ehigh)/2
-    norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=-1, vmax=ehigh)
+    # norm = matplotlib.colors.TwoSlopeNorm (vmin=elow, vcenter=ecenter, vmax=ehigh)
+    norm = matplotlib.colors.Normalize (vmin=-4,  vmax=0)
 
 
     # energies 
     _emma = -1; _emmn = -1; _emsn = 0; 
     my_phi = []
 
-    for _emsa in emsa_list:
+    for idx, _emsa in enumerate(emsa_list):
         print ("emsa = ", _emsa)
         T_lower.clear ()
         T_upper.clear ()
@@ -93,7 +94,7 @@ if __name__=="__main__":
             roots = roots [hold]
             root_error = root_error [hold]
 
-            hold = root_error < 1e-6
+            hold = root_error < 1e-9
             roots = roots [hold]
             root_error = root_error [hold]
 
@@ -109,7 +110,7 @@ if __name__=="__main__":
                 print ("Root finding was unstable.")
 
             
-        rgba_color   = cm.winter( norm (_emsa) )
+        rgba_color   = cm.turbo( norm (_emsa) )
         ax.plot (my_phi[::1], T_lower[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round', label="$\\epsilon _{ms} ^{\\parallel}$ = " + str(_emsa) ) # , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) # , clip_on=False)
         ax.plot (my_phi[::1], T_upper[::1], ls='-', lw=1, c=rgba_color, zorder=10, solid_capstyle='round')# , path_effects=[pe.Stroke(linewidth=3.5, foreground='k'), pe.Normal()]) #, clip_on=False)
 
@@ -119,7 +120,7 @@ if __name__=="__main__":
     ax.set_yticks ([0.1, 1, 10, 50 ])
     ax.set_yticklabels (ax.get_yticks(), fontdict=font) # , weight='bold')
     if pv == 1.0:
-        ax.set_xticklabels (ax.get_xticks(), fontdict=font) # , weight='bold')
+        ax.set_xticklabels (ax.get_xticks(), fontdict=font, ) # , weight='bold')
         plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
     else:
         ax.set_xticklabels([])

@@ -759,6 +759,7 @@ def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
     master_dict = get_pdict (filename, starting_index, dop, edge, edge, edge)
     rg = get_Rg(master_dict, edge, edge, edge) 
+    # print ("rg = ",rg)
     return rg 
 
 # End of function.
@@ -2326,12 +2327,15 @@ def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
 	edge     = edge_length (dop)
 	master_dict  = get_pdict(filename, starting_index, dop, edge, edge, edge)
 	offset_list  = []
-
+	start = time.time()
 	for key in master_dict:
+		# print (f"key = {key}")
 		coord_arr    = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
 		delta_coords = coord_arr [0:dop-delta] - coord_arr [delta:]
 		offset = list(np.linalg.norm ( delta_coords, axis=1 ) **2 )
 		offset_list.extend(offset)
+	end = time.time()
+	print (f"Time to go through a traj file = {end-start} for delta = {delta}")
 
 	return np.mean (offset_list)
 
@@ -2348,6 +2352,7 @@ def single_sim_flory_exp_energetic_variation ( U, H, num, dop, coords_file, star
 		offset_list.extend(offset)
 
 	return np.mean (offset_list)
+
 ##########################################################################
 ##########################################################################
 

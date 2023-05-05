@@ -25,8 +25,8 @@ trap 'echo "\"${last_command}\" command filed with exit code $?." ' EXIT
 ### code block for running simulations in the simple FH regime 
 #~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
 
-for i in 0.0 0.1 0.25 0.5 1.0; do 
-	python phase-dw.py --pv $i --png-name phases-pv-$i.png &
+for i in 0.0 0.05 0.1 0.25 0.5 1.0; do 
+	python phase-dw.py --pv $i --png-name phases-pv-$i &
 	done 
 
 

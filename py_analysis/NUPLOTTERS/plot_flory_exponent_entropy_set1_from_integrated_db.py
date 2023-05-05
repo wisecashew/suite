@@ -46,20 +46,24 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
 if __name__ == "__main__":
 	start = time.time()
 	##################################
-	font = {'family': 'helvetica', 'color': 'black', 'weight': 'normal', 'size':11}
+
+	plt.rcParams['font.family'] = 'Arial'
+	font = {'color':  'black','weight': 'normal', 'size': 10}
+
+	lsize = 10
+	fig = plt.figure(figsize=(2.8, 1.6), constrained_layout=True)
+	fig.tight_layout()
+	ax  = plt.axes ()
+	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
+	ax.tick_params(axis='x', labelsize=0)
+	ax.tick_params(axis='y', labelsize=lsize)
 
 	U_list = aux.dir2U ( os.listdir (".") )
 	U_list = ["U9"] # ["U1", "U7", "U10"]
-	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
-	ax  = plt.axes() 
-	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-	ax.tick_params(axis='x', labelsize=9, pad=5)
-	ax.tick_params(axis='y', labelsize=9)
-	ax.set (autoscale_on=False)
 
 	# Define the gradient colors
-	color1 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
-	color2 = np.array([241, 156, 118]) / 255.0   # #ED8151 in RGB
+	color2 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
+	color1 = np.array([137, 245, 162]) / 255.0   # #ED8151 in RGB
 	cmap = colors.LinearSegmentedColormap.from_list('custom', [color1, "white", color2])
 	aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=cmap, cmap_range=(0, 1), alpha=1)
 	i = 0 
@@ -73,14 +77,14 @@ if __name__ == "__main__":
 	# temperatures = np.unique(df[ df["U"] == U_list[0] ]["T"])
 	for U in U_list:
 		# nu_averaged.clear()
-		rgba_color = cm.PiYG (divnorm(chi_list[i]))
+		rgba_color = "#B91F72" # cm.PiYG (divnorm(chi_list[i]))
 		nu = df.loc[df["U"] == U]
 		nu_averaged = nu["nu_mean"]/2
 		nu_err      = nu["nu_err" ]/2
 		temperatures = nu["T"]
 		ax.errorbar (temperatures, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
-		ax.plot(temperatures, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
-		label="_nolabel_", linestyle='-', c=rgba_color, clip_on=False, zorder=10)
+		ax.plot(temperatures, nu_averaged, linewidth=1, marker='o',markersize=8/1.3, markeredgecolor='k', \
+		label="_nolabel_", linestyle='--', c=rgba_color, clip_on=False, zorder=10)
 		i += 1
 		del nu
 		del nu_averaged
@@ -98,7 +102,7 @@ if __name__ == "__main__":
 	ax.set_ylim   ( 0.3, 0.8 )
 	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
-	ax.set_xticklabels (["${10^{-2}}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
+	ax.set_xticklabels ([])# (["${10^{-2}}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
 	# ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )

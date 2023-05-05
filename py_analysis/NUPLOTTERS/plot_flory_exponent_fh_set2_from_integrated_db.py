@@ -45,28 +45,27 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
 if __name__ == "__main__":
 	start = time.time()
 
-	font = {'family': 'helvetica', 'color': 'black', 'weight': 'normal', 'size':11}
+	plt.rcParams['font.family'] = 'Arial'
+	font = {'color':  'black','weight': 'normal', 'size': 10}
 
-	##################################
+	lsize = 10
+	fig = plt.figure(figsize=(2.8,1.6), constrained_layout=True)
+	fig.tight_layout()
+	ax  = plt.axes ()
+	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
+	ax.tick_params(axis='x', labelsize=0)
+	ax.tick_params(axis='y', labelsize=lsize)
 
-	U_list = aux.dir2U ( os.listdir (".") )
-	U_list = ["U1", "U6", "U11"]
-	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
-	ax  = plt.axes() 
-	plt.rcParams["axes.labelweight"] = "bold"
-	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-	ax.tick_params(axis='x', labelsize=9, pad=5)
-	ax.tick_params(axis='y', labelsize=9)
-	ax.set (autoscale_on=False)
 	# Define the gradient colors
-	color1 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
-	color2 = np.array([241, 156, 118]) / 255.0   # #ED8151 in RGB
+	color2 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
+	color1 = np.array([137, 245, 162]) / 255.0   # #ED8151 in RGB
 	cmap = colors.LinearSegmentedColormap.from_list('custom', [color1, "white", color2])
 	aux.gradient_image (ax, direction=0, extent=(0,1,0,1), transform=ax.transAxes, cmap=cmap, cmap_range=(0, 1), alpha=1)
 	i = 0 
-
+	U_list = ["U1", "U6", "U11"]
 	##################################
-	chi_list = [0.1, 0, -0.2]
+	chi_list = ["#369DE8", "#FFFFFF", "#1FB967"]
+	chi_list.reverse()
 	df = pd.read_csv (args.df, sep='|', names=["U", "T", "nu_mean", "nu_err"], skiprows=1)
 	i = 0
 	temperatures = [0.01, 0.1, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] 
@@ -74,15 +73,15 @@ if __name__ == "__main__":
 	print (df["T"])
 	print (U_list)
 	for U in U_list:
-		rgba_color = cm.PiYG (divnorm(chi_list[i]))
+		rgba_color = chi_list[i]# cm.PiYG (divnorm(chi_list[i]))
 		nu = df.loc[df["U"] == U]
 		print (nu)
 		nu_averaged = nu["nu_mean"]/2
 		nu_err      = nu["nu_err" ]/2
 		print (len(nu_averaged), len(nu_err), len(temperatures))
 		ax.errorbar (temperatures, nu_averaged, yerr = nu_err, ecolor='k', linewidth=0)
-		ax.plot     (temperatures, nu_averaged, linewidth=3/1.3, marker='o',markersize=8/1.3, markeredgecolor='k', \
-		label="_nolabel_", linestyle='-', c=rgba_color, clip_on=False, zorder=10)
+		ax.plot     (temperatures, nu_averaged, linewidth=1, marker='o',markersize=8/1.3, markeredgecolor='k', \
+		label="_nolabel_", linestyle='--', c=rgba_color, clip_on=False, zorder=10)
 		i += 1
 		del nu
 		del nu_averaged
@@ -96,7 +95,7 @@ if __name__ == "__main__":
 	ax.set_xscale('log')
 	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
-	ax.set_xticklabels (["${10^{-2}}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
+	ax.set_xticklabels ([]) # ["${10^{-2}}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
 	# ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
 	yticks = np.arange(0.3, 0.9, 0.1) 
 	ax.set_yticks ( yticks ) 

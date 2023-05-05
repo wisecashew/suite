@@ -68,8 +68,8 @@ if __name__=="__main__":
     plt.rcParams['font.family'] = 'Arial'
     font = {'color':  'black','weight': 'normal', 'size': 14}
 
-    E_ms_a_list = [0]
-    E_ms_n_list = [-0.5]
+    E_ms_a_list = [-1]
+    E_ms_n_list = [0]
 
     fig = plt.figure( figsize=(3,3), constrained_layout=True)
     ax  = plt.axes()
@@ -77,17 +77,22 @@ if __name__=="__main__":
 
     # define density of time points and range of plots
     linrange = 1000
-    plot_lim = 5/2
+    # plot_lim = 3
+    lxlim = -5
+    uxlim = 2.5
+
+    lylim = -2.5
+    uylim = 4
 
     # define energies to plot things over 
-    E_mm_a, E_mm_n = np.meshgrid (np.linspace(-plot_lim, plot_lim, linrange), np.linspace (-plot_lim, plot_lim, linrange))
+    E_mm_a, E_mm_n = np.meshgrid (np.linspace(lylim, uylim, linrange), np.linspace (lxlim, uxlim, linrange))
 
     # get temperatures
     T  = np.logspace (-2, 2, 50)
     T_broadcast = np.broadcast_to (T, (E_mm_a.shape[0], E_mm_a.shape[1], len(T)))
 
     # get the other data structures
-    g = 0.5
+    g = 0.6
     G = g * np.ones (E_mm_a.shape)
 
     pv = 1.0
@@ -175,14 +180,14 @@ if __name__=="__main__":
             del hold
 
 
-            ax.set_xlim (-plot_lim, plot_lim)
-            ax.set_ylim (-plot_lim, plot_lim)
-            ax.set_yticks([-plot_lim,0,plot_lim])
-            ax.set_xticks([-plot_lim,0,plot_lim])
+            ax.set_xlim (lxlim, uxlim)
+            ax.set_ylim (lylim, uylim)
+            ax.set_yticks([lylim,uylim])
+            ax.set_xticks([lxlim,uxlim])
             # ax.set_xlabel ("$\\mathbf{ \\epsilon _{mm} } ^{\\perp}$ ", fontsize=6, weight='bold', labelpad=2)
             # ax.set_ylabel ("$\\mathbf{ \\epsilon _{mm} ^{\\parallel} }$", fontsize=6, labelpad=2)
-            ax.set_xticklabels (ax.get_xticks(), fontdict=font)
-            ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+            ax.set_xticklabels ([]) # (ax.get_xticks(), fontdict=font)
+            ax.set_yticklabels ([]) # (ax.get_yticks(), fontdict=font)
             ax.minorticks_on()
             print ("plotted!", flush=True)
 

@@ -81,8 +81,8 @@ if __name__=="__main__":
 
         for _phi in phi_list:
 
-            roots      = np.array([])
-            root_error = np.array([])
+            roots        = np.array([])
+            root_error   = np.array([])
             specific_chi = lambda T: chi (_emma, _emmn, _emsa, _emsn, pv, T) - rhs (_phi, 32)
             
 
@@ -98,7 +98,7 @@ if __name__=="__main__":
             roots = roots [hold]
             root_error = root_error [hold]
 
-            # print ("phi = ", _phi)    
+            # print ("phi_b = ", _phi)    
             # print ("roots = ", roots)
             # print ("root_error = ", root_error)
             

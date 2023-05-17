@@ -40,24 +40,31 @@ if __name__=="__main__":
         0.5* np.sqrt ( -4 * N * (E_ab**2 + (E_ac - E_bc)**2 - 2 * E_ab * (E_ac + E_bc) ) * phi_a * phi_b * (phi_a + phi_b - 1) * ( 1 + phi_b * (N-1) ) + \
             4 * (E_ac * phi_a * (phi_a + phi_b - 1) + N * phi_b * (-E_ab * phi_a + E_bc * (-1 + phi_a + phi_b) ) ) ** 2 ) )
 
-    # I will now attempt to create Fig. 1 from Dudowicz's paper
-    # this is for cosolvency 
-    E_ab  = -0.2
-    E_ac  = 0
-    ratio = 5
-    phi_b_range = np.arange (0.01, 0.5, 0.01)
 
-    E_bc_list = [-10, -5, -2.5, -2, -1.5, -1, -0.75, -0.5]
+    E_ab  = 300
+    E_bc  = 300
+    E_ac  = 300
+    phi_b_range = np.arange (0.01, 0.5, 0.005)
 
-    for E_bc in E_bc_list: 
+    ratio_list = [1, 0.5, 2, 0.25, 4, 10, 0.1]
+
+    color_dict ={1: "steelblue", 2: "coral", 0.5: "coral", 4: "pink", 0.25: "pink", 0.1: "forestgreen", 10: "forestgreen"}
+
+    for ratio in ratio_list: 
         
         T_specific = lambda phi_b: Tup (frac_a (ratio, phi_b), phi_b, E_ab, E_bc, E_ac) 
-        T_solution = T_specific (phi_b_range) 
-        ax.plot (phi_b_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"$\\chi _{{ac}} = {E_bc}/T$") 
+        T_solution = T_specific (phi_b_range)     
+        if ratio <= 1:
+            ax.plot (phi_b_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"r = {ratio}, {1/ratio}", c=color_dict[ratio])
+
+        else:
+            ax.plot (phi_b_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label="_nolabel_", c=color_dict[ratio])            
+    
+
 
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 0.5, 6))
-    ax.legend(fontsize=4)
-    ax.set_ylim (bottom=0)
+    ax.legend(fontsize=4, loc="upper right")
+    ax.set_ylim (bottom=300, top=500)
     ax.set_xlim (0, 0.5)
-    plt.savefig ("plots-asymmcononsolvency-mixing.png", dpi=1200) # bbox_inches='tight', dpi=1200)
+    plt.savefig ("plots-cosolvency-fig2.png", dpi=1200) # bbox_inches='tight', dpi=1200)

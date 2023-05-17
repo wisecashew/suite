@@ -42,12 +42,12 @@ if __name__=="__main__":
 
     # I will now attempt to create Fig. 1 from Dudowicz's paper
     # this is for cosolvency 
-    E_ab  = 300
-    E_bc  = 300
+    E_ab  = 150
+    E_bc  = 150
     ratio = 1
     phi_b_range = np.arange (0.01, 0.5, 0.01)
 
-    E_ac_list = [0, 100, 200, 300, 400]
+    E_ac_list = [-600, -500, -400, -200] # -100, 0, 100, 200, 300]
 
     for E_ac in E_ac_list: 
         
@@ -58,6 +58,6 @@ if __name__=="__main__":
     ax.minorticks_on ()
     ax.set_xticks (np.linspace (0, 0.5, 6))
     ax.legend(fontsize=4)
-    ax.set_ylim (300, 500)
+    ax.set_ylim (bottom=0)
     ax.set_xlim (0, 0.5)
-    plt.savefig ("plots-cosolvency-mixing.png", dpi=1200) # bbox_inches='tight', dpi=1200)
+    plt.savefig ("plots-symmcononsolvency-varying-solvent-mixing.png", dpi=1200) # bbox_inches='tight', dpi=1200)

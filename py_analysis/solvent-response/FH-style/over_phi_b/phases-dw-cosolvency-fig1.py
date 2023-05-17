@@ -42,22 +42,22 @@ if __name__=="__main__":
 
     # I will now attempt to create Fig. 1 from Dudowicz's paper
     # this is for cosolvency 
-    E_ab  = -100
-    E_bc  = -100
+    E_ab  = 300
+    E_bc  = 300
     ratio = 1
-    phi_b_range = np.arange (0.01, 0.5, 0.01)
+    phi_b_range = np.arange (0.01, 1.0, 0.005)
 
-    E_ac_list = [-1000, -900, -700, -500, -400, -200] # -100, 0, 100, 200, 300]
+    E_ac_list = [0, 100, 200, 300, 400, 600, 800, 1000]
 
     for E_ac in E_ac_list: 
         
         T_specific = lambda phi_b: Tup (frac_a (ratio, phi_b), phi_b, E_ab, E_bc, E_ac) 
         T_solution = T_specific (phi_b_range) 
-        ax.plot (phi_b_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"$\\chi _{{ac}} = {E_ac}/T$") 
+        ax.plot (phi_b_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"$ \\chi _{{sc}} = {E_ac} / T$") 
 
     ax.minorticks_on ()
-    ax.set_xticks (np.linspace (0, 0.5, 6))
+    ax.set_xticks (np.linspace (0, 1.0, 6))
     ax.legend(fontsize=4)
-    ax.set_ylim (bottom=0)
-    ax.set_xlim (0, 0.5)
-    plt.savefig ("plots-symmcononsolvency-mixing.png", dpi=1200) # bbox_inches='tight', dpi=1200)
+    ax.set_ylim (bottom=0, top=500)
+    ax.set_xlim (0, 1.0)
+    plt.savefig ("plots-cosolvency-fig1.png", dpi=1200) # bbox_inches='tight', dpi=1200)

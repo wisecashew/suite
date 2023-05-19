@@ -41,12 +41,12 @@ if __name__=="__main__":
             4 * (E_ac * phi_a * (phi_a + phi_b - 1) + N * phi_b * (-E_ab * phi_a + E_bc * (-1 + phi_a + phi_b) ) ) ** 2 ) )
 
 
-    E_ab  = -1        # a is a good solvent
-    E_bc  = -1        # c is a good solvent
+    E_ab  = -50        # a is a good solvent
+    E_bc  = -50        # c is a good solvent
     phi_b = 0.01 
     x_s_range   = np.linspace (0, 1, 100) 
 
-    E_ac_list = [-4, -500, -600] # change up how things are mixing 
+    E_ac_list = [-400, -500, -600] # change up how things are mixing 
 
     for idx,E_ac in enumerate(E_ac_list): 
         

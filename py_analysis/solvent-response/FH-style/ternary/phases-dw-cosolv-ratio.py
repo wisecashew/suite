@@ -33,36 +33,33 @@ if __name__=="__main__":
     chi = lambda E, T: E/T
     N   = 100
 
-    frac_a = lambda x_s, phi_b: x_s * (1-phi_b)
+    frac_a = lambda r, phi_b: (1-phi_b)*r/(r+1)
 
     Tup    = lambda phi_a, phi_b, E_ab, E_bc, E_ac: 1/ (1+(N-1)*phi_b) * \
     ( E_ac * phi_a - E_ac * phi_a **2 + N * E_bc * phi_b + N* E_ab * phi_a * phi_b - E_ac * phi_a * phi_b - N * E_bc * phi_a * phi_b - N * E_bc* phi_b ** 2 + 
         0.5* np.sqrt ( -4 * N * (E_ab**2 + (E_ac - E_bc)**2 - 2 * E_ab * (E_ac + E_bc) ) * phi_a * phi_b * (phi_a + phi_b - 1) * ( 1 + phi_b * (N-1) ) + \
             4 * (E_ac * phi_a * (phi_a + phi_b - 1) + N * phi_b * (-E_ab * phi_a + E_bc * (-1 + phi_a + phi_b) ) ) ** 2 ) )
 
+    # I will now attempt to create Fig. 1 from Dudowicz's paper
+    # this is for cosolvency 
+    E_ab  = 300
+    E_bc  = 300
+    E_ac  = 300
+    
+    phi_b_range = np.arange (0.01, 0.5, 0.01)
 
-    E_ab  = -1        # a is a good solvent
-    E_bc  = -1        # c is a good solvent
-    phi_b = 0.01 
-    x_s_range   = np.linspace (0, 1, 100) 
+    ratio_list = [0.1, 0.25, 0.5, 1, 2, 4, 10]
+    ratio_color_dictionary = {0.1: "coral", 10: "coral", 0.25: "goldenrod", 4: "goldenrod", 0.5: "forestgreen", 2: "forestgreen", 1: "steelblue"}
 
-    E_ac_list = [-4, -500, -600] # change up how things are mixing 
-
-    for idx,E_ac in enumerate(E_ac_list): 
+    for ratio in ratio_list: 
         
-        T_specific = lambda x_s: Tup (1-frac_a (x_s, phi_b), phi_b, E_ab, E_bc, E_ac)
-        T_solution = T_specific (x_s_range)
-        x_s_range  = x_s_range [~np.isnan(T_solution)]
-        T_solution = T_solution[~np.isnan(T_solution)]
-        p = ax.plot (1-x_s_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"$\\chi _{{sc}}  = {E_ac}/T$") 
-        if np.max (T_solution) > 0:
-            ax.axvline (x=1-x_s_range[np.argmax(T_solution)], ls='--', lw=0.5, color=p[0].get_color())
-        p.clear()
-
+        T_specific = lambda phi_b: Tup (frac_a (ratio, phi_b), phi_b, E_ab, E_bc, E_ac) 
+        T_solution = T_specific (phi_b_range) 
+        ax.plot (phi_b_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"$r = {ratio}$", color=ratio_color_dictionary[ratio]) 
 
     ax.minorticks_on ()
-    ax.set_xticks (np.linspace (0, 1, 6))
-    ax.legend(fontsize=4, loc="upper right")
-    ax.set_ylim (bottom=0)
-    ax.set_xlim (0, 1)
-    plt.savefig ("plots-cononsolvency-solventmixing.png", dpi=1200) # bbox_inches='tight', dpi=1200)
+    ax.set_xticks (np.linspace (0, 0.5, 6))
+    ax.legend(fontsize=4)
+    ax.set_ylim (300, 500)
+    ax.set_xlim (0, 0.5)
+    plt.savefig ("plots-cosolvency-varying-solfraction.png", dpi=1200) # bbox_inches='tight', dpi=1200)

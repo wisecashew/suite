@@ -33,6 +33,9 @@ if __name__=="__main__":
     chi = lambda E, T: E/T
     N   = 100
 
+    # phi_a = x_s (1-phi_b)
+    # phi_c = (1-x_s)*(1-phi_b)
+
     frac_a = lambda x_s, phi_b: x_s * (1-phi_b)
 
     Tup    = lambda phi_a, phi_b, E_ab, E_bc, E_ac: 1/ (1+(N-1)*phi_b) * \
@@ -40,23 +43,21 @@ if __name__=="__main__":
         0.5* np.sqrt ( -4 * N * (E_ab**2 + (E_ac - E_bc)**2 - 2 * E_ab * (E_ac + E_bc) ) * phi_a * phi_b * (phi_a + phi_b - 1) * ( 1 + phi_b * (N-1) ) + \
             4 * (E_ac * phi_a * (phi_a + phi_b - 1) + N * phi_b * (-E_ab * phi_a + E_bc * (-1 + phi_a + phi_b) ) ) ** 2 ) )
 
-
-    E_ab  = -1        # a is a good solvent
-    E_bc  = -1        # c is a good solvent
+    
+    E_ab  = 3           # a is a good solvent
+    E_bc  = 3            # ac mixing is not favored
     phi_b = 0.01 
-    x_s_range   = np.linspace (0, 1, 100) 
+    x_s   = np.linspace (0, 1, 100) 
 
-    E_ac_list = [-4, -500, -600] # change up how things are mixing 
+    E_ac_list = [0, 1, 2.5, 5, 6, 7, 8, 9, 10]
 
-    for idx,E_ac in enumerate(E_ac_list): 
+    for E_ac in E_ac_list: 
         
-        T_specific = lambda x_s: Tup (1-frac_a (x_s, phi_b), phi_b, E_ab, E_bc, E_ac)
-        T_solution = T_specific (x_s_range)
-        x_s_range  = x_s_range [~np.isnan(T_solution)]
-        T_solution = T_solution[~np.isnan(T_solution)]
-        p = ax.plot (1-x_s_range, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"$\\chi _{{sc}}  = {E_ac}/T$") 
+        T_specific = lambda phi_b: Tup (frac_a (x_s, phi_b), phi_b, E_ab, E_bc, E_ac) 
+        T_solution = T_specific (x_s) 
+        p = ax.plot (x_s, T_solution, ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"$\\chi _{{ac}} = {E_ac}/T$") 
         if np.max (T_solution) > 0:
-            ax.axvline (x=1-x_s_range[np.argmax(T_solution)], ls='--', lw=0.5, color=p[0].get_color())
+            ax.axvline (x=x_s[np.argmax(T_solution)], ls='--', lw=0.5, color=p[0].get_color())
         p.clear()
 
 
@@ -65,4 +66,4 @@ if __name__=="__main__":
     ax.legend(fontsize=4, loc="upper right")
     ax.set_ylim (bottom=0)
     ax.set_xlim (0, 1)
-    plt.savefig ("plots-cononsolvency-solventmixing.png", dpi=1200) # bbox_inches='tight', dpi=1200)
+    plt.savefig ("plots-cosolvency.png", dpi=1200) # bbox_inches='tight', dpi=1200)

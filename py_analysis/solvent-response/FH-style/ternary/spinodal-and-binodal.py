@@ -42,11 +42,13 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
     mu_c = lambda phi_a, phi_b, phi_c: np.log(phi_c) + 1 - phi_c - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
 
     # generate a fine mesh of phi_a
-    phi_c_list = np.arange (0.001, 0.999, 0.00001)
+    phi_c_list = np.arange (0.15, 0.999, 0.00001)
     phi_b_1 = np.zeros (phi_c_list.shape)
     phi_b_2 = np.zeros (phi_c_list.shape)
 
     seed_scalars = [0.01, 0.1, 0.15, 0.2]
+    chem_pot_a   = np.zeros (phi_c_list.shape)
+
 
     for idx, phi_c in enumerate(phi_c_list):
         cphi = phi_c
@@ -64,6 +66,7 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
             elif abs (sol[0]-sol[1]) < 1e-6 or (np.abs (equations(sol)) > 1e-6).any():
                 pass
             else:
+                chem_pot_a[idx] = mu_a (1-sol[0]-cphi, sol[0], cphi)
                 phi_b_1[idx] = sol[0]
                 phi_b_2[idx] = sol[1]
                 f.write (f"{phi_c} {sol[0]} {sol[1]}\n")
@@ -72,18 +75,23 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
         
 
     to_keep = phi_b_1 > 0
+    chem_pot_a = chem_pot_a[to_keep]
+    norm = matplotlib.colors.SymLogNorm (0.001, vmin=np.min(chem_pot_a), vmax=np.max(chem_pot_a))
+    cols = cm.PiYG (norm (chem_pot_a))
+
     # Plot the points
-    ax.scatter((1-phi_c_list-phi_b_1)[to_keep], phi_b_1[to_keep], phi_c_list[to_keep], s=1, c='k')
-    ax.scatter((1-phi_c_list-phi_b_2)[to_keep], phi_b_2[to_keep], phi_c_list[to_keep], s=1, c='k')
+    ax.scatter((1-phi_c_list-phi_b_1)[to_keep], phi_b_1[to_keep], phi_c_list[to_keep], s=1, c=cols)
+    ax.scatter((1-phi_c_list-phi_b_2)[to_keep], phi_b_2[to_keep], phi_c_list[to_keep], s=1, c=cols)
 
     
     # generate a fine mesh of phi_a
     f.write ("\n"); g.write ("\n")
     f.write ("Fixing phi_a: \n"); g.write ("Fixing phi_a: \n")
     f.write (f"phi_a phi_b1 phi_b2\n"); g.write ("x_a x_b x_c | mu_a1 mu_b1 mu_c1 || x_a x_b x_c | mu_a2 mu_b2 mu_c2\n") ;
-    phi_a_list = np.arange (0.001, 0.999, 0.00001)
-    phi_b_1 = np.zeros (phi_a_list.shape)
-    phi_b_2 = np.zeros (phi_a_list.shape)
+    phi_a_list = np.arange (0.15, 0.999, 0.00001)
+    phi_b_1    = np.zeros (phi_a_list.shape)
+    phi_b_2    = np.zeros (phi_a_list.shape)
+    chem_pot_a   = np.zeros (phi_c_list.shape)
 
     for idx, phi_a in enumerate(phi_a_list):
         aphi = phi_a
@@ -100,6 +108,7 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
             elif abs (sol[0]-sol[1]) < 1e-6 or (np.abs (equations(sol)) > 1e-6).any():
                 pass
             else:    
+                chem_pot_a[idx] = mu_a(aphi, sol[0], 1-sol[0]-aphi)
                 phi_b_1[idx] = sol[0]
                 phi_b_2[idx] = sol[1]
                 f.write (f"{phi_a} {sol[0]} {sol[1]}\n")
@@ -107,19 +116,23 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
                 break
 
     to_keep = phi_b_1 > 0
+    chem_pot_a = chem_pot_a[to_keep]
+    norm = matplotlib.colors.SymLogNorm (0.001, vmin=np.min(chem_pot_a), vmax=np.max(chem_pot_a))
+    cols = cm.PuOr (norm (chem_pot_a))
 
     # Plot the points
-    ax.scatter(phi_a_list[to_keep], phi_b_1[to_keep], (1-phi_a_list-phi_b_1)[to_keep], s=1, c='k')
-    ax.scatter(phi_a_list[to_keep], phi_b_2[to_keep], (1-phi_a_list-phi_b_2)[to_keep], s=1, c='k')
+    ax.scatter(phi_a_list[to_keep], phi_b_1[to_keep], (1-phi_a_list-phi_b_1)[to_keep], s=1, c=cols)
+    ax.scatter(phi_a_list[to_keep], phi_b_2[to_keep], (1-phi_a_list-phi_b_2)[to_keep], s=1, c=cols)
 
 
     # generate a fine mesh of phi_a
     f.write ("\n"); g.write ("\n")
     f.write ("Fixing phi_b: \n"); g.write ("Fixing phi_b: \n");
     f.write ("phi_b phi_c1 phi_c2\n"); g.write ("x_a x_b x_c | mu_a1 mu_b1 mu_c1 || x_a x_b x_c | mu_a2 mu_b2 mu_c2\n") ;
-    phi_b_list = np.arange (0.001, 0.999, 0.00001)
+    phi_b_list = np.arange (0.15, 0.999, 0.00001)
     phi_a_1 = np.zeros (phi_b_list.shape)
     phi_a_2 = np.zeros (phi_b_list.shape)
+    chem_pot_a = np.zeros (phi_b_list.shape)
 
     for idx, phi_b in enumerate(phi_b_list):
         bphi = phi_b
@@ -136,7 +149,7 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
             elif abs (sol[0]-sol[1]) < 1e-6 or (np.abs (equations(sol)) > 1e-6).any():
                 pass
             else:
-                # print (f"sols = {equations(sol)} , sol = {sol}, phi = {phi_a}")
+                chem_pot_a[idx] = mu_a(1-bphi-sol[0], bphi, sol[0])
                 phi_a_1[idx] = sol[0]
                 phi_a_2[idx] = sol[1]
                 f.write (f"{phi_b} {sol[0]} {sol[1]}\n")
@@ -144,10 +157,13 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
                 break
 
     to_keep = phi_a_1 > 0
+    chem_pot_a = chem_pot_a [to_keep]
+    norm = matplotlib.colors.SymLogNorm (0.001, vmin=np.min(chem_pot_a), vmax=np.max(chem_pot_a))
+    cols = cm.RdYlGn (norm (chem_pot_a))
 
     # Plot the points
-    ax.scatter(phi_a_1[to_keep], phi_b_list[to_keep], (1-phi_a_1-phi_b_list)[to_keep], s=1, c='k')
-    ax.scatter(phi_a_2[to_keep], phi_b_list[to_keep], (1-phi_a_2-phi_b_list)[to_keep], s=1, c='k')
+    ax.scatter(phi_a_1[to_keep], phi_b_list[to_keep], (1-phi_a_1-phi_b_list)[to_keep], s=1, c=cols)
+    ax.scatter(phi_a_2[to_keep], phi_b_list[to_keep], (1-phi_a_2-phi_b_list)[to_keep], s=1, c=cols)
     f.close ()
     g.close ()
 

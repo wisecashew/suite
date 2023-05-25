@@ -24,15 +24,19 @@ parser.add_argument('--chiac', metavar='chi_ac', dest='chi_ac', type=float, acti
 parser.add_argument('--chiab', metavar='chi_ab', dest='chi_ab', type=float, action='store', help='enter A-B exchange parameter.')
 parser.add_argument('--chibc', metavar='chi_bc', dest='chi_bc', type=float, action='store', help='enter B-C exchange parameter.')
 parser.add_argument('-N', metavar='N', dest='N', type=int, action='store', help='degree of polymerization of B.')
+parser.add_argument('--dumpfile', dest='dumpfile', type=str, action='store', help="name of dumpfile.")
 args = parser.parse_args() 
 
 
 def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
-
+    f = open (args.dumpfile, 'w')
+    g = open ("mu_" + args.dumpfile, 'w')
     va = 1
     vc = 1
 
     # FIND PHI_B GIVEN PHI_A
+    f.write ("Fixing phi_c: \n") ; g.write ("Fixing phi_c: \n"); 
+    f.write (f"phi_c phi_b1 phi_b2\n") ; g.write ("x_a x_b x_c | mu_a1 mu_b1 mu_c1 || x_a x_b x_c | mu_a2 mu_b2 mu_c2\n") ;
     mu_a = lambda phi_a, phi_b, phi_c: np.log(phi_a) + 1 - phi_a - va/vb * phi_b - va/vc * phi_c + va * (phi_b**2 * chi_ab + phi_c**2 * chi_ac + phi_b * phi_c * (chi_ab + chi_ac - chi_bc) ) 
     mu_b = lambda phi_a, phi_b, phi_c: np.log(phi_b) + 1 - phi_b - vb/va * phi_a - vb/vc * phi_c + vb * (phi_a**2 * chi_ab + phi_c**2 * chi_bc + phi_a * phi_c * (chi_ab + chi_bc - chi_ac) )
     mu_c = lambda phi_a, phi_b, phi_c: np.log(phi_c) + 1 - phi_c - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
@@ -62,6 +66,8 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
             else:
                 phi_b_1[idx] = sol[0]
                 phi_b_2[idx] = sol[1]
+                f.write (f"{phi_c} {sol[0]} {sol[1]}\n")
+                g.write (f"{1-sol[0]-cphi} {sol[0]} {cphi} | {mu_a(1-sol[0]-cphi, sol[0], cphi)} {mu_b(1-sol[0]-cphi, sol[0], cphi)} {mu_c(1-sol[0]-cphi, sol[0], cphi)} || {1-sol[1]-cphi} {sol[1]} {cphi} | {mu_a(1-sol[1]-cphi, sol[1], cphi)} {mu_b(1-sol[1]-cphi, sol[1], cphi)} {mu_c(1-sol[1]-cphi, sol[1], cphi)}\n")
                 break
         
 
@@ -72,6 +78,9 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
 
     
     # generate a fine mesh of phi_a
+    f.write ("\n"); g.write ("\n")
+    f.write ("Fixing phi_a: \n"); g.write ("Fixing phi_a: \n")
+    f.write (f"phi_a phi_b1 phi_b2\n"); g.write ("x_a x_b x_c | mu_a1 mu_b1 mu_c1 || x_a x_b x_c | mu_a2 mu_b2 mu_c2\n") ;
     phi_a_list = np.arange (0.001, 0.999, 0.00001)
     phi_b_1 = np.zeros (phi_a_list.shape)
     phi_b_2 = np.zeros (phi_a_list.shape)
@@ -93,6 +102,8 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
             else:    
                 phi_b_1[idx] = sol[0]
                 phi_b_2[idx] = sol[1]
+                f.write (f"{phi_a} {sol[0]} {sol[1]}\n")
+                g.write (f"{aphi} {sol[0]} {1-sol[0]-aphi} | {mu_a(aphi, sol[0], 1-sol[0]-aphi)} {mu_b(aphi, sol[0], 1-sol[0]-aphi)} {mu_c(aphi, sol[0], 1-sol[0]-aphi)} || {aphi} {sol[1]} {1-sol[1]-aphi} | {mu_a(aphi, sol[1], 1-sol[1]-aphi)} {mu_b(aphi, sol[1], 1-sol[1]-aphi)} {mu_c(aphi, sol[1], 1-sol[1]-aphi)}\n")
                 break
 
     to_keep = phi_b_1 > 0
@@ -103,6 +114,9 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
 
 
     # generate a fine mesh of phi_a
+    f.write ("\n"); g.write ("\n")
+    f.write ("Fixing phi_b: \n"); g.write ("Fixing phi_b: \n");
+    f.write ("phi_b phi_c1 phi_c2\n"); g.write ("x_a x_b x_c | mu_a1 mu_b1 mu_c1 || x_a x_b x_c | mu_a2 mu_b2 mu_c2\n") ;
     phi_b_list = np.arange (0.001, 0.999, 0.00001)
     phi_a_1 = np.zeros (phi_b_list.shape)
     phi_a_2 = np.zeros (phi_b_list.shape)
@@ -125,6 +139,8 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
                 # print (f"sols = {equations(sol)} , sol = {sol}, phi = {phi_a}")
                 phi_a_1[idx] = sol[0]
                 phi_a_2[idx] = sol[1]
+                f.write (f"{phi_b} {sol[0]} {sol[1]}\n")
+                g.write (f"{1-bphi-sol[0]} {bphi} {sol[0]} | {mu_a(1-bphi-sol[0], bphi, sol[0])} {mu_b(1-bphi-sol[0], bphi, sol[0])} {mu_c(1-bphi-sol[0], bphi, sol[0])} || {1-bphi-sol[1]} {bphi} {sol[1]} | {mu_a(1-bphi-sol[1], bphi, sol[1])} {mu_b(1-bphi-sol[1], bphi, sol[1])} {mu_c(1-bphi-sol[1], bphi, sol[1])}\n")
                 break
 
     to_keep = phi_a_1 > 0
@@ -132,7 +148,8 @@ def binodal_plotter (fig, ax, chi_ab, chi_bc, chi_ac, vb):
     # Plot the points
     ax.scatter(phi_a_1[to_keep], phi_b_list[to_keep], (1-phi_a_1-phi_b_list)[to_keep], s=1, c='k')
     ax.scatter(phi_a_2[to_keep], phi_b_list[to_keep], (1-phi_a_2-phi_b_list)[to_keep], s=1, c='k')
-
+    f.close ()
+    g.close ()
 
     return
 

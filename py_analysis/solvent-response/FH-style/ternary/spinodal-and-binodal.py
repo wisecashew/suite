@@ -345,7 +345,7 @@ if __name__=="__main__":
     # Plot the points
     p_c = 1 - p_a - p_b
     ax.scatter(p_a, p_b, p_c, s=1, color=cols)
-    ax.scatter(p_a, p_b, p_c, s=1, color=cols)
+    # ax.scatter(p_a, p_b, p_c, s=1, color=cols)
 
 
     ax.set_tlabel('Vol. frac. A')

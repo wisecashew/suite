@@ -104,7 +104,7 @@ if __name__=="__main__":
     stop = time.time()
     print (f"Elapsed time is {stop-start} seconds.")
 
-    mask = phi_distance > 0.1
+    mask = phi_dists > 0.1
     print ("Calculated intra-array distances!")
 
     print ("Process distances...")
@@ -123,7 +123,7 @@ if __name__=="__main__":
     for i in range(len(phi_b)):
         # print (col_indices[i], row_indices[i]) #chem_pot_distance[row_indices[i], col_indices[i]], phis[col_indices[i],0], phis[row_indices[i],0], phis[col_indices[i],1], phis[row_indices[i],1], phis[col_indices[i],2], phis[row_indices[i],2])
         f.write  ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"\
-            .format(col_indices[i], row_indices[i], chem_pot_distance[row_indices[i], col_indices[i]], chem_pot_a[col_indices[i]], chem_pot_b[col_indices[i]], chem_pot_c[col_indices[i]], phis[col_indices[i],0], phis[col_indices[i],1], phis[col_indices[i],2], chem_pot_a[row_indices[i]], chem_pot_b[row_indices[i]], chem_pot_c[row_indices[i]], phis[row_indices[i],0], phis[row_indices[i],1], phis[row_indices[i],2] ) )
+            .format(col_indices[i], row_indices[i], mu_dists[row_indices[i], col_indices[i]], chem_pot_a[col_indices[i]], chem_pot_b[col_indices[i]], chem_pot_c[col_indices[i]], phis[col_indices[i],0], phis[col_indices[i],1], phis[col_indices[i],2], chem_pot_a[row_indices[i]], chem_pot_b[row_indices[i]], chem_pot_c[row_indices[i]], phis[row_indices[i],0], phis[row_indices[i],1], phis[row_indices[i],2] ) )
 
     f.close ()
     print ("Created!")

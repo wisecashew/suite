@@ -24,6 +24,7 @@ parser = argparse.ArgumentParser(description="Create a ternary spinodal diagram.
 parser.add_argument('--chiac', metavar='chi_ac', dest='chi_ac', type=float, action='store', help='enter A-C exchange parameter.')
 parser.add_argument('--chiab', metavar='chi_ab', dest='chi_ab', type=float, action='store', help='enter A-B exchange parameter.')
 parser.add_argument('--chibc', metavar='chi_bc', dest='chi_bc', type=float, action='store', help='enter B-C exchange parameter.')
+parser.add_argument('--mesh', metavar='mesh', dest='mesh', type=int, action='store', help='enter mesh fineness.')
 parser.add_argument('-N', metavar='N', dest='N', type=int, action='store', help='degree of polymerization of B.')
 parser.add_argument('--dumpfile', dest='dumpfile', type=str, action='store', help="name of dumpfile.")
 args = parser.parse_args() 
@@ -38,7 +39,7 @@ if __name__=="__main__":
     chi_bc = args.chi_bc
 
     va = 1
-    vb = 1
+    vb = N
     vc = 1
 
     # FIND PHI_B GIVEN PHI_A
@@ -48,7 +49,7 @@ if __name__=="__main__":
     
 
     # generate a fine mesh 
-    mesh  = 500
+    mesh  = args.mesh
     phi_b = np.linspace (0.001, 0.999, mesh)
     phi_b = np.repeat (phi_b, mesh)
     print (phi_b.shape)

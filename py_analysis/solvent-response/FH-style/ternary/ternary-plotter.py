@@ -209,7 +209,7 @@ if __name__=="__main__":
         "phi_a1", "phi_b1", "phi_c1", "mu_a2", "mu_b2", "mu_c2", "phi_a2", "phi_b2", "phi_c2"])
 
     print (df)
-    df = df.loc[df["dmu"]<0.01]
+    df = df.loc[df["dmu"]<0.1]
     print (df)
 
     phi_a = df["phi_a1"].values; phi_an = df["phi_a2"].values
@@ -222,7 +222,7 @@ if __name__=="__main__":
         p1 = [phi_a[i], phi_an[i]] 
         p2 = [phi_b[i], phi_bn[i]]
         p3 = [phi_c[i], phi_cn[i]]
-        ax.plot (p1, p2, p3, lw=1, ls="--", c='k')
+        ax.plot (p1, p2, p3, lw=0.01, ls="--", c='k')
 
 
     ax.set_tlabel('Vol. frac. A')
@@ -246,9 +246,4 @@ if __name__=="__main__":
     plt.savefig (f"signs_{chi_ab}_{chi_bc}_{chi_ac}.png", dpi=1200)
     
     print ("Completed heat map computation.")
-    
-    """
-    print ("Computation completed.")
 
-    # print ("solvent_phi_range = ",solvent_phi_range)
-    """

@@ -8,6 +8,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors 
 from scipy.optimize import fsolve
 from matplotlib.ticker import StrMethodFormatter
+from scipy.spatial import ConvexHull
 import mpltern
 import sys
 import argparse
@@ -15,8 +16,16 @@ import time
 import multiprocessing as mp
 import os
 import itertools
-np.set_printoptions(threshold=sys.maxsize)
+import warnings
+import linecache
 
+def custom_warning_format(message, category, filename, lineno, line=None):
+    line = linecache.getline(filename, lineno).strip()
+    return f"There is a RunTimeWarning taking place on line {lineno}.\n"
+
+warnings.formatwarning = custom_warning_format
+
+np.set_printoptions(threshold=sys.maxsize)
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['NUMEXPR_NUM_THREADS'] = '1'
@@ -27,14 +36,50 @@ sys.stdout.flush()
 
 import argparse 
 parser = argparse.ArgumentParser(description="Create a ternary /spin/odal and /bin/odal diagram.")
-parser.add_argument('--chiac', metavar='chi_ac', dest='chi_ac', type=float, action='store', help='enter A-C exchange parameter.')
-parser.add_argument('--chiab', metavar='chi_ab', dest='chi_ab', type=float, action='store', help='enter A-B exchange parameter.')
-parser.add_argument('--chibc', metavar='chi_bc', dest='chi_bc', type=float, action='store', help='enter B-C exchange parameter.')
-parser.add_argument('--nproc', dest='nproc', type=int, action='store', help="number of processes to gather.")
-parser.add_argument('-N', metavar='N', dest='N', type=int, action='store', help='degree of polymerization of B.')
-parser.add_argument('--dumpfile', dest='dumpfile', type=str, action='store', help="name of dumpfile.")
-parser.add_argument('--image', dest='img', type=str, action='store', help="name of image generated.")
+parser.add_argument('--chiac',        metavar='chi_ac', dest='chi_ac',       type=float,      action='store',             help='enter A-C exchange parameter.')
+parser.add_argument('--chiab',        metavar='chi_ab', dest='chi_ab',       type=float,      action='store',             help='enter A-B exchange parameter.')
+parser.add_argument('--chibc',        metavar='chi_bc', dest='chi_bc',       type=float,      action='store',             help='enter B-C exchange parameter.')
+parser.add_argument('--nproc',        dest='nproc',     type=int,            action='store',  help="number of processes to gather.")
+parser.add_argument('-N',             metavar='N',      dest='N',            type=int,        action='store',             help='degree of polymerization of B.')
+parser.add_argument('--dumpfile',     dest='dumpfile',  type=str,            action='store',  help="name of file where the skeleton was dumped.")
+parser.add_argument('--bin-boundary', dest='boundary',  type=str,            action='store',  help="name of file where you will dump out your solution for the binodal")
+parser.add_argument('--tielines',     dest='tl',        action='store_true', default=False,   help="Option to include if you want to see all tie-lines.")
+parser.add_argument('--image',        dest='img',       type=str,            action='store',  help="name of image generated.")
 args = parser.parse_args() 
+
+
+def point_in_polygon(point, polygon):
+    """
+    Check if a point lies inside a polygon.
+
+    Parameters:
+        point (tuple): Coordinates of the point (x, y).
+        polygon (list): List of polygon vertices [(x1, y1), (x2, y2), ...].
+
+    Returns:
+        bool: True if the point is inside the polygon, False otherwise.
+    """
+    x, y = point
+    n = len(polygon)
+    inside = False
+
+    p1x, p1y = polygon[0]
+    for i in range(n+1):
+        p2x, p2y = polygon[i % n]
+        if y > min(p1y, p2y):
+            if y <= max(p1y, p2y):
+                if x <= max(p1x, p2x):
+                    if p1y != p2y:
+                        xinters = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
+                    if p1x == p2x or x <= xinters:
+                        inside = not inside
+        p1x, p1y = p2x, p2y
+
+    return inside
+
+
+
+
 
 
 def go_through_indices (bad_idx_subset, good_idx, initg, bincloser, binfurther):
@@ -68,7 +113,7 @@ def go_through_indices (bad_idx_subset, good_idx, initg, bincloser, binfurther):
 
     return (sol1_bg, sol2_bg)
 
-def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, vc):
+def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, vc):
 
     df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["i1", "i2", "dmu", "mu_a1", "mu_b1", "mu_c1", \
         "phi_a1", "phi_b1", "phi_c1", "mu_a2", "mu_b2", "mu_c2", "phi_a2", "phi_b2", "phi_c2"])
@@ -92,7 +137,7 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     sol2 = np.empty((0,3))
     bad_idx  = []
     good_idx = []
-    f = open ("root-finding.out", 'w')
+    f = open (args.boundary, 'w')
     print ("Start processing the dumpfile and find roots.", flush=True)
     for idx in range (len(phi_a)):
 
@@ -128,7 +173,20 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
                 if (np.linalg.norm(sol1 - p1, axis=-1)<1e-6).any() or (np.linalg.norm(sol2 - p2, axis=-1)<1e-6).any():
                     bad_idx.append (idx)
                     f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
-                    pass
+
+                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                     bad_idx.append (idx)
+                     f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
+                
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                     bad_idx.append (idx)
+                     f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
+
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                     bad_idx.append (idx)
+                     f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
+
+
                 else:
                     good_idx.append (idx)
                     sol1 = np.vstack ((sol1,p1))
@@ -155,26 +213,51 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     pool.close ()
     pool.join  ()
 
+    # FILTER NUMBER 1: GET RID OF ROWS THAT ARE TWO SIMILAR
+
     # curate sol1 and sol2
     sol1_bg, inds = np.unique (sol1_bg, axis=0, return_index=True)
     sol2_bg = sol2_bg [inds, :]
 
-    print (f"sol1_bg = {sol1_bg}", flush=True)
-    print (f"sol2_bg = {sol2_bg}", flush=True)
+    # NEXT, only keep things on the surface of the binodal, none of the inside stuff
+    # find the convex hull
+    points1 = np.vstack ((sol1[:, 0:2], sol1_bg[:, 0:2]))
+    points2 = np.vstack ((sol2[:, 0:2], sol2_bg[:, 0:2]))
 
-    ax.scatter (sol1_bg[:,0], sol1_bg[:,1], sol1_bg[:,2], s=1, c='steelblue')
-    ax.scatter (sol2_bg[:,0], sol2_bg[:,1], sol2_bg[:,2], s=1, c='steelblue')
-    ax.scatter (sol1[:,0], sol1[:,1], sol1[:,2], s=1, c='steelblue')
-    ax.scatter (sol2[:,0], sol2[:,1], sol2[:,2], s=1, c='steelblue')
+    print (f"shape of points1 = {points1.shape}, and points2 = {points2.shape}")
+    hull = ConvexHull (points1)
+    vertices1 = points1[hull.vertices]
+    vertices2 = points2[hull.vertices]
+
+    x1 = np.append (vertices1[:,0], vertices1[0,0])
+    y1 = np.append (vertices1[:,1], vertices1[0,1])
+
+    print (f"Lenght of hull 1: {len(x1)}")
+    print (f"Lenght of hull 1: {len(y1)}")
+
+    x2 = np.append (vertices2[:,0], vertices2[0,0])
+    y2 = np.append (vertices2[:,1], vertices2[0,1])
+
+    print (f"Lenght of hull 2: {len(x2)}")
+    print (f"Lenght of hull 2: {len(y2)}")
+
+    z = stab_crit (x2, y2, chi_ab, chi_bc, chi_ac)
+    mask = z>0
+    print (x2[mask])
+    print (y2[mask])
+    # ax.plot (x1, y1, 1-x1-y1, color='coral',  lw=0.5)
+    ax.plot (x2[mask], y2[mask], 1-x2[mask]-y2[mask], color='coral', lw=1)
+    # ax.scatter (sol1_bg[:,0], sol1_bg[:,1], sol1_bg[:,2], s=1/8, c='steelblue')
+    # ax.scatter (sol2_bg[:,0], sol2_bg[:,1], sol2_bg[:,2], s=1/8, c='steelblue')
+    # ax.scatter (sol1[:,0], sol1[:,1], sol1[:,2], s=1/8, c='steelblue')
+    # ax.scatter (sol2[:,0], sol2[:,1], sol2[:,2], s=1/8, c='steelblue')
 
     # these are the tie-lines
-    # for i in range (sol1.shape[0]):
-    #     ax.plot    ([sol1[i,0],sol2[i,0]], [sol1[i,1],sol2[i,1]], [sol1[i,2],sol2[i,2]], lw=0.1, ls='--', markersize=0)
-    # for i in range (sol1_bg.shape[0]):
-    #     ax.plot    ([sol1_bg[i,0],sol2_bg[i,0]], [sol1_bg[i,1],sol2_bg[i,1]], [sol1_bg[i,2],sol2_bg[i,2]], lw=0.1, ls='--', markersize=0)
-    
+    if args.tl:
+        for i in range (len(x1[mask])):
+            ax.plot    ([x1[mask][i],x2[mask][i]], [y1[mask][i],y2[mask][i]], [1-x1[mask][i]-y1[mask][i], 1-x2[mask][i]-y2[mask][i]], lw=0.1, ls='--', markersize=0)
 
-    f = open ("binodalboundary.out", 'w')
+    f = open (args.boundary, 'w')
 
     for i in range(sol1.shape[0]):
         f.write (f"{sol1[i,0]}, {sol1[i,1]}, {sol1[i,2]} ... {sol2[i,0]}, {sol2[i,1]}, {sol2[i,2]}\n")
@@ -182,6 +265,7 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
         f.write (f"{sol1_bg[i,0]}, {sol1_bg[i,1]}, {sol1_bg[i,2]} ... {sol2_bg[i,0]}, {sol2_bg[i,1]}, {sol2_bg[i,2]}\n")
 
     f.close ()
+
 
     return
 
@@ -208,6 +292,10 @@ if __name__=="__main__":
 
     fig = plt.figure(num=1, figsize=(5,5))
     ax  = fig.add_subplot (projection="ternary")
+
+    fig2  = plt.figure (num=2)
+    ax2   = plt.axes   ()
+
 
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
@@ -244,9 +332,8 @@ if __name__=="__main__":
 
     # Plot the points
     p_c = 1 - p_a - p_b
-    ax.scatter(p_a, p_b, p_c, s=1, color=cols)
+    ax.scatter  (p_a, p_b, p_c, s=0.01, color=cols)
     print ("Painted the ternary diagram!", flush=True)
-    # ax.scatter(p_a, p_b, p_c, s=1, color=cols)
 
 
     ax.set_tlabel('Vol. frac. A')
@@ -255,6 +342,7 @@ if __name__=="__main__":
     print ("We have plotted the spinodal region!\n\n")
 
     print ("###########################################################\n\n")
+
     print ("Start binodal plotting...")
 
     va = 1
@@ -265,7 +353,7 @@ if __name__=="__main__":
     mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vb/va * phi_a - vb/vc * (1-phi_a-phi_b) + vb * (phi_a**2 * chi_ab + (1-phi_a-phi_b)**2 * chi_bc + phi_a * (1-phi_a-phi_b) * (chi_ab + chi_bc - chi_ac) )
     mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
 
-    binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, vc)
+    binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, vc)
     print ("Done with binodal plotting!")
 
     # Set axis limits
@@ -282,8 +370,8 @@ if __name__=="__main__":
 
     ax.grid()
 
-    plt.savefig (args.img, dpi=1200)
-    
+    fig.savefig  (args.img, dpi=1200)
+    # fig2.savefig ("2dbinodal", dpi=1200)
     print ("Completed heat map computation.")
     stop = time.time()
     print (f"Time for computation is {stop-start} seconds.")

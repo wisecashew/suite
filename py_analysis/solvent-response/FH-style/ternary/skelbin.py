@@ -16,7 +16,14 @@ import sys
 import argparse
 import time
 from numba import jit
-# np.set_printoptions(threshold=sys.maxsize)
+import warnings
+import linecache
+
+def custom_warning_format(message, category, filename, lineno, line=None):
+    line = linecache.getline(filename, lineno).strip()
+    return f"There is a RunTimeWarning taking place on line {lineno}: {line}"
+
+warnings.formatwarning = custom_warning_format
 
 import argparse 
 parser = argparse.ArgumentParser(description="Create a skeleton solution for the binodal. This is a highly expensive computation in terms of memory.")
@@ -25,7 +32,7 @@ parser.add_argument('--chiab', metavar='chi_ab', dest='chi_ab', type=float, acti
 parser.add_argument('--chibc', metavar='chi_bc', dest='chi_bc', type=float, action='store', help='enter B-C exchange parameter.')
 parser.add_argument('--mesh', metavar='mesh', dest='mesh', type=int, action='store', help='enter mesh fineness.')
 parser.add_argument('-N', metavar='N', dest='N', type=int, action='store', help='degree of polymerization of B.')
-parser.add_argument('--dumpfile', dest='dumpfile', type=str, action='store', help="name of file where we are going to dump.")
+parser.add_argument('--skelfile', dest='skelfile', type=str, action='store', help="name of file where we are going to dump the skeleton of the binodal.")
 args = parser.parse_args() 
 
 
@@ -66,6 +73,10 @@ if __name__=="__main__":
 
         # only keep stuff which is outside the spinodal
         to_keep = stab_crit (phi_a, phi_b, chi_ab, chi_bc, chi_ac) > 0
+
+        if np.sum (to_keep) == len(phi_a):
+            print ("There is no unstable spinodal region. There will be no binodal. Moving to the next meshing of space...")
+            continue
 
         phi_b   = phi_b [to_keep]
         phi_a   = phi_a [to_keep]
@@ -119,11 +130,11 @@ if __name__=="__main__":
         print ("Processed!", flush=True)
 
         if idx == 0:
-            f = open (args.dumpfile, 'w')
+            f = open (args.skelfile, 'w')
             f.write ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"\
                 .format ("i_1", "i_2", "dmu", "mu_a1", "mu_b1", "mu_c1", "phi_a1", "phi_b1", "phi_c1", "mu_a2", "mu_b2", "mu_c2", "phi_a2", "phi_b2", "phi_c2")) 
         else:
-            f = open (args.dumpfile, 'a')
+            f = open (args.skelfile, 'a')
 
 
         for i in range(len(phi_b)):
@@ -138,5 +149,5 @@ if __name__=="__main__":
 
 
     stop = time.time()
-    print (f"Time scanning the ternary space is {stop-start} seconds.", flush=True)
+    print (f"Time taken to scan the ternary space has been {stop-start} seconds.", flush=True)
 

@@ -1,3 +1,0 @@
-srun: Job step aborted: Waiting up to 47 seconds for job step to finish.
-slurmstepd: error: *** JOB 846831 ON stellar-i07n15 CANCELLED AT 2023-05-31T13:17:50 ***
-"srun --nodes=1 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=30GB --exclusive python chem_pots.py --chiac 0 --chiab -1 --chibc -10 -N 32 --mesh 300" command filed with exit code 0.

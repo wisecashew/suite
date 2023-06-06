@@ -31,10 +31,7 @@ if __name__=="__main__":
     df = pd.read_csv (args.dumpfile, sep='\s+', engine="python", skiprows=1, names=["i1", "i2", "dmu", "mu_a1", "mu_b1", "mu_c1", \
         "phi_a1", "phi_b1", "phi_c1", "mu_a2", "mu_b2", "mu_c2", "phi_a2", "phi_b2", "phi_c2"])
 
-    df = df.loc[df["dmu"]<0.1]
-    # df = df.loc[df["phi_b1"]<0.25]
-    # df = df.loc[df["phi_b1"]>0.2]
-    # df = df.loc[df["phi_a1"]<0.2]
+    df = df.loc[df["dmu"]<1]
 
     va = 1
     vb = 32
@@ -127,7 +124,7 @@ if __name__=="__main__":
             elif (np.linalg.norm(sol1_bg - p1, axis=-1)<1e-6).any() or (np.linalg.norm(sol2_bg - p2, axis=-1)<1e-6).any():
                 continue
 
-            elif np.linalg.norm (p1-p2) < 0.05: # or ( stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) > 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) > 0 )):
+            elif np.linalg.norm (p1-p2) < 1e-6: # or ( stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) > 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) > 0 )):
                 continue
 
             else:

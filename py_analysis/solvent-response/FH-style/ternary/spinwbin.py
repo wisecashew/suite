@@ -87,9 +87,6 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     binodal_closer  = np.zeros ((phi_a.shape[0],3))
     binodal_further = np.zeros ((phi_a.shape[0],3))
 
-    # mu_a = lambda phi_a, phi_b: np.log(phi_a)         + 1 - phi_a - va/vb * phi_b - va/vc * (1-phi_a-phi_b) + va * (phi_b**2 * chi_ab + (1-phi_a-phi_b)**2 * chi_ac + phi_b * (1-phi_a-phi_b) * (chi_ab + chi_ac - chi_bc) ) 
-    # mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vb/va * phi_a - vb/vc * (1-phi_a-phi_b) + vb * (phi_a**2 * chi_ab + (1-phi_a-phi_b)**2 * chi_bc + phi_a * (1-phi_a-phi_b) * (chi_ab + chi_bc - chi_ac) )
-    # mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
 
     sol1 = np.empty((0,3))
     sol2 = np.empty((0,3))
@@ -170,6 +167,7 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     ax.scatter (sol1[:,0], sol1[:,1], sol1[:,2], s=1, c='steelblue')
     ax.scatter (sol2[:,0], sol2[:,1], sol2[:,2], s=1, c='steelblue')
 
+    # these are the tie-lines
     # for i in range (sol1.shape[0]):
     #     ax.plot    ([sol1[i,0],sol2[i,0]], [sol1[i,1],sol2[i,1]], [sol1[i,2],sol2[i,2]], lw=0.1, ls='--', markersize=0)
     # for i in range (sol1_bg.shape[0]):
@@ -254,7 +252,9 @@ if __name__=="__main__":
     ax.set_tlabel('Vol. frac. A')
     ax.set_llabel('Vol. frac. B')
     ax.set_rlabel('Vol. frac. C')
-    
+    print ("We have plotted the spinodal region!\n\n")
+
+    print ("###########################################################\n\n")
     print ("Start binodal plotting...")
 
     va = 1

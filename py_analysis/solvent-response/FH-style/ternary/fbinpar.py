@@ -1,5 +1,3 @@
-#!/home/satyend/.conda/envs/data_analysis/bin/python
-
 import numpy as np
 import pandas as pd
 from scipy.optimize import fsolve
@@ -23,7 +21,7 @@ os.environ['OMP_NUM_THREADS'] = '1'
 sys.stdout.flush() 
 
 
-parser = argparse.ArgumentParser(description="Create a ternary /bin/odal diagram with parallelization.")
+parser = argparse.ArgumentParser(description="Prototype for creating a ternary /bin/odal diagram with parallelization.")
 parser.add_argument('--nproc', dest='nproc', type=int, action='store', help="number of processes to gather.")
 parser.add_argument('--dumpfile', dest='dumpfile', type=str, action='store', help="name of dumpfile.")
 parser.add_argument('--image', dest='img', type=str, action='store', help="name of image generated.")

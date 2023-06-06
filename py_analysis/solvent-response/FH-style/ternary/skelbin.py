@@ -1,15 +1,12 @@
-#!/Users/satyendhamankar/opt/anaconda3/envs/GBCG/bin/python
-
 import numpy as np
-import matplotlib 
-import matplotlib.pyplot as plt 
-import matplotlib.cm as cm 
-import matplotlib.colors as colors 
-import matplotlib.patheffects as pe 
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as colors
 from scipy.optimize import fsolve
 from scipy.optimize import root
 import scipy.spatial.distance
-from scipy.spatial.distance import cdist 
+from scipy.spatial.distance import cdist
 from matplotlib.ticker import StrMethodFormatter
 import scipy.optimize as opt 
 from matplotlib.ticker import StrMethodFormatter
@@ -28,7 +25,7 @@ parser.add_argument('--chiab', metavar='chi_ab', dest='chi_ab', type=float, acti
 parser.add_argument('--chibc', metavar='chi_bc', dest='chi_bc', type=float, action='store', help='enter B-C exchange parameter.')
 parser.add_argument('--mesh', metavar='mesh', dest='mesh', type=int, action='store', help='enter mesh fineness.')
 parser.add_argument('-N', metavar='N', dest='N', type=int, action='store', help='degree of polymerization of B.')
-parser.add_argument('--dumpfile', dest='dumpfile', type=str, action='store', help="name of dumpfile.")
+parser.add_argument('--dumpfile', dest='dumpfile', type=str, action='store', help="name of file where we are going to dump.")
 args = parser.parse_args() 
 
 
@@ -57,9 +54,9 @@ if __name__=="__main__":
     mesh  = args.mesh
     phi_b_list = [np.logspace (-20, np.log10(0.9), mesh), np.linspace(0.1, 0.6, mesh), np.logspace(-15, -1, mesh)]
 
-    
+
     for idx, phi_b in enumerate(phi_b_list):
-    
+
         phi_b = np.repeat (phi_b, mesh)
         phi_a = np.zeros  (phi_b.shape)
 
@@ -69,7 +66,7 @@ if __name__=="__main__":
 
         # only keep stuff which is outside the spinodal
         to_keep = stab_crit (phi_a, phi_b, chi_ab, chi_bc, chi_ac) > 0
-        
+
         phi_b   = phi_b [to_keep]
         phi_a   = phi_a [to_keep]
 
@@ -94,10 +91,10 @@ if __name__=="__main__":
 
         mu_big_block  = mu[np.newaxis, :, :]
         mu_dists      = np.zeros ((npoints, npoints))
-
+        print (f"Total number of blocks = {block_num}.")
         start_blocking = time.time()
         for i in range (block_num):
-            print (f"On i = {i}...", flush=True)
+            print (f"On block number = {i}...", flush=True)
             if i < block_num - 1:
                 phi_dists[i*block_size:(i+1)*block_size,:] = np.linalg.norm (phi_big_block - phis[i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
                 mu_dists [i*block_size:(i+1)*block_size,:] = np.linalg.norm (mu_big_block  - mu  [i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
@@ -134,9 +131,12 @@ if __name__=="__main__":
                 .format(col_indices[i], row_indices[i], mu_dists[row_indices[i], col_indices[i]], chem_pot_a[col_indices[i]], chem_pot_b[col_indices[i]], chem_pot_c[col_indices[i]], phis[col_indices[i],0], phis[col_indices[i],1], phis[col_indices[i],2], chem_pot_a[row_indices[i]], chem_pot_b[row_indices[i]], chem_pot_c[row_indices[i]], phis[row_indices[i],0], phis[row_indices[i],1], phis[row_indices[i],2] ) )
 
         f.close ()
+        del phi_big_block
+        del mu_big_block
+        del phi_dists
+        del mu_dists
 
 
-    stop = time.time() 
+    stop = time.time()
     print (f"Time scanning the ternary space is {stop-start} seconds.", flush=True)
-    
-    print ("Completed standard ternary plots.", flush=True)
+

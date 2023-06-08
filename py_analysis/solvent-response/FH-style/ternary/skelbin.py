@@ -15,7 +15,6 @@ import mpltern
 import sys
 import argparse
 import time
-from numba import jit
 import warnings
 import linecache
 
@@ -26,7 +25,7 @@ def custom_warning_format(message, category, filename, lineno, line=None):
 warnings.formatwarning = custom_warning_format
 
 import argparse 
-parser = argparse.ArgumentParser(description="Create a skeleton solution for the binodal. This is a highly expensive computation in terms of memory.")
+parser = argparse.ArgumentParser(description="Create a skeleton solution for the binodal. This is a  memory-intensive computation.")
 parser.add_argument('--chiac', metavar='chi_ac', dest='chi_ac', type=float, action='store', help='enter A-C exchange parameter.')
 parser.add_argument('--chiab', metavar='chi_ab', dest='chi_ab', type=float, action='store', help='enter A-B exchange parameter.')
 parser.add_argument('--chibc', metavar='chi_bc', dest='chi_bc', type=float, action='store', help='enter B-C exchange parameter.')

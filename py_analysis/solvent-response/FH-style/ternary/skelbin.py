@@ -20,7 +20,7 @@ import linecache
 
 def custom_warning_format(message, category, filename, lineno, line=None):
     line = linecache.getline(filename, lineno).strip()
-    return f"There is a RunTimeWarning taking place on line {lineno}: {line}"
+    return f"There is a RunTimeWarning taking place on line {lineno}: {line}\n"
 
 warnings.formatwarning = custom_warning_format
 
@@ -58,7 +58,8 @@ if __name__=="__main__":
     mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
     
     mesh  = args.mesh
-    phi_b_list = [np.logspace (-20, np.log10(0.9), mesh), np.linspace(0.1, 0.6, mesh), np.logspace(-15, -1, mesh)]
+    # phi_b_list = [np.logspace (-20, np.log10(0.9), mesh), np.linspace(0.1, 0.6, mesh), np.logspace(-15, -1, mesh)]
+    phi_b_list = [np.logspace (-20, np.log10(0.9), mesh), np.hstack((np.linspace(0.6, 0.999, mesh//2), np.logspace(-20,-1,mesh//2))), np.logspace(-15, -1, mesh)]
 
 
     for idx, phi_b in enumerate(phi_b_list):

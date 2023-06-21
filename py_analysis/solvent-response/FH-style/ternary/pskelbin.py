@@ -17,6 +17,7 @@ import time
 import warnings
 import linecache
 import multiprocessing as mp
+import itertools
 
 def custom_warning_format(message, category, filename, lineno, line=None):
     line = linecache.getline(filename, lineno).strip()
@@ -33,6 +34,15 @@ parser.add_argument('--mesh', metavar='mesh', dest='mesh', type=int, action='sto
 parser.add_argument('-N', metavar='N', dest='N', type=int, action='store', help='degree of polymerization of B.')
 parser.add_argument('--skelfile', dest='skelfile', type=str, action='store', help="name of file where we are going to dump the skeleton of the binodal.")
 args = parser.parse_args() 
+
+
+def process_sweep(args):
+    try:
+        return perform_sweep(*args)
+    except Exception as e:
+        traceback.print_exc()
+        return []
+
 
 
 def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac):
@@ -72,6 +82,7 @@ def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac):
     mu_dists      = np.zeros ((npoints, npoints))
 
     for i in range (block_num):
+        print (f"max_block = {block_num}, and at i = {i}", flush=True)
         if i < block_num - 1:
             phi_dists[i*block_size:(i+1)*block_size,:] = np.linalg.norm (phi_big_block - phis[i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
             mu_dists [i*block_size:(i+1)*block_size,:] = np.linalg.norm (mu_big_block  - mu  [i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
@@ -119,7 +130,7 @@ if __name__=="__main__":
 
     pool = mp.Pool (processes=len(phi_b_list) )
 
-    results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac) ) )
+    results = pool.starmap(process_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac) ) )
 
     pool.close ()
     pool.join  ()
@@ -132,7 +143,7 @@ if __name__=="__main__":
         if len(res) == 0:
             print (f"No critical condition in process {idx}.")
             continue
-        for i in range(len(phi_b)):
+        for i in range(len (phi_b_list[idx]) ):
             f.write  ("{:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15} {:<15}\n"\
         .format(res[0][i], res[1][i], res[2][res[1][i], res[0][i]], res[3][res[0][i]], res[4][res[0][i]], res[5][res[0][i]], res[6][res[0][i],0], res[6][res[0][i],1], res[6][res[0][i],2], res[3][res[1][i]], res[4][res[1][i]], res[5][res[1][i]], res[6][res[1][i],0], res[6][res[1][i],1], res[6][res[1][i],2] ) )
 

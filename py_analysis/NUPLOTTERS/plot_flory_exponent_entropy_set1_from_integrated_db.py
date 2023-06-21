@@ -1,6 +1,7 @@
-#!/home/satyend/.conda/envs/data_analysis/bin/python
+#!/home/satyend/.conda/envs/phase/bin/python
 
 import numpy as np 
+from pathlib import Path
 import re 
 import matplotlib
 matplotlib.use('Agg')
@@ -47,15 +48,16 @@ if __name__ == "__main__":
 	start = time.time()
 	##################################
 
-	plt.rcParams['font.family'] = 'Arial'
-	font = {'color':  'black','weight': 'normal', 'size': 10}
+	fpath = Path (matplotlib.get_data_path(), "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/arial.ttf")
+	# plt.rcParams['font.family'] = 'Arial'
+	fdict = {'color':  'black','weight': 'normal', 'size': 8}
 
-	lsize = 10
-	fig = plt.figure(figsize=(2.8, 1.6), constrained_layout=True)
+	lsize = 8
+	fig = plt.figure(figsize=(1.7, 1.7), constrained_layout=True)
 	fig.tight_layout()
 	ax  = plt.axes ()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
-	ax.tick_params(axis='x', labelsize=0)
+	ax.tick_params(axis='x', labelsize=lsize)
 	ax.tick_params(axis='y', labelsize=lsize)
 
 	U_list = aux.dir2U ( os.listdir (".") )
@@ -98,11 +100,11 @@ if __name__ == "__main__":
 	ax.set_xscale('log')
 	yticks = np.arange(0.3, 0.9, 0.1) 
 	ax.set_yticks ( yticks )
-	ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+	ax.set_yticklabels ( ax.get_yticks(), fontdict=fdict, font=fpath )
 	ax.set_ylim   ( 0.3, 0.8 )
 	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
-	ax.set_xticklabels ([])# (["${10^{-2}}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
+	ax.set_xticklabels ([0.01, 0.1, 1.0, 10.0, 100.0], fontdict=fdict, font=fpath)
 	# ax.set_xticklabels (["$\mathbf{10^{-2}}$", "$\mathbf{10^{-1}}$", "$\mathbf{10^0}$", "$\mathbf{10^1}$", "$\mathbf{10^2}$"])
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )

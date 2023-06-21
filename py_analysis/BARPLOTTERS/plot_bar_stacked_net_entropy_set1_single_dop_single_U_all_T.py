@@ -1,6 +1,7 @@
-#!/home/satyend/.conda/envs/data_analysis/bin/python
+#!/home/satyend/.conda/envs/phase/bin/python
 
 import pandas as pd 
+from pathlib import Path
 import numpy as np 
 import matplotlib
 from matplotlib.ticker import StrMethodFormatter
@@ -28,16 +29,17 @@ args = parser.parse_args()
 if __name__=="__main__":
 
 	# get the entire list of potential energy surfaces 
-	plt.rcParams['font.family'] = 'Arial'
-	font = {'color':  'black','weight': 'normal', 'size': 10}
+	fpath = Path (matplotlib.get_data_path(), "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/arial.ttf")
+	# plt.rcParams['font.family'] = 'Arial'
+	# fdict = {'color':  'black','weight': 'normal', 'size': 8}
 
-	lsize = 10
-	fig = plt.figure(figsize=(2.8,1.5), constrained_layout=True)
+	lsize = 8
+	fig = plt.figure(figsize=(2.0,2.0), constrained_layout=True)
 	fig.tight_layout()
 	ax  = plt.axes ()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
-	ax.tick_params(axis='x', labelsize=0, pad=3, labelrotation=45)
-	ax.tick_params(axis='y', labelsize=lsize)
+	ax.tick_params(axis='x', labelsize=6, pad=3, labelrotation=45)
+	# ax.tick_params(axis='y', labelsize=lsize)
 
 	U_list = args.U
 	# fig, ax = plt.subplots(nrows=1, ncols=len(U_list), figsize=(2.8,2.0), constrained_layout=True)
@@ -116,10 +118,10 @@ if __name__=="__main__":
 		ax.set_ylim((-0.01 , 1.01))
 		ax.set_xlim((-0.5, len(temperatures)-0.5))
 		ax.set_xticks (np.arange(len(temperatures)))
-		ax.set_xticklabels ([])
+		ax.set_xticklabels ([str(i) for i in temperatures], font=fpath, fontsize=6)
 		ax.set_yticks (np.arange(0, 1.2, 0.2))
-		ax.set_yticklabels (np.arange (0, 1.2, 0.2))
-		ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
+		ax.set_yticklabels ([]) # np.arange (0, 1.2, 0.2), font=fpath, fontsize=8)
+		# ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
 		ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
 		for f in fig.get_axes():
 			f.label_outer()

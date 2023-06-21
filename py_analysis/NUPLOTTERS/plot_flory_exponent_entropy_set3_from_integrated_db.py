@@ -1,8 +1,9 @@
-#!/home/satyend/.conda/envs/data_analysis/bin/python
+#!/home/satyend/.conda/envs/phase/bin/python
 
 import numpy as np 
 import re 
 import matplotlib
+from pathlib import Path
 matplotlib.use('Agg')
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
@@ -46,19 +47,20 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
 
 if __name__ == "__main__":
 	start = time.time()
-	plt.rcParams['font.family'] = 'sans-serif'
-	plt.rcParams['font.sans-serif'] = ['Arial']
+	fpath = Path (matplotlib.get_data_path(), "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/arial.ttf")
+	# plt.rcParams['font.family'] = 'sans-serif'
+	# plt.rcParams['font.sans-serif'] = ['Arial']
 	##################################
 	# plt.rcParams['font.family'] = 'Arial'
-	font = {'color':  'black','weight': 'normal', 'size': 10}
+	fdict = {'color':  'black','weight': 'normal', 'size': 8}
 
-	lsize = 10
-	fig = plt.figure(figsize=(2.8,1.6), constrained_layout=True)
+	lsize = 8
+	fig = plt.figure(figsize=(1.7,1.7), constrained_layout=True)
 	fig.tight_layout()
 	ax  = plt.axes ()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
-	ax.tick_params(axis='x', labelsize=0)
-	ax.tick_params(axis='y', labelsize=lsize)
+	ax.tick_params(axis='x', labelsize=8)
+	# ax.tick_params(axis='y', labelsize=0)
 
 	U_list = aux.dir2U ( os.listdir (".") )
 	U_list = ["U4"]
@@ -95,13 +97,13 @@ if __name__ == "__main__":
 	ax.set_xscale('log')
 	yticks = np.arange(0.3, 0.9, 0.1) 
 	ax.set_yticks ( yticks )
-	ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+	ax.set_yticklabels ([], fontsize=0)
 	ax.set_ylim   ( 0.3, 0.8 )
 	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
-	ax.set_xticklabels (ax.get_xticks(),fontdict=font)
+	ax.set_xticklabels ([0.01, 0.1, 1.0, 10.0, 100.0],fontdict=fdict, font=fpath)
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
+	# ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
 
 
 	ax.set_aspect('auto')

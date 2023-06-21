@@ -31,10 +31,10 @@ os.environ['MKL_NUM_THREADS'] = '1'
 os.environ['NUMEXPR_NUM_THREADS'] = '1'
 os.environ['OMP_NUM_THREADS'] = '1'
 
-sys.stdout.flush() 
+sys.stdout.flush()
 
 
-import argparse 
+import argparse
 parser = argparse.ArgumentParser(description="Create a ternary /spin/odal and /bin/odal diagram.")
 parser.add_argument('--chiac',        metavar='chi_ac', dest='chi_ac',       type=float,      action='store',             help='enter A-C exchange parameter.')
 parser.add_argument('--chiab',        metavar='chi_ab', dest='chi_ab',       type=float,      action='store',             help='enter A-B exchange parameter.')
@@ -45,42 +45,12 @@ parser.add_argument('--dumpfile',     dest='dumpfile',  type=str,            act
 parser.add_argument('--bin-boundary', dest='boundary',  type=str,            action='store',  help="name of file where you will dump out your solution for the binodal")
 parser.add_argument('--tielines',     dest='tl',        action='store_true', default=False,   help="Option to include if you want to see all tie-lines.")
 parser.add_argument('--image',        dest='img',       type=str,            action='store',  help="name of image generated.")
-args = parser.parse_args() 
+args = parser.parse_args()
 
 
-def point_in_polygon(point, polygon):
-    """
-    Check if a point lies inside a polygon.
-
-    Parameters:
-        point (tuple): Coordinates of the point (x, y).
-        polygon (list): List of polygon vertices [(x1, y1), (x2, y2), ...].
-
-    Returns:
-        bool: True if the point is inside the polygon, False otherwise.
-    """
-    x, y = point
-    n = len(polygon)
-    inside = False
-
-    p1x, p1y = polygon[0]
-    for i in range(n+1):
-        p2x, p2y = polygon[i % n]
-        if y > min(p1y, p2y):
-            if y <= max(p1y, p2y):
-                if x <= max(p1x, p2x):
-                    if p1y != p2y:
-                        xinters = (y-p1y)*(p2x-p1x)/(p2y-p1y)+p1x
-                    if p1x == p2x or x <= xinters:
-                        inside = not inside
-        p1x, p1y = p2x, p2y
-
-    return inside
-
-
-
-
-
+# go_through_indices goes through every single "bad" solution I have, 
+# and tries to find a good solution for it using guesses created
+# that are actual points on the binodal.
 
 def go_through_indices (bad_idx_subset, good_idx, initg, bincloser, binfurther):
     sol1_bg = np.empty ((0,3))
@@ -113,6 +83,8 @@ def go_through_indices (bad_idx_subset, good_idx, initg, bincloser, binfurther):
 
     return (sol1_bg, sol2_bg)
 
+
+# binodal_plotter, as the name suggests, plots binodals
 def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, vc):
 
     df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["i1", "i2", "dmu", "mu_a1", "mu_b1", "mu_c1", \
@@ -126,7 +98,7 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
     phi_a = df["phi_a1"].values; phi_an = df["phi_a2"].values
     phi_b = df["phi_b1"].values; phi_bn = df["phi_b2"].values
     phi_c = df["phi_c1"].values; phi_cn = df["phi_c2"].values
-    
+
     init         = np.array ([phi_a,phi_b,phi_c]).T
     seed         = np.array ([phi_an, phi_bn, phi_cn]).T
     binodal_closer  = np.zeros ((phi_a.shape[0],3))
@@ -167,7 +139,7 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
             # if the roots are basically the same point, write them out as bad 
             if np.linalg.norm (p1-p2) < 1e-6:
                 continue
-            
+
             else:
                 # if one of the good solutions is same as something before, write it as bad 
                 if (np.linalg.norm(sol1 - p1, axis=-1)<1e-6).any() or (np.linalg.norm(sol2 - p2, axis=-1)<1e-6).any():
@@ -177,7 +149,7 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
                 elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
                      bad_idx.append (idx)
                      f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
-                
+
                 elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
                      bad_idx.append (idx)
                      f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
@@ -203,7 +175,7 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
     # divide up bad_idx 
     bad_idx_subsets = [bad_idx[i:i+nproc] for i in range (0, len(bad_idx), nproc)]
     print (f"About to send off processes...", flush=True)
-    results = pool.starmap (go_through_indices, zip(bad_idx_subsets, itertools.repeat (good_idx), itertools.repeat (init), itertools.repeat (binodal_closer), itertools.repeat (binodal_further)))
+    results = pool.starmap (go_through_indices, zip (bad_idx_subsets, itertools.repeat (good_idx), itertools.repeat (init), itertools.repeat (binodal_closer), itertools.repeat (binodal_further)))
     print (f"Processes completed! compiling results...", flush=True)
 
     for sols in results:
@@ -213,56 +185,71 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
     pool.close ()
     pool.join  ()
 
-    # FILTER NUMBER 1: GET RID OF ROWS THAT ARE TWO SIMILAR
+    # FILTER NUMBER 1: GET RID OF ROWS THAT ARE TOO SIMILAR
 
     # curate sol1 and sol2
     sol1_bg, inds = np.unique (sol1_bg, axis=0, return_index=True)
-    sol2_bg = sol2_bg [inds, :]
+    sol2_bg       = sol2_bg [inds, :]
+    # sol1_bg       = np.vstack((sol1_bg,sol1))
+    # sol2_bg       = np.vstack((sol2_bg,sol2))
+
+    # collect all the points in sol1_bg and sol2_bg, and sort them for further processing
+    # sol_net = np.vstack ((sol1_bg, sol2_bg))
+
+    
+
 
     # NEXT, only keep things on the surface of the binodal, none of the inside stuff
-    # find the convex hull
+    # find the convex hull in order to do the above
+
     points1 = np.vstack ((sol1[:, 0:2], sol1_bg[:, 0:2]))
     points2 = np.vstack ((sol2[:, 0:2], sol2_bg[:, 0:2]))
+    
+    pointstot = np.vstack ((points1,points2))
+    
+    # print (f"shape of points1 = {points1.shape}, and points2 = {points2.shape}")
+    # hull = ConvexHull (points1)
+    # vertices1 = points1[hull.vertices]
+    # vertices2 = points2[hull.vertices]
+    hull = ConvexHull (pointstot)
+    vertices = pointstot[hull.vertices]
+    xtot = np.append (vertices[:,0], vertices[0,0])
+    ytot = np.append (vertices[:,1], vertices[0,1])
+    # x1 = np.append (vertices1[:,0], vertices1[0,0])
+    # y1 = np.append (vertices1[:,1], vertices1[0,1])
 
-    print (f"shape of points1 = {points1.shape}, and points2 = {points2.shape}")
-    hull = ConvexHull (points1)
-    vertices1 = points1[hull.vertices]
-    vertices2 = points2[hull.vertices]
+    # print (f"Lenght of hull 1: {len(x1)}")
+    # print (f"Lenght of hull 1: {len(y1)}")
 
-    x1 = np.append (vertices1[:,0], vertices1[0,0])
-    y1 = np.append (vertices1[:,1], vertices1[0,1])
+    # x2 = np.append (vertices2[:,0], vertices2[0,0])
+    # y2 = np.append (vertices2[:,1], vertices2[0,1])
 
-    print (f"Lenght of hull 1: {len(x1)}")
-    print (f"Lenght of hull 1: {len(y1)}")
+    # print (f"Lenght of hull 2: {len(x2)}")
+    # print (f"Lenght of hull 2: {len(y2)}")
 
-    x2 = np.append (vertices2[:,0], vertices2[0,0])
-    y2 = np.append (vertices2[:,1], vertices2[0,1])
-
-    print (f"Lenght of hull 2: {len(x2)}")
-    print (f"Lenght of hull 2: {len(y2)}")
-
-    z = stab_crit (x2, y2, chi_ab, chi_bc, chi_ac)
+    # z = stab_crit (x2, y2, chi_ab, chi_bc, chi_ac)
+    z = stab_crit (xtot, ytot, chi_ab, chi_bc, chi_ac)
     mask = z>0
-    print (x2[mask])
-    print (y2[mask])
+    # print (x2[mask])
+    # print (y2[mask])
     # ax.plot (x1, y1, 1-x1-y1, color='coral',  lw=0.5)
-    ax.plot (x2[mask], y2[mask], 1-x2[mask]-y2[mask], color='coral', lw=1)
-    # ax.scatter (sol1_bg[:,0], sol1_bg[:,1], sol1_bg[:,2], s=1/8, c='steelblue')
-    # ax.scatter (sol2_bg[:,0], sol2_bg[:,1], sol2_bg[:,2], s=1/8, c='steelblue')
-    # ax.scatter (sol1[:,0], sol1[:,1], sol1[:,2], s=1/8, c='steelblue')
-    # ax.scatter (sol2[:,0], sol2[:,1], sol2[:,2], s=1/8, c='steelblue')
+    ax.plot (xtot[mask], ytot[mask], 1-xtot[mask]-ytot[mask], color='coral', lw=1)
+    # ax.scatter (sol1_bg[:,0], sol1_bg[:,1], sol1_bg[:,2], s=1/8, c='steelblue', marker='o')
+    # ax.scatter (sol2_bg[:,0], sol2_bg[:,1], sol2_bg[:,2], s=1/8, c='steelblue', marker='o')
+    # ax.scatter (sol1[:,0], sol1[:,1], sol1[:,2], s=1/8, c='steelblue', marker='o')
+    # ax.scatter (sol2[:,0], sol2[:,1], sol2[:,2], s=1/8, c='steelblue', marker='o')
 
     # these are the tie-lines
     if args.tl:
-        for i in range (len(x1[mask])):
-            ax.plot    ([x1[mask][i],x2[mask][i]], [y1[mask][i],y2[mask][i]], [1-x1[mask][i]-y1[mask][i], 1-x2[mask][i]-y2[mask][i]], lw=0.1, ls='--', markersize=0)
+        for i in range (len(sol1_bg)):
+            ax.plot    ([sol1_bg[i][0],sol2_bg[i][0]], [sol1_bg[i][1],sol2_bg[i][1]], [1-sol1_bg[i][0]-sol1_bg[i][1], 1-sol2_bg[i][0]-sol2_bg[i][1]], lw=0.1, ls='--', markersize=0)
 
     f = open (args.boundary, 'w')
 
     for i in range(sol1.shape[0]):
-        f.write (f"{sol1[i,0]}, {sol1[i,1]}, {sol1[i,2]} ... {sol2[i,0]}, {sol2[i,1]}, {sol2[i,2]}\n")
+        f.write (f"{sol1[i,0]}, {sol1[i,1]}, {sol1[i,2]}, {sol2[i,0]}, {sol2[i,1]}, {sol2[i,2]}\n")
     for i in range(sol1_bg.shape[0]):
-        f.write (f"{sol1_bg[i,0]}, {sol1_bg[i,1]}, {sol1_bg[i,2]} ... {sol2_bg[i,0]}, {sol2_bg[i,1]}, {sol2_bg[i,2]}\n")
+        f.write (f"{sol1_bg[i,0]}, {sol1_bg[i,1]}, {sol1_bg[i,2]}, {sol2_bg[i,0]}, {sol2_bg[i,1]}, {sol2_bg[i,2]}\n")
 
     f.close ()
 

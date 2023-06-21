@@ -124,7 +124,6 @@ if __name__=="__main__":
         root = fsolve (mu_equations, [phi_a[idx], phi_an[idx], phi_bn[idx]])
         binodal_closer [idx, :] = np.array([root[0], phi_b[idx], 1-root[0]-phi_b[idx]])
         binodal_further[idx, :] = np.array([root[1], root[2], 1-root[1]-root[2]])
-        # print (f"phi_b[{idx}] = {phi_b[idx]}")
 
         # if the roots are "bad" roots, just write them out as bad
         if ( np.abs(np.array(mu_equations(root))) > 1e-6).any():
@@ -152,8 +151,9 @@ if __name__=="__main__":
                     sol1 = np.vstack ((sol1,p1))
                     sol2 = np.vstack ((sol2,p2))
                     f.write (f"idx = {idx}: good  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
-    
+
     print ("Everything has been written out. Start doing a bigger processing - with parallelization.", flush=True)
+
     # now, time to slowly convert the "bad" points to "good" points, in a parallel fashion
     nproc = args.nproc 
     pool  = mp.Pool ( processes=nproc )

@@ -1,4 +1,4 @@
-#!/usr/licensed/anaconda3/2020.7/bin/python
+#!/home/satyend/.conda/envs/phase/bin/python
 
 import pandas as pd 
 import numpy as np 
@@ -15,6 +15,7 @@ import sys
 sys.path.insert(0, '/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis')
 import aux 
 import os 
+from pathlib import Path
 
 
 parser = argparse.ArgumentParser(description="Get the contacts for simulation for every energy surface, provided you give the volume fraction.")
@@ -30,16 +31,16 @@ divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1 ) # this is f
 if __name__=="__main__":
 
 	# get the entire list of potential energy surfaces 
-	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
-	ax  = plt.axes() 
+	fpath = Path(matplotlib.get_data_path(), "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/arial.ttf")
+	lsize = 13.5
+	fig = plt.figure   ( figsize=(1.7,1.7), constrained_layout=True )
+	ax  = plt.axes()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-	ax.tick_params(axis='x', labelsize=9, pad=5)
-	ax.tick_params(axis='y', labelsize=9)
 	norm = matplotlib.colors.SymLogNorm ( 0.02, vmin=-0.2, vmax=0.1 ) # this is for entropy 
-	font = {'family': 'helvetica', 'color': 'black', 'weight': 'normal', 'size':11}
+	font = {'color': 'black', 'weight': 'normal', 'size': lsize}
 
-	color1 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
-	color2 = np.array([241, 156, 118]) / 255.0   # #ED8151 in RGB
+	color2 = np.array([131, 159, 192]) / 255.0   #839FC0 in RGB
+	color1 = np.array([137, 245, 162]) / 255.0   #ED8151 in RGB
 	cmap = colors.LinearSegmentedColormap.from_list('custom', [color1, "white", color2])
 	cnorm = colors.TwoSlopeNorm (vcenter=0.5, vmin=0.3, vmax=0.8)
 	y = np.array([0,1])
@@ -83,7 +84,7 @@ if __name__=="__main__":
 		ms_list = np.asarray([])
 		ms_err  = np.asarray([])
 		ms_mean = np.asarray([])
-		temperatures = [0.01, 0.03, 0.05, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
+		temperatures = [0.01, 0.03, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 100.0]
 		for temp in temperatures:
 			skip = 0
 			ms_list = np.asarray ([])
@@ -103,24 +104,27 @@ if __name__=="__main__":
 	i=0
 	chi_list = [0.1]
 	for U in U_list:
-		rgba_color = cm.PiYG(divnorm (chi_list[i]))
+		rgba_color = '#B9B41F' # cm.PiYG(divnorm (chi_list[i]))
 		idx = [0, 1, 3, 5, 6, 7, 9, 10, 11, 13, 15]
 		plt.errorbar ( np.array(temperatures), PLOT_DICT[U][0] / ms_max, yerr=PLOT_DICT[U][1]/ms_max, linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
-		plt.plot     ( np.array(temperatures), PLOT_DICT[U][0] / ms_max, linestyle='-', marker='o',  markeredgecolor='k', linewidth=3, color=rgba_color, label="_nolabel_", markersize=10, zorder=10, clip_on=False)
+		plt.plot     ( np.array(temperatures), PLOT_DICT[U][0] / ms_max, linestyle='--', marker='o',  markeredgecolor='k', color=rgba_color, label="_nolabel_", markersize=8, zorder=10, clip_on=False, linewidth=1)
 		i += 1
 
-	ax.set_xscale('log')
+	# ax.minorticks_on()
 	yticks = np.arange(0.0, 1.2, 0.2)
 	ax.set_yticks ( yticks )
-	ax.set_yticklabels (ax.get_yticks(), fontdict=font) 
+	ax.set_yticklabels ([]) # ax.get_yticks(), fontdict=font) 
 	ax.set_ylim   ( 0.0, 1.0 )
 	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
-	ax.set_xticklabels (["$10^{-2}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
+	ax.set_xticklabels ([]) # [0.01, 0.1, 1.0, 10.0, 100.0], fontdict=font, font=fpath)
+	ax.set_xscale ("log")
+	ax.set_xticks (np.logspace(-2, 2, 5))
+	ax.set_xticks ( np.hstack((np.arange(0.01,0.1,0.01), np.arange(0.1, 1, 0.1), np.arange(1,10,1), np.arange(10,100,10))), minor=True)
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
-	ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}') )
 	ax.set_aspect ('auto')
+	ax.set_xticklabels ([])
+	ax.set_yticklabels ([])
 	plt.savefig (args.pn, bbox_inches='tight', dpi=1200)
 
 

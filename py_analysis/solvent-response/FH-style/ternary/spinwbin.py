@@ -89,6 +89,7 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
 
     df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["i1", "i2", "dmu", "mu_a1", "mu_b1", "mu_c1", \
         "phi_a1", "phi_b1", "phi_c1", "mu_a2", "mu_b2", "mu_c2", "phi_a2", "phi_b2", "phi_c2"])
+    print (df["dmu"])
     df = df.loc[df["dmu"]<1]
 
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
@@ -233,7 +234,7 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
     # print (x2[mask])
     # print (y2[mask])
     # ax.plot (x1, y1, 1-x1-y1, color='coral',  lw=0.5)
-    ax.plot (xtot[mask], ytot[mask], 1-xtot[mask]-ytot[mask], color='coral', lw=1)
+    ax.plot (xtot[mask], ytot[mask], 1-xtot[mask]-ytot[mask], color='k', lw=1)
     # ax.scatter (sol1_bg[:,0], sol1_bg[:,1], sol1_bg[:,2], s=1/8, c='steelblue', marker='o')
     # ax.scatter (sol2_bg[:,0], sol2_bg[:,1], sol2_bg[:,2], s=1/8, c='steelblue', marker='o')
     # ax.scatter (sol1[:,0], sol1[:,1], sol1[:,2], s=1/8, c='steelblue', marker='o')
@@ -242,7 +243,7 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
     # these are the tie-lines
     if args.tl:
         for i in range (len(sol1_bg)):
-            ax.plot    ([sol1_bg[i][0],sol2_bg[i][0]], [sol1_bg[i][1],sol2_bg[i][1]], [1-sol1_bg[i][0]-sol1_bg[i][1], 1-sol2_bg[i][0]-sol2_bg[i][1]], lw=0.1, ls='--', markersize=0)
+            ax.plot    ([sol1_bg[i][0],sol2_bg[i][0]], [sol1_bg[i][1],sol2_bg[i][1]], [1-sol1_bg[i][0]-sol1_bg[i][1], 1-sol2_bg[i][0]-sol2_bg[i][1]], lw=0.1, ls='--', markersize=0, c='lightgray')
 
     f = open (args.boundary, 'w')
 
@@ -272,12 +273,11 @@ if __name__=="__main__":
     ############################
 
     lsize = 3
-    plt.rcParams['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
         'size': lsize}
 
-    fig = plt.figure(num=1, figsize=(5,5))
+    fig = plt.figure(num=1, figsize=(6, 6))
     ax  = fig.add_subplot (projection="ternary")
 
     fig2  = plt.figure (num=2)
@@ -323,9 +323,9 @@ if __name__=="__main__":
     print ("Painted the ternary diagram!", flush=True)
 
 
-    ax.set_tlabel('Vol. frac. A')
-    ax.set_llabel('Vol. frac. B')
-    ax.set_rlabel('Vol. frac. C')
+    ax.set_tlabel('$\\phi _{S}$')
+    ax.set_llabel('$\\phi _{P}$')
+    ax.set_rlabel('$\\phi _{C}$')
     print ("We have plotted the spinodal region!\n\n")
 
     print ("###########################################################\n\n")

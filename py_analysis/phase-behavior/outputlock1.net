@@ -6,4 +6,4 @@ EMSA = -2.075, EMSN = 0, EMMA = -0.4, EMMN = -0.4, ESSA = -0.65, ESSN = -0.65, P
 EMSA = -2.07, EMSN = 0, EMMA = -0.4, EMMN = -0.4, ESSA = -0.65, ESSN = -0.65, PV = 0.25, PWMS = 0.25, PWMM = 0.01, PWSS = 0.01
 EMSA = -1, EMSN = 0, EMMA = -0.4, EMMN = -0.4, ESSA = -0.65, ESSN = -0.65, PV = 0.25, PWMS = 0.25, PWMM = 0.01, PWSS = 0.01
 Plotted!
-Elapsed time is 533.983095407486 seconds.
+Elapsed time is 485.83459639549255 seconds.

@@ -1,5 +1,3 @@
-#!/Users/satyendhamankar/opt/anaconda3/envs/GBCG/bin/python
-
 import numpy as np
 import pandas as pd
 import matplotlib 
@@ -354,9 +352,9 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
     ref_bin = refined_binodal (side_1, side_2)
     print (f"Refined binodal!")
 
-    # these are the tie-lines
-    ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], ref_bin[0][:,2], c='coral',     s=0.125)
-    ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], ref_bin[1][:,2], c='steelblue', s=0.125)
+    # this is the binodal
+    ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], ref_bin[0][:,2], c='k', s=0.125)
+    ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], ref_bin[1][:,2], c='k', s=0.125)
 
     # if args.tl:
     #     for i in range (len(sol1_bg)):
@@ -394,7 +392,7 @@ if __name__=="__main__":
         'weight': 'normal',
         'size': lsize}
 
-    fig = plt.figure(num=1, figsize=(5,5))
+    fig = plt.figure(num=1, figsize=(6,6))
     ax  = fig.add_subplot (projection="ternary")
 
     fig2  = plt.figure (num=2)
@@ -440,9 +438,9 @@ if __name__=="__main__":
     print ("Painted the ternary diagram!", flush=True)
 
 
-    ax.set_tlabel('Vol. frac. A')
-    ax.set_llabel('Vol. frac. B')
-    ax.set_rlabel('Vol. frac. C')
+    ax.set_tlabel('$\\phi _{S}$')
+    ax.set_llabel('$\\phi _{P}$')
+    ax.set_rlabel('$\\phi _{C}$')
     print ("We have plotted the spinodal region!\n\n")
 
     print ("###########################################################\n\n")
@@ -461,9 +459,9 @@ if __name__=="__main__":
     print ("Done with binodal plotting!")
 
     # Set axis limits
-    ax.set_tlim(0, 1)
-    ax.set_llim(0, 1)
-    ax.set_rlim(0, 1)
+    ax.set_tlim (0, 1)
+    ax.set_llim (0, 1)
+    ax.set_rlim (0, 1)
     # ax.ticks(axis='lbr', multiple=5, linewidth=1, offset=0.025)
 
     positions = ['tick1', 'tick2']
@@ -475,7 +473,6 @@ if __name__=="__main__":
     ax.grid()
 
     fig.savefig  (args.img, dpi=1200)
-    # fig2.savefig ("2dbinodal", dpi=1200)
     print ("Completed heat map computation.")
     stop = time.time()
     print (f"Time for computation is {stop-start} seconds.")

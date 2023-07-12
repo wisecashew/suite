@@ -17,6 +17,7 @@ import aux
 import multiprocessing 
 import itertools
 import cmath 
+from pathlib import Path
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -165,7 +166,7 @@ if __name__=="__main__":
     max_op = 25*2+(dop-2)*24
     for U in U_list: 
         chi_a = 0.1
-        rgba_color = cm.PiYG (norm(chi_a))
+        rgba_color = '#B9B41F'  # cm.PiYG (norm(chi_a))
         # df = pd.read_csv ("INTEGRATED-FLORY-EXPONENT-TYPE2.csv", sep='|')
         # nu = df[df["U"]==U]
         # nu = df.loc[df["T"].isin(temperatures)]
@@ -183,7 +184,7 @@ if __name__=="__main__":
     ax.set_ylim   ( 0.0, 1.0 )
     ax.set_xlim   ( 0.01, 100 )
     ax.set_xticks (np.logspace(-2, 2, 5))
-    ax.set_xticklabels (["$10^{-2}$", "$10^{-1}$", "$10^0$", "$10^1$", "$10^2$"], fontdict=font)
+    ax.set_xticklabels (["0.01", "0.1", "1.0", "10.0", "100.0"], fontdict=font)
     ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
     ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
     ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}') )

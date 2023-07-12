@@ -1,3 +1,5 @@
+#!/home/satyend/.conda/envs/phase/bin/python
+
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt

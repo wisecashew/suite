@@ -1,5 +1,6 @@
 #!/bin/bash
 
-for chibc in -1 -2 -3 -4 -5 -6 -7 -8 -9 -10; do
-        python spinodal-and-binodal.py --chiab -1 --chibc ${chibc} --chiac 0 -N 32
+for chiac in 1 1.25 1.5 1.75 2 2.25 2.5 3; do
+        echo "Running calculations for chiac = $chiac."
+        python plspin.py --chiac $chiac --chiab 1 --chibc 1 -N 32
 done

@@ -9,7 +9,7 @@ if __name__=="__main__":
     hexcolor_gc = 'darkred'
 
     fig = pylab.figure()
-    figlegend = pylab.figure(figsize=(2,1.5))
+    figlegend = pylab.figure(figsize=(50,25))
     ax = fig.add_subplot(111)
     lines = []
     lines.append(ax.bar(range(10), pylab.randn(10), color=hexcolor_cc, edgecolor='k'))
@@ -18,4 +18,4 @@ if __name__=="__main__":
     lines.append(ax.bar(range(10), pylab.randn(10), color=hexcolor_gc, edgecolor='k'))
 
     figlegend.legend(lines, ('$(\\gamma,\\alpha _j)\\rightarrow (\\nparallel, m)$', '$(\\gamma,\\alpha _j)\\rightarrow (\\parallel, m)$', '$(\\gamma,\\alpha _j)\\rightarrow (\\nparallel, s)$', '$(\\gamma,\\alpha _j) \\rightarrow (\\parallel, s)$'), 'center', frameon=False, ncol=4)
-    figlegend.savefig('legend.png', dpi=2000, bbox_inches="tight")
+    figlegend.savefig('legend.png', bbox_inches="tight")

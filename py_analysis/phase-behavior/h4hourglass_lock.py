@@ -135,7 +135,7 @@ if __name__=="__main__":
 
     start = time.time()
     fpath = Path (matplotlib.get_data_path(), "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/arial.ttf")
-    lsize = 10
+    lsize = 12
     fdict = {'color':  'black',
         'weight': 'normal',
         'size': lsize}
@@ -190,7 +190,9 @@ if __name__=="__main__":
     ax.set_yticklabels ([0.001, 0.01, 0.1, 1.0, 10.0, 50], fontdict=fdict, font=fpath)
     if args.ri == 0:
         ax.set_xticklabels ([])
+        # ax.set_xticklabels ([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontdict=fdict, font=fpath)
     else:
+        # ax.set_xticklabels ([])
         ax.set_xticklabels ([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontdict=fdict, font=fpath)
     fig.savefig (args.pn, dpi=1200, bbox_inches="tight")
     print (f"Plotted!", flush=True)

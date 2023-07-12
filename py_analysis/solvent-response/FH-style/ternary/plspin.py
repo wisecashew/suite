@@ -26,7 +26,7 @@ if __name__=="__main__":
 
 
     lsize = 3
-    plt.rcParams['font.family'] = 'Arial'
+    # plt.rcParams['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
         'size': lsize}
@@ -156,7 +156,7 @@ if __name__=="__main__":
 
     
     lsize = 3
-    plt.rcParams['font.family'] = 'Arial'
+    # plt.rcParams['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
         'size': lsize}

@@ -58,19 +58,19 @@ if __name__=="__main__":
     N     = args.N
     nproc = args.nproc
     lsize = 3
-    plt.rcParams ['font.family'] = 'Arial'
+    # plt.rcParams ['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
         'size': lsize}
 
-    chi_ac = np.linspace (-10, 0, 11)
+    chi_ac = np.linspace (0, 100, 11)
 
-    chimeshsize = 50
-    plot_lim = 5
-    chi_ab, chi_bc = np.meshgrid ( np.linspace(-plot_lim, 0, chimeshsize), np.linspace (-plot_lim, 0, chimeshsize) )
+    chimeshsize = 1000
+    plot_lim = 15
+    chi_ab, chi_bc = np.meshgrid ( np.linspace(0, plot_lim, chimeshsize), np.linspace (0, plot_lim, chimeshsize) )
 
 
-    phimeshsize = 50
+    phimeshsize = 100
     p_a_space = np.logspace (-3, np.log10(1-0.001), phimeshsize)
     p_a = np.repeat (p_a_space, len(p_a_space))
     p_b = np.empty (p_a.shape)
@@ -96,30 +96,38 @@ if __name__=="__main__":
             y_tups.append ((y_lims[j],y_lims[j+1]))
 
 
-    print (f"chi_ab = \n{chi_ab}")
+    # print (f"chi_ab = \n{chi_ab}")
 
     spawns = len(x_tups)
 
+
     pool = mp.Pool (processes=spawns)
 
-    results = pool.starmap (sector_processor, zip(x_tups, y_tups, itertools.repeat(p_a), itertools.repeat(p_b), itertools.repeat(N), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac[0]) ) )
+    for idx, chiac in enumerate(chi_ac):
+        fig2  = plt.figure (num=idx)
+        ax2   = plt.axes   ( )
+
+        ax2.axvline (x=0, c='k', linestyle='--')
+        ax2.axhline (y=0, c='k', linestyle='--')
+
+        print (f"num = {idx}, chi_ac = {chiac}")
+        results = pool.starmap (sector_processor, zip(x_tups, y_tups, itertools.repeat(p_a), itertools.repeat(p_b), itertools.repeat(N), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chiac) ) )
+        for things in results:
+            if len(things) == 0:
+                pass
+            else:
+                ax2.pcolormesh (things[0], things[1], things[2], cmap=cm.ocean, norm=colors.Normalize(vmin=0, vmax=1), shading="auto")
+
+        fig2.savefig (f"cnscheck_test_par"+str(idx), dpi=1200, bbox_inches="tight")
 
     pool.close ()
     pool.join  ()
-    
-    print (f"len(results) = {len(results)}")
-    
+
+    # print (f"len(results) = {len(results)}")
+
     # combine all plots
-    fig2  = plt.figure ()
-    ax2   = plt.axes   ()
-    for things in results:
-        if len(things) == 0:
-            pass
-        else:
-            ax2.pcolormesh (things[0], things[1], things[2], cmap=cm.ocean, norm=colors.Normalize(vmin=0, vmax=1), shading="auto")
 
 
-    fig2.savefig (f"cnscheck_test_par", dpi=1200, bbox_inches="tight")
     print ("Completed cononsolvency computation.")
     stop = time.time()
     print (f"Time for computation is {stop-start} seconds.")

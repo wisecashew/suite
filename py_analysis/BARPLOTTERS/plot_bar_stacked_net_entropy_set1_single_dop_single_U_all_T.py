@@ -33,12 +33,13 @@ if __name__=="__main__":
 	# plt.rcParams['font.family'] = 'Arial'
 	# fdict = {'color':  'black','weight': 'normal', 'size': 8}
 
-	lsize = 8
-	fig = plt.figure(figsize=(2.0,2.0), constrained_layout=True)
-	fig.tight_layout()
+	lsize = 10
+	fig = plt.figure(figsize=(1.7,1.7))
+	# fig.tight_layout()
 	ax  = plt.axes ()
+	# ax.set_box_aspect (1)
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', pad=5)
-	ax.tick_params(axis='x', labelsize=6, pad=3, labelrotation=45)
+	ax.tick_params(axis='x', labelsize=10, pad=3, labelrotation=30)
 	# ax.tick_params(axis='y', labelsize=lsize)
 
 	U_list = args.U
@@ -54,7 +55,7 @@ if __name__=="__main__":
 	ms_max = 25*2+(args.dop-2)*24
 	for U in U_list:
 
-		temperatures = [0.01, 0.1, 0.3, 0.5, 0.7, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
+		temperatures = [0.01, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 50.0, 100.0]
 		temperatures.sort()
 		mma_list = np.asarray([])
 		mma_mean = np.asarray([])
@@ -118,9 +119,9 @@ if __name__=="__main__":
 		ax.set_ylim((-0.01 , 1.01))
 		ax.set_xlim((-0.5, len(temperatures)-0.5))
 		ax.set_xticks (np.arange(len(temperatures)))
-		ax.set_xticklabels ([str(i) for i in temperatures], font=fpath, fontsize=6)
+		ax.set_xticklabels ([]) # [str(i) for i in temperatures], font=fpath, fontsize=12)
 		ax.set_yticks (np.arange(0, 1.2, 0.2))
-		ax.set_yticklabels ([]) # np.arange (0, 1.2, 0.2), font=fpath, fontsize=8)
+		ax.set_yticklabels ([]) # [0, 0.2, 0.4, 0.6, 0.8, 1.0], font=fpath, fontsize=16)
 		# ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
 		ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
 		for f in fig.get_axes():

@@ -25,9 +25,9 @@ os.environ['OMP_NUM_THREADS'] = '1'
 sys.stdout.flush()
 
 parser = argparse.ArgumentParser(description="Go into lattice dump and get contacts.")
-parser.add_argument('--ideal', dest='id', type=str, action='store', help='enter the address of the ideal contacts.')
-parser.add_argument('--real', dest='real', action='store', type=str, help='enter the address of the real contacts.')
-# parser.add_argument('-H', dest='H', nargs='+', action='store', type=float, help='enter enthalpies to plot.')
+parser.add_argument('--ideal' , dest='id', type=str, action='store', help='enter the address of the ideal contacts.')
+parser.add_argument('--real'  , dest='real', action='store', type=str, help='enter the address of the real contacts.')
+parser.add_argument('--u'     , dest='u', action='store', type=str, nargs='+', help="enter the enthalpic conditions.")
 parser.add_argument('--suffix', dest='s', action='store', type=str, help='enter suffix to images.')
 args = parser.parse_args() 
 
@@ -47,9 +47,11 @@ def intersection(lst1, lst2):
 
 if __name__=="__main__":
 
-
-	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(4/2,3/2))
-	df_id   = pd.read_csv (args.id, sep='|', names=["T", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
+	z       = 26
+	M       = 32
+	u_list  = args.u
+	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(5,5))
+	df_id   = pd.read_csv (args.id, sep='|', names=["u", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 
 	x_id    = df_id["x"].values
 	keys    = ["M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"]
@@ -60,19 +62,13 @@ if __name__=="__main__":
 	yticks  = [np.arange(-0.5, 2.5, 0.5), np.arange(0, 0.4, 0.05), np.arange(-1.0, 0.375, 0.25), np.arange(-1.0, 0.375, 0.25), np.arange(-1.0, 0.5, 0.25), np.arange (-1, 0.375, 0.25)]
 
 	
-	df_real = pd.read_csv (args.real, sep='|', names=["T", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
+	df_real = pd.read_csv (args.real, sep='|', names=["u", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 	x_real  = df_real ["x"]
 	frac = intersection (x_id, x_real)
 	df_id = df_id [df_id["x"].isin (frac)]
-	# enthalpies = args.H
-	print (df_id)
-	print (df_real)
 
-	colormap = cm.get_cmap ("coolwarm")
+	# colormap = cm.get_cmap ("coolwarm")
 	for k in range( len(keys) ):
-
-		# df_real_subset = df_real [df_real ["H"] == enthalpies[i]]
-		# df_real_subset = df_real_subset[df_real_subset["x"].isin (frac)]
 
 		ax[0][0].tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both')
 		ax[0][0].tick_params(axis='x', labelsize=8)
@@ -87,8 +83,13 @@ if __name__=="__main__":
 		elif k == 1:
 			ax[0][0].yaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.2f}'))
 		ax[0][0].xaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.1f}'))
-		p_diff = (df_real [keys[k]].values - df_id [keys[k]].values)
-		ax[0][0].plot (df_id["x"].values, p_diff, marker='o', linewidth=3/2, markersize=8/2, markeredgecolor='k')
+		frac_list = [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
+		for idx,u in enumerate(u_list):
+			chi = aux.get_chi_sc (u+"/frac_"+str(frac_list[idx])+"/geom_and_esurf_"+str(frac_list[idx])+".txt")
+			df_subset = df_real [df_real ["u"] == u]
+			p_diff = (df_subset [keys[k]].values - df_id [keys[k]].values)
+			ax[0][0].plot (df_id["x"].values, p_diff, marker='o', linewidth=3/2, markersize=8/2, markeredgecolor='k', label=f"$\\chi _{{sc}}$ = {chi}")
 
-		plt.savefig ("excess-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
-		ax[0][0].cla()
+		ax[0][0].legend (loc="upper right")
+		plt.savefig  ("excess-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
+		ax[0][0].cla ()

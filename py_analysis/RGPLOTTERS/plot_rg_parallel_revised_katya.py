@@ -12,10 +12,10 @@ import matplotlib.ticker as tck
 from matplotlib.ticker import StrMethodFormatter
 import pandas as pd
 import os
-import aux 
-import time 
-import sys 
-import multiprocessing 
+import aux
+import time
+import sys
+import multiprocessing
 import itertools
 
 os.system("taskset -p 0xfffff %d" % os.getpid())
@@ -31,9 +31,8 @@ shebang for homemachine: #!/usr/bin/env python3
 
 import argparse
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration plot given a degree of polymerization over a range of temperatures and potential energy surfaces.")
-parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this move number (not index or line number in file).', default=2000)
-parser.add_argument('--Hmix', metavar='Hmix', dest='Hmix', action='store', nargs='+', type=str, help='Enter enthalpies you want plotted.')
+parser.add_argument('--u', metavar='u', dest='u', action='store', nargs='+', type=str, help='Enter force-fields you want plotted.')
 parser.add_argument('-nproc', metavar='N', type=int, dest='nproc', action='store', help='Request these many proccesses.')
 parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image file', default='rg_plot')
@@ -42,16 +41,17 @@ args = parser.parse_args()
 divnorm = matplotlib.colors.LogNorm ( vmin=0.01, vmax=100 ) 
 
 
-def get_starting_ind ( U, Hmix, num, dop, dumpfile, s):
-    filename = U + "/DOP_" + str(dop) + "/" + Hmix + "/" + dumpfile + "_" + str(num) + ".mc"
+def get_starting_ind ( U, frac, num, dumpfile, s):
+    filename = U + "/" + frac + "/" + dumpfile + "_" + str(num) + ".mc"
     df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
     L = len(df["energy"])
     return int(df["time_step"].values[L-s])
 
 
-def infiltrate_coords_get_rg ( U, Hmix, num, dop, coords_files, starting_index ):
+def infiltrate_coords_get_rg ( U, frac, num, coords_files, starting_index ):
 
-    filename    = U + "/DOP_" + str(dop) + "/" + Hmix + "/"+ coords_files + "_" + str(num)+".mc" 
+    dop = 32
+    filename    = U + "/" + frac + "/"+ coords_files + "_" + str(num) + ".mc" 
     edge        = aux.edge_length (dop)
     master_dict = aux.get_pdict (filename, starting_index, dop, edge, edge, edge)
     rg          = aux.get_Rg(master_dict, edge, edge, edge) 
@@ -72,92 +72,96 @@ if __name__ == "__main__":
                 new_str = new_str+m
         return float(new_str)
 
-    U_list = aux.dir2U ( os.listdir (".") )
+    u_list = args.u # aux.dir2u ( os.listdir (".") )
     PLOT_DICT = {} 
-    dop            = args.dop
     coords_files   = args.c
     starting_index = args.s
 
-    print ("Hmix = ", args.Hmix)
-    Hmix = args.Hmix
     ######
+
     fig = plt.figure( figsize=(5,5), constrained_layout=True )
-    ax  = plt.axes() 
-    # plt.rcParams["axes.labelweight"] = "bold"
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-    ax.tick_params(axis='x', labelsize=8)
-    ax.tick_params(axis='y', labelsize=8)
+    ax  = plt.axes  ()
+    ax.tick_params  ( direction='in', bottom=True, top=True, left=True, right=True, which='both')
+    ax.tick_params  ( axis='x', labelsize=8)
+    ax.tick_params  ( axis='y', labelsize=8)
     i = 0
 
-    rg_max = 1 # (1+np.sqrt(2)+np.sqrt(3))/(3*6**0.5) * (dop**0.57) 
+    rg_max = 1
+
     # instantiating pool
     nproc = args.nproc
-    pool1 = multiprocessing.Pool ( processes=nproc )# len(num_list)) 
+    pool1 = multiprocessing.Pool ( processes=nproc ) # len(num_list))
 
-    pool_list = [pool1] # , pool2]
+    pool_list = [pool1]
 
-    f = open("RG_DATA_"+str(dop)+".mc", "w") 
 
-    for H in Hmix:
-        frac_list = [] 
-        f.write ( "H = " + str(H) + ":\n" )
-        print("Inside H = " + str(H) + ", and N = " + str(dop) + "...", flush=True )
-        rg_mean = []
-        rg_std  = []
+    for u in u_list:
+        print (f"Inside u = {u}...", flush=True)
+        frac_list = list (os.listdir(u))
+        frac_list.sort()
+        xu_list   = [u]*len(frac_list)
+        rg_mean   = []
+        rg_std    = []
 
-        # get num_list for each temperature 
-        master_U_list     = []
+        # get num_list for each temperature
+        master_u_list     = []
         master_num_list   = []
+        master_frac_list  = []
         master_index_list = []
         rg_dict    = {}
         ntraj_dict = {}
-        for U in U_list:
-            frac_list.append ( float(aux.get_frac(U+"/geom_and_esurf.txt")) )
-            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/E_-1_-1_-7") ) ) )# "/" + str(T) ) ) ) )
-            master_num_list.extend ( num_list )
-            for num in num_list:
-                master_index_list.append (get_starting_ind (U, H, num, dop, "energydump", starting_index) )
-            master_U_list.extend ( [U]*len( num_list ) )
-            ntraj_dict[U] = len ( num_list )
-            rg_dict[U] = []
 
-        # start multiprocessing... keeping in mind that each node only has 96 cores 
-        # start splitting up master_num_list and master_temp_list 
+        for frac in frac_list:
+            num_list = list ( np.unique ( aux.dir2nsim ( os.listdir (str(u) + "/" + frac) ) ) )
+            master_num_list.extend ( num_list )
+            master_frac_list.extend ([frac]*len(num_list))
+            for num in num_list:
+                master_index_list.append (get_starting_ind (u, frac, num, "energydump", starting_index) )
+            master_u_list.extend ( [u]*len( num_list ) )
+            ntraj_dict[frac] = len ( num_list )
+            rg_dict[frac] = []
+
+        # start multiprocessing... keeping in mind that each node only has 96 cores
+        # start splitting up master_num_list and master_temp_list
+        print (f"Preparing a pool of {nproc} threads to be launched repeatedly.", flush=True)
 
         idx_range = len (master_num_list)//nproc + 1
         for u_idx in range (idx_range):
             if u_idx == idx_range-1:
-                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( master_U_list[u_idx*nproc:], itertools.repeat(H),  master_num_list [u_idx*nproc:], itertools.repeat (dop), itertools.repeat (coords_files), master_index_list[u_idx*nproc:] ) )
+                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( master_u_list[u_idx*nproc:], master_frac_list[u_idx*nproc:],  master_num_list [u_idx*nproc:], itertools.repeat (coords_files), master_index_list[u_idx*nproc:] ) )
             else:
-                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( master_U_list[(u_idx)*nproc:(u_idx+1)*nproc], itertools.repeat(H), master_num_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), master_index_list[u_idx*nproc:(u_idx+1)*nproc] ) )
+                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( master_u_list[(u_idx)*nproc:(u_idx+1)*nproc], master_frac_list[u_idx*nproc:(u_idx+1)*nproc], master_num_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(coords_files), master_index_list[u_idx*nproc:(u_idx+1)*nproc] ) )
 
             print ("Pool has been closed. This pool had {} threads.".format (len(results) ), flush=True )
 
-            for k in range( len( master_U_list[u_idx*nproc:(u_idx+1)*nproc] ) ):
-                rg_dict[master_U_list[u_idx*nproc + k]].append( results[k] )
+            for k in range( len( master_frac_list[u_idx*nproc:(u_idx+1)*nproc] ) ):
+                rg_dict[master_frac_list[u_idx*nproc + k]].append( results[k] )
 
-        sorted_U_list = list(np.unique (master_U_list))
-        sorted_U_list.sort(key=mysorter_f)
+        # sorted_U_list = list(np.unique (master_U_list))
+        # sorted_U_list.sort(key=mysorter_f)
 
-        for U in sorted_U_list:
-            rg_mean.append( np.mean ( rg_dict[U] ) )
-            rg_std.append ( np.std  ( rg_dict[U] ) / np.sqrt(master_U_list.count(U) ) )
+        for f in frac_list:
+            rg_mean.append( np.mean ( rg_dict[f] ) )
+            rg_std.append ( np.std  ( rg_dict[f] ) / np.sqrt(master_frac_list.count(f) ) )
 
-        PLOT_DICT [H] = (np.asarray(rg_mean), np.asarray(rg_std))
+        PLOT_DICT [u] = (np.asarray(rg_mean), np.asarray(rg_std))
 
 
-    pool1.close ()
-    pool1.join  ()
-    f.close     ()
+    pool_list[0].close ()
+    pool_list[0].join  ()
 
     print ("rg_max = ", rg_max)
 
-    for H in Hmix:
-        ax.errorbar ( frac_list, PLOT_DICT[H][0]/rg_max, yerr= PLOT_DICT[H][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
-        ax.plot     ( frac_list, PLOT_DICT[H][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=3/2, label=f"{H}", markersize=4 ) 
+    toplot_frac = [float(elem[-3:]) for elem in frac_list]
+    print (u_list)
+    for idx,u in enumerate(u_list):
+        chi = aux.get_chi_sc (u+"/"+frac_list[idx]+"/geom_and_esurf_"+frac_list[idx][-3:]+".txt")
+        print (chi)
+        ax.errorbar ( toplot_frac, PLOT_DICT[u][0]/rg_max, yerr= PLOT_DICT[u][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
+        ax.plot     ( toplot_frac, PLOT_DICT[u][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=3/2, label=f"$\\chi _{{sc}}$ = {chi}", markersize=4 ) 
         i += 1
 
-    print (f"frac_list = {frac_list}")
+    print (f"frac_list = {toplot_frac}")
 
 
     #########
@@ -180,5 +184,5 @@ if __name__ == "__main__":
     ##################################
 
     stop = time.time()
-    print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)
+    print ("Run time for is {:.2f} seconds.".format(stop-start), flush=True)
 

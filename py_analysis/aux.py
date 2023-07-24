@@ -254,8 +254,21 @@ def get_chi_entropy (topology):
 
     return (chi_a, chi_n) 
 
+
+def get_chi_sc (topology):
+    f = open (topology, 'r') 
+    Es1s2_a = "Es1s2_a" 
+    for line in f:
+        if re.findall (Es1s2_a, line):
+            r = re.findall( "-[0-9]+\.[0-9]+$|[0-9]+\.[0-9]+$|-[0-9]+$|[0-9]+$", line)
+            s1s2_a = float( r[0] )
+            break
+
+    f.close()
+    return s1s2_a
+
 def get_chi_cosolvent (topology):
-    f = open (topology) 
+    f = open (topology, 'r') 
     Emm_a  = "Emm_a"
     Emm_n  = "Emm_n"
     Ems1_a = "Ems1_a" 
@@ -477,6 +490,15 @@ def dir2U (list_of_dirs):
     l = sorted(l, key=lambda x: float(x[1:]) )
     return l
 
+def dir2u (list_of_dirs):
+    l = [] 
+    for dir_name in list_of_dirs:
+        if (re.match("^u\d+$|^U\d+\.\d+$", dir_name)):
+            l.append(dir_name)
+    
+    l.sort()  
+    l = sorted(l, key=lambda x: float(x[1:]) )
+    return l
 # End of function.
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -2335,7 +2357,7 @@ def single_sim_flory_exp ( U, T, num, dop, coords_file, starting_index, delta ):
 		offset = list(np.linalg.norm ( delta_coords, axis=1 ) **2 )
 		offset_list.extend(offset)
 	end = time.time()
-	print (f"Time to go through a traj file = {end-start} for delta = {delta}")
+	# print (f"Time to go through a traj file = {end-start} for delta = {delta}")
 
 	return np.mean (offset_list)
 
@@ -2352,6 +2374,22 @@ def single_sim_flory_exp_energetic_variation ( U, H, num, dop, coords_file, star
 		offset_list.extend(offset)
 
 	return np.mean (offset_list)
+
+
+def single_sim_flory_exp_energymix ( U, H, num, dop, coords_file, starting_index, delta ):
+	filename = U+"/DOP_"+str(dop)+"/"+str(H)+"/"+coords_file+"_"+str(num)+".mc"
+	edge     = edge_length (dop)
+	master_dict  = get_pdict( filename, starting_index, dop, edge, edge, edge) 
+	offset_list = []
+
+	for key in master_dict:
+		coord_arr    = unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
+		delta_coords = coord_arr [0:dop-delta] - coord_arr [delta:]
+		offset = list(np.linalg.norm ( delta_coords, axis=1 ) **2 )
+		offset_list.extend(offset)
+
+	return np.mean (offset_list)
+
 
 ##########################################################################
 ##########################################################################

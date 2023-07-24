@@ -1547,6 +1547,20 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 	int index         = -1; 
 	std::smatch match; 
 
+	int final_step = 0;
+	bool start_recording = false; 
+
+	// find the last step dumped in lattice file
+	for ( std::string& s: contents) {
+
+		if ( std::regex_search (s, start) ) {
+			std::regex_search (s, match, numbers);
+			final_step = std::stoi (match[0].str());
+		}
+
+	}
+
+	*step_num = final_step;
 
 	for ( std::string& s: contents) {
 
@@ -1554,32 +1568,28 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 
 		if ( std::regex_search (s, start) ) {
 			std::regex_search ( s, match, numbers ); 
-			// std::cout << "match for step number is " << match[0] << std::endl;
-			*step_num = std::stoi(match[0].str()); 
+			if ( final_step == std::stoi(match[0].str()) ) {
+				start_recording = true;
+			}
 		}
 
-		else if ( std::regex_search (s, end) ){
+		else if ( std::regex_search (s, end) && start_recording ){
 			break; 
 		}
 
-		else { 
-			
+		else if (start_recording) {
 			std::regex_search ( s, match, numbers );
 			std::regex_token_iterator<std::string::iterator> rend; 
 			std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
 
 			for ( int i=0; i<2; ++i ){
 				if ( i == 0 ){
-					// std::cout << "match for orientation is " << *a << std::endl;
 					orientation = std::stoi ( *a );
-					// std::cout << "match for orientation is " << *a << std::endl;
 					*a++;  
 				}
 				else {
 					*a++; 
-					// std::cout << "match for index is " << *a << std::endl;
 					index = std::stoi ( *a );
-					// std::cout << "match for index is " << *a << std::endl;
 				}
 			}
  
@@ -1597,7 +1607,12 @@ std::vector <Particle*> ExtractLatticeFromRestart ( std::string rfile, int* step
 
 	}
 
+	if (!start_recording) {
+		std::cout <<"Something is wrong with the restart!" << std::endl;
+	}
+
 	std::cout << "Created lattice from file!" << std::endl;
+
 	return LATTICE; 
 
 }

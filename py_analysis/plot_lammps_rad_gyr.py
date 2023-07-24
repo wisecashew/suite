@@ -1,4 +1,4 @@
-#!/usr/licensed/anaconda3/2020.7/bin/python
+#!/home/satyend/.conda/envs/phase/bin/python
 
 import pandas as pd 
 import numpy as np
@@ -11,6 +11,7 @@ args = parser.parse_args()
 
 # get the original rdf
 
+print ("Reading file.", flush=True)
 with open(args.i, 'r') as f:
     for line in f:
         if line.startswith('# TimeStep c_rog[0] c_rog[1] c_rog[2] c_rog[3]'): 
@@ -18,9 +19,13 @@ with open(args.i, 'r') as f:
     df = pd.read_csv(f, names=["t", "Rg", "Rgx", "Rgy", "Rgz"], delim_whitespace=True)
     f.close()
 
-plt.plot(df["t"].values, df["Rg"].values) 
-plt.xlabel("Time")
-plt.ylabel("Radius of gyration") 
-print( "Mean radius of gyration is {:0.2f}".format(np.mean(df["Rg"].values)) ) 
+print ("Done reading file.", flush=True)
 
-plt.show()
+print ("Plotting", flush=True)
+rg_vals = df["Rg"].values[-10000:]
+plt.hist(rg_vals, density=True, bins=50)
+plt.savefig ("rg_dist", dpi=1200)
+
+print( "Mean radius of gyration is {:0.2f}".format(np.mean(rg_vals)) ) 
+
+

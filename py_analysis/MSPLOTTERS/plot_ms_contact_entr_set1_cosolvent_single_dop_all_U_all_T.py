@@ -108,7 +108,7 @@ if __name__=="__main__":
 		rgba_color = "#B91F72" # cm.PiYG(divnorm (chi_list[i]))
 		idx = [0, 1, 3, 5, 6, 7, 9, 10, 11, 13, 15]
 		plt.errorbar ( np.array(temperatures)[idx], PLOT_DICT[U][0][idx] / ms_max, yerr=PLOT_DICT[U][1][idx]/ms_max, linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
-		plt.plot     ( np.array(temperatures)[idx], PLOT_DICT[U][0][idx] / ms_max, linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=8, zorder=10, clip_on=False)
+		plt.plot     ( np.array(temperatures)[idx], PLOT_DICT[U][0][idx] / ms_max, linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=8/1.2, zorder=10, clip_on=False)
 		i += 1
 
 	yticks = np.arange(0.0, 1.2, 0.2)

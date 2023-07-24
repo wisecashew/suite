@@ -91,8 +91,8 @@ if __name__ == "__main__":
 		i += 1
 	stop = time.time() 
 	
-	ax.axhline ( y=0.33, color='midnightblue', linestyle='--', mec='k', linewidth=1, zorder=11)
-	ax.axhline ( y=0.588, color='dimgray', linestyle='--', mec='k', linewidth=1, zorder=11)
+	ax.axhline ( y=0.33, color='midnightblue', linestyle='--', mec='k', linewidth=1, zorder=8)
+	ax.axhline ( y=0.588, color='dimgray', linestyle='--', mec='k', linewidth=1, zorder=8)
 	yticks = np.arange(0.3, 0.9, 0.1) 
 	ax.set_yticks ( yticks )
 	ax.set_yticklabels ([], fontsize=0)

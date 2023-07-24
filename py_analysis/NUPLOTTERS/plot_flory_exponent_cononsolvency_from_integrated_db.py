@@ -46,11 +46,12 @@ shebang for homemachine: #!/usr/bin/env python3
 
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
-parser.add_argument('--integrated-database', dest='df', metavar='df', action='store', type=str, help='Name of dump file.')
+parser.add_argument('--integrated-database', dest='df', metavar='df', action='store', type=str,  help='Name of dump file.')
+parser.add_argument('--Hmix', dest='Hmix', action='store', nargs='+', type=str, help='Name of Hmix files.')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
 args = parser.parse_args() 
 
-divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=-0.2, vmax=0.1)
+divnorm = matplotlib.colors.SymLogNorm (0.001, vmin=1, vmax=10)
 
 if __name__ == "__main__":
 	start = time.time()
@@ -61,15 +62,14 @@ if __name__ == "__main__":
 	fdict = {'color':  'black','weight': 'normal', 'size': 13.5}
 
 	lsize = 13.5
-	fig = plt.figure(figsize=(1.7, 1.7), constrained_layout=True)
+	fig = plt.figure(figsize=(5, 5), constrained_layout=True)
 	fig.tight_layout()
 	ax  = plt.axes ()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-	ax.tick_params(axis='x', labelsize=lsize-2)
+	ax.tick_params(axis='x', labelsize=lsize)
 	ax.tick_params(axis='y', labelsize=lsize)
 
-	U_list = aux.dir2U ( os.listdir (".") )
-	U_list = ["U9"] # ["U1", "U7", "U10"]
+	U_list = args.Hmix
 
 	# Define the gradient colors
 	color2 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
@@ -79,50 +79,33 @@ if __name__ == "__main__":
 	i = 0 
 
 	##################################
-	chi_list = [-0.2] # [0.1, 0.05, 0.01, 0.005, 0, -0.01, -0.05, -0.1, -0.2]
-	df = pd.read_csv (args.df, sep='|', names=["U", "T", "nu_mean", "nu_err"], skiprows=1)
+	
+	df = pd.read_csv (args.df, sep='|', names=["x", "Hmix", "nu_mean", "nu_err"], skiprows=1)
 	i = 0
-	temperatures = [0.01, 0.03, 0.05, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] 
-	df = df[df["T"].isin (temperatures)]
-	# temperatures = np.unique(df[ df["U"] == U_list[0] ]["T"])
+
 	for U in U_list:
-		# nu_averaged.clear()
-		rgba_color = "#B91F72" # cm.PiYG (divnorm(chi_list[i]))
-		nu = df.loc[df["U"] == U]
-		nu_averaged = nu["nu_mean"]/2
-		nu_err      = nu["nu_err" ]/2
-		temperatures = nu["T"]
-		ax.errorbar (temperatures, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
-		ax.plot(temperatures, nu_averaged, linewidth=1, marker='o',markersize=8/1.3, markeredgecolor='k', \
-		label="_nolabel_", linestyle='--', c=rgba_color, clip_on=False, zorder=10)
+		df_ = df[df["Hmix"].isin([U])]
+		nu_averaged = df_["nu_mean"]/2
+		nu_err      = df_["nu_err" ]/2
+		fracs       = df_["x"]
+		ax.errorbar (fracs, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
+		ax.plot     (fracs, nu_averaged, linewidth=1, marker='o', markersize=8/1.3, markeredgecolor='k', \
+		linestyle='--', clip_on=False, zorder=10, label=f"{U}")
 		i += 1
-		del nu
+		del df_
 		del nu_averaged
 		del nu_err 
 
-	stop = time.time() 
-	# ax.axhline ( y=0.12, color='steelblue', linewidth=3/1.3, linestyle='--')
-	# ax.axhline ( y=0.56, color='darkred',   linewidth=3/1.3, linestyle='--')
-	ax.axhline ( y=0.33, color='midnightblue', linestyle='--', mec='k', linewidth=1, zorder=8)
-	ax.axhline ( y=0.588, color='dimgray', linestyle='--', mec='k', linewidth=1, zorder=8)
-	yticks = np.arange(0.3, 0.9, 0.1) 
+	stop = time.time()
+
+	ax.axhline ( y=0.33, color='midnightblue', linestyle='--', mec='k', linewidth=1, zorder=11)
+	ax.axhline ( y=0.588, color='dimgray', linestyle='--', mec='k', linewidth=1, zorder=11)
+	yticks = np.arange (0.0, 0.9, 0.1)
+	ax.legend(loc="lower right")
 	ax.set_yticks ( yticks )
-	ax.set_yticklabels ( [] ) # ax.get_yticks(), fontdict=fdict, font=fpath )
-	ax.set_ylim   ( 0.3, 0.8 )
-	ax.set_xlim   ( 0.01, 100 )
-	ax.set_xticks (np.logspace(-2, 2, 5))
-	# formatter = matplotlib.ticker.ScalarFormatter()
-	# formatter.set_scientific(True)
-	# formatter.set_powerlimits((-2, 2))
-	# Apply the formatter to the x-axis
-	# ax.xaxis.set_major_formatter(formatter)
-	# ax.set_xticklabels ([0.01, 0.1, 1.0, 10.0, 100.0], fontdict=fdict, font=fpath)
-	# ax.set_xticklabels ([ f"10^{x}" for x in range(-2,3) ], fontdict=fdict, font=fpath)
-	# plt.ticklabel_format(useOffset=False)
-	ax.set_xscale('log')
-	ax.set_xticks (np.logspace(-2,2,5))
-	ax.set_xticks ( np.hstack((np.arange(0.01,0.1,0.01), np.arange(0.1, 1, 0.1), np.arange(1,10,1), np.arange(10,100,10))), minor=True)
-	ax.set_xticklabels([])
+	ax.set_xticks ( np.linspace(0,1,6) )
+	ax.set_ylim   ( 0.0, 0.8 )
+	ax.set_xlim   ( 0.0, 1 )
 
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	# ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )

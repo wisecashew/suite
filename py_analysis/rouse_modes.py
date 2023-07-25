@@ -107,8 +107,8 @@ if __name__=="__main__":
 	(n_h, bins_h, patches) = ax1.hist (x1, density=True, bins=1000)
 	fig1.savefig ("x1_hist", dpi=1200, bbox_inches="tight")
 
-	print(f"len(n_h) = {len(n_h)}")
-	print(f"len(bins_h) = {len(bins_h)}")
+	# print(f"len(n_h) = {len(n_h)}")
+	# print(f"len(bins_h) = {len(bins_h)}")
 
 	fig2 = plt.figure(figsize=(5,5))
 	ax2  = plt.axes  ()
@@ -125,6 +125,16 @@ if __name__=="__main__":
 	ax2.plot (x_id, F_id, markersize=0, lw=2, label=f"exact")
 
 	F_x1 = F_x1 - np.min (F_x1)
+	bin_collect = (bins_h[0:-1] + bins_h[1:])/2
+	f = open ("BoltzmannInverse.txt", 'w')
+
+	for idx, fe in enumerate (F_x1):
+		if np.isinf(fe):
+			continue
+		else:
+			f.write ("{} {}\n".format (bin_collect[idx], fe) )
+
+	f.close ()
 
 	ax2.plot ((bins_h[0:-1]+bins_h[1:])/2, F_x1, label=f"unbiased")
 	ax2.legend(loc="upper right")
@@ -133,6 +143,4 @@ if __name__=="__main__":
 	ax2.set_xticks (np.linspace (0, 20, 5))
 	ax2.set_yticks (np.linspace (0, 6, 4) )
 	fig2.savefig ("f_x1", dpi=1200, bbox_inches="tight")
-
-
 

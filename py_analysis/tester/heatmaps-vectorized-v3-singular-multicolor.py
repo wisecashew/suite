@@ -7,6 +7,7 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import time
+import scipy.sparse as sp
 import numexpr as ne
 
 
@@ -50,21 +51,45 @@ def map_maker (hex_code):
     return my_cmap 
 
 
+def add_layers (array, nlayers):
+
+    leftmost_index = np.argmax (array == 1, axis=1)
+    l_row          = len(array[0,:])
+
+    rev_array = np.flipud (array)
+    bottommost_index = np.argmax(rev_array == 1, axis=0)
+
+    # Adjust the indices to get the indices in the original array
+    bottommost_index = array.shape[0] - 1 - bottommost_index
+
+
+    for idx, lmost in enumerate (leftmost_index):
+        
+        array[idx, lmost-nlayers:lmost] = 1
+        array[bottommost_index[idx]+1:bottommost_index[idx]+1+nlayers, idx] = 1
+
+    return array 
+
+
+
+
+
+
 if __name__=="__main__":
 
     threshold   = 0.6924016952966369
 
     #41CA27 (green), '#D8CA27' (ochre yellow), '#EE9EFE' (pink), '#00A8FF' (coolblue)
-    hexcolor_cg = '#FF8D92' # '#B91F72'
+    hexcolor_cg = '#B9B41F'# '#B91F72'
     cmap_cg     = map_maker (hexcolor_cg)
 
-    hexcolor_cc = '#B1FAFF' # '#369DE8'
+    hexcolor_cc = '#369DE8'
     cmap_cc     = map_maker (hexcolor_cc)
 
-    hexcolor_gg = '#AEFFB3' # '#1FB967' 
+    hexcolor_gg = '#1FB967' 
     cmap_gg     = map_maker (hexcolor_gg) 
 
-    hexcolor_gc = '#FF00FF'# '#FFFCA5' # '#B9B41F'
+    hexcolor_gc = '#B91F72'
     cmap_gc     = map_maker (hexcolor_gc)
 
     plt.rcParams['font.family'] = 'Arial'
@@ -78,13 +103,13 @@ if __name__=="__main__":
     start = time.time()
 
     # define density of time points and range of plots
-    linrange = 5000
+    linrange = 1000
     # plot_lim = 3
     lxlim = -2.5
-    uxlim = -1
+    uxlim = 0
 
     lylim = -2.5
-    uylim = -1
+    uylim = 0
 
     # define energies to plot things over 
     E_mm_a, E_mm_n = np.meshgrid (np.linspace(lylim, uylim, linrange), np.linspace (lxlim, uxlim, linrange))
@@ -145,8 +170,11 @@ if __name__=="__main__":
             Z_gg      = np.where (hold, (Z_expanded[:,:,0]) - np.min(Z_expanded, axis=-1) , 0)    
 
             hold      = (np.sum( np.diff( np.sign(Z_expanded), axis=2) != 0, axis=2 ) == 3) & (Z_expanded[:,:,0]>0)
-            Z_gc      = np.where (hold, 1, 0)             
-            print (f"Will there be an R3: {(Z_gc==1).any()}")
+            Z_gc      = np.where (hold, 1, 0)   
+
+            Z_gc      = add_layers (Z_gc, 10)
+
+            # print (f"Will there be an R3: {(Z_gc==1).any()}")
             print ("Processed!", flush=True)
 
             print ("begin plotting...", flush=True)

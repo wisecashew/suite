@@ -149,21 +149,11 @@ if __name__=="__main__":
             print ("Processed!", flush=True)
 
             print ("begin plotting...", flush=True)
-            # try:
-            #     dchi_min = np.min([np.min (Z_cg[Z_cg>0]), np.min (Z_cc[Z_cc>0]), np.min (Z_gg[Z_gg>0]), np.min (Z_gc[Z_gc>0])])
-            #     dchi_max = np.max([np.max (Z_cg[Z_cg>0]), np.max (Z_cc[Z_cc>0]), np.max (Z_gg[Z_gg>0]), np.max (Z_gc[Z_gc>0])])
-            # except ValueError:
-            #     dchi_min = np.min([np.min (Z_cc[Z_cc>0]), np.min (Z_gg[Z_gg>0]), np.min (Z_gc[Z_gc>0])])
-            #     dchi_max = np.max([np.max (Z_cc[Z_cc>0]), np.max (Z_gg[Z_gg>0]), np.max (Z_gc[Z_gc>0])])
-            
-            # print (f"dchi_min = {dchi_min}", flush=True)
-            # print (f"dchi_max = {dchi_max}", flush=True)
 
             try:
                 
                 if rcount != ccount:
                    
-                    
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_cg, cmap=cmap_cg,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap=cmap_cc,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap=cmap_gg,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
@@ -172,7 +162,6 @@ if __name__=="__main__":
 
                 else:
                     
-
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap=cmap_cc,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap=cmap_gg,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc,   norm=colors.LogNorm(vmin=0.1, vmax=1), shading="auto" )
@@ -196,8 +185,25 @@ if __name__=="__main__":
             ax.set_ylim (-plot_lim, plot_lim)
             ax.set_yticks([-plot_lim,0,plot_lim])
             ax.set_xticks([-plot_lim,0,plot_lim])
-            ax.set_xticklabels (ax.get_xticks(), fontdict=font)
-            ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            ax.set_xticklabels ([])
+            ax.set_yticklabels ([])
+            if 2-rcount == 0 and ccount == 0:
+                ax.set_xticklabels ([]) # ax.get_xticks(), fontdict=font)
+                ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            elif 2-rcount == 1 and ccount == 0:
+                ax.set_xticklabels ([]) # ax.get_xticks(), fontdict=font)
+                ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            elif 2-rcount == 2 and ccount == 0:
+                ax.set_xticklabels (ax.get_xticks(), fontdict=font)
+                ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            elif 2-rcount == 2 and ccount > 0:
+                ax.set_xticklabels (ax.get_xticks(), fontdict=font)
+                ax.set_yticklabels ([]) # , fontdict=font)
+
             ax.minorticks_on()
             print ("plotted!", flush=True)
 

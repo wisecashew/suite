@@ -38,13 +38,13 @@ if __name__=="__main__":
     def rhs (phi, _m):
         return 1/2 * (1/(1-phi) + 1/(_m*phi))
 
-    hexcolor_cg = '#B91F72'
+    hexcolor_cg = '#B9B41F'
     hexcolor_cc = '#369DE8'
     hexcolor_gg = '#1FB967' 
-    hexcolor_gc = '#B9B41F'
+    hexcolor_gc = '#B91F72'
     cols = [hexcolor_cg, hexcolor_gg, hexcolor_cc, hexcolor_gc]
     # blue, red, green -> green, blue, red
-    T         = np.logspace (-5, np.log10(200), 200)
+    T         = np.logspace (-6, np.log10(200), 2000)
     emsa_list = [0]
     elow      = np.min(emsa_list)
     ehigh     = np.max (emsa_list)
@@ -52,7 +52,7 @@ if __name__=="__main__":
     ecenter   = (elow+ehigh)/2
 
     norm = matplotlib.colors.Normalize (vmin=-4,  vmax=0)
-    eparams = [(-3, -3, -2,0, 0, 0), (-1, -1, 0, 0, 0, 0), (0, 0, -1, -1, 0, 0), (-1, -1, -0.4999,0, 0, 0) ]
+    eparams = [(-3, -3, -2,0, 0, 0), (-1, -1, 0, 0, 0, 0), (0, 0, -1, -1, 0, 0), (-2.001, -2.001, -1,0, 0, 0) ]
     # eparams = [(-3, -3, -2,0, 0, 0), (-1, -1, 0, 0, 0, 0), (0, 0, -1, -1, 0, 0), (-1, 0, -0.3, -0.3, 0, 0) ]
 
     for idx,pars in enumerate(eparams):

@@ -226,10 +226,24 @@ if __name__=="__main__":
             ax.set_ylim (-plot_lim, plot_lim)
             ax.set_yticks([-plot_lim,0,plot_lim])
             ax.set_xticks([-plot_lim,0,plot_lim])
-            # ax.set_xlabel ("$\\mathbf{ \\epsilon _{mm} } ^{\\perp}$ ", fontsize=6, weight='bold', labelpad=2)
-            # ax.set_ylabel ("$\\mathbf{ \\epsilon _{mm} ^{\\parallel} }$", fontsize=6, labelpad=2)
-            ax.set_xticklabels (ax.get_xticks(), fontdict=font)
-            ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            if 2-rcount == 0:
+                ax.set_xticklabels ([]) # ax.get_xticks(), fontdict=font)
+                ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            elif 2-rcount == 1:
+                ax.set_xticklabels ([]) # ax.get_xticks(), fontdict=font)
+                ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            elif 2-rcount == 2 and ccount == 0:
+                ax.set_xticklabels (ax.get_xticks(), fontdict=font)
+                ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+            elif 2-rcount == 2 and ccount > 0:
+                ax.set_xticklabels ([])
+                ax.set_yticklabels (ax.get_yticks(), fontdict=font)
+
+
             ax.minorticks_on()
             print ("plotted!", flush=True)
 

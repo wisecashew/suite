@@ -45,7 +45,7 @@ if __name__=="__main__":
     cols = [hexcolor_cg, hexcolor_gg, hexcolor_cc, hexcolor_gc]
 
     # blue, red, green -> green, blue, red
-    T         = np.logspace (-5, np.log10(200), 200)
+    T         = np.logspace (-6, np.log10(200), 200)
     emsa_list = [0]
     elow      = np.min(emsa_list)
     ehigh     = np.max (emsa_list)

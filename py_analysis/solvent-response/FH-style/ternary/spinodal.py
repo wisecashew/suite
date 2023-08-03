@@ -1,5 +1,3 @@
-#!/Users/satyendhamankar/opt/anaconda3/envs/GBCG/bin/python
-
 import numpy as np
 import matplotlib 
 import matplotlib.pyplot as plt 

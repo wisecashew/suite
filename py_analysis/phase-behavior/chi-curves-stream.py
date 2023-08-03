@@ -43,6 +43,7 @@ if __name__=="__main__":
     hexcolor_gg = '#1FB967' 
     hexcolor_gc = '#B9B41F'
     cols = [hexcolor_cg, hexcolor_gg, hexcolor_cc, hexcolor_gc]
+
     # blue, red, green -> green, blue, red
     T         = np.logspace (-5, np.log10(200), 200)
     emsa_list = [0]
@@ -52,42 +53,28 @@ if __name__=="__main__":
     ecenter   = (elow+ehigh)/2
 
     norm = matplotlib.colors.Normalize (vmin=-4,  vmax=0)
-    
-    eparams = [(-2.001, -2.001, -1, 0, 0, 0)] # , (-1, -1, 0, 0, 0, 0), (0, 0, -1, -1, 0, 0), (-1, 0, -0.3, -0.3, 0, 0) ]
+    fig = plt.figure(figsize=(2.5,2.0), constrained_layout=True)
+    ax  = plt.axes ()
+            
+    for e in [2.5, 2.1, 2.01, 2.001, 2.0001, 2, 1.999, 1.9, 1.5, 1]:
+        print(-e)
+        eparams = [(-e, -e, -1, 0, 0, 0)] # , (-1, -1, 0, 0, 0, 0), (0, 0, -1, -1, 0, 0), (-1, 0, -0.3, -0.3, 0, 0) ]
 
-    for idx,pars in enumerate(eparams):
-        fig = plt.figure(num=idx, figsize=(2.5,2.0), constrained_layout=True)
-        ax  = plt.axes ()
-        # ax.axis ('off')
-        ax.tick_params(direction='in', bottom=False, top=False, left=False, right=False, which='both')
-        Y = chi(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], g, pv, T)
-        Y = Y[~np.isnan(Y)]
-        Y = Y[~np.isinf(Y)]
-        # print (Y)
-        ax.plot (T, chi(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], g, pv, T), ls='-', lw=2, c=cols[idx], zorder=10, solid_capstyle='round')
+        for idx,pars in enumerate(eparams):
+            Y = chi(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], g, pv, T)
+            Y = Y[~np.isnan(Y)]
+            Y = Y[~np.isinf(Y)]
+            ax.plot (T, chi(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], g, pv, T), ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"E_mm={pars[0]}")
 
-        ax.set_xscale ("log")
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.axhline (y=0, c='k', linestyle='-', lw=1, zorder=11)
-        ax.axhline (y=0.6924016952966369, c='r', linestyle='--', lw=1, zorder=11)
-        ax.axvline (x=0, c='k', linestyle='-',  lw=1, zorder=11)
+    ax.legend(fontsize="4")
+    ax.set_xscale ("log")
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    ax.axhline (y=0, c='k', linestyle='--', lw=0.5, zorder=11)
+    ax.axhline (y=0.6924016952966369, c='r', linestyle='--', lw=1, zorder=11)
+    ax.axvline (x=0, c='k', linestyle='-',  lw=1, zorder=11)
 
-        
-        if idx == 0:
-            ax.set_ylim (-10, 10)
-            # print (np.max(Y))
-            ax.set_xlim (0.0001, 10)
-        elif idx == 1:
-            ax.set_ylim (-30, 30)
-            ax.set_xlim (0.5, 200)
-        elif idx == 2:
-            ax.set_ylim (-30, 30)
-            ax.set_xlim (1, 200)
-        elif idx == 3:
-            ax.set_ylim (-30, 30)
-            ax.set_xlim (0.1, 200)
-
-
-        plt.savefig (args.pn+f"_{idx}.png", dpi=1200) # bbox_inches='tight', dpi=1200)
+    ax.set_ylim (-10, 10)
+    ax.set_xlim (0.01, 100)
+    plt.savefig (args.pn+f"_{idx}.png", dpi=1200) # bbox_inches='tight', dpi=1200)
 

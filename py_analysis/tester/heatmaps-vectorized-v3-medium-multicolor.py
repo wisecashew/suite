@@ -8,7 +8,12 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import time
 import numexpr as ne
+import argparse 
 
+parser = argparse.ArgumentParser (description="Create vectorized plots.")
+parser.add_argument ('-g', metavar='g', dest='g', type=float, action='store', help='p_Omega value for calcs.')
+parser.add_argument ('--image', metavar='img', dest='img', type=str, action='store', help='Name of the image to be created.')
+args   = parser.parse_args ()
 
 @nb.njit # (parallel=True)
 def zmm(emmn, emma, g, T):
@@ -52,8 +57,10 @@ def map_maker (hex_code):
 
 if __name__=="__main__":
 
+    threshold = 0.6924016952966369
+
     #41CA27 (green), '#D8CA27' (ochre yellow), '#EE9EFE' (pink), '#00A8FF' (coolblue)
-    hexcolor_cg = '#B91F72'
+    hexcolor_cg = '#B9B41F'# '#B91F72'
     cmap_cg     = map_maker (hexcolor_cg)
 
     hexcolor_cc = '#369DE8'
@@ -62,7 +69,7 @@ if __name__=="__main__":
     hexcolor_gg = '#1FB967' 
     cmap_gg     = map_maker (hexcolor_gg) 
 
-    hexcolor_gc = '#B9B41F'
+    hexcolor_gc = '#B91F72'
     cmap_gc     = map_maker (hexcolor_gc)
 
     plt.rcParams['font.family'] = 'Arial'
@@ -86,7 +93,7 @@ if __name__=="__main__":
     T_broadcast = np.broadcast_to (T, (E_mm_a.shape[0], E_mm_a.shape[1], len(T)))
 
     # get the other data structures
-    g = 0.5
+    g = args.g
     G = g * np.ones (E_mm_a.shape)
 
     pv = 1.0
@@ -123,94 +130,57 @@ if __name__=="__main__":
 
             print ("Calculating chis...", flush=True)
             Z_expanded = chi (E_mm_n_expanded, E_mm_a_expanded, E_ms_n_expanded, E_ms_a_expanded, G_expanded, PV_expanded, T_broadcast)
+            Z_expanded = Z_expanded - threshold
             print ("Calculated!", flush=True)
 
             print ("Processing the calculated chis...", flush=True)
-            hold      = (np.max(Z_expanded, axis=-1)>0) & (Z_expanded[:,:,0]<0)
+            hold      = (np.sum( np.diff( np.sign(Z_expanded), axis=2) != 0, axis=2 ) > 0) & (Z_expanded[:,:,0]<0)
             Z_cg      = np.where (hold, np.max(Z_expanded, axis=-1) - (Z_expanded[:,:,0]), 0)
 
-            hold      = (np.max(Z_expanded, axis=-1)<0) & (Z_expanded[:,:,0]<0)
+            hold      = (np.sum( np.diff( np.sign(Z_expanded), axis=2) != 0, axis=2 ) == 0) & (Z_expanded[:,:,0]<0)
             Z_cc      = np.where (hold, np.max(Z_expanded, axis=-1) - (Z_expanded[:,:,0]), 0)    
 
-            hold      = (np.min(Z_expanded, axis=-1)>0) & (Z_expanded[:,:,0]>0)
+            hold      = (np.sum( np.diff( np.sign(Z_expanded), axis=2) != 0, axis=2 ) == 1) & (Z_expanded[:,:,0]>0)
             Z_gg      = np.where (hold, (Z_expanded[:,:,0]) - np.min(Z_expanded, axis=-1) , 0)    
 
-            hold      = (np.min(Z_expanded, axis=-1)<0) & (Z_expanded[:,:,0]>0)
-            Z_gc      = np.where (hold, (Z_expanded[:,:,0]) - np.min(Z_expanded, axis=-1) , 0)             
-
+            hold      = (np.sum( np.diff( np.sign(Z_expanded), axis=2) != 0, axis=2 ) > 1) & (Z_expanded[:,:,0]>0)
+            Z_gc      = np.where (hold, 1, 0)             
+            
             print ("Processed!", flush=True)
 
             print ("begin plotting...", flush=True)
-            try:
-                dchi_min = np.min([np.min (Z_cg[Z_cg>0]), np.min (Z_cc[Z_cc>0]), np.min (Z_gg[Z_gg>0]), np.min (Z_gc[Z_gc>0])])
-                dchi_max = np.max([np.max (Z_cg[Z_cg>0]), np.max (Z_cc[Z_cc>0]), np.max (Z_gg[Z_gg>0]), np.max (Z_gc[Z_gc>0])])
-            except ValueError:
-                dchi_min = np.min([np.min (Z_cc[Z_cc>0]), np.min (Z_gg[Z_gg>0]), np.min (Z_gc[Z_gc>0])])
-                dchi_max = np.max([np.max (Z_cc[Z_cc>0]), np.max (Z_gg[Z_gg>0]), np.max (Z_gc[Z_gc>0])])
+            # try:
+            #     dchi_min = np.min([np.min (Z_cg[Z_cg>0]), np.min (Z_cc[Z_cc>0]), np.min (Z_gg[Z_gg>0]), np.min (Z_gc[Z_gc>0])])
+            #     dchi_max = np.max([np.max (Z_cg[Z_cg>0]), np.max (Z_cc[Z_cc>0]), np.max (Z_gg[Z_gg>0]), np.max (Z_gc[Z_gc>0])])
+            # except ValueError:
+            #     dchi_min = np.min([np.min (Z_cc[Z_cc>0]), np.min (Z_gg[Z_gg>0]), np.min (Z_gc[Z_gc>0])])
+            #     dchi_max = np.max([np.max (Z_cc[Z_cc>0]), np.max (Z_gg[Z_gg>0]), np.max (Z_gc[Z_gc>0])])
             
-            print (f"dchi_min = {dchi_min}", flush=True)
-            print (f"dchi_max = {dchi_max}", flush=True)
+            # print (f"dchi_min = {dchi_min}", flush=True)
+            # print (f"dchi_max = {dchi_max}", flush=True)
 
             try:
                 
                 if rcount != ccount:
-                    """
-                    hold_cg = Z_cg > 0
-                    ax.scatter (E_mm_n[hold_cg], E_mm_a[hold_cg], c=Z_cg[hold_cg], cmap="Reds"   , norm=colors.LogNorm(vmin=np.min(Z_cg[hold_cg]), vmax=np.max(Z_cg[hold_cg]) ) )
-
-                    hold_cc = Z_cc > 0
-                    ax.scatter (E_mm_n[hold_cc], E_mm_a[hold_cc], c=Z_cc[hold_cc], cmap="Greens" , norm=colors.LogNorm(vmin=np.min(Z_cc[hold_cc]), vmax=np.max(Z_cc[hold_cc]) ) )                
-
-                    hold_gg = Z_gg > 0
-                    ax.scatter (E_mm_n[hold_gg], E_mm_a[hold_gg], c=Z_gg[hold_gg], cmap="Blues"  , norm=colors.LogNorm(vmin=np.min(Z_gg[hold_gg]), vmax=np.max(Z_gg[hold_gg]) ) )
-
-                    hold_gc = Z_gc > 0
-                    ax.scatter (E_mm_n[hold_gc], E_mm_a[hold_gc], c=Z_gc[hold_gc], cmap="Purples", norm=colors.LogNorm(vmin=np.min(Z_gc[hold_gc]), vmax=np.max(Z_gc[hold_gc]) ) )
-
-                    del hold_cg
-                    del hold_cc
-                    del hold_gg
-                    del hold_gc
-                    
-                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_cg, cmap=cmap_cg,   norm=colors.LogNorm(vmin=np.min(Z_cg[Z_cg>0]), vmax=np.max(Z_cg[Z_cg>0])), shading="auto" )
-                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap=cmap_cc,   norm=colors.LogNorm(vmin=np.min(Z_cc[Z_cc>0]), vmax=np.max(Z_cc[Z_cc>0])), shading="auto" )
-                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap=cmap_gg,   norm=colors.LogNorm(vmin=np.min(Z_gg[Z_gg>0]), vmax=np.max(Z_gg[Z_gg>0])), shading="auto" )
-                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc,   norm=colors.LogNorm(vmin=np.min(Z_gc[Z_gc>0]), vmax=np.max(Z_gc[Z_gc>0])), shading="auto" )
-                    """
+                   
                     
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_cg, cmap=cmap_cg,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap=cmap_cc,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap=cmap_gg,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
-                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
+                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc,   norm=colors.LogNorm(vmin=0.1, vmax=1), shading="auto" )
 
 
                 else:
-                    """
-                    hold_cc = Z_cc > 0
-                    ax.scatter (E_mm_n[hold_cc], E_mm_a[hold_cc], c=Z_cc[hold_cc], cmap="Greens" , norm=colors.LogNorm(vmin=np.min(Z_cc[hold_cc]), vmax=np.max(Z_cc[hold_cc]) ) )                
+                    
 
-                    hold_gg = Z_gg > 0
-                    ax.scatter (E_mm_n[hold_gg], E_mm_a[hold_gg], c=Z_gg[hold_gg], cmap="Blues"  , norm=colors.LogNorm(vmin=np.min(Z_gg[hold_gg]), vmax=np.max(Z_gg[hold_gg]) ) )
-
-                    hold_gc = Z_gc > 0
-                    ax.scatter (E_mm_n[hold_gc], E_mm_a[hold_gc], c=Z_gc[hold_gc], cmap="Purples", norm=colors.LogNorm(vmin=np.min(Z_gc[hold_gc]), vmax=np.max(Z_gc[hold_gc]) ) )
-
-                    del hold_cc
-                    del hold_gg
-                    del hold_gc
-                    """
-                    # ax.pcolormesh ( E_mm_n, E_mm_a, Z_cg, cmap="Reds"    ,   norm=colors.LogNorm(vmin=np.min(Z_cg[Z_cg>0]), vmax=np.max(Z_cg[Z_cg>0])), shading="auto" )
-                    # ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap=cmap_cc  ,   norm=colors.LogNorm(vmin=np.min(Z_cc[Z_cc>0]), vmax=np.max(Z_cc[Z_cc>0])), shading="auto" )
-                    # ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap=cmap_gg  ,   norm=colors.LogNorm(vmin=np.min(Z_gg[Z_gg>0]), vmax=np.max(Z_gg[Z_gg>0])), shading="auto" )
-                    # ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc  ,   norm=colors.LogNorm(vmin=np.min(Z_gc[Z_gc>0]), vmax=np.max(Z_gc[Z_gc>0])), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap=cmap_cc,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                     ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap=cmap_gg,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
-                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
+                    ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc,   norm=colors.LogNorm(vmin=0.1, vmax=1), shading="auto" )
 
             
             except ValueError:
                 pass
-                # ax.pcolormesh (E_mm_n, E_mm_a, Z, cmap='Reds', vmin=0, vmax=1)   
+                
 
             del E_ms_n
             del E_ms_n_expanded
@@ -226,8 +196,6 @@ if __name__=="__main__":
             ax.set_ylim (-plot_lim, plot_lim)
             ax.set_yticks([-plot_lim,0,plot_lim])
             ax.set_xticks([-plot_lim,0,plot_lim])
-            # ax.set_xlabel ("$\\mathbf{ \\epsilon _{mm} } ^{\\perp}$ ", fontsize=6, weight='bold', labelpad=2)
-            # ax.set_ylabel ("$\\mathbf{ \\epsilon _{mm} ^{\\parallel} }$", fontsize=6, labelpad=2)
             ax.set_xticklabels (ax.get_xticks(), fontdict=font)
             ax.set_yticklabels (ax.get_yticks(), fontdict=font)
             ax.minorticks_on()
@@ -236,7 +204,7 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig ("fast-plots-real-multicolor-medium-v2.png", dpi=1200, bbox_inches="tight")
+    fig.savefig (args.img, dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

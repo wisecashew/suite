@@ -200,9 +200,9 @@ if __name__=="__main__":
     p_c = 1 - p_a - p_b
     ax.scatter(p_a, p_b, p_c, s=1, color=cols)
 
-    ax.set_tlabel('Vol. frac. A')
-    ax.set_llabel('Vol. frac. B')
-    ax.set_rlabel('Vol. frac. C')
+    ax.set_tlabel('$\\varphi _S$')
+    ax.set_llabel('$\\varphi _P$')
+    ax.set_rlabel('$\\varphi _C$')
 
     # Set axis limits
     ax.set_tlim(0, 1)

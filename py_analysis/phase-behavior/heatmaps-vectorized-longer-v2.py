@@ -119,6 +119,8 @@ if __name__=="__main__":
             ax.set_ylim (-plot_lim, plot_lim)
             ax.set_yticks([-plot_lim,0,plot_lim])
             ax.set_xticks([-plot_lim,0,plot_lim])
+            ax.set_xlabel ("$\\epsilon _{mm} ^{n}$", fontsize=3, weight='bold', labelpad=2)
+            ax.set_ylabel ("$\\epsilon _{mm} ^{a}$", fontsize=3, labelpad=2)
             ax.set_xticklabels (ax.get_xticks(), weight='bold')
             ax.set_yticklabels (ax.get_yticks(), weight='bold')
             ax.minorticks_on()
@@ -127,7 +129,7 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig ("fast-plots-longer-v2.png", bbox_inches="tight")
+    fig.savefig ("fast-plots-longer-v2.png", dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

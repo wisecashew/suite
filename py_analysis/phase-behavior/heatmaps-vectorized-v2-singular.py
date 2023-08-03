@@ -7,7 +7,18 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import time
-import numexpr as ne
+import copy 
+
+
+def has_adjacent_zero(matrix):
+    rows, cols = matrix.shape
+    shifted_up = np.pad(matrix[:-1, :], ((1, 0), (0, 0)), mode='constant')
+    shifted_down = np.pad(matrix[1:, :], ((0, 1), (0, 0)), mode='constant')
+    shifted_left = np.pad(matrix[:, :-1], ((0, 0), (1, 0)), mode='constant')
+    shifted_right = np.pad(matrix[:, 1:], ((0, 0), (0, 1)), mode='constant')
+    zero_adjacency = (shifted_up == 0) | (shifted_down == 0) | (shifted_left == 0) | (shifted_right == 0)
+    nonzeros = matrix != 0
+    return (zero_adjacency & nonzeros)*1
 
 
 @nb.njit
@@ -43,21 +54,29 @@ def chi(emmn, emma, emsn, emsa, g, pv, T):
 
 if __name__=="__main__":
 
-    E_ms_a_list = [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
-    E_ms_n_list = [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
+    E_ms_a_list = [-1] # [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
+    E_ms_n_list = [0 ] # [-1, -0.875, -0.75, -0.625, -0.5, -0.375, -0.25, -0.125, 0]
 
     fig, axes = plt.subplots(nrows=len(E_ms_a_list), ncols=len(E_ms_n_list), figsize=(8,6), constrained_layout=True)
     start = time.time()
 
     # define density of time points and range of plots
     linrange = 1000
-    plot_lim = 1
+    plot_lim = 5
 
     # define energies to plot things over 
     E_mm_a, E_mm_n = np.meshgrid (np.linspace(-plot_lim, plot_lim, linrange), np.linspace (-plot_lim, plot_lim, linrange))
 
+    # print ("E_mm_a = ...\n")
+    # print (E_mm_a)
+    # print (E_mm_a[:,0])
+
+    # print ("E_mm_n = ...\n")
+    # print (E_mm_n)
+    # print (E_mm_n[:,0])
+
     # get temperatures
-    T  = np.logspace (-2, 2, 50)
+    T  = np.logspace (-2, 2, 100)
     T_broadcast = np.broadcast_to (T, (E_mm_a.shape[0], E_mm_a.shape[1], len(T)))
 
     # get the other data structures
@@ -73,6 +92,10 @@ if __name__=="__main__":
     G_expanded      = G  [:, :, np.newaxis]
     PV_expanded     = PV [:, :, np.newaxis]
 
+    # c = chi (-1, -1, 0, -1, g, pv, T)
+    # print (np.max (c))
+    # exit()
+
     rcount = -1
     for e_ms_a in E_ms_a_list:
 
@@ -86,7 +109,7 @@ if __name__=="__main__":
             print (f"ccount = {ccount}", flush=True)
             ccount += 1
 
-            ax = axes[rcount][ccount]
+            ax = axes
             ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both', labelsize=3, pad=2)
             ax.tick_params(axis='x', labelsize=3, width=2)
             ax.tick_params(axis='y', labelsize=3, width=2)
@@ -101,20 +124,47 @@ if __name__=="__main__":
             print ("Processing the calculated chis...", flush=True)
             hold   = (np.max(Z_expanded, axis=-1)>0) & (Z_expanded[:,:,0]<0)
             Z      = np.where (hold, np.max(Z_expanded, axis=-1) - (Z_expanded[:,:,0]), 0)
+            Z_copy = has_adjacent_zero (Z)
+
             print ("Processed!", flush=True)
 
+            """
+            # start processing Z to get boundaries. 
+            for i in range(linrange):
+                indices = np.where (Z[i, :]>0)[0]
+                try: 
+                    max_ind = np.max (indices)
+                    min_ind = np.min (indices)
+                    Z_copy[i,:] = 0
+                    Z_copy[i, max_ind] = 1
+                    Z_copy[i, min_ind] = 1
+                except ValueError:
+                    pass
+                
+                indices = np.where (Z[:, i]>0)[0]
+                try: 
+                    max_ind = np.max (indices)
+                    min_ind = np.min (indices)
+                    Z_copy[max_ind, i] = 1
+                    Z_copy[min_ind, i] = 1
+                except ValueError:
+                    pass
+            """
+            
             print ("begin plotting...", flush=True)
             try:
-                ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', norm=colors.LogNorm(vmin=np.min(Z[Z>0]), vmax=np.max(Z)), shading="auto" )
-                # ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', norm=colors.SymLogNorm(linthresh=0.001, vmin=0, vmax=3000), shading="auto" )
+                # ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', norm=colors.LogNorm(vmin=np.min(Z[Z>0]), vmax=np.max(Z[Z>0])), shading="auto" )
+                ax.pcolormesh ( E_mm_n, E_mm_a, Z_copy, cmap="Greys", norm=colors.Normalize(vmin=0, vmax=1), shading="auto" )
             except ValueError:
-                ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', vmin=0, vmax=1 )   
+                # ax.pcolormesh ( E_mm_n, E_mm_a, Z, cmap='Reds', vmin=0, vmax=1 )   
+                pass
 
             del E_ms_n         
             del E_ms_n_expanded
             del Z_expanded     
             del Z              
-            del hold           
+            del hold
+            # del mask           
 
             ax.set_xlim (-plot_lim, plot_lim)
             ax.set_ylim (-plot_lim, plot_lim)
@@ -124,11 +174,11 @@ if __name__=="__main__":
             ax.set_yticklabels (ax.get_yticks(), weight='bold')
             ax.minorticks_on()
             print ("plotted!", flush=True)
-
+            
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig ("fast-plots-v2.png", dpi=1200, bbox_inches="tight")
+    fig.savefig ("fast-singular-plots.png", dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

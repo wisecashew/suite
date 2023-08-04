@@ -9,6 +9,12 @@ import matplotlib.colors as colors
 import time
 import scipy.sparse as sp
 import numexpr as ne
+import argparse 
+
+parser = argparse.ArgumentParser (description="Create vectorized plots.")
+# parser.add_argument ('-g', metavar='g', dest='g', type=float, action='store', help='p_Omega value for calcs.')
+parser.add_argument ('--image', metavar='img', dest='img', type=str, action='store', help='Name of the image to be created.')
+args   = parser.parse_args ()
 
 
 @nb.njit # (parallel=True)
@@ -109,7 +115,7 @@ if __name__=="__main__":
     uxlim = 0
 
     lylim = -2.5
-    uylim = 0
+    uylim = 100
 
     # define energies to plot things over 
     E_mm_a, E_mm_n = np.meshgrid (np.linspace(lylim, uylim, linrange), np.linspace (lxlim, uxlim, linrange))
@@ -172,7 +178,7 @@ if __name__=="__main__":
             hold      = (np.sum( np.diff( np.sign(Z_expanded), axis=2) != 0, axis=2 ) == 3) & (Z_expanded[:,:,0]>0)
             Z_gc      = np.where (hold, 1, 0)   
 
-            Z_gc      = add_layers (Z_gc, 10)
+            # Z_gc      = add_layers (Z_gc, 10)
 
             # print (f"Will there be an R3: {(Z_gc==1).any()}")
             print ("Processed!", flush=True)
@@ -185,8 +191,10 @@ if __name__=="__main__":
                 ax.pcolormesh ( E_mm_n, E_mm_a, Z_cc, cmap=cmap_cc,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                 ax.pcolormesh ( E_mm_n, E_mm_a, Z_gg, cmap=cmap_gg,   norm=colors.LogNorm(vmin=0.1, vmax=6000), shading="auto" )
                 ax.pcolormesh ( E_mm_n, E_mm_a, Z_gc, cmap=cmap_gc,   norm=colors.LogNorm(vmin=0.1, vmax=1), shading="auto" )
-                # x_test = np.linspace (lxlim, uxlim, 1000)
-                # ax.plot (x_test, x_test, c='k', ls='--')
+                ax.scatter ([-1.337958741588324,-2.00659], [-1.337958741588324,-2.00659], ec='k', s=10, c="coral")
+                ax.scatter (-1.33806*np.ones(100), np.linspace(lylim, uylim, 100), ec='k', c='steelblue')
+                # ax.scatter (np.linspace(lxlim, uxlim, 100)[50], np.linspace(lxlim, uxlim, 100)[50], s=20, edgecolors='k', c='coral')
+
             except ValueError:
                 pass
 
@@ -212,7 +220,7 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig ("fast-plots-real-multicolor-singular-v3.png", dpi=1200, bbox_inches="tight")
+    fig.savefig (args.img, dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

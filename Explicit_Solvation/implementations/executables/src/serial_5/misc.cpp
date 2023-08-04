@@ -2104,7 +2104,7 @@ bool MetropolisAcceptance(double E1, double E2, double kT, double rweight){
 // 
 // THE CODE: 
 
-void InputParser(int dfreq, int max_iter, bool r, \
+void InputParser(int dfreq, int lfreq, int max_iter, bool r, \
 	std::string positions, std::string topology, std::string dfile, \
 	std::string efile, std::string mfile, std::string stats_file, \
 	std::string lattice_file_read){
@@ -2112,8 +2112,8 @@ void InputParser(int dfreq, int max_iter, bool r, \
 	
 	if (!r) {
 
-		if (dfreq == -1 || max_iter == -1) {
-			std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+		if (dfreq == -1 || lfreq == -1 || max_iter == -1) {
+			std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ") and/or for option l (ell) (" << lfreq << ") and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
 			exit (EXIT_FAILURE);
 		}
 	
@@ -2143,8 +2143,8 @@ void InputParser(int dfreq, int max_iter, bool r, \
 
 	else {
 
-		if ( dfreq == -1 || max_iter == -1 ){
-			std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+		if ( dfreq == -1 || lfreq == -1 || max_iter == -1 ){
+			std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option l (ell) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
 	        exit (EXIT_FAILURE);	
 		}
 
@@ -3269,7 +3269,7 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* 
 
 void dumpLATTICE ( std::vector <Particle*> *LATTICE, int step, int y, int z, std::string filename ){
 
-	std::ofstream dump_file ( filename, std::ios::app ); 
+	std::ofstream dump_file ( filename, std::ios::out ); 
 	dump_file << "FINAL STEP: " << step << ".\n"; 
 	for ( Particle*& p: (*LATTICE) ){
 		dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 

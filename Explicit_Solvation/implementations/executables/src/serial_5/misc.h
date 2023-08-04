@@ -97,7 +97,7 @@ double              take_dot_product        (std::array <double,3> o1, std::arra
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
-void InputParser (int dfreq, int max_iter, bool r, std::string positions, \
+void InputParser (int dfreq, int lfreq, int max_iter, bool r, std::string positions, \
     std::string topology, std::string dfile, std::string efile, std::string mfile, \
     std::string stats_file, std::string lattice_file_read); 
 

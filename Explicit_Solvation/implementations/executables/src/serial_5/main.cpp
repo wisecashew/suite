@@ -20,6 +20,7 @@ int main (int argc, char** argv) {
 
 	// INSTANTIATE USER INPUT VARIABLES 
 	int opt;          // storage variable to hold options from getopt() [line 36] 
+    int lfreq   {-1}; // lattice frequency dump 
 	int dfreq   {-1}; // frequency at which coordinates will be dumped out 
 	int max_iter{-1}; // number of iteration to perform
 	bool v = false;   // boolean for verbosity of output  (default: not verbose)
@@ -37,13 +38,17 @@ int main (int argc, char** argv) {
 	std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
 
 	// loop to obtain inputs and assign them to the appropriate variables 
-	while ( (opt = getopt(argc, argv, ":s:L:R:f:M:o:u:p:t:e:vhSAyr")) != -1 )
+	while ( (opt = getopt(argc, argv, ":l:s:L:R:f:M:o:u:p:t:e:vhSAyr")) != -1 )
 	{
 	    switch (opt) 
 	    {
 		case 'f':
 			dfreq = atoi(optarg); 
 			break;
+
+        case 'l':
+            lfreq = atoi(optarg); 
+            break;
 
 		case 'M':
 			max_iter = atoi(optarg); 
@@ -53,7 +58,7 @@ int main (int argc, char** argv) {
 			std::cout << 
 			"\n" << 
 			"Welcome to my [M]onte [C]arlo [Latt]ice [E]ngine [McLattE] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
-			"Last updated: Jan 25, 2023, 02:46 PM. \n" << 
+			"Last updated: Aug 4, 2023, 03:01 PM. \n" << 
 			"Author: satyend@princeton.edu \n" <<
 			"\n" << 
 			"----------------------------------------------------------------------------------------------------------------------------------\n" << 
@@ -64,7 +69,8 @@ int main (int argc, char** argv) {
 			"solvation bias flag                      [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
 			"solvation shell orientation bias flag    [-S]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
             "lattice orientation bias flag            [-A]           (NO ARG REQUIRED)              All particles in lattice have orientation 0. \n"<<
-			"Dump Frequency                           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
+			"Dump frequency                           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
+            "Dump frequency of entire lattice         [-l]           (INTEGER ARGUMENT REQUIRED)    Frequency at which lattice should be dumped out. \n"<<                
 			"Number of maximum moves                  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
 			"Polymer coordinates                      [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
 			"Energy and geometry                      [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
@@ -79,7 +85,6 @@ int main (int argc, char** argv) {
 
 
 		case 'p':
-			// std::cout <<"Option p was called with argument " << optarg << std::endl;
 			positions = optarg;
 			break;    
 
@@ -165,7 +170,7 @@ int main (int argc, char** argv) {
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
     // Parse inputs... 
     // This command will take all of the above inputs and make sure they are valid. 
-    InputParser ( dfreq, max_iter, r, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read ); 
+    InputParser ( dfreq, lfreq, max_iter, r, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read ); 
 
     //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
@@ -183,12 +188,11 @@ int main (int argc, char** argv) {
     const int z             =  info_vec[2] ; 
     const double T          =  info_vec[3] ; 
     const double frac       =  info_vec[12]; 
-    std::pair <std::string, std::string> mm_pair    = std::make_pair ("m1", "m1");
-    std::pair <std::string, std::string> ms1_pair   = std::make_pair ("m1", "s1");
-    std::pair <std::string, std::string> ms2_pair   = std::make_pair ("m1", "s2");
-    std::pair <std::string, std::string> s1s2_pair  = std::make_pair ("s1", "s2");
-    std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]}; 
-
+    std::pair  <std::string, std::string> mm_pair    = std::make_pair ("m1", "m1");
+    std::pair  <std::string, std::string> ms1_pair   = std::make_pair ("m1", "s1");
+    std::pair  <std::string, std::string> ms2_pair   = std::make_pair ("m1", "s2");
+    std::pair  <std::string, std::string> s1s2_pair  = std::make_pair ("s1", "s2");
+    std::array <double,8> E =  {info_vec[4], info_vec[5], info_vec[6], info_vec[7], info_vec[8], info_vec[9], info_vec[10], info_vec[11]};
 
     // initialize custom data structures 
     // this data structure will hold the coordinates of the polymer
@@ -311,7 +315,6 @@ int main (int argc, char** argv) {
 
         if ( v && (i%dfreq==0) ){
             std::cout << "Initial config for step is:" << std::endl;
-            // Polymers[0].printChainCoords();
             for (int j{0}; j< int((Polymers)[0].chain.size()); ++j){
                 print((Polymers)[0].chain[j]->coords, ", "); std::cout << "o = " << (Polymers)[0].chain[j]->orientation << std::endl;
             }
@@ -329,6 +332,7 @@ int main (int argc, char** argv) {
             acceptances[move_number] += 1;          
         }
 
+        /*
         if ( v ){
             if (IMP_BOOL){
                 std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
@@ -341,25 +345,25 @@ int main (int argc, char** argv) {
             std::cout << "Checking if data structures are in good conditions..." << std::endl; 
             CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
         }
+        */ 
 
         if ( ( i % dfreq == 0 ) ){
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
-            if ( i % (dfreq*10) == 0 ) {
-                dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
-                // dumpLATTICE ( &LATTICE, i, y, z, lattice_file_write ); 
-            }
             dumpEnergy (sysEnergy, i, &contacts, efile);
+            // if ( i % (dfreq*10) == 0 ) {
+            //     dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
+            // }
+            
+            if ( i % (lfreq) == 0 ){
+                dumpLATTICE ( &LATTICE, i, y, z, lattice_file_write ); 
+            }
         }
 
-        IMP_BOOL = true;      
+        IMP_BOOL = true;
     }
 
     dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
     
-    
-    if ( lattice_file_write != "__blank__" ) {
-        dumpLATTICE ( &LATTICE, step_number+max_iter, y, z, lattice_file_write ); 
-    }
     
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 

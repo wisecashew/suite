@@ -20,8 +20,7 @@ args = parser.parse_args()
 
 if __name__=="__main__":
 
-
-    g    = 0.5
+    g     = 0.2514792899408284
     zmm   = lambda emma, emmn, pw, T: pw*np.exp (-1/T * emma, dtype=np.float128) + (1-pw)*np.exp (-1/T * emmn, dtype=np.float128)
     zms   = lambda emsa, emsn, pw, T: pw*np.exp (-1/T * emsa, dtype=np.float128) + (1-pw)*np.exp (-1/T * emsn, dtype=np.float128)
     zss   = lambda essa, essn, pw, T: pw*np.exp (-1/T * essa, dtype=np.float128) + (1-pw)*np.exp (-1/T * essn, dtype=np.float128)
@@ -66,9 +65,9 @@ if __name__=="__main__":
             Y = Y[~np.isinf(Y)]
             ax.plot (T, chi(pars[0], pars[1], pars[2], pars[3], pars[4], pars[5], g, pv, T), ls='-', lw=1, zorder=10, solid_capstyle='round', label=f"E_mm={pars[0]}")
 
-    ax.legend(fontsize="4")
+    ax.legend(fontsize=2, loc="lower right")
     ax.set_xscale ("log")
-    ax.set_xticklabels([])
+    # ax.set_xticklabels([])
     ax.set_yticklabels([])
     ax.axhline (y=0, c='k', linestyle='--', lw=0.5, zorder=11)
     ax.axhline (y=0.6924016952966369, c='r', linestyle='--', lw=1, zorder=11)

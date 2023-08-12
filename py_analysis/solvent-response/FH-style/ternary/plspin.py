@@ -12,6 +12,13 @@ import mpltern
 import sys
 import argparse
 np.set_printoptions(threshold=sys.maxsize)
+import warnings 
+
+def custom_warning_format(message, category, filename, lineno, line=None):
+    line = linecache.getline(filename, lineno).strip()
+    return f"There is a RunTimeWarning taking place on line {lineno}: {line}"
+
+warnings.formatwarning = custom_warning_format
 
 import argparse 
 parser = argparse.ArgumentParser(description="Create two spinodal diagram: one with only shows the edges (ternary) and another one which paints the ternary plot.")
@@ -151,7 +158,7 @@ if __name__=="__main__":
     plt.savefig (f"edges_{chi_ab}_{chi_bc}_{chi_ac}.png", dpi=1200)
     
     print ("Completed spinodal boundary plotting!\n\n")
-    print (" ########################################### \n\n")
+    print ("########################################### \n\n")
     print ("Start painting the spinodal region...")
 
     
@@ -199,6 +206,43 @@ if __name__=="__main__":
     # Plot the points
     p_c = 1 - p_a - p_b
     ax.scatter(p_a, p_b, p_c, s=1, color=cols)
+
+    if chi_ab == 3 and chi_bc == 3 and chi_ac == 3 and N == 1:
+        ax.scatter([1/3],[1/3],[1/3], s=5, color='k')
+
+    elif chi_ab == 2.4 and chi_bc == 2.4 and chi_ac == 2.4 and N == 1:
+        p1 = 0.41667; p2 = 0.16667; p3 = 1 - p2 - p1
+        ax.scatter ([p1],[p2],[p3], s=5, color='k', edgecolors='steelblue')
+
+        p1 = 0.41667; p2 = 0.41667; p3 = 1 - p2 - p1
+        ax.scatter ([p1],[p2],[p3], s=5, color='k', edgecolors='steelblue')
+
+        p1 = 0.704124; p2 = 0.295876; p3 = 1 - p2 - p1
+        ax.scatter ([p1],[p2],[p3], s=5, color='k', edgecolors='steelblue')
+
+    elif chi_ab == 2.4 and chi_bc == 2.4 and chi_ac == 2.4 and N == 32:
+        p2 = 0.0207809; p1 = 0.624942; p3 = 1 - p2 - p1
+        ax.scatter ([p1],[p2],[p3], s=5, color='k', edgecolors='steelblue')
+
+        p2 = 0.0207809; p1 = 0.354277; p3 = 1 - p2 - p1
+        ax.scatter ([p1],[p2],[p3], s=5, color='k', edgecolors='steelblue')
+
+    elif chi_ab == -1 and chi_bc == -1 and chi_ac == -10 and N == 32:
+        pp = 0.0696318; ps = 0.855244; pc = 1-pp-ps
+        ax.scatter ([ps],[pp],[pc], s=5, color='k', edgecolors='steelblue')
+
+        pp = 0.0696318; ps = 0.075124; pc = 1-pp-ps
+        ax.scatter ([ps],[pp],[pc], s=5, color='k', edgecolors='steelblue')
+
+    elif chi_ab == -1 and chi_bc == -10 and chi_ac == 0 and N == 32:
+        pp = 0.421132; ps = 0.46859; pc = 1-pp-ps
+        ax.scatter ([ps],[pp],[pc], s=5, color='k', edgecolors='steelblue')
+
+        pp = 0.0168067; ps = 0.310171; pc = 1-pp-ps
+        ax.scatter ([ps],[pp],[pc], s=5, color='k', edgecolors='steelblue')
+
+
+
 
     ax.set_tlabel('$\\varphi _S$')
     ax.set_llabel('$\\varphi _P$')

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm 
 import matplotlib.colors as colors 
 from scipy.optimize import fsolve
+from scipy.optimize import brentq
 import scipy.optimize as opt 
 from matplotlib.ticker import StrMethodFormatter
 from matplotlib.ticker import Locator, AutoMinorLocator, MultipleLocator
@@ -52,34 +53,68 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
         phi_p_lower = root_lo (phi_s, chi_ps, chi_pc, chi_sc)
         return crit_condition (N, phi_p_lower, phi_s, chi_sc, chi_ps, chi_pc)
 
-    guesses = np.linspace (0, 1, 50)
-    roots_up   = []
-    roots_down = []
+    guesses = np.linspace (0, 1, 10000)
+    roots_up   = np.empty ((0,2))
+    roots_down = np.empty ((0,2))
 
     for g in guesses:
         root = fsolve (send_to_fsolve_r1, g)
-        if root >= 1 or root <= 0 or np.isnan(root):
-            pass
-        else:
-            r_up = root_up(root, chi_ps, chi_pc, chi_sc)[0]
-            
-            if r_up >= 1 or r_up <= 0 or np.isnan(r_up):
-                pass
+        
+        if abs(send_to_fsolve_r1(root)) < 1e-6:             
 
+            if root >= 1 or root <= 0 or np.isnan(root):
+                pass
             else:
-                roots_up.append ((root[0], r_up))
+                r_up  = root_up(root, chi_ps, chi_pc, chi_sc)[0]
+                r_tup = np.array([root[0], r_up])
+                if r_up >= 1 or r_up <= 0 or np.isnan(r_up):
+                    pass
+
+                elif r_tup in roots_up:
+                    pass
+
+                else:
+                    if len(roots_up) == 0:
+                        roots_up = np.vstack ((roots_up,r_tup))
+                    else:
+                        # print(roots_up - r_tup)
+                        similarity = (np.linalg.norm(roots_up - r_tup, axis=1) < 1e-3).any ()
+                        if similarity:
+                            pass
+                        else:
+                            roots_up = np.vstack ((roots_up,r_tup))   
+        else:
+            pass
 
     for g in guesses:
         root = fsolve (send_to_fsolve_r2, g)
-        if root > 1 or root < 0 or np.isnan(root):
-            pass
-        else:
-            r_lo = root_lo(root, chi_ps, chi_pc, chi_sc)[0]
-            if r_lo > 1 or r_lo < 0 or np.isnan(r_lo):
-                pass
+        # print (root)
 
-            else: 
-                roots_down.append ((root[0], r_lo))
+        if abs(send_to_fsolve_r2(root)) < 1e-6:
+
+            if root >= 1 or root <= 0 or np.isnan(root):
+                pass
+            else:
+                r_lo = root_lo(root, chi_ps, chi_pc, chi_sc)[0]
+                r_tup = np.array([root[0], r_lo])
+                if r_lo > 1 or r_lo < 0 or np.isnan(r_lo):
+                    pass
+
+                elif r_tup in roots_down:
+                    pass
+
+                else: 
+                    if len(roots_down) == 0:
+                        roots_down = np.vstack ((roots_down,r_tup))
+                    else:
+                        similarity = (np.linalg.norm(roots_down - r_tup, axis=1) < 1e-3).any ()
+                        if similarity:
+                            pass
+                        else:
+                            roots_down = np.vstack ((roots_down,r_tup))                       
+                    
+        else:
+            pass
 
     return roots_up, roots_down 
 
@@ -104,12 +139,9 @@ if __name__=="__main__":
     root_lo  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
 
 
-    
     roots_up, roots_down = find_crit_point (N, chi_sc, chi_ps, chi_pc)
 
-    print (roots_up)
-    print (roots_down)
-
+    
 
 
 

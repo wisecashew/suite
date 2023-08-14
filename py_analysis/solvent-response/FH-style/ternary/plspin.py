@@ -11,12 +11,13 @@ from matplotlib.ticker import Locator, AutoMinorLocator, MultipleLocator
 import mpltern
 import sys
 import argparse
+import linecache
 np.set_printoptions(threshold=sys.maxsize)
 import warnings 
 
 def custom_warning_format(message, category, filename, lineno, line=None):
     line = linecache.getline(filename, lineno).strip()
-    return f"There is a RunTimeWarning taking place on line {lineno}: {line}"
+    return f"There is a RunTimeWarning taking place on line {lineno}.\n"
 
 warnings.formatwarning = custom_warning_format
 

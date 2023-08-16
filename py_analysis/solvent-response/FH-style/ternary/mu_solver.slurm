@@ -11,6 +11,7 @@
 # The modules I need to run my job
 module purge
 module load anaconda3/2020.7
+conda activate phase
 # conda activate data_analysis
 # module load rh/devtoolset/7 
 
@@ -26,4 +27,4 @@ trap 'echo "\"${last_command}\" command filed with exit code $?." ' EXIT
 ### code block for running simulations in the simple FH regime 
 #~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
 
-srun --nodes=1 --ntasks=1 --cpus-per-task=96 --exclusive python pchiexpl_v2.py -N 32 --nproc 96
+srun --ntasks=1 --cpus-per-task=1 --exclusive --nodes=1 python spinwbin_v3.py --chiac -7 --chiab -1 --chibc -1 --nproc 96 -N 32 --dumpfile binskel-chiab_-1-chibc_-1-chiac_-7.skelfile --bin-boundary bin-chiab_-1-chibc_-1-chiac_-7.out --image binodal-chiab_-1-chibc_-1-chiac_-7.png

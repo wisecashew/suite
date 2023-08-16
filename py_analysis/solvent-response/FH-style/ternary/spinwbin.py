@@ -1,5 +1,3 @@
-#!/Users/satyendhamankar/opt/anaconda3/envs/GBCG/bin/python
-
 import numpy as np
 import pandas as pd
 import matplotlib 
@@ -48,7 +46,7 @@ parser.add_argument('--image',        dest='img',       type=str,            act
 args = parser.parse_args()
 
 
-# go_through_indices goes through every single "bad" solution I have, 
+# go_through_indices goes through every single "bad" solution I have,
 # and tries to find a good solution for it using guesses created
 # that are actual points on the binodal.
 
@@ -191,59 +189,13 @@ def binodal_plotter (fig, ax, fig2, ax2, dumpfile, nproc, chi_ab, chi_bc, chi_ac
     # curate sol1 and sol2
     sol1_bg, inds = np.unique (sol1_bg, axis=0, return_index=True)
     sol2_bg       = sol2_bg [inds, :]
-    # sol1_bg       = np.vstack((sol1_bg,sol1))
-    # sol2_bg       = np.vstack((sol2_bg,sol2))
 
-    # collect all the points in sol1_bg and sol2_bg, and sort them for further processing
-    # sol_net = np.vstack ((sol1_bg, sol2_bg))
-
-    
-
-
-    # NEXT, only keep things on the surface of the binodal, none of the inside stuff
-    # find the convex hull in order to do the above
-
-    points1 = np.vstack ((sol1[:, 0:2], sol1_bg[:, 0:2]))
-    points2 = np.vstack ((sol2[:, 0:2], sol2_bg[:, 0:2]))
-    
-    pointstot = np.vstack ((points1,points2))
-    
-    # print (f"shape of points1 = {points1.shape}, and points2 = {points2.shape}")
-    # hull = ConvexHull (points1)
-    # vertices1 = points1[hull.vertices]
-    # vertices2 = points2[hull.vertices]
-    hull = ConvexHull (pointstot)
-    vertices = pointstot[hull.vertices]
-    xtot = np.append (vertices[:,0], vertices[0,0])
-    ytot = np.append (vertices[:,1], vertices[0,1])
-    # x1 = np.append (vertices1[:,0], vertices1[0,0])
-    # y1 = np.append (vertices1[:,1], vertices1[0,1])
-
-    # print (f"Lenght of hull 1: {len(x1)}")
-    # print (f"Lenght of hull 1: {len(y1)}")
-
-    # x2 = np.append (vertices2[:,0], vertices2[0,0])
-    # y2 = np.append (vertices2[:,1], vertices2[0,1])
-
-    # print (f"Lenght of hull 2: {len(x2)}")
-    # print (f"Lenght of hull 2: {len(y2)}")
-
-    # z = stab_crit (x2, y2, chi_ab, chi_bc, chi_ac)
-    z = stab_crit (xtot, ytot, chi_ab, chi_bc, chi_ac)
-    mask = z>0
-    # print (x2[mask])
-    # print (y2[mask])
-    # ax.plot (x1, y1, 1-x1-y1, color='coral',  lw=0.5)
-    ax.plot (xtot[mask], ytot[mask], 1-xtot[mask]-ytot[mask], color='k', lw=1)
-    # ax.scatter (sol1_bg[:,0], sol1_bg[:,1], sol1_bg[:,2], s=1/8, c='steelblue', marker='o')
-    # ax.scatter (sol2_bg[:,0], sol2_bg[:,1], sol2_bg[:,2], s=1/8, c='steelblue', marker='o')
-    # ax.scatter (sol1[:,0], sol1[:,1], sol1[:,2], s=1/8, c='steelblue', marker='o')
-    # ax.scatter (sol2[:,0], sol2[:,1], sol2[:,2], s=1/8, c='steelblue', marker='o')
+    ax.plot (sol1_bg[:,0], sol1_bg[:,1], lw=1, c='k')
 
     # these are the tie-lines
     if args.tl:
         for i in range (len(sol1_bg)):
-            ax.plot    ([sol1_bg[i][0],sol2_bg[i][0]], [sol1_bg[i][1],sol2_bg[i][1]], [1-sol1_bg[i][0]-sol1_bg[i][1], 1-sol2_bg[i][0]-sol2_bg[i][1]], lw=0.1, ls='--', markersize=0, c='lightgray')
+            ax.plot    ([sol1_bg[i][0],sol2_bg[i][0]], [sol1_bg[i][1],sol2_bg[i][1]], lw=0.1, ls='--', markersize=0, c='steelblue')
 
     f = open (args.boundary, 'w')
 
@@ -273,12 +225,10 @@ if __name__=="__main__":
     ############################
 
     lsize = 3
-    font = {'color':  'black',
-        'weight': 'normal',
-        'size': lsize}
+    font = {'color':  'black', 'weight': 'normal', 'size': lsize}
 
     fig = plt.figure(num=1, figsize=(6, 6))
-    ax  = fig.add_subplot (projection="ternary")
+    ax  = fig.add_subplot ()
 
     fig2  = plt.figure (num=2)
     ax2   = plt.axes   ()
@@ -287,7 +237,7 @@ if __name__=="__main__":
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
 
-    print ("Begin creating the meshes and painting the ternary diagram...", flush=True)
+    print ("Begin creating the meshes and painting the diagram...", flush=True)
     p_a_space = np.arange (0.001, 1-0.001, 0.001)
     p_a = np.repeat (p_a_space, len(p_a_space))
 
@@ -300,8 +250,8 @@ if __name__=="__main__":
     to_keep = ~np.isnan(vals)
 
     vals = vals[to_keep]
-    p_a  = p_a[to_keep]
-    p_b  = p_b[to_keep]
+    p_a  = p_a [to_keep]
+    p_b  = p_b [to_keep]
 
     vmax = np.max (vals)
     vmin = np.min (vals)
@@ -319,13 +269,12 @@ if __name__=="__main__":
 
     # Plot the points
     p_c = 1 - p_a - p_b
-    ax.scatter  (p_a, p_b, p_c, s=0.01, color=cols)
-    print ("Painted the ternary diagram!", flush=True)
+    ax.scatter  (p_a, p_b, s=0.01, color=cols)
+    print ("Painted the diagram!", flush=True)
 
 
-    ax.set_tlabel('$\\phi _{S}$')
-    ax.set_llabel('$\\phi _{P}$')
-    ax.set_rlabel('$\\phi _{C}$')
+    ax.set_xlabel('$\\phi _{S}$')
+    ax.set_ylabel('$\\phi _{P}$')
     print ("We have plotted the spinodal region!\n\n")
 
     print ("###########################################################\n\n")
@@ -344,16 +293,8 @@ if __name__=="__main__":
     print ("Done with binodal plotting!")
 
     # Set axis limits
-    ax.set_tlim(0, 1)
-    ax.set_llim(0, 1)
-    ax.set_rlim(0, 1)
-    # ax.ticks(axis='lbr', multiple=5, linewidth=1, offset=0.025)
-
-    positions = ['tick1', 'tick2']
-    for position in positions:
-        ax.taxis.set_ticks_position(position)
-        ax.laxis.set_ticks_position(position)
-        ax.raxis.set_ticks_position(position)
+    ax.set_xlim(0, 1)
+    ax.set_ylim(0, 1)
 
     ax.grid()
 

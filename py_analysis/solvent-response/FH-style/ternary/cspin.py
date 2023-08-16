@@ -59,7 +59,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
     for g in guesses:
         root = fsolve (send_to_fsolve_r1, g)
         
-        if abs(send_to_fsolve_r1(root)) < 1e-6:             
+        if abs(send_to_fsolve_r1(root)) < 1e-6:
 
             if root >= 1 or root <= 0 or np.isnan(root):
                 pass
@@ -108,8 +108,8 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
                         if similarity:
                             pass
                         else:
-                            roots_down = np.vstack ((roots_down,r_tup))                       
-                    
+                            roots_down = np.vstack ((roots_down,r_tup))
+
         else:
             pass
 
@@ -121,7 +121,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
 if __name__=="__main__":
 
     print ("Start painting the spinodal region...")
-    
+
     chi_sc = args.chi_sc
     chi_ps = args.chi_ps
     chi_pc = args.chi_pc

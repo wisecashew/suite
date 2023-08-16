@@ -82,7 +82,7 @@ def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac):
     mu_dists      = np.zeros ((npoints, npoints))
 
     for i in range (block_num):
-        print (f"max_block = {block_num}, and at i = {i}", flush=True)
+        # print (f"max_block = {block_num}, and at i = {i}", flush=True)
         if i < block_num - 1:
             phi_dists[i*block_size:(i+1)*block_size,:] = np.linalg.norm (phi_big_block - phis[i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
             mu_dists [i*block_size:(i+1)*block_size,:] = np.linalg.norm (mu_big_block  - mu  [i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
@@ -130,7 +130,7 @@ if __name__=="__main__":
 
     pool = mp.Pool (processes=len(phi_b_list) )
 
-    results = pool.starmap(process_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac) ) )
+    results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac) ) )
 
     pool.close ()
     pool.join  ()

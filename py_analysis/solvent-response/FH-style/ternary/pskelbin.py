@@ -82,7 +82,7 @@ def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac):
     mu_dists      = np.zeros ((npoints, npoints))
 
     for i in range (block_num):
-        # print (f"max_block = {block_num}, and at i = {i}", flush=True)
+    
         if i < block_num - 1:
             phi_dists[i*block_size:(i+1)*block_size,:] = np.linalg.norm (phi_big_block - phis[i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
             mu_dists [i*block_size:(i+1)*block_size,:] = np.linalg.norm (mu_big_block  - mu  [i*block_size:(i+1)*block_size, np.newaxis,:], axis=-1)
@@ -108,7 +108,7 @@ if __name__=="__main__":
 
     start = time.time()
 
-    N = args.N
+    N      = args.N
     chi_ac = args.chi_ac
     chi_ab = args.chi_ab
     chi_bc = args.chi_bc
@@ -126,9 +126,9 @@ if __name__=="__main__":
     mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
 
     mesh  = args.mesh
-    phi_b_list = [np.logspace (-20, np.log10(0.9), mesh), np.linspace(0.1, 0.6, mesh), np.logspace(-15, -1, mesh)]
+    phi_b_list = [np.logspace (-20, np.log10(0.999), mesh), np.linspace(0.1, 0.6, mesh), np.linspace(0.6, 0.999, mesh), np.logspace(-15, -1, mesh)]
 
-    pool = mp.Pool (processes=len(phi_b_list) )
+    pool    = mp.Pool (processes=len(phi_b_list) )
 
     results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac) ) )
 

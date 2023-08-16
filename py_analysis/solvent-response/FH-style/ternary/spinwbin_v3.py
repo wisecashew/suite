@@ -133,78 +133,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
 
     return roots_up, roots_down
 
-
-
-
-# add rows in between
-def add_rows_between (array, num_rows):
-    new_array = []
-    for i in range(len(array) - 1):
-        # Add the current row
-        new_array.append(array[i])
-
-        # Calculate the difference between consecutive elements
-        diff = array[i+1, 0] - array[i, 0]
-
-        # Check if there are rows to be added between the current rows
-        if diff > 0:
-            # Generate the additional rows with incremented values in the first column
-            additional_rows = np.column_stack([
-                np.linspace(array[i, 0], array[i+1, 0], num=num_rows+2)[1:-1],
-                np.full(num_rows, array[i, 1]),
-                np.full(num_rows, array[i, 2])
-            ])
-
-            # Append the additional rows to the new array
-            new_array.extend(additional_rows)
-
-        else:
-            print (f"There is a sorting issue...")
-
-    # Add the last row
-    new_array.append(array[-1])
-
-    # Convert the new array to a NumPy array
-    new_array = np.array(new_array)
-
-    return new_array
-
 ################################
-
-
-def add_rows_along_y (array, num_rows):
-    new_array = []
-    for i in range(len(array) - 1):
-        # Add the current row
-        new_array.append(array[i])
-
-        # Calculate the difference between consecutive elements
-        diff = array[0, i+1] - array[0, i]
-
-        # Check if there are rows to be added between the current rows
-        if diff > 0:
-            # Generate the additional rows with incremented values in the second column
-            additional_rows = np.column_stack([
-                np.linspace(array[i, 1], array[i+1, 1], num=num_rows+2)[1:-1],
-                np.full(num_rows, array[1, i]),
-                np.full(num_rows, array[2, i])
-            ])
-
-            # Append the additional rows to the new array
-            new_array.extend(additional_rows)
-
-        else:
-            print (f"There is a sorting issue...")
-
-    # Add the last row
-    new_array.append(array[-1])
-
-    # Convert the new array to a NumPy array
-    new_array = np.array(new_array)
-
-    return new_array
-
-#############################
 
 def add_interpolated_rows (original_array, M):
     result_array = []
@@ -287,7 +216,8 @@ def refined_binodal (side_1, side_2):
         bin2 = np.vstack((bin2, root_combo[1]))
 
     return [bin1, bin2]
-#
+
+######################################
 
 def refined_binodal_v2 (side_1, side_2):
 
@@ -384,8 +314,7 @@ def refined_binodal_v2 (side_1, side_2):
 
     return [bin1, bin2]
 
-#####################################################################
-
+######################################
 
 def refined_binodal_v3 (side_1, side_2, added_rows):
 
@@ -449,7 +378,7 @@ def refined_binodal_v3 (side_1, side_2, added_rows):
 
     return [bin1, bin2]
 
-###############################
+######################################
 
 def refined_binodal_v4 (side_1, side_2, added_rows):
 
@@ -515,7 +444,6 @@ def refined_binodal_v4 (side_1, side_2, added_rows):
 
 ######################################
 
-
 def refined_binodal_v5 (side_1, side_2, added_rows):
 
     # together = np.vstack ((side_1, side_2))
@@ -578,6 +506,7 @@ def refined_binodal_v5 (side_1, side_2, added_rows):
 
     return [side_1, side_2]
 
+######################################
 
 # go_through_indices goes through every single "bad" solution I have, 
 # and tries to find a good solution for it using guesses created
@@ -724,7 +653,6 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     sol2_bg       = np.vstack((sol2_bg,sol2))
 
     # collect all the points in sol1_bg and sol2_bg, and sort them for further processing
-    critp   = np.array  ([[crit_points[0,0],crit_points[0,1],1-(crit_points[0,0]+crit_points[0,1])],[crit_points[1,0],crit_points[1,1],1-crit_points[1,0]-crit_points[1,1]]])
     sol_net = np.vstack ((sol1_bg, sol2_bg))
 
     # start partitioning along a certain axis
@@ -765,14 +693,17 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     sorted_t1_idx = np.argsort (theta_1)
     sorted_t2_idx = np.argsort (theta_2)
 
+    # WE HAVE NOW SPLIT UP THE UNSTABLE REGION INTO TWO ZONES BY USING THE CRITICAL POINT
+    # NOW THAT WE HAVE TWO ZONES AS TWO HALVES:side_1 and side_2. LETS USE THEM TO FIND THE BINODAL
+
     # now that we have divided into two sectors, let's sort them out 
-    side_1 = side_1 [sorted_t1_idx] # side_1[side_1[:,0].argsort()]
-    side_2 = side_2 [sorted_t2_idx] # side_2[side_2[:,0].argsort()]
+    side_1 = side_1 [sorted_t1_idx]
+    side_2 = side_2 [sorted_t2_idx]
 
     # I now have two sides of the binodal, somewhat arbitrarily split
     # now it is time to fill in the gaps
-    side_1 = add_interpolated_rows (side_1, 10) # add_rows_between (side_1, 10)
-    side_2 = add_interpolated_rows (side_2, 10) # add_rows_between (side_2, 10)
+    side_1 = add_interpolated_rows (side_1, 10) 
+    side_2 = add_interpolated_rows (side_2, 10) 
     print (f"About to start refining the binodal...", flush=True)
     ref_bin = refined_binodal_v2 (side_1, side_2)
     diff  = ref_bin[0] - ref_bin[1]
@@ -780,6 +711,10 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     valid = np.where (norms >= 1e-6)[0]
     ref_bin[0] = ref_bin[0][valid,:]
     ref_bin[1] = ref_bin[1][valid,:]
+
+
+    # I have used fsolve to find the first set of solution points. This is going to be rather sparse. 
+    # what we do now is to fill up the empty spaces using finer searches
 
     theta_1 = []
     theta_2 = []
@@ -838,6 +773,9 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     sorted_t2_idx = np.argsort (theta_2)
     bottom_half   = bottom_half[sorted_t2_idx]
 
+    # We have once again sorted the two solutions. Time to perform another refinement.
+    # we will hunt for points along the y-axis
+
     print ("Beginning the v3 refinement...")
     top_half    = add_interpolated_rows (top_half,    10)
     bottom_half = add_interpolated_rows (bottom_half, 10)
@@ -853,6 +791,9 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     top_half    = ref_bin[0]
     bottom_half = ref_bin[1]
 
+    # we will run another refinement.
+    # we will hunt for points along the x-axis
+
     print ("Begin the v4 refinement...")
     ref_bin = refined_binodal_v4 (top_half, bottom_half, 10000)
     diff       = ref_bin[0] - ref_bin[1]
@@ -863,6 +804,8 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     top_half    = ref_bin[0]
     bottom_half = ref_bin[1]
 
+
+    # running another final refinement in the region that requires most space-filling
     print ("Begin the v5 refinement...")
     ref_bin     = refined_binodal_v5 (top_half, bottom_half, 10000)
     diff        = ref_bin[0] - ref_bin[1]

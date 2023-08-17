@@ -1,0 +1,19 @@
+Here lie the scripts which you can use to generate spinodals and binodals for a ternary system modeled using the Flory-Huggins formulation. 
+The binodal is a 
+
+Two scripts are required:
+1. pskelbin.py -> gives the skeleton of the binodal
+2. spinwbin_v3.py -> gives the final plots with binodal and spinodal
+
+This how they work:
+1. pskelbin.py: First, we will use a massive grid search to find tentative spots for a solution. This grid search is a memory intensive operation, so beware. pskelbin.py accepts the following arguments (can be seen using the `-h` option)- 
+a. chiac    -> A-C exchange parameter
+b. chiab    -> A-B exchange parameter
+c. chibc    -> B-C exchange parameter 
+d. mesh     -> mesh fineness (!)
+e. N        -> degree of polymerization of B
+f. skelfile -> file to which we will write the skeleton
+
+As a general rule, a mesh fineness of 200 (two hundred) seems optimal for obtaining a binodal in a memory- and time-efficient manner. 
+
+2. spinwbin_v3.py: Now, we will perform a curated solve on the points we may have found. spinwbin basically takes the same parameters as pskelbin.py, but with some additional arguments. Use the `-h` option to view the inputs.

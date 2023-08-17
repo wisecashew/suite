@@ -189,10 +189,11 @@ if __name__=="__main__":
     ax.scatter (roots_up[:,0],   roots_up[:,1]  , color='k', edgecolors='steelblue')
     ax.scatter (roots_down[:,0], roots_down[:,1], color='k', edgecolors='steelblue')
 
-
+    ax.set_xlabel ("$\\phi _{S}$")
+    ax.set_ylabel ("$\\phi _{P}$")
 
     ax.grid()
 
-    plt.savefig (f"signs-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
+    plt.savefig (f"signs-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200, bbox_inches="tight")
     print ("Completed heat map computation.")
 

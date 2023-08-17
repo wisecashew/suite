@@ -135,6 +135,68 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
 
 ################################
 
+def sort_solutions (unsorted_upper, unsorted_lower, center, central_axis):
+
+    top_half    = np.empty((0,3))
+    bottom_half = np.empty((0,3))
+    theta_1 = []
+    theta_2 = []
+
+    for s1, s2, in zip (unsorted_upper, unsorted_lower):
+        d1 = (s1[0:2] - center)/np.linalg.norm(s1[0:2] - center)
+        d2 = (s2[0:2] - center)/np.linalg.norm(s2[0:2] - center)
+        clock1     = np.sign(np.cross (central_axis, d1))
+        clock2     = np.sign(np.cross (central_axis, d2))
+
+        if clock1 == 1:
+            if clock2 == -1:
+                pass
+            else:
+                print (f"This is strange. point1 = {s1}, point2 = {s2}.")
+                exit ()
+            t1 = np.arccos (np.dot(d1, central_axis))
+            theta_1.append (t1)
+            top_half = np.vstack ((top_half, s1))
+            t2 = np.arccos (np.dot(d2, central_axis))
+            theta_2.append (t2)
+            bottom_half = np.vstack ((bottom_half, s2))
+        elif clock1 == -1:
+            if clock2 == 1:
+                pass
+            else:
+                print (f"This is strange. point1 = {s1}, point2 = {s2}.")
+                exit ()
+            t1 = np.arccos (np.dot(d1, central_axis))
+            theta_2.append (t1)
+            bottom_half = np.vstack ((bottom_half, s1))
+            t2 = np.arccos (np.dot(d2, central_axis))
+            theta_1.append (t2)
+            top_half    = np.vstack ((top_half, s2))
+
+        elif clock1 == 0:
+            if clock2 == 0:
+                print (f"We are at crit point.")
+            else:
+                print (f"This is strange. point1 = {s1}, point2 = {s2}.")
+            t1          = np.arccos (np.dot(direction, central_axis))
+            theta_1.append (t1)
+            top_half    = np.vstack ((top_half, s1))
+            t2          = np.arccos (np.dot(direction, central_axis))
+            theta_2.append (t2)
+            bottom_half = np.vstack ((bottom_half, s2))
+
+        else:
+            print ("Something's wrong.", flush=True)
+
+    sorted_t1_idx = np.argsort (theta_1)
+    top_half      = top_half [sorted_t1_idx]
+    sorted_t2_idx = np.argsort (theta_2)
+    bottom_half   = bottom_half[sorted_t2_idx]
+
+    return top_half, bottom_half
+
+###############################
+
 def add_interpolated_rows (original_array, M):
     result_array = []
 
@@ -161,6 +223,21 @@ def add_rows_between_largest_gap (array, M):
 
     return array, max_dists
 
+###############################
+
+def max_dists_on_binodal (top_half, bottom_half):
+
+    diff_top         = np.diff        (top_half, axis=0)
+    distances        = np.linalg.norm (diff_top, axis=1)
+    max_dists_top    = np.max         (distances)
+
+    diff_bottom      = np.diff        (bottom_half, axis=0)
+    distances        = np.linalg.norm (diff_bottom, axis=1)
+    max_dists_bottom = np.max         (distances)
+
+    max_dist = np.max ([max_dists_top, max_dists_bottom])
+    
+    return max_dist
 
 ###############################
 
@@ -263,10 +340,13 @@ def refined_binodal_v2 (side_1, side_2):
             dist_store.append (np.linalg.norm (p1-p2))
 
         # choose the root that is furthest away
-        best_root = np.argmax (dist_store)
-        root_combo = root_store[best_root]
-        bin1 = np.vstack((bin1, root_combo[0]))
-        bin2 = np.vstack((bin2, root_combo[1]))
+        try:
+            best_root = np.argmax (dist_store)
+            root_combo = root_store[best_root]
+            bin1 = np.vstack((bin1, root_combo[0]))
+            bin2 = np.vstack((bin2, root_combo[1]))
+        except:
+            print (f"Problem with a particular value. No solution found for pt = {pt}", flush=True)
 
     for idx, pt in enumerate (side_2):
         print (f"idx = {idx}...", flush=True)
@@ -306,10 +386,13 @@ def refined_binodal_v2 (side_1, side_2):
             dist_store.append (np.linalg.norm (p1-p2))
 
         # choose the root that is furthest away
-        best_root = np.argmax (dist_store)
-        root_combo = root_store[best_root]
-        bin1 = np.vstack((bin1, root_combo[0]))
-        bin2 = np.vstack((bin2, root_combo[1]))
+        try:
+            best_root = np.argmax (dist_store)
+            root_combo = root_store[best_root]
+            bin1 = np.vstack((bin1, root_combo[0]))
+            bin2 = np.vstack((bin2, root_combo[1]))
+        except:
+            print (f"Problem with a particular value. No solution found for pt = {pt}", flush=True)
 
 
     return [bin1, bin2]
@@ -387,13 +470,13 @@ def refined_binodal_v4 (side_1, side_2, added_rows):
     side_1, m1 = add_rows_between_largest_gap (side_1, added_rows)
     side_2, m2 = add_rows_between_largest_gap (side_2, added_rows)
 
-    print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal...", flush=True)
-    print (f"from {side_1[m1+1]} to {side_1[m1+added_rows]}")
-    print (side_1[m1+1:m1+20])
-    print (side_2[m2+1:m2+20])
+    print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v4...", flush=True)
+    print (f"from {side_1[m1+1]} to {side_1[m1+added_rows-1]}", flush=True)
+    # print (side_1[m1+1:m1+20])
+    # print (side_2[m2+1:m2+20])
 
     for idx, pt in enumerate (side_1[m1+1:m1+added_rows-1]):
-        print (f"idx = {idx} @ x,y,z = {pt[0],pt[1]}...", flush=True)
+        if idx%25==0: print (f"idx = {idx} @ x,y = {pt[0],pt[1]}...", flush=True)
         def mu_equations (phi):
             eq1 = mu_a(pt[0], phi[0]) - mu_a(phi[1], phi[2])
             eq2 = mu_b(pt[0], phi[0]) - mu_b(phi[1], phi[2])
@@ -403,7 +486,7 @@ def refined_binodal_v4 (side_1, side_2, added_rows):
         root_store = []
         dist_store = []
 
-        for tidx, tpt in enumerate (side_2[m2+1+idx-100:m2+1+idx+100]):
+        for tidx, tpt in enumerate (side_2[m2+1+idx-added_rows:m2+1+idx+added_rows]):
             root = fsolve (mu_equations, [pt[1], tpt[0], tpt[1]])
 
             # if the roots are "bad" roots, just write them out as bad
@@ -438,7 +521,7 @@ def refined_binodal_v4 (side_1, side_2, added_rows):
             side_2[m1+1+idx] = root_combo[1]
 
         except:
-            print (f"Problem with a particular value. No solution found for pt = {pt}")
+            print (f"Problem with a particular value. No solution found for pt = {pt}", flush=True)
 
     return [side_1, side_2]
 
@@ -451,13 +534,13 @@ def refined_binodal_v5 (side_1, side_2, added_rows):
     side_1, m1 = add_rows_between_largest_gap (side_1, added_rows)
     side_2, m2 = add_rows_between_largest_gap (side_2, added_rows)
 
-    print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal...", flush=True)
-    print (f"from {side_1[m1+1]} to {side_1[m1+added_rows]}")
-    print (side_1[m1+1:m1+20])
-    print (side_2[m2+1:m2+20])
+    print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v5...", flush=True)
+    # print (f"from {side_1[m1+1]} to {side_1[m1+added_rows]}")
+    # print (side_1[m1+1:m1+20])
+    # print (side_2[m2+1:m2+20])
 
     for idx, pt in enumerate (side_1[m1+1:m1+added_rows-1]):
-        print (f"idx = {idx} @ x, y = {pt[0],pt[1]}...", flush=True)
+        if idx%25==0: print (f"idx = {idx} @ x, y = {pt[0],pt[1]}...", flush=True)
         def mu_equations (phi):
             eq1 = mu_a(phi[0], pt[1]) - mu_a(phi[1], phi[2])
             eq2 = mu_b(phi[0], pt[1]) - mu_b(phi[1], phi[2])
@@ -467,7 +550,7 @@ def refined_binodal_v5 (side_1, side_2, added_rows):
         root_store = []
         dist_store = []
 
-        for tidx, tpt in enumerate (side_2[m2+1+idx-100:m2+1+idx+100]):
+        for tidx, tpt in enumerate (side_2[m2+1+idx-2*added_rows:m2+1+idx+2*added_rows]):
             root = fsolve (mu_equations, [pt[0], tpt[0], tpt[1]])
 
             # if the roots are "bad" roots, just write them out as bad
@@ -502,7 +585,7 @@ def refined_binodal_v5 (side_1, side_2, added_rows):
             side_2[m1+1+idx] = root_combo[1]
 
         except:
-            print (f"Problem with a particular value. No solution found for pt = {pt}")
+            print (f"Problem with a particular value. No solution found for pt = {pt}", flush=True)
 
     return [side_1, side_2]
 
@@ -546,9 +629,13 @@ def go_through_indices (bad_idx_subset, good_idx, initg, bincloser, binfurther):
 
 def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, vc, crit_points):
 
-    df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["i1", "i2", "dmu", "mu_a1", "mu_b1", "mu_c1", \
+    try:
+        df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["i1", "i2", "dmu", "mu_a1", "mu_b1", "mu_c1", \
         "phi_a1", "phi_b1", "phi_c1", "mu_a2", "mu_b2", "mu_c2", "phi_a2", "phi_b2", "phi_c2"])
-    df = df.loc[df["dmu"]<1]
+        df = df.loc[df["dmu"]<1]
+    except FileNotFoundError:
+        print (f"File called {dumpfile} was not found. This was likely because pskelbin.py could not find reasonable guesses. Please check your parameters and inputs and try again.", flush=True)
+        exit ()
 
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
@@ -568,7 +655,7 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     sol2 = np.empty((0,3))
     bad_idx  = []
     good_idx = []
-    f = open (args.boundary, 'w')
+    # f = open (args.boundary, 'w')
     print ("Start processing the dumpfile and find roots.", flush=True)
     for idx in range (len(phi_a)):
 
@@ -587,7 +674,6 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
         # if the roots are "bad" roots, just write them out as bad
         if ( np.abs(np.array(mu_equations(root))) > 1e-6).any():
             bad_idx.append (idx)
-            f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
         else:
             fa = [root[0], root[1]]
             fb = [phi_b[idx], root[2]]
@@ -603,29 +689,22 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
                 # if one of the good solutions is same as something before, write it as bad 
                 if (np.linalg.norm(sol1 - p1, axis=-1)<1e-6).any() or (np.linalg.norm(sol2 - p2, axis=-1)<1e-6).any():
                     bad_idx.append (idx)
-                    f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
 
                 elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
                      bad_idx.append (idx)
-                     f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
 
                 elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
                      bad_idx.append (idx)
-                     f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
 
                 elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
                      bad_idx.append (idx)
-                     f.write (f"idx = {idx}: bad  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
-
 
                 else:
                     good_idx.append (idx)
                     sol1 = np.vstack ((sol1,p1))
                     sol2 = np.vstack ((sol2,p2))
-                    f.write (f"idx = {idx}: good  points = {phi_a[idx], phi_b[idx], 1-phi_a[idx]-phi_b[idx]}, {phi_an[idx], phi_bn[idx], 1-phi_an[idx]-phi_bn[idx]}, roots: {root[0], phi_b[idx], 1-root[0]-phi_b[idx]}, {root[1], root[2], 1-root[1]-root[2]}\n")
 
-    f.close ()
-    print ("Everything has been written out. Start doing a bigger processing - with parallelization.", flush=True)
+    print   ("Everything has been written out. Start doing a bigger processing - with parallelization.", flush=True)
     # now, time to slowly convert the "bad" points to "good" points, in a parallel fashion
     pool  = mp.Pool ( processes=nproc )
     sol1_bg = np.empty ((0,3))
@@ -659,12 +738,12 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     center         = np.mean (crit_points, axis=0)[:2]
     central_axis   = (crit_points[0,:2]-center)/np.linalg.norm (crit_points[0,:2]-center)
 
-    print (f"center = {center}")
-    print (f"central axis = {central_axis}")
+    print (f"center = {center}", flush=True)
+    print (f"central axis = {central_axis}", flush=True)
 
     side_1  = np.empty ((0,3))
-    theta_1 = []
     side_2  = np.empty ((0,3))
+    theta_1 = []
     theta_2 = []
 
     for pts in sol_net:
@@ -693,6 +772,8 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     sorted_t1_idx = np.argsort (theta_1)
     sorted_t2_idx = np.argsort (theta_2)
 
+    print ("Roots have been found and sorted.", flush=True)
+
     # WE HAVE NOW SPLIT UP THE UNSTABLE REGION INTO TWO ZONES BY USING THE CRITICAL POINT
     # NOW THAT WE HAVE TWO ZONES AS TWO HALVES:side_1 and side_2. LETS USE THEM TO FIND THE BINODAL
 
@@ -702,9 +783,11 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
 
     # I now have two sides of the binodal, somewhat arbitrarily split
     # now it is time to fill in the gaps
-    side_1 = add_interpolated_rows (side_1, 10) 
-    side_2 = add_interpolated_rows (side_2, 10) 
-    print (f"About to start refining the binodal...", flush=True)
+    if len(side_1) < 100:
+        side_1 = add_interpolated_rows (side_1, 5)
+    if len(side_2) < 100:
+        side_2 = add_interpolated_rows (side_1, 5)
+    print (f"About to start refining the binodal with v2...", flush=True)
     ref_bin = refined_binodal_v2 (side_1, side_2)
     diff  = ref_bin[0] - ref_bin[1]
     norms = np.linalg.norm (diff, axis=1)
@@ -715,11 +798,10 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
 
     # I have used fsolve to find the first set of solution points. This is going to be rather sparse. 
     # what we do now is to fill up the empty spaces using finer searches
-
-    theta_1 = []
-    theta_2 = []
     top_half    = np.empty ((0,3))
     bottom_half = np.empty ((0,3))
+    theta_1 = []
+    theta_2 = []
 
     for s1, s2 in zip (ref_bin[0], ref_bin[1]):
         d1 = (s1[0:2] - center)/np.linalg.norm(s1[0:2] - center)
@@ -729,7 +811,7 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
 
         if clock1 == 1:
             if clock2 == -1:
-                print (f"This works: clock1 = {clock1}, clock2 = {clock2}")
+                pass
             else:
                 print (f"This is strange. point1 = {s1}, point2 = {s2}.")
                 exit ()
@@ -741,7 +823,7 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
             bottom_half = np.vstack ((bottom_half, s2))
         elif clock1 == -1:
             if clock2 == 1:
-                print (f"This works: clock1 = {clock1}, clock2 = {clock2}")
+                pass
             else:
                 print (f"This is strange. point1 = {s1}, point2 = {s2}.")
                 exit ()
@@ -776,54 +858,156 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     # We have once again sorted the two solutions. Time to perform another refinement.
     # we will hunt for points along the y-axis
 
-    print ("Beginning the v3 refinement...")
+    print ("Beginning the v3 refinement...", flush=True)
     top_half    = add_interpolated_rows (top_half,    10)
     bottom_half = add_interpolated_rows (bottom_half, 10)
 
     ref_bin = refined_binodal_v3 (top_half, bottom_half, 10)
-    
     diff  = ref_bin[0] - ref_bin[1]
     norms = np.linalg.norm (diff, axis=1)
     valid = np.where (norms >= 1e-6)[0]
     ref_bin[0] = ref_bin[0][valid,:]
     ref_bin[1] = ref_bin[1][valid,:]
     print (f"Refined binodal!", flush=True)
-    top_half    = ref_bin[0]
-    bottom_half = ref_bin[1]
 
-    # we will run another refinement.
-    # we will hunt for points along the x-axis
+    top_half, bottom_half = sort_solutions (ref_bin[0], ref_bin[1], center, central_axis)
 
-    print ("Begin the v4 refinement...")
-    ref_bin = refined_binodal_v4 (top_half, bottom_half, 10000)
-    diff       = ref_bin[0] - ref_bin[1]
-    norms      = np.linalg.norm (diff, axis=1)
-    valid      = np.where (norms >= 1e-6)[0]
-    ref_bin[0] = ref_bin[0][valid,:]
-    ref_bin[1] = ref_bin[1][valid,:]
-    top_half    = ref_bin[0]
-    bottom_half = ref_bin[1]
+    max_dist = max_dists_on_binodal (top_half, bottom_half)
+    print (f"maximum distance between two points on the binodal is {max_dist}.", flush=True)
+
+    refinement_iter = -1
+    while max_dist > 0.1:
+        # we will run another refinement.
+        # we will hunt for points along the x-axis
+        print ("Begin the v4 refinement...", flush=True)
+        ref_bin     = refined_binodal_v4 (top_half, bottom_half, 100)
+        diff        = ref_bin[0] - ref_bin[1]
+        norms       = np.linalg.norm (diff, axis=1)
+        valid       = np.where (norms >= 1e-6)[0]
+        ref_bin[0]  = ref_bin[0][valid,:]
+        ref_bin[1]  = ref_bin[1][valid,:]
+        top_half, bottom_half = sort_solutions (ref_bin[0], ref_bin[1], center, central_axis)
 
 
-    # running another final refinement in the region that requires most space-filling
-    print ("Begin the v5 refinement...")
-    ref_bin     = refined_binodal_v5 (top_half, bottom_half, 10000)
-    diff        = ref_bin[0] - ref_bin[1]
-    norms       = np.linalg.norm (diff, axis=1)
-    valid       = np.where (norms >= 1e-6)[0]
-    ref_bin[0]  = ref_bin[0][valid,:]
-    ref_bin[1]  = ref_bin[1][valid,:]
+        # running another final refinement in the region that requires most space-filling
+        # we will hunt for points along the y-axis
+        print ("Begin the v5 refinement...", flush=True)
+        ref_bin     = refined_binodal_v5 (top_half, bottom_half, 100)
+        diff        = ref_bin[0] - ref_bin[1]
+        norms       = np.linalg.norm (diff, axis=1)
+        valid       = np.where (norms >= 1e-6)[0]
+        ref_bin[0]  = ref_bin[0][valid,:]
+        ref_bin[1]  = ref_bin[1][valid,:]
+        top_half, bottom_half = sort_solutions (ref_bin[0], ref_bin[1], center, central_axis)
+
+        max_dist = max_dists_on_binodal (top_half, bottom_half)
+        refinement_iter += 1
+        print (f"maximum distance between two points on the binodal is {max_dist}.", flush=True)
+        print (f"Refinement iteration: {refinement_iter}.", flush=True)
+
+    # add the critical point to top_half and bottom_half
+    print ("The binodal has been sufficiently filled up. Time to stack things around the critical points.", flush=True)
+    crit_top_most = np.array([crit_points[0][0], crit_points[0][1], 1-crit_points[0][0]-crit_points[0][1]])
+    crit_bot_most = np.array([crit_points[1][0], crit_points[1][1], 1-crit_points[1][0]-crit_points[1][1]])
+    print (f"crit_top_most = {crit_top_most}", flush=True)
+    print (f"crit_bot_most = {crit_bot_most}", flush=True)
+    
+    top_half    = np.vstack ((crit_top_most,top_half))
+    bottom_half = np.vstack ((crit_top_most,bottom_half))
+
+    max_dist = max_dists_on_binodal (top_half, bottom_half)
+    print (f"maximum distance between two points on the binodal is {max_dist}.", flush=True)
+
+    refinement_iter = -1
+    while max_dist > 0.01:
+        # we will run another refinement.
+        # we will hunt for points along the x-axis
+        print ("Begin the v4 refinement...", flush=True)
+        ref_bin     = refined_binodal_v4 (top_half, bottom_half, 100)
+        diff        = ref_bin[0] - ref_bin[1]
+        norms       = np.linalg.norm (diff, axis=1)
+        valid       = np.where (norms >= 1e-6)[0]
+        ref_bin[0]  = ref_bin[0][valid,:]
+        ref_bin[1]  = ref_bin[1][valid,:]
+        top_half, bottom_half = sort_solutions (ref_bin[0], ref_bin[1], center, central_axis)
+
+
+        # running another final refinement in the region that requires most space-filling
+        # we will hunt for points along the y-axis
+        print ("Begin the v5 refinement...", flush=True)
+        ref_bin     = refined_binodal_v5 (top_half, bottom_half, 100)
+        diff        = ref_bin[0] - ref_bin[1]
+        norms       = np.linalg.norm (diff, axis=1)
+        valid       = np.where (norms >= 1e-6)[0]
+        ref_bin[0]  = ref_bin[0][valid,:]
+        ref_bin[1]  = ref_bin[1][valid,:]
+        top_half, bottom_half = sort_solutions (ref_bin[0], ref_bin[1], center, central_axis)
+
+        max_dist = max_dists_on_binodal (top_half, bottom_half)
+        refinement_iter += 1
+        if refinement_iter == 4:
+            break
+        print (f"maximum distance between two points on the binodal is {max_dist}.", flush=True)
+        print (f"Refinement iteration: {refinement_iter}.", flush=True)
+
+
+    print ("One crit point should be well-populated.", flush=True)
+    top_half    = np.vstack ((top_half   , crit_bot_most))
+    bottom_half = np.vstack ((bottom_half, crit_bot_most))
+
+    max_dist = max_dists_on_binodal (top_half, bottom_half)
+    print (f"maximum distance between two points on the binodal is {max_dist}.", flush=True)
+
+    refinement_iter = -1
+    while max_dist > 0.01:
+        # we will run another refinement.
+        # we will hunt for points along the x-axis
+        print ("Begin the v4 refinement...", flush=True)
+        ref_bin     = refined_binodal_v4 (top_half, bottom_half, 100)
+        diff        = ref_bin[0] - ref_bin[1]
+        norms       = np.linalg.norm (diff, axis=1)
+        valid       = np.where (norms >= 1e-6)[0]
+        ref_bin[0]  = ref_bin[0][valid,:]
+        ref_bin[1]  = ref_bin[1][valid,:]
+        top_half, bottom_half = sort_solutions (ref_bin[0], ref_bin[1], center, central_axis)
+
+
+        # running another final refinement in the region that requires most space-filling
+        # we will hunt for points along the y-axis
+        print ("Begin the v5 refinement...", flush=True)
+        ref_bin     = refined_binodal_v5 (top_half, bottom_half, 100)
+        diff        = ref_bin[0] - ref_bin[1]
+        norms       = np.linalg.norm (diff, axis=1)
+        valid       = np.where (norms >= 1e-6)[0]
+        ref_bin[0]  = ref_bin[0][valid,:]
+        ref_bin[1]  = ref_bin[1][valid,:]
+        top_half, bottom_half = sort_solutions (ref_bin[0], ref_bin[1], center, central_axis)
+
+        max_dist = max_dists_on_binodal (top_half, bottom_half)
+        refinement_iter += 1
+        if refinement_iter == 4:
+            break
+        print (f"maximum distance between two points on the binodal is {max_dist}.", flush=True)
+        print (f"Refinement iteration: {refinement_iter}.", flush=True)
+
+    print ("Both crit points should be well-populated.", flush=True)
 
     # this is the binodal
     ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], c='k', s=0.125, zorder=11)
     ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], c='k', s=0.125, zorder=11)
 
+
     if args.tl:
         for i in range (len(ref_bin[0])):
             ax.plot    ([ref_bin[0][i,0],ref_bin[1][i,0]], [ref_bin[0][i,1],ref_bin[1][i,1]], lw=0.5, ls='--', markersize=0, zorder=10)
 
-    return
+    ff = open (args.boundary, 'w')
+    ff.write ("phi_s_top|phi_p_top|phi_c_top|phi_s_bot|phi_p_bot|phi_c_bot\n")
+    ff.write (f"{crit_points[0,0]}|{crit_points[0,1]}|{1-crit_points[0,0]-crit_points[0,1]}|{crit_points[1,0]}|{crit_points[1,1]}|{1-crit_points[1,0]-crit_points[1,1]}\n")
+    for i in range (len(ref_bin[0])):
+        ff.write (f"{ref_bin[0][i][0]}|{ref_bin[0][i][1]}|{ref_bin[0][i][2]}|{ref_bin[1][i][0]}|{ref_bin[1][i][1]}|{ref_bin[1][i][2]}\n")
 
+    return
 
 
 if __name__=="__main__":
@@ -840,12 +1024,11 @@ if __name__=="__main__":
     ############################
 
     lsize = 3
-    # plt.rcParams['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
         'size': lsize}
 
-    fig = plt.figure(num=1, figsize=(6,6))
+    fig = plt.figure(num=1, figsize=(3,3))
     ax  = plt.axes ()
 
     discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4* N * (1 - 2* phi_s * chi_sc + 2 * phi_s ** 2 * chi_sc) * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) **2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) + \
@@ -861,9 +1044,11 @@ if __name__=="__main__":
     ax.scatter (roots_down[:,0], roots_down[:,1], color='k', edgecolors='steelblue', s=0.1, zorder=11)
 
     crits = np.vstack ((roots_up, roots_down))
-    print (crits)
-    print (roots_up)
-    print (roots_down)
+    if len(crits) == 2:
+        pass
+    else:
+        print ("Number of critical points = ",len(crits), flush=True)
+    print ("critical points = \n",crits, flush=True)
 
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
@@ -881,8 +1066,8 @@ if __name__=="__main__":
     to_keep = ~np.isnan(vals)
 
     vals = vals[to_keep]
-    p_a  = p_a[to_keep]
-    p_b  = p_b[to_keep]
+    p_a  = p_a [to_keep]
+    p_b  = p_b [to_keep]
 
     vmax = np.max (vals)
     vmin = np.min (vals)
@@ -900,15 +1085,15 @@ if __name__=="__main__":
 
     # Plot the points
     p_c = 1 - p_a - p_b
-    ax.scatter  (p_a, p_b, s=0.01, color=cols, zorder=10)
+    ax.scatter  (p_a, p_b, s=0.01, color=cols, zorder=0, clip_on=True)
     print ("Painted the ternary diagram!", flush=True)
 
 
     ax.set_xlabel('$\\phi _{S}$')
     ax.set_ylabel('$\\phi _{P}$')
-    print ("We have plotted the spinodal region!\n")
-    print ("###########################################################\n")
-    print ("Start binodal plotting...\n")
+    print ("We have plotted the spinodal region!\n", flush=True)
+    print ("###########################################################\n", flush=True)
+    print ("Start binodal plotting...\n", flush=True)
 
     va = 1
     vb = N
@@ -919,9 +1104,8 @@ if __name__=="__main__":
     mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
 
     binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, vc, crits)
-    print ("Done with binodal plotting!")
+    print ("Done with binodal plotting!", flush=True)
 
-    print (crits)
     ax.plot (crits[:,0], crits[:,1], c='darkred', zorder=12, lw=0.5)
 
     # Set axis limits
@@ -931,6 +1115,6 @@ if __name__=="__main__":
     ax.grid()
 
     fig.savefig  (args.img, dpi=1200)
-    print ("Completed heat map computation.")
+    print ("Completed heat map computation.", flush=True)
     stop = time.time()
-    print (f"Time for computation is {stop-start} seconds.")
+    print (f"Time for computation is {stop-start} seconds.", flush=True)

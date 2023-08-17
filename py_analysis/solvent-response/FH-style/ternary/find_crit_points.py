@@ -140,7 +140,7 @@ if __name__=="__main__":
 
 
     roots_up, roots_down = find_crit_point (N, chi_sc, chi_ps, chi_pc)
-
+    print (roots_up, roots_down)
     
 
 

@@ -8,7 +8,6 @@ from scipy.optimize import fsolve
 import scipy.optimize as opt 
 from matplotlib.ticker import StrMethodFormatter
 from matplotlib.ticker import Locator, AutoMinorLocator, MultipleLocator
-import mpltern
 import sys
 import argparse
 import linecache
@@ -40,8 +39,7 @@ if __name__=="__main__":
         'size': lsize}
 
     fig = plt.figure(num=1, figsize=(5,5))
-    ax  = fig.add_subplot (projection="ternary")
-    
+    ax  = plt.axes  ()
     N = args.N
 
     # FIND PHI_B GIVEN PHI_A
@@ -103,8 +101,6 @@ if __name__=="__main__":
     # Plot the points
     ax.scatter (r1, phi_b[to_keep_1], 1-phi_b[to_keep_1]-r1, color='darkorange', s=1)
     ax.scatter (r2, phi_b[to_keep_2], 1-phi_b[to_keep_2]-r2, color='moccasin',   s=1)
-    # ax.scatter(phi_b[to_keep_1], r1, 1-phi_b[to_keep_1]-r1, color='darkorange', s=1)
-    # ax.scatter(phi_b[to_keep_2], r2, 1-phi_b[to_keep_2]-r2, color='moccasin',   s=1)
 
 
     discriminant = lambda phi_a, chi_ab, chi_bc, chi_ac: -4 * N * (phi_a + N * (-1 + phi_a) * (-1 + 2 * chi_ab * phi_a) ) * ( (chi_ab - chi_ac) ** 2 * phi_a + chi_bc ** 2 * phi_a - 2 * chi_bc * (-1 + chi_ab * phi_a + chi_ac * phi_a) ) +\
@@ -133,27 +129,6 @@ if __name__=="__main__":
     ax.scatter(phi_a[to_keep_1], 1-phi_b[to_keep_1]-r1, r1, color='forestgreen', s=1)
     ax.scatter(phi_a[to_keep_2], 1-phi_b[to_keep_2]-r2, r2, color='springgreen', s=1)
 
-
-    ax.set_tlabel('Vol. frac. A')
-    ax.set_llabel('Vol. frac. B')
-    ax.set_rlabel('Vol. frac. C')
-
-    # Set axis limits
-    ax.set_tlim(0, 1)
-    ax.set_llim(0, 1)
-    ax.set_rlim(0, 1)
-    # ax.ticks(axis='lbr', multiple=5, linewidth=1, offset=0.025)
-
-    positions = ['tick1', 'tick2']
-    for position in positions:
-        ax.taxis.set_ticks_position(position)
-        ax.laxis.set_ticks_position(position)
-        ax.raxis.set_ticks_position(position)
-
-    # Add gridlines
-    # gridlines_per_axis = 100
-    # ax.grid(linewidth=0.5, color='gray', linestyle='dotted', multiple=gridlines_per_axis)
-    # ax.laxis.set_major_locator (MultipleLocator (6))
     ax.grid()
 
     plt.savefig (f"edges_{chi_ab}_{chi_bc}_{chi_ac}.png", dpi=1200)

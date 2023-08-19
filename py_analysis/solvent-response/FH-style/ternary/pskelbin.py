@@ -188,7 +188,7 @@ if __name__=="__main__":
                   np.linspace(phi_b_spin_min*0.5, phi_b_spin_max+(1-phi_b_spin_max)*0.5, mesh), \
                   np.linspace(phi_b_spin_min*0.1, phi_b_spin_max+(1-phi_b_spin_max)*0.9, mesh), \
                   np.linspace(phi_b_spin_min*0.001, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh), \
-                  np.hstack((np.linspace(phi_b_spin_min*0.001, phi_b_spin_max, mesh//2), np.linspace(phi_b_spin_max, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh//2)))]
+                  np.hstack((np.linspace(phi_b_spin_min*0.001, phi_b_spin_max, mesh), np.linspace(phi_b_spin_max, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh)))]
 
     pool    = mp.Pool (processes=len(phi_b_list))
 

@@ -110,7 +110,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
                         similarity = (np.linalg.norm(roots_down - r_tup, axis=1) < 1e-3).any ()
                         if similarity:
                             pass
-                        else:
+                       else:
                             roots_down = np.vstack ((roots_down,r_tup))                       
                     
         else:
@@ -139,10 +139,44 @@ if __name__=="__main__":
     root_lo  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
 
 
+    def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
+        return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
+
     roots_up, roots_down = find_crit_point (N, chi_sc, chi_ps, chi_pc)
-    print (roots_up, roots_down)
-    
+    crit_points = np.vstack((roots_up, roots_down))
+    print (f"crits = \n{crit_points}")
+    mesh = 200
+    phi_b = np.linspace (0.001, 0.999, mesh)
 
+    phi_b = np.repeat (phi_b, mesh)
+    phi_a = np.zeros  (phi_b.shape)
 
+    for i in range (mesh):
+        upper_lim = 0.999 if phi_b[i*mesh] < 0.001 else 1-phi_b[i*mesh] - 0.001
+        phi_a[i*mesh:(i+1)*mesh] = np.linspace (0.001, upper_lim, mesh)
 
+    # only keep stuff which is outside the spinodal
+    to_keep = stab_crit (phi_a, phi_b, chi_ps, chi_pc, chi_sc) > 0
 
+    phi_b   = phi_b [to_keep]
+    phi_a   = phi_a [to_keep]
+
+    # now start splitting up phi_a, phi_b
+    print ("Cutting up the space...")
+    phis    = np.vstack((phi_a, phi_b)).T
+
+    center         = np.mean (crit_points, axis=0)[:2]
+    central_axis   = (crit_points[0,:2]-center)/np.linalg.norm (crit_points[0,:2]-center)
+
+    # find those ABOVE axis
+    direction      = (phis - center) / np.linalg.norm(phis-center, axis=1)[:, np.newaxis]
+    clock          = np.cross (central_axis, direction)
+    phi_upper      = phis[clock > 0]
+    phi_lower      = phis[clock < 0]
+
+    plt.scatter (phi_upper[:,0], phi_upper[:,1], c='salmon', s=0.1)
+    plt.scatter (phi_lower[:,0], phi_lower[:,1], c='steelblue', s=0.1)
+    plt.plot (crit_points[:,0], crit_points[:,1], c='red', lw=1)
+    plt.savefig ("phis.png", dpi=1200, bbox_inches="tight")
+    print ("Plotted!")
+   

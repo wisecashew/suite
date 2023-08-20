@@ -151,7 +151,7 @@ def sort_solutions (unsorted_upper, unsorted_lower, center, central_axis):
             if clock2 == -1:
                 pass
             else:
-                print (f"This is strange. point1 = {s1}, point2 = {s2}.")
+                print (f"This is strange. point1 = {s1}, point2 = {s2}.", flush=True)
                 exit ()
             t1 = np.arccos (np.dot(d1, central_axis))
             theta_1.append (t1)
@@ -163,7 +163,7 @@ def sort_solutions (unsorted_upper, unsorted_lower, center, central_axis):
             if clock2 == 1:
                 pass
             else:
-                print (f"This is strange. point1 = {s1}, point2 = {s2}.")
+                print (f"This is strange. point1 = {s1}, point2 = {s2}.", flush=True)
                 exit ()
             t1 = np.arccos (np.dot(d1, central_axis))
             theta_2.append (t1)
@@ -174,7 +174,7 @@ def sort_solutions (unsorted_upper, unsorted_lower, center, central_axis):
 
         elif clock1 == 0:
             if clock2 == 0:
-                print (f"We are at crit point.")
+                print (f"We are at crit point.", flush=True)
             else:
                 print (f"This is strange. point1 = {s1}, point2 = {s2}.")
             t1          = np.arccos (np.dot(direction, central_axis))
@@ -248,11 +248,11 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
     side_2, m2 = add_rows_between_largest_gap (side_2, nadded_rows)
 
     print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v4...", flush=True)
-    print (f"from {side_1[m1+1]} to {side_1[m1+added_rows-1]}", flush=True)
+    print (f"from {side_1[m1+1]} to {side_1[m1+nadded_rows-1]}", flush=True)
     # print (side_1[m1+1:m1+20])
     # print (side_2[m2+1:m2+20])
 
-    for idx, pt in enumerate (side_1[m1+1:m1+added_rows-1]):
+    for idx, pt in enumerate (side_1[m1+1:m1+nadded_rows-1]):
         if idx%25==0: print (f"idx = {idx} @ x,y = {pt[0],pt[1]}...", flush=True)
         def mu_equations (phi):
             eq1 = mu_a(pt[0], phi[0]) - mu_a(phi[1], phi[2])
@@ -263,7 +263,7 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
         root_store = []
         dist_store = []
 
-        for tidx, tpt in enumerate (side_2[m2+1+idx-added_rows:m2+1+idx+added_rows]):
+        for tidx, tpt in enumerate (side_2[m2+1+idx-nadded_rows:m2+1+idx+nadded_rows]):
             root = fsolve (mu_equations, [pt[1], tpt[0], tpt[1]])
 
             # if the roots are "bad" roots, just write them out as bad
@@ -313,7 +313,7 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
 
     print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v5...", flush=True)
 
-    for idx, pt in enumerate (side_1[m1+1:m1+added_rows-1]):
+    for idx, pt in enumerate (side_1[m1+1:m1+nadded_rows-1]):
         if idx%25==0: print (f"idx = {idx} @ x, y = {pt[0],pt[1]}...", flush=True)
         def mu_equations (phi):
             eq1 = mu_a(phi[0], pt[1]) - mu_a(phi[1], phi[2])
@@ -324,7 +324,7 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
         root_store = []
         dist_store = []
 
-        for tidx, tpt in enumerate (side_2[m2+1+idx-2*added_rows:m2+1+idx+2*added_rows]):
+        for tidx, tpt in enumerate (side_2[m2+1+idx-2*nadded_rows:m2+1+idx+2*nadded_rows]):
             root = fsolve (mu_equations, [pt[0], tpt[0], tpt[1]], xtol=1e-12)
 
             # if the roots are "bad" roots, just write them out as bad
@@ -392,7 +392,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     good_idx = []
     # f = open (args.boundary, 'w')
     print ("Start processing the dumpfile and find roots.", flush=True)
-    print (f"I will be processing an array of size = {phi_a_upper.size}.")
+    print (f"I will be processing an array of size = {phi_a_upper.size}.", flush=True)
 
     for idx in range (len(phi_a_upper)):
 
@@ -447,13 +447,19 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     theta_upper            = np.arccos (np.dot (direction, central_axis))
     sorted_theta_upper_idx = np.argsort (theta_upper)
     theta_upper            = theta_upper[sorted_theta_upper_idx]
+
+    direction              = (sol_lower[:,0:2] - center)/np.linalg.norm(sol_lower[:,0:2] - center, axis=1)[:, np.newaxis]
+    theta_lower            = np.arccos (np.dot (direction, central_axis))
+    sorted_theta_lower_idx = np.argsort (theta_lower)
+    theta_lower            = theta_lower[sorted_theta_lower_idx]
+
     sol_upper              = sol_upper[sorted_theta_upper_idx]
-    sol_lower              = sol_lower[sorted_theta_upper_idx]
+    sol_lower              = sol_lower[sorted_theta_lower_idx]
 
     # I have sorted the solutions 
     # now, if the solution curve is sufficiently close, no need to perform more detailed searches -- so find maximum distances between points on the solution curves
+    # find differences between lower and upper curves
 
-    # find differences between lower and upper curves 
     diff_up       = np.linalg.norm(sol_upper[1:] - sol_upper[:-1], axis=1)
     max_diff_up   = np.max(diff_up)
 
@@ -533,23 +539,23 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
 
             difference    = np.abs(np.diff (theta_lower))
             max_ind       = np.argmax(difference)
-            theta_thresh1 = theta_upper[max_ind]
-            theta_thresh2 = theta_upper[max_ind+1]
+            theta_thresh1 = theta_lower[max_ind]
+            theta_thresh2 = theta_lower[max_ind+1]
 
             unsolved_lower_bin = binodal_lower[bad_idx]
             unsolved_lower_bin = unsolved_lower_bin[:,0:2]
             direction          = (unsolved_lower_bin - center)/np.linalg.norm(unsolved_lower_bin-center, axis=1)[:, np.newaxis]
-            theta_upper        = np.arccos(np.dot (direction, central_axis))
-            to_keep            = (theta_upper > theta_thresh1) & (theta_upper < theta_thresh2)
+            theta_lower        = np.arccos(np.dot (direction, central_axis))
+            to_keep            = (theta_lower > theta_thresh1) & (theta_lower < theta_thresh2)
             unsolved_lower_bin = unsolved_lower_bin[to_keep]
 
-            print (f"size of unsolved_lower_bin = {unsolved_lower_bin.shape}")
+            print (f"size of unsolved_lower_bin = {unsolved_lower_bin.shape}", flush=True)
 
             sol_bin_up   = np.empty((0,3))
             sol_bin_down = np.empty((0,3))
 
             for idx in range(0,len(unsolved_lower_bin),100):
-                print (f"@ idx = {idx}...")
+                print (f"@ idx = {idx}...", flush=True)
                 def mu_equations (phi):
                     eq1 = mu_a(phi[0], unsolved_lower_bin[idx][1]) - mu_a(phi[1], phi[2])
                     eq2 = mu_b(phi[0], unsolved_lower_bin[idx][1]) - mu_b(phi[1], phi[2])
@@ -577,8 +583,8 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
                         elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
                             continue
                         else:
-                            print ("HIT!")
-                            print (f"p1 = {p1}, p2 = {p2}!")
+                            print ("HIT!", flush=True)
+                            print (f"p1 = {p1}, p2 = {p2}!", flush=True)
                             sol_bin_up   = np.vstack((sol_bin_up, p1))
                             sol_bin_down = np.vstack((sol_bin_down,p2))
                             break
@@ -587,12 +593,20 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
         sol_upper              = np.vstack((sol_upper, sol_bin_up  ))
         sol_lower              = np.vstack((sol_lower, sol_bin_down)) 
 
+        #########################
+        # start sorting
         direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
         theta_upper            = np.arccos (np.dot (direction, central_axis))
         sorted_theta_upper_idx = np.argsort (theta_upper)
         theta_upper            = theta_upper[sorted_theta_upper_idx]
+        #########################
+        direction              = (sol_lower[:,0:2] - center)/np.linalg.norm(sol_lower[:,0:2] - center, axis=1)[:, np.newaxis]
+        theta_lower            = np.arccos (np.dot (direction, central_axis))
+        sorted_theta_lower_idx = np.argsort (theta_lower)
+        theta_lower            = theta_lower[sorted_theta_lower_idx]
+        #########################
         sol_upper              = sol_upper[sorted_theta_upper_idx]
-        sol_lower              = sol_lower[sorted_theta_upper_idx]
+        sol_lower              = sol_lower[sorted_theta_lower_idx]
 
         diff_up       = np.linalg.norm(sol_upper[1:] - sol_upper[:-1], axis=1)
         max_diff_up   = np.max(diff_up)
@@ -601,9 +615,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
         max_diff_down = np.max(diff_down)
     ################# END OF WHILE ###################
 
-    sol_upper = np.vstack((sol_upper, sol_bin_up  ))
-    sol_lower = np.vstack((sol_lower, sol_bin_down))
-
+    print ("Broke out of initial solver. Time to refine...", flush=True)
     # WE NOW HAVE A PRETTY CLEANED OUT BINODAL. 
     # ALL THAT REMAINS IS TO REFINE IT TO MAKE IT LOOK NICE.
 
@@ -613,8 +625,9 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     diff_down     = np.linalg.norm(sol_lower[1:] - sol_lower[:-1], axis=1)
     max_diff_down = np.max(diff_down)
 
+    print ("Being refining!", flush=True)
     while (max_diff_up > 0.01 or max_diff_down > 0.01):
-
+        print (f"@ max_diff_up = {max_diff_up}, max_diff_down = {max_diff_down}...")
         nadded_rows = 100
         sol_upper, sol_lower = refined_binodal_v4 (sol_upper, sol_lower, nadded_rows)
 
@@ -646,8 +659,6 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     # this is the binodal
     ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], c='k', s=0.125, zorder=11)
     ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], c='k', s=0.125, zorder=11)
-    ax.scatter (unsolved_upper_bin[:,0], unsolved_upper_bin[:,1], s=0.1, c="steelblue")
-    ax.scatter (unsolved_lower_bin[:,0], unsolved_lower_bin[:,1], s=0.1, c="coral")
 
     if args.tl:
         for i in range (len(ref_bin[0])):
@@ -662,7 +673,6 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     return
 
 ############################
-
 
 
 if __name__=="__main__":

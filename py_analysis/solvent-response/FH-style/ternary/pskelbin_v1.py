@@ -209,9 +209,9 @@ def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac, crit_points):
 
     masks = np.isinf(chem_pot_a_upper) | np.isnan(chem_pot_a_upper) | np.isinf(chem_pot_b_upper) | np.isnan(chem_pot_b_upper) | np.isinf (chem_pot_c_upper) | np.isnan (chem_pot_c_upper)
 
-    print ("mu a upper is inf = ",np.isinf(chem_pot_a_upper).any())
+    # print ("mu a upper is inf = ",np.isinf(chem_pot_a_upper).any())
     chem_pot_a_upper = chem_pot_a_upper [~masks]
-    print ("mu a upper is inf = ",np.isinf(chem_pot_a_upper).any())
+    # print ("mu a upper is inf = ",np.isinf(chem_pot_a_upper).any())
     chem_pot_b_upper = chem_pot_b_upper [~masks]
     chem_pot_c_upper = chem_pot_c_upper [~masks]
     phi_upper = phi_upper[~masks]
@@ -234,17 +234,17 @@ def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac, crit_points):
     mu_upper   = np.array ([chem_pot_a_upper, chem_pot_b_upper, chem_pot_c_upper]).T
     mu_lower   = np.array ([chem_pot_a_lower, chem_pot_b_lower, chem_pot_c_lower]).T
 
-    print ("mu_upper .shape = ",mu_upper.shape)
-    print ("np isinf mu_upper = ",np.isinf(mu_upper).any())
-    print ("mu_lower .shape = ", mu_lower.shape)
-    print ("np isinf mu_lower = ",np.isinf(mu_lower).any())
+    # print ("mu_upper .shape = ",mu_upper.shape)
+    # print ("np isinf mu_upper = ",np.isinf(mu_upper).any())
+    # print ("mu_lower .shape = ", mu_lower.shape)
+    # print ("np isinf mu_lower = ",np.isinf(mu_lower).any())
 
     distances       = np.linalg.norm (mu_upper[:, np.newaxis] - mu_lower, axis=2)
     closest_indices = np.argmin(distances, axis=1)
     phi_lower       = phi_lower[closest_indices]
     mu_lower        = mu_lower [closest_indices]
     min_distances   = distances[np.arange(len(mu_upper)), closest_indices]
-    print ("np isinf mindistances = ",np.isinf(min_distances))
+    # print ("np isinf mindistances = ",np.isinf(min_distances))
 
     return [phi_upper, phi_lower, min_distances]
 

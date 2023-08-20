@@ -698,10 +698,10 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     # now, if the solution curve is sufficiently close, no need to perform more detailed searches -- so find maximum distances between points on the solution curves
     # find differences between lower and upper curves
 
-    diff_up       = np.linalg.norm(sol_upper[1:,0:2] - sol_upper[:-1,0:2], axis=1)
+    diff_up       = np.linalg.norm(sol_upper[1:][:,0:2] - sol_upper[:-1][:,0:2], axis=1)
     max_diff_up   = np.max(diff_up)
 
-    diff_down     = np.linalg.norm(sol_lower[1:,0:2] - sol_lower[:-1,0:2], axis=1)
+    diff_down     = np.linalg.norm(sol_lower[1:][:,0:2] - sol_lower[:-1][:,0:2], axis=1)
     max_diff_down = np.max(diff_down)
 
     while (max_diff_up > 0.1 or max_diff_down > 0.1):
@@ -709,7 +709,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
         # if max_diff_up > max_diff_down:
         print (f"Running a search on the top half...", flush=True)
         # start running a finer search 
-        difference    = np.linalg.norm (sol_upper[1:,0:2] - sol_upper[:-1,0:2], axis=1)
+        difference    = np.linalg.norm (sol_upper[1:][:,0:2] - sol_upper[:-1][:,0:2], axis=1)
         max_ind       = np.argmax (difference)
 
         #upper edges 
@@ -755,10 +755,10 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     # WE NOW HAVE A PRETTY CLEANED OUT BINODAL. 
     # ALL THAT REMAINS IS TO REFINE IT TO MAKE IT LOOK NICE.
 
-    diff_up       = np.linalg.norm(sol_upper[1:] - sol_upper[:-1], axis=1)
+    diff_up       = np.linalg.norm(sol_upper[1:][:,0:2] - sol_upper[:-1][:,0:2], axis=1)
     max_diff_up   = np.max(diff_up)
 
-    diff_down     = np.linalg.norm(sol_lower[1:] - sol_lower[:-1], axis=1)
+    diff_down     = np.linalg.norm(sol_lower[1:][:,0:2] - sol_lower[:-1][:,0:2], axis=1)
     max_diff_down = np.max(diff_down)
 
     print ("Being refining!", flush=True)

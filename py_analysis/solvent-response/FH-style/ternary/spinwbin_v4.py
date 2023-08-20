@@ -365,6 +365,244 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
 
 ######################################
 
+def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string):
+
+    if scale_string == "phi_a":
+        scale_a = 1e+6
+        scale_b = 1
+    elif scale_string == "phi_b":
+        scale_a = 1
+        scale_b = 1e+6
+    else:
+        print (f"Bad string provided: {scale_string}.")
+        exit()
+
+    lower_guesses = np.linspace (sol_lower[max_ind], sol_lower[max_ind+1], 100)
+
+    direction     = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
+    theta_upper   = np.arccos(np.dot(direction, central_axis))
+    theta1        = theta_upper [max_ind]
+    theta2        = theta_upper [max_ind+1]
+
+    to_keep       = (theta_upper > theta1) & (theta_upper < theta2)
+
+    unsolved_upper_bin = binodal_upper[bad_idx, 0:2]
+    unsolved_upper_bin = unsolved_upper_bin[to_keep]
+
+    sol_bin_up    = np.empty((0,3))
+    sol_bin_down  = np.empty((0,3))
+
+    lower_guesses = np.linspace (sol_lower[max_ind], sol_lower[max_ind+1], 100)
+
+    for idx in range (0, len(unsolved_upper_bin), 100):
+        print (f"@ idx = {idx}...", flush=True)
+        def mu_equations (phi):
+            eq1 = mu_a(phi[0], unsolved_upper_bin[idx][1]) - mu_a(phi[1], phi[2])
+            eq2 = mu_b(phi[0], unsolved_upper_bin[idx][1]) - mu_b(phi[1], phi[2])
+            eq3 = mu_c(phi[0], unsolved_upper_bin[idx][1]) - mu_c(phi[1], phi[2])
+            return [eq1, eq2, eq3]
+
+        for iidx in range(len(lower_guesses)):
+            root = fsolve (mu_equations, [unsolved_upper_bin[idx][0], lower_guesses[iidx][0]/scale_a, lower_guesses[iidx][1]/scale_b])
+
+            if (np.abs(np.array(mu_equations(root)))>1e-6).any():
+                continue
+
+            else:
+                p1 = np.array([root[0], unsolved_upper_bin[idx][1], 1-root[0]-unsolved_upper_bin[idx][1]])
+                p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+
+                if np.linalg.norm(p1-p2) < 1e-6:
+                    continue
+
+                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                    continue
+
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+                else:
+                    print ("HIT!", flush=True, end=' ')
+                    print (f"p1 = {p1}, p2 = {p2}!", flush=True)
+                    sol_bin_up   = np.vstack((sol_bin_up, p1))
+                    sol_bin_down = np.vstack((sol_bin_down,p2))
+                    break
+
+    for idx in range (0, len(unsolved_upper_bin), 100):
+        print (f"@ idx = {idx}...", flush=True)
+        def mu_equations (phi):
+            eq1 = mu_a(unsolved_upper_bin[idx][0], phi[0]) - mu_a(phi[1], phi[2])
+            eq2 = mu_b(unsolved_upper_bin[idx][0], phi[0]) - mu_b(phi[1], phi[2])
+            eq3 = mu_c(unsolved_upper_bin[idx][0], phi[0]) - mu_c(phi[1], phi[2])
+            return [eq1, eq2, eq3]
+
+        for iidx in range(len(lower_guesses)):
+            root = fsolve (mu_equations, [unsolved_upper_bin[idx][1], lower_guesses[iidx][0]/scale_a, lower_guesses[iidx][1]/scale_b])
+
+            if (np.abs(np.array(mu_equations(root)))>1e-6).any():
+                continue
+
+            else:
+                p1 = np.array([unsolved_upper_bin[idx][0], root[0], 1-root[0]-unsolved_upper_bin[idx][0]])
+                p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+
+                if np.linalg.norm(p1-p2) < 1e-6:
+                    continue
+
+                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                    continue
+
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+                else:
+                    print ("HIT!", flush=True, end=' ')
+                    print (f"p1 = {p1}, p2 = {p2}!", flush=True)
+                    sol_bin_up   = np.vstack((sol_bin_up, p1))
+                    sol_bin_down = np.vstack((sol_bin_down,p2))
+                    break
+
+
+
+    sol_upper              = np.vstack((sol_upper, sol_bin_up  ))
+    sol_lower              = np.vstack((sol_lower, sol_bin_down))   
+
+    # sort the solutions
+    #########################
+    direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
+    theta_upper            = np.arccos (np.dot (direction, central_axis))
+    sorted_theta_upper_idx = np.argsort (theta_upper)
+
+    sol_upper = sol_upper [sorted_theta_upper_idx]
+    sol_lower = sol_lower [sorted_theta_upper_idx]
+
+    return sol_upper, sol_lower
+
+######################################
+
+def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string):
+
+    if scale_string == "phi_a":
+        scale_a = 1e+6
+        scale_b = 1
+    elif scale_string == "phi_b":
+        scale_a = 1
+        scale_b = 1e+6
+    else:
+        print (f"Bad string provided: {scale_string}.")
+        exit()
+
+    upper_guesses = np.linspace (sol_upper[max_ind], sol_upper[max_ind+1], 100)
+
+    direction     = (sol_lower[:,0:2] - center)/np.linalg.norm(sol_lower[:,0:2] - center, axis=1)[:, np.newaxis]
+    theta_lower   = np.arccos(np.dot(direction, central_axis))
+    theta1        = theta_lower [max_ind]
+    theta2        = theta_lower [max_ind+1]
+
+    to_keep       = (theta_upper > theta1) & (theta_upper < theta2)
+
+    unsolved_lower_bin = binodal_lower[bad_idx, 0:2]
+    unsolved_lower_bin = unsolved_lower_bin[to_keep]
+
+    sol_bin_up    = np.empty((0,3))
+    sol_bin_down  = np.empty((0,3))
+
+    upper_guesses = np.linspace (sol_upper[max_ind], sol_upper[max_ind+1], 100)
+
+    for idx in range (0, len(unsolved_lower_bin), 100):
+        print (f"@ idx = {idx}...", flush=True)
+        def mu_equations (phi):
+            eq1 = mu_a(phi[0], unsolved_lower_bin[idx][1]) - mu_a(phi[1], phi[2])
+            eq2 = mu_b(phi[0], unsolved_lower_bin[idx][1]) - mu_b(phi[1], phi[2])
+            eq3 = mu_c(phi[0], unsolved_lower_bin[idx][1]) - mu_c(phi[1], phi[2])
+            return [eq1, eq2, eq3]
+
+        for iidx in range(len(upper_guesses)):
+            root = fsolve (mu_equations, [unsolved_lower_bin[idx][0], upper_guesses[iidx][0]/scale_a, upper_guesses[iidx][1]/scale_b])
+
+            if (np.abs(np.array(mu_equations(root)))>1e-6).any():
+                continue
+
+            else:
+                p1 = np.array([root[0], unsolved_lower_bin[idx][1], 1-root[0]-unsolved_lower_bin[idx][1]])
+                p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+
+                if np.linalg.norm(p1-p2) < 1e-6:
+                    continue
+
+                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                    continue
+
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+                else:
+                    print ("HIT!", flush=True, end=' ')
+                    print (f"p1 = {p1}, p2 = {p2}!", flush=True)
+                    sol_bin_up   = np.vstack((sol_bin_up, p1))
+                    sol_bin_down = np.vstack((sol_bin_down,p2))
+                    break
+
+    for idx in range (0, len(unsolved_lower_bin), 100):
+        print (f"@ idx = {idx}...", flush=True)
+        def mu_equations (phi):
+            eq1 = mu_a(unsolved_lower_bin[idx][0], phi[0]) - mu_a(phi[1], phi[2])
+            eq2 = mu_b(unsolved_lower_bin[idx][0], phi[0]) - mu_b(phi[1], phi[2])
+            eq3 = mu_c(unsolved_lower_bin[idx][0], phi[0]) - mu_c(phi[1], phi[2])
+            return [eq1, eq2, eq3]
+
+        for iidx in range(len(upper_guesses)):
+            root = fsolve (mu_equations, [unsolved_lower_bin[idx][1], upper_guesses[iidx][0]/scale_a, upper_guesses[iidx][1]/scale_b])
+
+            if (np.abs(np.array(mu_equations(root)))>1e-6).any():
+                continue
+
+            else:
+                p1 = np.array([unsolved_lower_bin[idx][0], root[0], 1-root[0]-unsolved_lower_bin[idx][0]])
+                p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+
+                if np.linalg.norm(p1-p2) < 1e-6:
+                    continue
+
+                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                    continue
+
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+                else:
+                    print ("HIT!", flush=True, end=' ')
+                    print (f"p1 = {p1}, p2 = {p2}!", flush=True)
+                    sol_bin_up   = np.vstack((sol_bin_up, p1))
+                    sol_bin_down = np.vstack((sol_bin_down,p2))
+                    break
+
+
+
+    sol_upper              = np.vstack((sol_upper, sol_bin_up  ))
+    sol_lower              = np.vstack((sol_lower, sol_bin_down))
+
+    # sort the solutions
+    #########################
+    direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
+    theta_upper            = np.arccos (np.dot (direction, central_axis))
+    sorted_theta_upper_idx = np.argsort (theta_upper)
+
+    sol_upper = sol_upper [sorted_theta_upper_idx]
+    sol_lower = sol_lower [sorted_theta_upper_idx]
+
+    return sol_upper, sol_lower
+
+######################################
+
 def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit_points):
 
     try:
@@ -460,159 +698,58 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     # now, if the solution curve is sufficiently close, no need to perform more detailed searches -- so find maximum distances between points on the solution curves
     # find differences between lower and upper curves
 
-    diff_up       = np.linalg.norm(sol_upper[1:] - sol_upper[:-1], axis=1)
+    diff_up       = np.linalg.norm(sol_upper[1:,0:2] - sol_upper[:-1,0:2], axis=1)
     max_diff_up   = np.max(diff_up)
 
-    diff_down     = np.linalg.norm(sol_lower[1:] - sol_lower[:-1], axis=1)
+    diff_down     = np.linalg.norm(sol_lower[1:,0:2] - sol_lower[:-1,0:2], axis=1)
     max_diff_down = np.max(diff_down)
-
-    scale = 1e+6
 
     while (max_diff_up > 0.1 or max_diff_down > 0.1):
         
         # if max_diff_up > max_diff_down:
         print (f"Running a search on the top half...", flush=True)
         # start running a finer search 
-        difference    = np.linalg.norm (sol_upper[1:] - sol_upper[:-1], axis=1)
+        difference    = np.linalg.norm (sol_upper[1:,0:2] - sol_upper[:-1,0:2], axis=1)
         max_ind       = np.argmax (difference)
-        lower_guesses = np.linspace (sol_lower[max_ind], sol_lower[max_ind+1], 100)
 
-        difference    = np.abs(np.diff (theta_upper))
-        max_ind       = np.argmax(difference)
-        theta_thresh1 = theta_upper[max_ind]
-        theta_thresh2 = theta_upper[max_ind+1]
+        #upper edges 
+        u1 = sol_upper[max_ind][0:2]
+        u2 = sol_upper[max_ind+1][0:2]
+        umin = np.min([u1,u2])
+        l1 = sol_lower[max_ind][0:2]
+        l2 = sol_lower[max_ind+1][0:2]
+        lmin = np.min([l1,l2])
 
-        unsolved_upper_bin = binodal_upper[bad_idx]
-        unsolved_upper_bin = unsolved_upper_bin[:,0:2]
-        direction          = (unsolved_upper_bin - center)/np.linalg.norm(unsolved_upper_bin-center, axis=1)[:, np.newaxis]
-        theta_upper        = np.arccos(np.dot (direction, central_axis))
-        to_keep            = (theta_upper > theta_thresh1) & (theta_upper < theta_thresh2)
-        unsolved_upper_bin = unsolved_upper_bin[to_keep]
+        if umin > lmin:
+            # scale lower guesses
+            if   ( abs(l1[0] - l2[0]) < abs(l1[1]-l2[1]) ):
+                scale_string = "phi_a"
+                sol_upper, sol_lower = root_finer_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
+        
 
-        print (f"size of unsolved_upper_bin = {unsolved_upper_bin.shape}")
+            elif ( abs(l1[0] - l2[0]) > abs(l1[1]-l2[1]) ):
+                scale_string = "phi_b"
+                sol_upper, sol_lower = root_finer_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
 
-        sol_bin_up   = np.empty((0,3))
-        sol_bin_down = np.empty((0,3))
+        elif umin < lmin:
+            # scale upper guesses
+            if   ( abs(u1[0] - u2[0]) < abs(u1[1]-u2[1]) ):
+                scale_string = "phi_a"
+                sol_upper, sol_lower = root_finer_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
 
-        for idx in range(0,len(unsolved_upper_bin),100):
-            print (f"@ idx = {idx}...", flush=True)
-            def mu_equations (phi):
-                eq1 = mu_a(phi[0], unsolved_upper_bin[idx][1]) - mu_a(phi[1], phi[2])
-                eq2 = mu_b(phi[0], unsolved_upper_bin[idx][1]) - mu_b(phi[1], phi[2])
-                eq3 = mu_c(phi[0], unsolved_upper_bin[idx][1]) - mu_c(phi[1], phi[2])
-                return [eq1, eq2, eq3]
+            elif ( abs(u1[0] - u2[0]) > abs(u1[1]-u2[1]) ):
+                scale_string = "phi_b"
+                sol_upper, sol_lower = root_finer_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
 
-            for iidx in range(len(lower_guesses)):
-                root = fsolve (mu_equations, [unsolved_upper_bin[idx][0], lower_guesses[iidx][0], lower_guesses[iidx][1]/scale])
-                    
-                if (np.abs(np.array(mu_equations(root)))>1e-6).any():
-                    continue
-                else:
-                    p1 = np.array([root[0], unsolved_upper_bin[idx][1], 1-root[0]-unsolved_upper_bin[idx][1]])
-                    p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
-
-                    if np.linalg.norm(p1-p2) < 1e-6:
-                        continue
-
-                    elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
-                        continue
-
-                    elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
-                        continue
-
-                    elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
-                        continue
-                    else:
-                        print ("HIT!", flush=True, end=' ')
-                        print (f"p1 = {p1}, p2 = {p2}!", flush=True)
-                        sol_bin_up   = np.vstack((sol_bin_up, p1))
-                        sol_bin_down = np.vstack((sol_bin_down,p2))
-                        break
-        ################# END OF IF ###################
-        # else:
-        print (f"Running a search on the bottom half...")
-        # start running a finer search 
-        difference    = np.linalg.norm (sol_lower[1:] - sol_lower[:-1], axis=1)
-        max_ind       = np.argmax (difference)
-        upper_guesses = np.linspace (sol_upper[max_ind], sol_upper[max_ind+1], 100)
-
-        difference    = np.abs(np.diff (theta_lower))
-        max_ind       = np.argmax(difference)
-        theta_thresh1 = theta_lower[max_ind]
-        theta_thresh2 = theta_lower[max_ind+1]
-
-        unsolved_lower_bin = binodal_lower[bad_idx]
-        unsolved_lower_bin = unsolved_lower_bin[:,0:2]
-        direction          = (unsolved_lower_bin - center)/np.linalg.norm(unsolved_lower_bin-center, axis=1)[:, np.newaxis]
-        theta_lower        = np.arccos(np.dot (direction, central_axis))
-        to_keep            = (theta_lower > theta_thresh1) & (theta_lower < theta_thresh2)
-        unsolved_lower_bin = unsolved_lower_bin[to_keep]
-
-        print (f"size of unsolved_lower_bin = {unsolved_lower_bin.shape}", flush=True)
-
-        sol_bin_up   = np.empty((0,3))
-        sol_bin_down = np.empty((0,3))
-
-        for idx in range(0,len(unsolved_lower_bin),100):
-            print (f"@ idx = {idx}...", flush=True)
-            def mu_equations (phi):
-                eq1 = mu_a(phi[0], unsolved_lower_bin[idx][1]) - mu_a(phi[1], phi[2])
-                eq2 = mu_b(phi[0], unsolved_lower_bin[idx][1]) - mu_b(phi[1], phi[2])
-                eq3 = mu_c(phi[0], unsolved_lower_bin[idx][1]) - mu_c(phi[1], phi[2])
-                return [eq1, eq2, eq3]
-
-            for iidx in range(len(upper_guesses)):
-                root = fsolve (mu_equations, [unsolved_lower_bin[idx][0], upper_guesses[iidx][0], upper_guesses[iidx][1]/scale])
-                
-                if (np.abs(np.array(mu_equations(root)))>1e-6).any():
-                    continue
-                else:
-                    p1 = np.array([root[0], unsolved_lower_bin[idx][1], 1-root[0]-unsolved_lower_bin[idx][1]])
-                    p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
-
-                    if np.linalg.norm(p1-p2) < 1e-6:
-                        continue
-
-                    elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
-                        continue
-
-                    elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
-                        continue
-
-                    elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
-                        continue
-                    else:
-                        print ("HIT!", flush=True, end=' ')
-                        print (f"p1 = {p1}, p2 = {p2}!", flush=True)
-                        sol_bin_up   = np.vstack((sol_bin_up, p1))
-                        sol_bin_down = np.vstack((sol_bin_down,p2))
-                        break
-        ################# END OF ELSE ###################
-
-        sol_upper              = np.vstack((sol_upper, sol_bin_up  ))
-        sol_lower              = np.vstack((sol_lower, sol_bin_down)) 
-
-        #########################
-        # start sorting
-        direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
-        theta_upper            = np.arccos (np.dot (direction, central_axis))
-        sorted_theta_upper_idx = np.argsort (theta_upper)
-        theta_upper            = theta_upper[sorted_theta_upper_idx]
-        #########################
-        direction              = (sol_lower[:,0:2] - center)/np.linalg.norm(sol_lower[:,0:2] - center, axis=1)[:, np.newaxis]
-        theta_lower            = np.arccos (np.dot (direction, central_axis))
-        sorted_theta_lower_idx = np.argsort (theta_lower)
-        theta_lower            = theta_lower[sorted_theta_lower_idx]
-        #########################
-        sol_upper              = sol_upper[sorted_theta_upper_idx]
-        sol_lower              = sol_lower[sorted_theta_lower_idx]
 
         diff_up       = np.linalg.norm(sol_upper[1:] - sol_upper[:-1], axis=1)
         max_diff_up   = np.max(diff_up)
 
         diff_down     = np.linalg.norm(sol_lower[1:] - sol_lower[:-1], axis=1)
         max_diff_down = np.max(diff_down)
-    ################# END OF WHILE ###################
+
+
+    ##################################################
 
     print ("Broke out of initial solver. Time to refine...", flush=True)
     # WE NOW HAVE A PRETTY CLEANED OUT BINODAL. 

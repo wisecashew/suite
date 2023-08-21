@@ -210,7 +210,7 @@ def add_interpolated_rows (original_array, M):
     result_array.append(original_array[-1])
     return np.array(result_array)
 
-#############################3
+##############################
 
 def add_rows_between_largest_gap (array, M):
 
@@ -218,9 +218,18 @@ def add_rows_between_largest_gap (array, M):
     distances   = np.linalg.norm (diff, axis=1)
     max_dists   = np.argmax (distances)
     insert_rows = np.linspace (array[max_dists], array[max_dists+1], M)
-    array       = np.insert (array, max_dists+1, insert_rows[1:-1],0)
+    array       = np.insert (array, max_dists+1, insert_rows[1:-1], axis=0)
 
     return array, max_dists
+
+###############################
+
+def add_rows_at_index (array, idx, M):
+
+    insert_rows = np.linspace (array[idx], array[idx+1], M)
+    array       = np.insert (array, idx+1, insert_rows[1:-1],axis=0)
+
+    return array
 
 ###############################
 
@@ -245,12 +254,12 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
     # together = np.vstack ((side_1, side_2))
 
     side_1, m1 = add_rows_between_largest_gap (side_1, nadded_rows)
-    side_2, m2 = add_rows_between_largest_gap (side_2, nadded_rows)
+    side_2     = add_rows_at_index (side_2, m1, nadded_rows)
+    # side_2, m2 = add_rows_between_largest_gap (side_2, nadded_rows)
 
     print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v4...", flush=True)
+    # print (f"m1 = {m1}, m2 = {m2}.")
     print (f"from {side_1[m1+1]} to {side_1[m1+nadded_rows-1]}", flush=True)
-    # print (side_1[m1+1:m1+20])
-    # print (side_2[m2+1:m2+20])
 
     for idx, pt in enumerate (side_1[m1+1:m1+nadded_rows-1]):
         if idx%25==0: print (f"idx = {idx} @ x,y = {pt[0],pt[1]}...", flush=True)
@@ -263,7 +272,7 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
         root_store = []
         dist_store = []
 
-        for tidx, tpt in enumerate (side_2[m2+1+idx-nadded_rows:m2+1+idx+nadded_rows]):
+        for tidx, tpt in enumerate (side_2[m1+1+idx-nadded_rows:m1+1+idx+nadded_rows]):
             root = fsolve (mu_equations, [pt[1], tpt[0], tpt[1]])
 
             # if the roots are "bad" roots, just write them out as bad
@@ -307,9 +316,11 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
 def refined_binodal_v5 (side_1, side_2, nadded_rows):
 
     side_1, m1 = add_rows_between_largest_gap (side_1, nadded_rows)
-    side_2, m2 = add_rows_between_largest_gap (side_2, nadded_rows)
+    side_2     = add_rows_at_index (side_2, m1, nadded_rows)
 
     print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v5...", flush=True)
+    print (f"m1 = {m1}.")
+    print (f"from {side_1[m1+1]} to {side_1[m1+nadded_rows-1]}", flush=True)
 
     for idx, pt in enumerate (side_1[m1+1:m1+nadded_rows-1]):
         if idx%25==0: print (f"idx = {idx} @ x, y = {pt[0],pt[1]}...", flush=True)
@@ -322,7 +333,7 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
         root_store = []
         dist_store = []
 
-        for tidx, tpt in enumerate (side_2[m2+1+idx-2*nadded_rows:m2+1+idx+2*nadded_rows]):
+        for tidx, tpt in enumerate (side_2[m1+1+idx-2*nadded_rows:m1+1+idx+2*nadded_rows]):
             root = fsolve (mu_equations, [pt[0], tpt[0], tpt[1]])
 
             # if the roots are "bad" roots, just write them out as bad

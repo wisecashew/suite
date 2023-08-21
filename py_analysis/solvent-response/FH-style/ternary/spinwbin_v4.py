@@ -300,8 +300,6 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
         except:
             print (f"Problem with a particular value. No solution found for pt = {pt}", flush=True)
 
-    
-
     return [side_1, side_2]
 
 ######################################
@@ -325,10 +323,10 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
         dist_store = []
 
         for tidx, tpt in enumerate (side_2[m2+1+idx-2*nadded_rows:m2+1+idx+2*nadded_rows]):
-            root = fsolve (mu_equations, [pt[0], tpt[0], tpt[1]], xtol=1e-12)
+            root = fsolve (mu_equations, [pt[0], tpt[0], tpt[1]])
 
             # if the roots are "bad" roots, just write them out as bad
-            if (np.abs(np.array(mu_equations(root))) > 1e-12).any():
+            if (np.abs(np.array(mu_equations(root))) > 1e-6).any():
                 continue
 
             else:
@@ -365,14 +363,14 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
 
 ######################################
 
-def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string):
+def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string, iterr):
 
     if scale_string == "phi_a":
-        scale_a = 1e+6
+        scale_a = 1e+6*(10**iterr)
         scale_b = 1
     elif scale_string == "phi_b":
         scale_a = 1
-        scale_b = 1e+6
+        scale_b = 1e+6*(10**iterr)
     else:
         print (f"Bad string provided: {scale_string}.")
         exit()
@@ -384,10 +382,12 @@ def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper
     theta1        = theta_upper [max_ind]
     theta2        = theta_upper [max_ind+1]
 
-    to_keep       = (theta_upper > theta1) & (theta_upper < theta2)
+    unsolved_upper_bin = binodal_upper[bad_idx][:, 0:2]
+    direction_binodal  = (unsolved_upper_bin[:,0:2] - center) / np.linalg.norm(unsolved_upper_bin[:,0:2] - center, axis=1)[:, np.newaxis]
+    theta_binodal      = np.arccos(np.dot(direction_binodal, central_axis))
+    to_keep            = (theta_binodal > theta1) & (theta_binodal < theta2)
 
-    unsolved_upper_bin = binodal_upper[bad_idx, 0:2]
-    unsolved_upper_bin = unsolved_upper_bin[to_keep]
+    unsolved_upper_bin = unsolved_upper_bin [to_keep]
 
     sol_bin_up    = np.empty((0,3))
     sol_bin_down  = np.empty((0,3))
@@ -484,14 +484,14 @@ def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper
 
 ######################################
 
-def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string):
+def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string, iterr):
 
     if scale_string == "phi_a":
-        scale_a = 1e+6
+        scale_a = 1e+6 * (10**(iterr))
         scale_b = 1
     elif scale_string == "phi_b":
         scale_a = 1
-        scale_b = 1e+6
+        scale_b = 1e+6 * (10**(iterr))
     else:
         print (f"Bad string provided: {scale_string}.")
         exit()
@@ -503,9 +503,11 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
     theta1        = theta_lower [max_ind]
     theta2        = theta_lower [max_ind+1]
 
-    to_keep       = (theta_upper > theta1) & (theta_upper < theta2)
+    unsolved_lower_bin = binodal_lower[bad_idx][:, 0:2]
+    direction_binodal  = (unsolved_lower_bin[:,0:2]-center)/np.linalg.norm(unsolved_lower_bin[:,0:2]-center, axis=1)[:, np.newaxis]
+    theta_binodal      = np.arccos(np.dot(direction_binodal, central_axis))
+    to_keep       = (theta_lower > theta1) & (theta_lower < theta2)
 
-    unsolved_lower_bin = binodal_lower[bad_idx, 0:2]
     unsolved_lower_bin = unsolved_lower_bin[to_keep]
 
     sol_bin_up    = np.empty((0,3))
@@ -693,17 +695,17 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
 
     sol_upper              = sol_upper[sorted_theta_upper_idx]
     sol_lower              = sol_lower[sorted_theta_lower_idx]
-
+    
     # I have sorted the solutions 
     # now, if the solution curve is sufficiently close, no need to perform more detailed searches -- so find maximum distances between points on the solution curves
     # find differences between lower and upper curves
-
     diff_up       = np.linalg.norm(sol_upper[1:][:,0:2] - sol_upper[:-1][:,0:2], axis=1)
     max_diff_up   = np.max(diff_up)
 
     diff_down     = np.linalg.norm(sol_lower[1:][:,0:2] - sol_lower[:-1][:,0:2], axis=1)
     max_diff_down = np.max(diff_down)
 
+    max_diff_count = 0
     while (max_diff_up > 0.1 or max_diff_down > 0.1):
         
         # if max_diff_up > max_diff_down:
@@ -718,28 +720,29 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
         umin = np.min([u1,u2])
         l1 = sol_lower[max_ind][0:2]
         l2 = sol_lower[max_ind+1][0:2]
-        lmin = np.min([l1,l2])
-
-        if umin > lmin:
+        udist = abs(np.min(u1)-np.min(u2))
+        ldist = abs(np.min(l1)-np.min(l2))
+        print (f"u1 = {u1}, u2 = {u2}, l1 = {l1}, l2 = {l2}")
+        print (f"udist = {udist}, ldist = {ldist}")
+        if udist > ldist:
             # scale lower guesses
             if   ( abs(l1[0] - l2[0]) < abs(l1[1]-l2[1]) ):
                 scale_string = "phi_a"
-                sol_upper, sol_lower = root_finer_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
-        
+                sol_upper, sol_lower = root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string, max_diff_count)
 
             elif ( abs(l1[0] - l2[0]) > abs(l1[1]-l2[1]) ):
                 scale_string = "phi_b"
-                sol_upper, sol_lower = root_finer_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
+                sol_upper, sol_lower = root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string,max_diff_count)
 
-        elif umin < lmin:
+        elif udist < ldist:
             # scale upper guesses
             if   ( abs(u1[0] - u2[0]) < abs(u1[1]-u2[1]) ):
                 scale_string = "phi_a"
-                sol_upper, sol_lower = root_finer_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
+                sol_upper, sol_lower = root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string, max_diff_count)
 
             elif ( abs(u1[0] - u2[0]) > abs(u1[1]-u2[1]) ):
                 scale_string = "phi_b"
-                sol_upper, sol_lower = root_finer_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string)
+                sol_upper, sol_lower = root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper, binodal_lower, bad_idx, center, central_axis, scale_string, max_diff_count)
 
 
         diff_up       = np.linalg.norm(sol_upper[1:] - sol_upper[:-1], axis=1)
@@ -747,7 +750,10 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
 
         diff_down     = np.linalg.norm(sol_lower[1:] - sol_lower[:-1], axis=1)
         max_diff_down = np.max(diff_down)
-
+        max_diff_count += 1
+        print (f"max_diff_count = {max_diff_count}.")
+        if max_diff_count == 5:
+            break
 
     ##################################################
 
@@ -762,6 +768,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     max_diff_down = np.max(diff_down)
 
     print ("Being refining!", flush=True)
+    max_refine_count = 0
     while (max_diff_up > 0.01 or max_diff_down > 0.01):
         print (f"@ max_diff_up = {max_diff_up}, max_diff_down = {max_diff_down}...")
         nadded_rows = 100
@@ -787,14 +794,18 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
 
         diff_down     = np.linalg.norm(sol_lower[1:] - sol_lower[:-1], axis=1)
         max_diff_down = np.max(diff_down)
+        max_refine_count += 1
+        print (f"max_refine_count = {max_refine_count}.")
+        if max_refine_count == 5:
+            break
 
 
     ref_bin = [sol_upper, sol_lower]
     print ("Both crit points should be well-populated.", flush=True)
 
     # this is the binodal
-    ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], c='k', s=0.125, zorder=11)
-    ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], c='k', s=0.125, zorder=11)
+    ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], c='silver',     s=0.125, zorder=11)
+    ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], c='darkred',    s=0.125, zorder=11)
 
     if args.tl:
         for i in range (len(ref_bin[0])):

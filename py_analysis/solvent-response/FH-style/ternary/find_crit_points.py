@@ -110,7 +110,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
                         similarity = (np.linalg.norm(roots_down - r_tup, axis=1) < 1e-3).any ()
                         if similarity:
                             pass
-                       else:
+                        else:
                             roots_down = np.vstack ((roots_down,r_tup))                       
                     
         else:

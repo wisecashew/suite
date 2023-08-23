@@ -94,7 +94,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
                         if similarity:
                             pass
                         else:
-                            roots_down = np.vstack ((roots_down,r_tup))
+                            roots_up = np.vstack ((roots_up,r_tup))
 
         else:
             pass
@@ -117,12 +117,14 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
 
                 else:
                     if len(roots_down) == 0:
+                        print (f"r_tup = {r_tup}")
                         roots_down = np.vstack ((roots_down,r_tup))
                     else:
                         similarity = (np.linalg.norm(roots_down - r_tup, axis=1) < 1e-3).any ()
                         if similarity:
                             pass
                         else:
+                            print (f"r_tup = {r_tup}, similarity = {similarity}.")
                             roots_down = np.vstack ((roots_down,r_tup))
 
         else:
@@ -271,6 +273,13 @@ if __name__=="__main__":
     root_lo  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
 
 
+    roots_up, roots_down = find_crit_point (N, chi_ac, chi_ab, chi_bc)
+    print (f"roots_up = {roots_up}")
+    print (f"roots_down = {roots_down}")
+    crits = np.vstack((roots_up, roots_down))
+    print (f"critical points = {crits}")
+
+
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
 
@@ -301,9 +310,6 @@ if __name__=="__main__":
 
     pool    = mp.Pool (processes=len(phi_b_list))
     
-    roots_up, roots_down = find_crit_point (N, chi_ac, chi_ab, chi_bc)
-    crits = np.vstack((roots_up, roots_down))
-    print (f"critical points = {crits}")
 
     results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac), itertools.repeat(crits) ) )
 

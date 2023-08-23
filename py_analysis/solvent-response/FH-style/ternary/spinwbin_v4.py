@@ -45,6 +45,27 @@ parser.add_argument('--image',        dest='img',       type=str,            act
 args = parser.parse_args()
 
 
+###############
+
+
+def remove_close_rows(array, threshold):
+
+    filtered_array = np.empty ((0,2))
+    for i, elem in enumerate(array):
+        if i == 0:
+            filtered_array = np.vstack((filtered_array, elem))
+            continue
+        else:
+            sieve = (np.linalg.norm(filtered_array - elem, axis=1) < 1e-3).any()
+            if sieve:
+                continue
+            else:
+                filtered_array = np.vstack((filtered_array, elem))
+
+    return filtered_array
+
+
+###############
 
 def crit_condition (N, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
 
@@ -57,6 +78,7 @@ def crit_condition (N, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
 
     return t1*t2 - u1*u2
 
+################
 
 def find_crit_point (N, chi_sc, chi_ps, chi_pc):
 
@@ -96,7 +118,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
                         if similarity:
                             pass
                         else:
-                            roots_down = np.vstack ((roots_down,r_tup))
+                            roots_up = np.vstack ((roots_up,r_tup))
 
         else:
             pass
@@ -866,10 +888,13 @@ if __name__=="__main__":
     ax.scatter (roots_down[:,0], roots_down[:,1], color='k', edgecolors='steelblue', s=0.1, zorder=11)
 
     crits = np.vstack ((roots_up, roots_down))
+    crits = remove_close_rows (crits, 1e-3)
+
     if len(crits) == 2:
         pass
     else:
         print ("Number of critical points = ",len(crits), flush=True)
+
     print ("critical points = \n",crits, flush=True)
 
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
@@ -940,3 +965,4 @@ if __name__=="__main__":
     print ("Completed heat map computation.", flush=True)
     stop = time.time()
     print (f"Time for computation is {stop-start} seconds.", flush=True)
+

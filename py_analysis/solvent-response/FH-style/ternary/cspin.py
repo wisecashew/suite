@@ -8,6 +8,7 @@ from scipy.optimize import fsolve
 import scipy.optimize as opt 
 from matplotlib.ticker import StrMethodFormatter
 from matplotlib.ticker import Locator, AutoMinorLocator, MultipleLocator
+from scipy.spatial.distance import cdist
 import sys
 import argparse
 import linecache
@@ -28,6 +29,24 @@ parser.add_argument('--chips', metavar='chi_ps', dest='chi_ps', type=float, acti
 parser.add_argument('--chipc', metavar='chi_pc', dest='chi_pc', type=float, action='store', help='enter B-C exchange parameter.' )
 parser.add_argument('-N',      metavar='N',      dest='N',      type=int,   action='store', help='degree of polymerization of B.')
 args = parser.parse_args()
+
+
+def remove_close_rows(array, threshold):
+
+    filtered_array = np.empty ((0,2))
+    for i, elem in enumerate(array):
+        if i == 0:
+            filtered_array = np.vstack((filtered_array, elem))
+            continue
+        else:
+            sieve = (np.linalg.norm(filtered_array - elem, axis=1) < 1e-3).any()
+            if sieve:
+                continue
+            else:
+                filtered_array = np.vstack((filtered_array, elem))
+
+    return filtered_array
+
 
 
 def crit_condition (N, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
@@ -145,7 +164,7 @@ if __name__=="__main__":
         'weight': 'normal',
         'size': lsize}
 
-    fig = plt.figure(num=2, figsize=(5,5))
+    fig = plt.figure(num=1, figsize=(5,5))
     ax  = plt.axes() # fig.add_subplot (projection="ternary")
 
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
@@ -162,9 +181,9 @@ if __name__=="__main__":
 
     to_keep = ~np.isnan(vals)
 
-    vals = vals[to_keep]
-    p_s  = p_s[to_keep]
-    p_p  = p_p[to_keep]
+    vals = vals [to_keep]
+    p_s  = p_s  [to_keep]
+    p_p  = p_p  [to_keep]
 
     vmax = np.max (vals)
     vmin = np.min (vals)
@@ -184,16 +203,20 @@ if __name__=="__main__":
 
     # Plot the points
     p_c = 1 - p_s - p_p
-
-    ax.scatter(p_s, p_p, s=1, color=cols)
-    ax.scatter (roots_up[:,0],   roots_up[:,1]  , color='k', edgecolors='steelblue')
-    ax.scatter (roots_down[:,0], roots_down[:,1], color='k', edgecolors='steelblue')
+    crits      = np.vstack ((roots_up, roots_down))
+    print (f"crits = {crits}")
+    threshold  = 1e-3
+    crits      = remove_close_rows (crits, threshold)
+    print (f"cleaned_crits = {crits}")
+    ax.scatter (p_s, p_p, s=1, color=cols)
+    ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='steelblue', s=0.5)
+    ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='k', edgecolors='darkred', s=1)
 
     ax.set_xlabel ("$\\phi _{S}$")
     ax.set_ylabel ("$\\phi _{P}$")
 
     ax.grid()
 
-    plt.savefig (f"signs-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200, bbox_inches="tight")
+    plt.savefig (f"signs-N_{N}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
     print ("Completed heat map computation.")
 

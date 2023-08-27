@@ -193,7 +193,7 @@ def get_limits (N):
 
 #########################################
 
-def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac, crit_points):
+def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac, crit_point, normal_to_crit):
 
     phi_b = np.repeat (phi_b, mesh)
     phi_a = np.zeros  (phi_b.shape)
@@ -212,8 +212,8 @@ def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac, crit_points):
     phis    = np.vstack((phi_a, phi_b)).T
     # print (phis.shape)
 
-    center         = np.mean (crit_points, axis=0)[:2]
-    central_axis   = (crit_points[1,:2]-center)/np.linalg.norm (crit_points[1,:2]-center)
+    center         = crit_point
+    central_axis   = (crit_point + normal_to_crit) / np.linalg.norm (crit_point + normal_to_crit)
 
     # find those ABOVE axis
     direction      = (phis - center) / np.linalg.norm(phis-center, axis=1)[:, np.newaxis]
@@ -247,17 +247,8 @@ def perform_sweep (phi_b, mesh, chi_ab, chi_bc, chi_ac, crit_points):
     chem_pot_c_lower = chem_pot_c_lower [~masks]
     phi_lower = phi_lower[~masks]
 
-    # print ("a low inf =", np.isinf(chem_pot_a_lower))
-    # print ("b low inf =", np.isinf(chem_pot_b_lower))
-    # print ("c low inf =", np.isinf(chem_pot_c_lower))
-
     mu_upper   = np.array ([chem_pot_a_upper, chem_pot_b_upper, chem_pot_c_upper]).T
     mu_lower   = np.array ([chem_pot_a_lower, chem_pot_b_lower, chem_pot_c_lower]).T
-
-    # print ("mu_upper .shape = ",mu_upper.shape)
-    # print ("np isinf mu_upper = ",np.isinf(mu_upper).any())
-    # print ("mu_lower .shape = ", mu_lower.shape)
-    # print ("np isinf mu_lower = ",np.isinf(mu_lower).any())
 
     distances       = np.linalg.norm (mu_upper[:, np.newaxis] - mu_lower, axis=2)
     closest_indices = np.argmin(distances, axis=1)
@@ -301,6 +292,107 @@ if __name__=="__main__":
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
 
+    def tangent (ps, pp, vp, cpc, cps, csc):
+
+        dist_lo  = np.linalg.norm(pp - root_lo (ps, cps, cpc, csc))
+        dist_up  = np.linalg.norm(pp - root_up (ps, cps, cpc, csc))
+
+        # print (f"lower root distance = {dist_lo}")
+        # print (f"upper root distance = {dist_up}")
+
+        if dist_lo > dist_up:
+            tang_slope = (2 * csc + 2 * cpc * vp - cpc**2 * vp - 2 * cps * vp + 2 * cpc * cps * vp - cps**2 * vp + \
+            2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp + 2 * cpc**2 * ps * vp - \
+            4 * cpc * cps * ps * vp + 2 * cps**2 * ps * vp - 4 * cpc * csc * ps * vp - \
+            4 * cps * csc * ps * vp + 2 * csc**2 * ps * vp - (-4 * (-1 + 2 * csc * ps - 2 * csc * ps**2) * (-cpc**2 * vp + \
+            2 * cpc * cps * vp - cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) - 4 * (2 * csc - 4 * csc * ps) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp) + \
+            2 * (-2 * csc - 2 * cpc * vp + cpc**2 * vp + 2 * cps * vp - 2 * cpc * cps * vp + cps**2 * vp - 2 * cpc * csc * vp - 2 * cps * csc * vp + csc**2 * vp - 2 * cpc**2 * ps * vp + 4 * cpc * cps * ps * vp - 2 * cps**2 * ps * vp + \
+            4 * cpc * csc * ps * vp + 4 * cps * csc * ps * vp - 2 * csc**2 * ps * vp) * (1 - 2 * csc * ps - vp + 2 * cpc * vp - 2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp + cps**2 * ps * vp - \
+            2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp))/ \
+            (2 * np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - \
+            2 * cpc * cps * ps * vp + cps**2 * ps * vp - 2 * cpc * csc * ps * vp - \
+            2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + \
+            2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + \
+            2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - \
+            cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)) - ((-cpc**2 * vp + 2 * cpc * cps * vp - \
+            cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) * (-1 + \
+            2 * csc * ps + vp - 2 * cpc * vp + 2 * cpc * ps * vp - cpc**2 * ps * vp - \
+            2 * cps * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp + cpc**2 * ps**2 * vp - \
+            2 * cpc * cps * ps**2 * vp + cps**2 * ps**2 * vp - 2 * cpc * csc * ps**2 * vp - \
+            2 * cps * csc * ps**2 * vp + \
+            csc**2 * ps**2 * vp - np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp +\
+            cps**2 * ps * vp - 2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + \
+            csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - \
+            cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)**2) 
+            print (f"tang_slope = {tang_slope}")
+
+        else:
+            tang_slope = (2 * csc + 2 * cpc * vp - cpc**2 * vp - 2 * cps * vp + 2 * cpc * cps * vp - cps**2 * vp + \
+            2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp + 2 * cpc**2 * ps * vp - \
+            4 * cpc * cps * ps * vp + 2 * cps**2 * ps * vp - 4 * cpc * csc * ps * vp - \
+            4 * cps * csc * ps * vp + \
+            2 * csc**2 * ps * vp + (-4 * (-1 + 2 * csc * ps - 2 * csc * ps**2) * (-cpc**2 * vp + \
+            2 * cpc * cps * vp - cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - \
+            csc**2 * vp) - \
+            4 * (2 * csc - 4 * csc * ps) * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp) + \
+            2 * (-2 * csc - 2 * cpc * vp + cpc**2 * vp + 2 * cps * vp - 2 * cpc * cps * vp + \
+            cps**2 * vp - 2 * cpc * csc * vp - 2 * cps * csc * vp + csc**2 * vp - \
+            2 * cpc**2 * ps * vp + 4 * cpc * cps * ps * vp - 2 * cps**2 * ps * vp + \
+            4 * cpc * csc * ps * vp + 4 * cps * csc * ps * vp - 2 * csc**2 * ps * vp) * (1 - \
+            2 * csc * ps - vp + 2 * cpc * vp - 2 * cpc * ps * vp + cpc**2 * ps * vp + \
+            2 * cps * ps * vp - 2 * cpc * cps * ps * vp + cps**2 * ps * vp - \
+            2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + csc**2 * ps * vp - \
+            cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + \
+            2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp))/(2 * np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - \
+            2 * cpc * cps * ps * vp + cps**2 * ps * vp - 2 * cpc * csc * ps * vp - \
+            2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + \
+            2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + \
+            2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - \
+            cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)) - ((-cpc**2 * vp + 2 * cpc * cps * vp - \
+            cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) * (-1 + \
+            2 * csc * ps + vp - 2 * cpc * vp + 2 * cpc * ps * vp - cpc**2 * ps * vp - \
+            2 * cps * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp + cpc**2 * ps**2 * vp - \
+            2 * cpc * cps * ps**2 * vp + cps**2 * ps**2 * vp - 2 * cpc * csc * ps**2 * vp - \
+            2 * cps * csc * ps**2 * vp + \
+            csc**2 * ps**2 * vp + np.sqrt (-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp + \
+            cps**2 * ps * vp - 2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + \
+            csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2  * vp - \
+            cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp)**2))) / (2 * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)**2)
+            print (f"tang_slope = {tang_slope}")
+
+        return tang_slope
+
+
     # FIND PHI_B GIVEN PHI_A
     mu_a = lambda phi_a, phi_b: np.log(phi_a)         + 1 - phi_a - va/vb * phi_b - va/vc * (1-phi_a-phi_b) + va * (phi_b**2 * chi_ab + (1-phi_a-phi_b)**2 * chi_ac + phi_b * (1-phi_a-phi_b) * (chi_ab + chi_ac - chi_bc) ) 
     mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vb/va * phi_a - vb/vc * (1-phi_a-phi_b) + vb * (phi_a**2 * chi_ab + (1-phi_a-phi_b)**2 * chi_bc + phi_a * (1-phi_a-phi_b) * (chi_ab + chi_bc - chi_ac) )
@@ -310,6 +402,10 @@ if __name__=="__main__":
 
     edges_x, edges_y = get_limits (N)
 
+    tangent_to_crit = tangent  (crit_point[0], crit_point[1], vb, chi_ps, chi_pc, chi_sc)
+    normal_slope    = -1/tangent_to_crit
+    normal_to_crit  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2)
+
     if edges_x == None or edges_y == None:
         print ("There is no critical region in this regime. Terminating calculation.")
         exit  ()
@@ -317,7 +413,6 @@ if __name__=="__main__":
     phi_b_spin_min = 0.1
     phi_b_spin_max = 0.8
 
-    # phi_b_list = [np.hstack((np.linspace(phi_b_spin_min*0.001, phi_b_spin_max, mesh), np.linspace(phi_b_spin_max, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh)))]
     phi_b_list = [np.linspace(phi_b_spin_min*0.9, phi_b_spin_max+(1-phi_b_spin_max)*0.1, mesh), \
                   np.linspace(phi_b_spin_min*0.7, phi_b_spin_max+(1-phi_b_spin_max)*0.3, mesh), \
                   np.linspace(phi_b_spin_min*0.5, phi_b_spin_max+(1-phi_b_spin_max)*0.5, mesh), \
@@ -328,7 +423,7 @@ if __name__=="__main__":
                   np.hstack((np.linspace(phi_b_spin_min*0.001, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh), np.linspace(np.min(crits[:,1]), np.max(crits[:,1]), mesh)))]\
 
     pool    = mp.Pool (processes=len(phi_b_list))
-    results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac), itertools.repeat(crits) ) )
+    results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac), itertools.repeat(crits), itertools.repeat(normal_to_crit) ) )
     pool.close ()
     pool.join  ()
 

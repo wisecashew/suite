@@ -316,19 +316,27 @@ if __name__=="__main__":
     
     phi_ss = np.linspace (0,1,100)
 
-    cols = ["coral", "steelblue", "limegreen", "pink"]
+    cols = ["coral", "steelblue", "limegreen", "pink", "maroon"]
 
     for idx,crit in enumerate(crits):    
-        # slope = tangent (roots_up[0,0], roots_up[0,1], N, chi_pc, chi_ps, chi_sc)
-        slope = tangent (crit[0], crit[1], N, chi_pc, chi_ps, chi_sc)
-        perp_slope = -1/slope
-        if abs(perp_slope) > 1e+3:
-            ax.scatter ([crit[0]]*100, np.linspace(0,1,100), c=cols[idx], s=0.5)
-        print (f"slope = {slope}")
-        c  = crit[1] - slope * crit[0]
-        pc = crit[1] - perp_slope * crit[0]
-        ax.scatter (phi_ss, slope*phi_ss + c, c=cols[idx], s=0.5)
-        ax.scatter (phi_ss, perp_slope*phi_ss + pc, c=cols[idx], s=0.5)
+
+        slope               = tangent (crit[0], crit[1], N, chi_pc, chi_ps, chi_sc)
+        perp_slope          = -1/slope
+
+        tangent_vector      = np.array([1, slope]) / np.sqrt(1+slope**2)
+        normal_vector       = np.array([1, perp_slope]) / np.sqrt(1+perp_slope**2)
+        
+        points_along_tangent = lambda L: np.array([crit[0] + L * tangent_vector[0], crit[1] + L * tangent_vector[1]])
+        points_along_normal  = lambda L: np.array([crit[0] + L * normal_vector [0], crit[1] + L * normal_vector[1] ])
+
+
+        l = np.linspace (-10, 10, 100)
+        ax.plot (points_along_tangent(l)[0], points_along_tangent(l)[1], c=cols[idx], lw=0.5)
+        ax.plot (points_along_normal(l)[0],  points_along_normal(l)[1],  c=cols[idx], lw=0.5)
+
+        print (crit[0], crit[1])
+
+        break
 
 
     ax.set_xlabel ("$\\phi _{S}$")

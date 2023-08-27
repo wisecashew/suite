@@ -313,3 +313,5 @@ if __name__=="__main__":
     stop = time.time()
     print (f"Time taken to scan the ternary space has been {stop-start} seconds.", flush=True)
 
+
+

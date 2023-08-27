@@ -202,8 +202,8 @@ def go_through_indices (bad_idx_subset, good_idx, initg, bincloser, binfurther):
             if (np.abs ( np.array (mu_equations (root))) > 1e-6).any ():
                 continue
 
-            elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
-                continue
+            # elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+            #     continue
 
             elif (np.linalg.norm(sol1_bg - p1, axis=-1)<1e-6).any() or (np.linalg.norm(sol2_bg - p2, axis=-1)<1e-6).any():
                 continue
@@ -238,13 +238,13 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
     phi_b = df["phi_b1"].values; phi_bn = df["phi_b2"].values
     phi_c = df["phi_c1"].values; phi_cn = df["phi_c2"].values
 
-    init         = np.array ([phi_a,phi_b,phi_c]).T
-    seed         = np.array ([phi_an, phi_bn, phi_cn]).T
+    init            = np.array ([phi_a,phi_b,phi_c]).T
+    seed            = np.array ([phi_an, phi_bn, phi_cn]).T
     binodal_closer  = np.zeros ((phi_a.shape[0],3))
     binodal_further = np.zeros ((phi_a.shape[0],3))
 
-    sol1 = np.empty((0,3))
-    sol2 = np.empty((0,3))
+    sol1 = np.empty ((0,3))
+    sol2 = np.empty ((0,3))
     bad_idx  = []
     good_idx = []
     # f = open (args.boundary, 'w')
@@ -283,8 +283,8 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
                 if (np.linalg.norm(sol1 - p1, axis=-1)<1e-6).any() or (np.linalg.norm(sol2 - p2, axis=-1)<1e-6).any():
                     bad_idx.append (idx)
 
-                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
-                     bad_idx.append (idx)
+                # elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                #      bad_idx.append (idx)
 
                 elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
                      bad_idx.append (idx)
@@ -298,10 +298,12 @@ def binodal_plotter (fig, ax, dumpfile, nproc, chi_ab, chi_bc, chi_ac, va, vb, v
                     sol2 = np.vstack ((sol2,p2))
 
     print   ("Everything has been written out. Start doing a bigger processing - with parallelization.", flush=True)
+
     # now, time to slowly convert the "bad" points to "good" points, in a parallel fashion
-    pool  = mp.Pool ( processes=nproc )
+    pool    = mp.Pool  (processes=nproc)
     sol1_bg = np.empty ((0,3))
     sol2_bg = np.empty ((0,3))
+
     print (f"Spawning {nproc} processes...", flush=True)
     # divide up bad_idx 
     bad_idx_subsets = [bad_idx[i:i+nproc] for i in range (0, len(bad_idx), nproc)]

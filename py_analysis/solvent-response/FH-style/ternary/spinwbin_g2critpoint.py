@@ -649,6 +649,44 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
                 sol_upper = np.vstack ((sol_upper,p1))
                 sol_lower = np.vstack ((sol_lower,p2))
 
+    print (f"Length of bad_idx = {len(bad_idx)}")
+    print (f"Length of good_idx = {len(good_idx)}")
+    for i in range(0, len(bad_idx), 100):
+        print (f"@ for bad_idx: {i}/{len(bad_idx)}...")
+        def mu_equations (phi):
+            eq1 = mu_a(phi[0], phi_b_upper[bad_idx[i]]) - mu_a(phi[1], phi[2])
+            eq2 = mu_b(phi[0], phi_b_upper[bad_idx[i]]) - mu_b(phi[1], phi[2])
+            eq3 = mu_c(phi[0], phi_b_upper[bad_idx[i]]) - mu_c(phi[1], phi[2])
+            return [eq1, eq2, eq3]
+        
+        for j, gidx in enumerate(good_idx):
+            print (f"\t@ for good_idx: {j}/{len(good_idx)}...")
+            root = fsolve (mu_equations, [phi_a_upper[gidx], phi_a_lower[gidx], phi_b_lower[gidx]])
+            if ( np.abs(np.array(mu_equations(root))) > 1e-6).any():
+                continue
+            else:
+                p1 = np.array([root[0], phi_b_upper[bad_idx[i]], 1-root[0]-phi_b_upper[bad_idx[i]]])
+                p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+                if np.linalg.norm(p1-p2) < 1e-6:
+                    continue
+
+                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                    continue
+
+                elif np.isnan (stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan (stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+
+                elif np.isinf (stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf (stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                    continue
+
+                else:
+                    sol_upper = np.vstack ((sol_upper,p1))
+                    sol_lower = np.vstack ((sol_lower,p2))
+                    print (f"HIT!", flush=True)
+                    break
+
+
+
     # start partitioning along a certain axis
     center         = np.mean (crit_points, axis=0)[:2]
     central_axis   = (crit_points[1,:2]-center)/np.linalg.norm (crit_points[1,:2]-center)

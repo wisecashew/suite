@@ -170,6 +170,108 @@ if __name__=="__main__":
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
 
+    def tangent (ps, pp, vp, cpc, cps, csc):
+
+        print (f"ps = {ps}, pp = {pp}")
+
+        dist_lo  = np.linalg.norm(pp - root_lo (ps, cps, cpc, csc))
+        dist_up  = np.linalg.norm(pp - root_up (ps, cps, cpc, csc))
+
+        print (f"lower root distance = {dist_lo}")
+        print (f"upper root distance = {dist_up}")
+
+        if dist_lo > dist_up:
+            tang_slope = (2 * csc + 2 * cpc * vp - cpc**2 * vp - 2 * cps * vp + 2 * cpc * cps * vp - cps**2 * vp + \
+            2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp + 2 * cpc**2 * ps * vp - \
+            4 * cpc * cps * ps * vp + 2 * cps**2 * ps * vp - 4 * cpc * csc * ps * vp - \
+            4 * cps * csc * ps * vp + 2 * csc**2 * ps * vp - (-4 * (-1 + 2 * csc * ps - 2 * csc * ps**2) * (-cpc**2 * vp + \
+            2 * cpc * cps * vp - cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) - 4 * (2 * csc - 4 * csc * ps) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp) + \
+            2 * (-2 * csc - 2 * cpc * vp + cpc**2 * vp + 2 * cps * vp - 2 * cpc * cps * vp + cps**2 * vp - 2 * cpc * csc * vp - 2 * cps * csc * vp + csc**2 * vp - 2 * cpc**2 * ps * vp + 4 * cpc * cps * ps * vp - 2 * cps**2 * ps * vp + \
+            4 * cpc * csc * ps * vp + 4 * cps * csc * ps * vp - 2 * csc**2 * ps * vp) * (1 - 2 * csc * ps - vp + 2 * cpc * vp - 2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp + cps**2 * ps * vp - \
+            2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp))/ \
+            (2 * np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - \
+            2 * cpc * cps * ps * vp + cps**2 * ps * vp - 2 * cpc * csc * ps * vp - \
+            2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + \
+            2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + \
+            2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - \
+            cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)) - ((-cpc**2 * vp + 2 * cpc * cps * vp - \
+            cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) * (-1 + \
+            2 * csc * ps + vp - 2 * cpc * vp + 2 * cpc * ps * vp - cpc**2 * ps * vp - \
+            2 * cps * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp + cpc**2 * ps**2 * vp - \
+            2 * cpc * cps * ps**2 * vp + cps**2 * ps**2 * vp - 2 * cpc * csc * ps**2 * vp - \
+            2 * cps * csc * ps**2 * vp + \
+            csc**2 * ps**2 * vp - np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp +\
+            cps**2 * ps * vp - 2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + \
+            csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - \
+            cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)**2) 
+            print (f"tang_slope = {tang_slope}")
+
+        else:
+            tang_slope = (2 * csc + 2 * cpc * vp - cpc**2 * vp - 2 * cps * vp + 2 * cpc * cps * vp - cps**2 * vp + \
+            2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp + 2 * cpc**2 * ps * vp - \
+            4 * cpc * cps * ps * vp + 2 * cps**2 * ps * vp - 4 * cpc * csc * ps * vp - \
+            4 * cps * csc * ps * vp + \
+            2 * csc**2 * ps * vp + (-4 * (-1 + 2 * csc * ps - 2 * csc * ps**2) * (-cpc**2 * vp + \
+            2 * cpc * cps * vp - cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - \
+            csc**2 * vp) - \
+            4 * (2 * csc - 4 * csc * ps) * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp) + \
+            2 * (-2 * csc - 2 * cpc * vp + cpc**2 * vp + 2 * cps * vp - 2 * cpc * cps * vp + \
+            cps**2 * vp - 2 * cpc * csc * vp - 2 * cps * csc * vp + csc**2 * vp - \
+            2 * cpc**2 * ps * vp + 4 * cpc * cps * ps * vp - 2 * cps**2 * ps * vp + \
+            4 * cpc * csc * ps * vp + 4 * cps * csc * ps * vp - 2 * csc**2 * ps * vp) * (1 - \
+            2 * csc * ps - vp + 2 * cpc * vp - 2 * cpc * ps * vp + cpc**2 * ps * vp + \
+            2 * cps * ps * vp - 2 * cpc * cps * ps * vp + cps**2 * ps * vp - \
+            2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + csc**2 * ps * vp - \
+            cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + \
+            2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp))/(2 * np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - \
+            2 * cpc * cps * ps * vp + cps**2 * ps * vp - 2 * cpc * csc * ps * vp - \
+            2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + \
+            2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + \
+            2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - \
+            cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)) - ((-cpc**2 * vp + 2 * cpc * cps * vp - \
+            cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) * (-1 + \
+            2 * csc * ps + vp - 2 * cpc * vp + 2 * cpc * ps * vp - cpc**2 * ps * vp - \
+            2 * cps * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp + cpc**2 * ps**2 * vp - \
+            2 * cpc * cps * ps**2 * vp + cps**2 * ps**2 * vp - 2 * cpc * csc * ps**2 * vp - \
+            2 * cps * csc * ps**2 * vp + \
+            csc**2 * ps**2 * vp + np.sqrt (-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp + \
+            cps**2 * ps * vp - 2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + \
+            csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2  * vp - \
+            cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp)**2))) / (2 * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)**2)
+            print (f"tang_slope = {tang_slope}")
+
+        return tang_slope
+
     p_s_space = np.arange (0.001, 1-0.001, 0.001)
     p_s = np.repeat (p_s_space, len(p_s_space))
 
@@ -211,9 +313,28 @@ if __name__=="__main__":
     ax.scatter (p_s, p_p, s=1, color=cols)
     ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='steelblue', s=0.5)
     ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='k', edgecolors='darkred', s=1)
+    
+    phi_ss = np.linspace (0,1,100)
+
+    cols = ["coral", "steelblue", "limegreen", "pink"]
+
+    for idx,crit in enumerate(crits):    
+        # slope = tangent (roots_up[0,0], roots_up[0,1], N, chi_pc, chi_ps, chi_sc)
+        slope = tangent (crit[0], crit[1], N, chi_pc, chi_ps, chi_sc)
+        perp_slope = -1/slope
+        if abs(perp_slope) > 1e+3:
+            ax.scatter ([crit[0]]*100, np.linspace(0,1,100), c=cols[idx], s=0.5)
+        print (f"slope = {slope}")
+        c  = crit[1] - slope * crit[0]
+        pc = crit[1] - perp_slope * crit[0]
+        ax.scatter (phi_ss, slope*phi_ss + c, c=cols[idx], s=0.5)
+        ax.scatter (phi_ss, perp_slope*phi_ss + pc, c=cols[idx], s=0.5)
+
 
     ax.set_xlabel ("$\\phi _{S}$")
     ax.set_ylabel ("$\\phi _{P}$")
+    ax.set_xlim   (0,1)
+    ax.set_ylim   (0,1)
 
     ax.grid()
 

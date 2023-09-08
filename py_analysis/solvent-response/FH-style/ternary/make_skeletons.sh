@@ -2,9 +2,12 @@
 
 set -e
 
-for chibc in {1..12}; do
-    echo "chibc = ${chibc}..."
-    python pskelbin_v1.py --chiac 0 --chiab -1 --chibc -${chibc} --mesh 200 -N 32 --skelfile bin-N_32-chiab_-1-chibc_-${chibc}-chiac_0.skelfile
-done
+for chisc in 11; do
+    python pskelbin_uni1.py --chisc -${chisc} --chips -1 --chipc -1 --mesh 300 -N 32 --skelfile bin-N_32-chips_-1-chipc_-1-chisc_-${chisc}.skelfile > skel_for_-${chisc}.out 2>&1 &
+done 
+wait
 
-sbatch binodal_maker.slurm
+for chisc in 11; do
+    python spinwbin_g2critpoint.py --chisc -${chisc} --chips -1 --chipc -1 -N 32 --dumpfile bin-N_32-chips_-1-chipc_-1-chisc_-${chisc}.skelfile --bin-boundary N_32-chips_-1-chipc_-1-chisc_-${chisc}.binodal --tielines --image plot-N_32-chips_-1-chipc_-1-chisc_-${chisc}.png --ternary --tieline-density 100 > bin_for_-${chisc}.out 2>&1 & 
+done
+wait

@@ -32,8 +32,10 @@ sys.stdout.flush()
 import argparse
 parser = argparse.ArgumentParser(description="Create diagrams where chi_ab, chi_bc are held fixed for a plot while chi_ac is varied, serially.")
 parser.add_argument('-N', metavar='N', dest='N', type=int, action='store', help='degree of polymerization of B.')
+parser.add_argument('--llim', metavar='llim', dest='llim', type=float, action='store', help='lower limit of chi.')
+parser.add_argument('--ulim', metavar='ulim', dest='ulim', type=float, action='store', help='upper limit of chi.')
 parser.add_argument('--chunk', action='store_true', default=False, help='perform computation with chunking.')
-parser.add_argument('--chunk-size', metavar='chunksize', dest='chunksize', action='store', type=int, help='Determine size of the square chunk you want from the chi mesh.')
+parser.add_argument('--chunk-size', metavar='chunksize', dest='chunksize', action='store', type=int, help='Determine size of the square chunk you want from the chi mesh.', default=100)
 parser.add_argument('--phimeshsize', metavar='phimeshsize', dest='phimeshsize', action='store', type=int, help='fineness of phimesh. default=100.', default=100)
 parser.add_argument('--chimeshsize', metavar='chimeshsize', dest='chimeshsize', action='store', type=int, help='fineness of chimesh. default=100.', default=100)
 parser.add_argument('--nproc', metavar='nproc', dest='nproc', action='store', type=int, help='enter number of processes you want to spawn.')
@@ -53,7 +55,7 @@ def mesh_maker (ij_tups, chunksize, chimeshsize, chi_ab, chi_bc, chi_ac, p_a, p_
         L2 = (elem[0]+1)*chunksize+1
         R1 = elem[1]*chunksize
         R2 = (elem[1]+1)*chunksize+1
-        print (f"L1 = {L1}, L2 = {L2}, R1 = {R1}, R2 = {R2}")
+        # print (f"L1 = {L1}, L2 = {L2}, R1 = {R1}, R2 = {R2}")
         chi_ab_s = chi_ab[L1:L2, R1:R2]
         chi_bc_s = chi_bc[L1:L2, R1:R2]
         results = stab_crit (p_a, p_b, N, chi_ab_s[:, :, np.newaxis], chi_bc_s[:, :, np.newaxis], chi_ac)
@@ -63,7 +65,7 @@ def mesh_maker (ij_tups, chunksize, chimeshsize, chi_ab, chi_bc, chi_ac, p_a, p_
         # if (elem[0]==0) and (elem[1]==0):
         # print (chi_ab_s)
         # print (chi_bc_s)
-        print (f"i={elem[0]}, j={elem[1]}, \nZ= {Z}")
+        # print (f"i={elem[0]}, j={elem[1]}, \nZ= {Z}")
 
     return to_plot
 
@@ -73,7 +75,6 @@ if __name__=="__main__":
 
     N     = args.N
     lsize = 3
-    plt.rcParams ['font.family'] = 'Arial'
     font = {'color':  'black',
         'weight': 'normal',
         'size': lsize}
@@ -83,8 +84,9 @@ if __name__=="__main__":
     print (f"chi_ac [0] = {chi_ac[0]}")
 
     chimeshsize = args.chimeshsize
-    plot_lim = 15
-    chi_ab, chi_bc = np.meshgrid ( np.linspace(-plot_lim, 0, chimeshsize), np.linspace (-plot_lim, 0, chimeshsize) )
+    llim = args.llim
+    ulim = args.ulim
+    chi_ab, chi_bc = np.meshgrid ( np.linspace(llim, ulim, chimeshsize), np.linspace (llim, ulim, chimeshsize) )
 
 
     print (f"chi_ab = \n{chi_ab.shape}")
@@ -92,6 +94,9 @@ if __name__=="__main__":
 
     fig = plt.figure ()
     ax  = plt.axes   ()
+
+    ax.axvline (x=0, c='k', ls='--')
+    ax.axhline (y=0, c='k', ls='--')
 
     phimeshsize = args.phimeshsize
     p_a_space = np.logspace (-3, np.log10(1-0.001), phimeshsize)
@@ -115,6 +120,7 @@ if __name__=="__main__":
         cperprocess = 1
     else:
         nproc = args.nproc
+        cperprocess = 1
 
     print (f"num process = {nproc}.")
     print (f"Chi mesh length = {chimeshsize}.")
@@ -141,8 +147,8 @@ if __name__=="__main__":
             if len (plots) == 0:
                 pass
             else:
-                print (f"Ind = {ind}")
-                print (f"plots[0].shape = {plots[0].shape}, plots[1].shape = {plots[1].shape}, plots[2].shape = {plots[2].shape}")
+                # print (f"Ind = {ind}")
+                # print (f"plots[0].shape = {plots[0].shape}, plots[1].shape = {plots[1].shape}, plots[2].shape = {plots[2].shape}")
                 ax.pcolormesh (plots[0], plots[1], plots[2], cmap=cm.ocean, norm=colors.Normalize(vmin=0, vmax=1), shading="auto")
 
 

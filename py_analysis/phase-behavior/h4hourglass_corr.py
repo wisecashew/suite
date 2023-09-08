@@ -158,7 +158,6 @@ if __name__=="__main__":
     ax.tick_params(axis='y', labelsize=lsize)
 
     ranges = [np.arange(-4, 0.1, 0.1),  [-1.3, -0.5237, -0.523, 0] ]
-    # ranges = [np.hstack( ( np.arange(-1, -0.5, 0.1), np.arange (-0.53, -0.50, 0.005), np.arange (-0.5, 0.1, 0.1) ) ), np.linspace (-0.5250, -0.5230, 15), np.arange(-4, 0, 0.5), np.arange(-2.25, -2, 0.02)  ]
 
     EMSA_list = ranges[args.ri] 
 
@@ -187,16 +186,15 @@ if __name__=="__main__":
     ax.set_yscale ("log")
     ax.set_ylim (1e-3, 50)
     ax.set_xlim (0, 1)
-    # ax.legend   (loc="upper right", fontsize=5)
+
     ax.set_yticks ([0.001, 0.01, 0.1, 1.0, 10, 50])
     ax.set_xticks ([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     ax.set_yticklabels ([])
-    # ax.set_yticklabels ([0.001, 0.01, 0.1, 1.0, 10.0, 50], fontdict=fdict, font=fpath)
+
     if args.ri == 0:
         ax.set_xticklabels ([])
-        # ax.set_xticklabels ([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontdict=fdict, font=fpath)
+
     else:
-        # ax.set_xticklabels ([])
         ax.set_xticklabels ([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontdict=fdict, font=fpath)
     fig.savefig (args.pn, dpi=1200, bbox_inches="tight")
     print (f"Plotted!", flush=True)

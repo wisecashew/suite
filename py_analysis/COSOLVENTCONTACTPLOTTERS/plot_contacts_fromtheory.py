@@ -47,14 +47,15 @@ def intersection(lst1, lst2):
 
 if __name__=="__main__":
 
+	cols = ["rosybrown", "lightcoral", "indianred", "brown"]
 	z       = 26
 	M       = 32
 	Hmix    = args.Hmix
-	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(5,5))
+	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(2.5,2.5))
 	# df_id   = pd.read_csv (args.id, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 
 	# x_id    = df_id["x"].values
-	keys    = ["M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"]
+	keys    = ["M1-M1", "M1-S", "S1-S2"] # ["M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"]
 	titles  = ["Monomer-monomer contacts", "Solvent-cosolvent contacts", "Monomer-solvent contacts", "Monomer-cosolvent contacts", "Solvent-solvent contacts", "cosolvent-cosolvent contacts"]
 
 	ylims   = [(-0.55,2.1),(-0.001,0.35), (-1.125, 0.375), (-1.125, 0.375), (-1.125, 0.375), (-1.125, 0.375)]
@@ -73,26 +74,29 @@ if __name__=="__main__":
 		ax[0][0].tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both')
 		ax[0][0].tick_params(axis='x', labelsize=8)
 		ax[0][0].tick_params(axis='y', labelsize=8)
-		ax[0][0].set_yticklabels (ax[0][0].get_yticks(), weight='bold')
+		ax[0][0].set_yticklabels ([]) # ax[0][0].get_yticks(), weight='bold')
 		ax[0][0].set_xlim (-0.05, 1.05)
 		ax[0][0].set_xticks (np.arange(0,1.2,0.2))
-		ax[0][0].set_xticklabels (ax[0][0].get_xticks(), weight='bold')
+		ax[0][0].set_xticklabels ([]) # ax[0][0].get_xticks(), weight='bold')
 		ax[0][0].minorticks_on()
 		if k == 0 or k > 1:
-			ax[0][0].yaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.1f}'))
+			pass 
+			# ax[0][0].yaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.1f}'))
 		elif k == 1:
-			ax[0][0].yaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.2f}'))
-		ax[0][0].xaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.1f}'))
+			pass
+			# ax[0][0].yaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.2f}'))
+		# ax[0][0].xaxis.set_major_formatter (matplotlib.ticker.StrMethodFormatter ('{x:1.1f}'))
 
-		for hmix in Hmix:
+		for idx, hmix in enumerate(Hmix):
 			df_subset = df_real [df_real ["H"] == hmix]
 			print (df_subset)
+			idx = idx % len(cols)
 			if keys == "M1-S1" or keys == "M1-S2":
 				p_diff = (df_subset [keys[k]].values - 0) # df_id ["x"].values*z*M)
 			else:
 				p_diff = (df_subset [keys[k]].values - 0) # df_id [keys[k]].values)
-			ax[0][0].plot (df_subset["x"].values, p_diff, marker='o', linewidth=3/2, markersize=8/2, markeredgecolor='k', label=f"{hmix}")
+			ax[0][0].plot (df_subset["x"].values, p_diff, marker='o', c=cols[idx], linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}")
 
-		ax[0][0].legend (loc="upper right")
+		# ax[0][0].legend (loc="upper right")
 		plt.savefig ("contact-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
 		ax[0][0].cla()

@@ -1,5 +1,3 @@
-#!~/.conda/envs/data_analysis/bin/python
-
 import numpy as np
 import numba as nb
 import matplotlib
@@ -12,6 +10,7 @@ import argparse
 
 parser = argparse.ArgumentParser (description="Create vectorized plots.")
 parser.add_argument ('-g', metavar='g', dest='g', type=float, action='store', help='p_Omega value for calcs.')
+parser.add_argument ('--pv', metavar='pv', dest='pv', type=float, action='store', help='p_v value for calcs.')
 parser.add_argument ('--image', metavar='img', dest='img', type=str, action='store', help='Name of the image to be created.')
 args   = parser.parse_args ()
 
@@ -39,6 +38,7 @@ def fmsa(emsn, emsa, g, T):
 
 @nb.njit # (parallel=True)
 def chi(emmn, emma, emsn, emsa, g, pv, T):
+    # emmn = np.float128(emmn); emma = np.float128(emma); emsn = np.float128(emsn); emsa = np.float128(emsa)
     fmsa_val = fmsa(emsn, emsa, g, T)
     fmma_val = fmma(emmn, emma, g, T)
     ems = pv*(fmsa_val*emsa + (1-fmsa_val)*emsn) + (1-pv)*emsn
@@ -86,7 +86,7 @@ if __name__=="__main__":
     plot_lim = 5/2
 
     # define energies to plot things over 
-    E_mm_a, E_mm_n = np.meshgrid (np.linspace(-plot_lim, plot_lim, linrange), np.linspace (-plot_lim, plot_lim, linrange))
+    E_mm_a, E_mm_n = np.meshgrid (np.linspace(-plot_lim, 1, linrange), np.linspace (-plot_lim, 1, linrange))
 
     # get temperatures
     T  = np.logspace (-2, 2, 50)
@@ -96,11 +96,11 @@ if __name__=="__main__":
     g = args.g
     G = g * np.ones (E_mm_a.shape)
 
-    pv = 1.0
+    pv = args.pv
     PV = pv * np.ones (E_mm_a.shape)
 
-    E_mm_a_expanded = E_mm_a[:, :, np.newaxis] 
-    E_mm_n_expanded = E_mm_n[:, :, np.newaxis] 
+    E_mm_a_expanded = E_mm_a[:, :, np.newaxis]
+    E_mm_n_expanded = E_mm_n[:, :, np.newaxis]
 
     G_expanded      = G [:, :, np.newaxis]
     PV_expanded     = PV[:, :, np.newaxis]
@@ -181,10 +181,10 @@ if __name__=="__main__":
             del hold
 
 
-            ax.set_xlim (-plot_lim, plot_lim)
-            ax.set_ylim (-plot_lim, plot_lim)
-            ax.set_yticks([-plot_lim,0,plot_lim])
-            ax.set_xticks([-plot_lim,0,plot_lim])
+            ax.set_xlim (-plot_lim, 1)
+            ax.set_ylim (-plot_lim, 1)
+            ax.set_yticks([-plot_lim,0,1])
+            ax.set_xticks([-plot_lim,0,1])
 
             ax.set_xticklabels ([])
             ax.set_yticklabels ([])
@@ -210,7 +210,11 @@ if __name__=="__main__":
         del E_ms_a
         del E_ms_a_expanded
 
-    fig.savefig (args.img, dpi=1200, bbox_inches="tight")
+    if "." in args.img:
+        img = args.img + ".png"
+    else:
+        img = args.img
+    fig.savefig (img, dpi=1200, bbox_inches="tight")
 
     stop = time.time()
     print(f"Time required by this computation is {stop-start} seconds.")

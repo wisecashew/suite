@@ -104,25 +104,13 @@ if __name__=="__main__":
 		g.write ("{}	{}	{}	{}\n".format(PLOT_DICT[U][0][i], PLOT_DICT[U][1][i], PLOT_DICT[U][2][i], PLOT_DICT[U][3][i] ) )
 	g.close()
 	for j in range(len(U_list)):
-		# if j == 0:
-			# ax[j].text (x=-0.5, y=1.03, s="$\eta ^{a}$=0.1\n$\eta^{a'}$=0.1", fontsize=7)
-			# ax[j].set_ylabel ("$P(i|m)$", fontsize=12)
-		# else:
-			# ax[j].text (x=-0.5, y=1.03, s="$\eta ^{a}$=-0.1\n$\eta^{a'}$=0.1", fontsize=7)
-		# if j == 1:
-		# 	ax[j].legend(["$i\\rightarrow m$ (aligned)", "$i \\rightarrow m$ (misaligned)", "$i \\rightarrow s$ (aligned)", "$i \\rightarrow s$ (misaligned)"], ncol=1, frameon=False, bbox_to_anchor=(1,1), loc="upper left", fontsize=4)#, handletextpad=0.5) 
-		# ax.tick_params ( direction='in', bottom=True, top=True, left=True, right=True, which='both')
-		# ax.tick_params ( axis='x', labelsize=10, direction="in", left="off", labelleft="on", pad=3, labelrotation=45 )
-		# ax.tick_params ( axis='y', labelsize=10, direction="in", left="off", labelleft="on" )
 		ax.axhline (y=0, c='k', linewidth=1)
-		# ax[j].minorticks_on()
 		ax.set_ylim((-0.01 , 1.01))
 		ax.set_xlim((-0.5, len(temperatures)-0.5))
 		ax.set_xticks (np.arange(len(temperatures)))
 		ax.set_xticklabels ([]) # [str(i) for i in temperatures], font=fpath, fontsize=12)
 		ax.set_yticks (np.arange(0, 1.2, 0.2))
 		ax.set_yticklabels ([]) # [0, 0.2, 0.4, 0.6, 0.8, 1.0], font=fpath, fontsize=16)
-		# ax.yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
 		ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
 		for f in fig.get_axes():
 			f.label_outer()

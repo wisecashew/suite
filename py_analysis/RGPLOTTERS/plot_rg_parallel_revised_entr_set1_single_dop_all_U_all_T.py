@@ -1,4 +1,4 @@
-#!/home/satyend/.conda/envs/data_analysis/bin/python
+#!/home/satyend/.conda/envs/phase/bin/python
 
 import numpy as np 
 import re 
@@ -39,6 +39,8 @@ parser = argparse.ArgumentParser(description="Read a trajectory file and obtain 
 parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this move number (not index or line number in file).', default=100)
 parser.add_argument('-nproc', metavar='N', type=int, dest='nproc', action='store', help='Request these many proccesses.')
+parser.add_argument('--U', metavar='U', type=str, dest='U', nargs='+', action='store', help='Enter potential energy surfaces.')
+parser.add_argument('--T', metavar='T', type=float, dest='T', nargs='+', action='store', help='Enter temperatures to probe.')
 parser.add_argument('--excl-vol', dest='ev', action='store_true', help='Flag to include excluded volume forcefield.', default=False) 
 parser.add_argument('--coords', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image file', default='rg_plot')
@@ -66,7 +68,7 @@ if __name__ == "__main__":
 	start = time.time() 
 	##################################
 
-	U_list = ["U9"]
+	U_list = args.U
 	PLOT_DICT = {} 
 	dop            = args.dop
 	coords_files   = args.c
@@ -101,8 +103,7 @@ if __name__ == "__main__":
 		print("Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
 		rg_mean = [] 
 		rg_std  = [] 
-		temperatures = [0.01, 0.03, 0.05, 0.1, 0.3, 0.5, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0] # aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
-		# temperatures = [0.01, 0.02, 0.03, 0.05] #, 0.07, 0.09, 0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.9, 1.0, 2.5, 5.0, 10.0, 25.0, 50.0, 100.0]
+		temperatures = args.T
 
 		# get num_list for each temperature 
 		master_temp_list  = []
@@ -111,12 +112,10 @@ if __name__ == "__main__":
 		rg_dict    = {}
 		ntraj_dict = {}
 		for T in temperatures:
-			# print (f"T = {T}", flush=True)
 			num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
 			master_num_list.extend ( num_list )
 			for num in num_list:
 				master_index_list.append (get_starting_ind (U, T, num, dop, "energydump") )
-				# print (f"index_list = {master_index_list[-1]}", flush=True)
 			master_temp_list.extend ( [T]*len( num_list ) )
 			ntraj_dict[T] = len ( num_list )
 			rg_dict[T]    = []
@@ -137,9 +136,6 @@ if __name__ == "__main__":
 			print ("Pool has been closed. This pool had {} threads.".format (len(results) ), flush=True )     
 
 			for k in range( len( master_temp_list[u_idx*nproc:(u_idx+1)*nproc] ) ):
-				# print ("T = ", master_temp_list[ u_idx*nproc + k ])
-				# print (f"k = {k}")
-				# print (f"results[k] = {results[k]}")
 				rg_dict[master_temp_list[u_idx*nproc + k]].append ( results[k] )
         
 		for T in np.unique (master_temp_list):
@@ -163,10 +159,6 @@ if __name__ == "__main__":
 		ax.plot     ( temperatures, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', \
                    linestyle='-', linewidth=3, c=rgba_color, label='_nolegend_', markersize=8/1.3 )
 		i += 1
-        # MASTER_DICT["U"].extend([U]*len(temperatures))
-        # MASTER_DICT["T"].extend(list(temperatures))
-        # MASTER_DICT["Rg_mean"].extend (list(PLOT_DICT[U][0]/rg_max))
-        # MASTER_DICT["Rg_err" ].extend  (list(PLOT_DICT[U][1]/rg_max))
 
 	"""
     if excl_vol_bool:
@@ -206,7 +198,6 @@ if __name__ == "__main__":
 	ax.set_xlim (0.01, 100)
 	ax.set_xticks (np.logspace (-2,2,5))
 	ax.set_xticklabels (np.logspace (-2,2,5), fontdict=font)
-	# ax.yaxis.set_major_formatter (StrMethodFormatter('{x:1.1f}'))
 	ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
 
 	ax.set_aspect ("auto")

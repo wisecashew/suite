@@ -1,5 +1,0 @@
-# forcefield settings for the gaussian polymer 
-
-# it only has the harmonic bonded interaction 
-# bond bond_num k r0
-bond_coeff 1 1.0 1.0

@@ -49,9 +49,8 @@ if __name__ == "__main__":
 
 	temps = args.T # aux.dir2U ( os.listdir (".") )
 	frac_list = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
-	fig = plt.figure   ( figsize=(4/1.6,3/1.6), constrained_layout=True )
+	fig = plt.figure   ( figsize=(2.5, 2.5), constrained_layout=True )
 	ax  = plt.axes() 
-	plt.rcParams["axes.labelweight"] = "bold"
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	ax.tick_params(axis='x', labelsize=8)
 	ax.tick_params(axis='y', labelsize=8)
@@ -88,10 +87,10 @@ if __name__ == "__main__":
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.xaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.set_aspect('auto')
-	ax.set_xticklabels (ax.get_xticks(), weight='bold') 
-	ax.set_yticklabels (ax.get_yticks(), weight='bold') 
-	ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
-	ax.xaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
+	ax.set_xticklabels ([]) # ax.get_xticks(), weight='bold') 
+	ax.set_yticklabels ([]) # ax.get_yticks(), weight='bold') 
+	# ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
+	# ax.xaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
 	
 	print ("Run time is {:.2f} seconds.".format(stop-start), flush=True)

@@ -113,7 +113,7 @@ if __name__ == "__main__":
         ntraj_dict = {}
         for U in U_list:
             frac_list.append ( float(aux.get_frac(U+"/geom_and_esurf.txt")) )
-            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/E_-1_-1_-7") ) ) )# "/" + str(T) ) ) ) )
+            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/"+H) ) ) )# "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
             for num in num_list:
                 master_index_list.append (get_starting_ind (U, H, num, dop, "energydump", starting_index) )

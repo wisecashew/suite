@@ -151,9 +151,9 @@ if __name__ == "__main__":
 	f.close() 
 	print ("rg_max = ", rg_max)
 	i=0
-	chi_list = [0.1, 0, -0.2]
+	col_list = ["limegreen", "white", "steelblue"]
 	for idx,U in enumerate(U_list):
-		rgba_color = cm.PiYG(divnorm (chi_list[idx]))
+		rgba_color = col_list[idx]
 		ax.errorbar ( temperatures, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color=rgba_color, ecolor='k', fmt='none', label='_nolegend_')
 		ax.plot   ( temperatures, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', \
                     linestyle='-', linewidth=3, c=rgba_color, label='_nolegend_', markersize=8/1.3, zorder=11 ) 

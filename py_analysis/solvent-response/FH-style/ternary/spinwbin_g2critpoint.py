@@ -12,6 +12,7 @@ import sys
 import argparse
 import time
 import multiprocessing as mp
+import mpltern
 import os
 import itertools
 import warnings
@@ -34,13 +35,16 @@ sys.stdout.flush()
 
 import argparse
 parser = argparse.ArgumentParser(description="Create a ternary /spin/odal and /bin/odal diagram.")
-parser.add_argument('--chiac',        metavar='chi_ac', dest='chi_ac',       type=float,      action='store',             help='enter A-C exchange parameter.')
-parser.add_argument('--chiab',        metavar='chi_ab', dest='chi_ab',       type=float,      action='store',             help='enter A-B exchange parameter.')
-parser.add_argument('--chibc',        metavar='chi_bc', dest='chi_bc',       type=float,      action='store',             help='enter B-C exchange parameter.')
-parser.add_argument('-N',             metavar='N',      dest='N',            type=int,        action='store',             help='degree of polymerization of B.')
+parser.add_argument('--chisc',        metavar='chi_sc', dest='chi_sc',       type=float,      action='store',             help='enter S-C exchange parameter.')
+parser.add_argument('--chips',        metavar='chi_ps', dest='chi_ps',       type=float,      action='store',             help='enter P-S exchange parameter.')
+parser.add_argument('--chipc',        metavar='chi_pc', dest='chi_pc',       type=float,      action='store',             help='enter P-C exchange parameter.')
+parser.add_argument('-N',             metavar='N',      dest='N',            type=int,        action='store',             help='degree of polymerization of polymer P.')
+parser.add_argument('--nadded-rows',  metavar='nar',    dest='nar',          type=int,        action='store',             help='number of rows to add while refining.', default=10)
 parser.add_argument('--dumpfile',     dest='dumpfile',  type=str,            action='store',  help="name of file where the skeleton was dumped.")
 parser.add_argument('--bin-boundary', dest='boundary',  type=str,            action='store',  help="name of file where you will dump out your solution for the binodal")
-parser.add_argument('--tielines',     dest='tl',        action='store_true', default=False,   help="Option to include if you want to see all tie-lines.")
+parser.add_argument('--ternary', action='store_true', default=False, help='make the output a ternary plot.')
+parser.add_argument('--tielines',     dest='tl',        action='store_true', default=False, help="Option to include if you want to see all tie-lines.")
+parser.add_argument('--tieline-density', metavar='td', dest='td', type=int, action='store', help='Plug in a density at which you want tielines (default=50).', default=50)
 parser.add_argument('--image',        dest='img',       type=str,            action='store',  help="name of image generated.")
 args = parser.parse_args()
 
@@ -248,13 +252,13 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
                 p1 = np.array([pt[0], root[0], 1-root[0]-pt[0]])
                 p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
 
-            if stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+            if stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                 continue
 
-            elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+            elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                 continue
 
-            elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+            elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                 continue
 
             # if the roots are basically the same point, write them out as bad 
@@ -309,13 +313,13 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
                 p1 = np.array([root[0], pt[1], 1-root[0]-pt[1]])
                 p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
 
-            if stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+            if stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                 continue
 
-            elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+            elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                 continue
 
-            elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+            elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                 continue
 
             # if the roots are basically the same point, write them out as bad 
@@ -388,13 +392,13 @@ def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper
                 if np.linalg.norm(p1-p2) < 1e-6:
                     continue
 
-                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                elif stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                     continue
 
-                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
 
-                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
                 else:
                     print ("HIT!", flush=True, end=' ')
@@ -424,13 +428,13 @@ def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper
                 if np.linalg.norm(p1-p2) < 1e-6:
                     continue
 
-                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                elif stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                     continue
 
-                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
 
-                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
                 else:
                     print ("HIT!", flush=True, end=' ')
@@ -509,13 +513,13 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
                 if np.linalg.norm(p1-p2) < 1e-6:
                     continue
 
-                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                elif stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                     continue
 
-                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
 
-                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
                 else:
                     print ("HIT!", flush=True, end=' ')
@@ -545,13 +549,13 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
                 if np.linalg.norm(p1-p2) < 1e-6:
                     continue
 
-                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                elif stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                     continue
 
-                elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
 
-                elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
                 else:
                     print ("HIT!", flush=True, end=' ')
@@ -578,7 +582,7 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
 
 ######################################
 
-def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit_points):
+def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, normal_to_crit):
 
     try:
         df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["dmu", "phi_a1", "phi_b1", "phi_c1", "phi_a2", "phi_b2", "phi_c2"])
@@ -635,13 +639,13 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
             if np.linalg.norm(p1-p2) < 1e-6:
                 bad_idx.append (idx)
 
-            elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+            elif stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                 bad_idx.append (idx)
 
-            elif np.isnan(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+            elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                 bad_idx.append (idx)
 
-            elif np.isinf(stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf(stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+            elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                 bad_idx.append (idx)
 
             else:
@@ -651,6 +655,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
 
     print (f"Length of bad_idx = {len(bad_idx)}")
     print (f"Length of good_idx = {len(good_idx)}")
+    """
     for i in range(0, len(bad_idx), 100):
         print (f"@ for bad_idx: {i}/{len(bad_idx)}...")
         def mu_equations (phi):
@@ -670,13 +675,13 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
                 if np.linalg.norm(p1-p2) < 1e-6:
                     continue
 
-                elif stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac) < 0 or stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac) < 0:
+                elif stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
                     continue
 
-                elif np.isnan (stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isnan (stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isnan (stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan (stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
 
-                elif np.isinf (stab_crit (p1[0], p1[1], chi_ab, chi_bc, chi_ac)) or np.isinf (stab_crit (p2[0], p2[1], chi_ab, chi_bc, chi_ac)):
+                elif np.isinf (stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf (stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
                     continue
 
                 else:
@@ -685,11 +690,10 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
                     print (f"HIT!", flush=True)
                     break
 
-
-
+    """
     # start partitioning along a certain axis
-    center         = np.mean (crit_points, axis=0)[:2]
-    central_axis   = (crit_points[1,:2]-center)/np.linalg.norm (crit_points[1,:2]-center)
+    center         = crit
+    central_axis   = (crit-normal_to_crit)/np.linalg.norm (crit-normal_to_crit)
 
     print (f"center = {center}", flush=True)
     print (f"central axis = {central_axis}", flush=True)
@@ -707,7 +711,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     sol_upper              = sol_upper[sorted_theta_upper_idx]
     sol_lower              = sol_lower[sorted_theta_upper_idx]
 
-    """
+
     # I have sorted the solutions 
     # now, if the solution curve is sufficiently close, no need to perform more detailed searches -- so find maximum distances between points on the solution curves
     # find differences between lower and upper curves
@@ -783,7 +787,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
     max_refine_count = 0
     while (max_diff_up > 0.01 or max_diff_down > 0.01):
         print (f"@ max_diff_up = {max_diff_up}, max_diff_down = {max_diff_down}...")
-        nadded_rows = 100
+        nadded_rows = args.nar
         sol_upper, sol_lower = refined_binodal_v4 (sol_upper, sol_lower, nadded_rows)
 
         direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
@@ -810,27 +814,50 @@ def binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crit
         print (f"max_refine_count = {max_refine_count}.")
         if max_refine_count == 5:
             break
-    """
+
 
     ref_bin = [sol_upper, sol_lower]
     print ("Both crit points should be well-populated.", flush=True)
 
     # this is the binodal
-    ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], c='silver',     s=0.125, zorder=11)
-    ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], c='darkred',    s=0.125, zorder=11)
-    ax.scatter (center[0], center[1], c='darkgreen', s=1, zorder=12)
+    if args.ternary:
+        ax.scatter (ref_bin[0][:,0], 1-ref_bin[0][:,0]-ref_bin[0][:,1], ref_bin[0][:,1], c='silver',     s=0.125, zorder=11)
+        ax.scatter (ref_bin[1][:,0], 1-ref_bin[1][:,0]-ref_bin[1][:,1], ref_bin[1][:,1], c='darkred',    s=0.125, zorder=11)
+        
+    else:
+        ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], c='silver',     s=0.125, zorder=11)
+        ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], c='darkred',    s=0.125, zorder=11)
+        ax.scatter (center[0], center[1], c='darkgreen', s=1, zorder=12)
 
     if args.tl:
-        for i in range (len(ref_bin[0])):
-            ax.plot    ([ref_bin[0][i,0],ref_bin[1][i,0]], [ref_bin[0][i,1],ref_bin[1][i,1]], lw=0.5, ls='--', markersize=0, zorder=10)
+        for i in range (0, len(ref_bin[0]), len(ref_bin[0])//args.td):
+            if args.ternary:
+                ax.plot    ([ref_bin[0][i,0],ref_bin[1][i,0]], \
+                            [1-ref_bin[0][i,0]-ref_bin[0][i,1], 1-ref_bin[1][i,0]-ref_bin[1][i,1]], \
+                            [ref_bin[0][i,1],ref_bin[1][i,1]], \
+                            lw=0.5, ls='--', markersize=0, zorder=10, c='skyblue')
+            else:
+                ax.plot    ([ref_bin[0][i,0],ref_bin[1][i,0]], \
+                           [ref_bin[0][i,1],ref_bin[1][i,1]], \
+                           lw=0.5, ls='--', markersize=0, zorder=10, c='skyblue')
 
-    ff = open (args.boundary, 'w')
-    ff.write ("phi_s_top|phi_p_top|phi_c_top|phi_s_bot|phi_p_bot|phi_c_bot\n")
-    ff.write (f"{crit_points[0,0]}|{crit_points[0,1]}|{1-crit_points[0,0]-crit_points[0,1]}|{crit_points[1,0]}|{crit_points[1,1]}|{1-crit_points[1,0]-crit_points[1,1]}\n")
+    ff = open (args.boundary, 'a')
     for i in range (len(ref_bin[0])):
         ff.write (f"{ref_bin[0][i][0]}|{ref_bin[0][i][1]}|{ref_bin[0][i][2]}|{ref_bin[1][i][0]}|{ref_bin[1][i][1]}|{ref_bin[1][i][2]}\n")
 
-    return
+    return ref_bin
+
+############################
+
+def pbin_plotter (dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit):
+
+    tangent_to_crit = tangent (crit[0], crit[1], vb, chi_ps, chi_pc, chi_sc)
+    normal_slope    = -1/tangent_to_crit
+    normal_to_crit  = np.array([1, normal_slope]) / np.sqrt(1+normal_slope**2)
+
+    ref_bin = binodal_plotter (dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, normal_to_crit)
+
+    return ref_bin
 
 ############################
 
@@ -841,9 +868,9 @@ if __name__=="__main__":
 
     ###########################
     N = args.N
-    chi_ab = args.chi_ab
-    chi_bc = args.chi_bc
-    chi_ac = args.chi_ac
+    chi_ps = args.chi_ps
+    chi_pc = args.chi_pc
+    chi_sc = args.chi_sc
     dumpfile = args.dumpfile
     ############################
 
@@ -852,9 +879,13 @@ if __name__=="__main__":
         'weight': 'normal',
         'size': lsize}
 
-    fig = plt.figure(num=1, figsize=(3,3))
-    ax  = plt.axes ()
+    fig = plt.figure(num=1, figsize=(8,8))
+    if args.ternary:
+        ax = fig.add_subplot (projection="ternary")
+    else:
+        ax  = plt.axes ()
 
+    
     discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4* N * (1 - 2* phi_s * chi_sc + 2 * phi_s ** 2 * chi_sc) * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) **2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) + \
     (-1 + 2 * phi_s * chi_sc + N * (1 - 2*chi_pc - phi_s * (chi_ps ** 2 + chi_sc **2 - 2*chi_sc*chi_pc + (chi_pc -2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) + phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) ) ** 2
     denom  = lambda phi_s, chi_ps, chi_pc, chi_sc:  1 / (2*N * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2*chi_ps * (chi_sc + chi_pc) ) ) )
@@ -863,14 +894,122 @@ if __name__=="__main__":
     root_lo  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
 
 
-    roots_up, roots_down = find_crit_point (N, chi_ac, chi_ab, chi_bc)
+    roots_up, roots_down = find_crit_point (N, chi_sc, chi_ps, chi_pc)
     # ax.scatter (roots_up[:,0]  , roots_up[:,1]  , color='k', edgecolors='steelblue', s=0.1, zorder=11)
     # ax.scatter (roots_down[:,0], roots_down[:,1], color='k', edgecolors='steelblue', s=0.1, zorder=11)
 
+    ###################
+
+    def tangent (ps, pp, vp, cpc, cps, csc):
+
+        dist_lo  = np.linalg.norm(pp - root_lo (ps, cps, cpc, csc))
+        dist_up  = np.linalg.norm(pp - root_up (ps, cps, cpc, csc))
+
+        if dist_lo > dist_up:
+            tang_slope = (2 * csc + 2 * cpc * vp - cpc**2 * vp - 2 * cps * vp + 2 * cpc * cps * vp - cps**2 * vp + \
+            2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp + 2 * cpc**2 * ps * vp - \
+            4 * cpc * cps * ps * vp + 2 * cps**2 * ps * vp - 4 * cpc * csc * ps * vp - \
+            4 * cps * csc * ps * vp + 2 * csc**2 * ps * vp - (-4 * (-1 + 2 * csc * ps - 2 * csc * ps**2) * (-cpc**2 * vp + \
+            2 * cpc * cps * vp - cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) - 4 * (2 * csc - 4 * csc * ps) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp) + \
+            2 * (-2 * csc - 2 * cpc * vp + cpc**2 * vp + 2 * cps * vp - 2 * cpc * cps * vp + cps**2 * vp - 2 * cpc * csc * vp - 2 * cps * csc * vp + csc**2 * vp - 2 * cpc**2 * ps * vp + 4 * cpc * cps * ps * vp - 2 * cps**2 * ps * vp + \
+            4 * cpc * csc * ps * vp + 4 * cps * csc * ps * vp - 2 * csc**2 * ps * vp) * (1 - 2 * csc * ps - vp + 2 * cpc * vp - 2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp + cps**2 * ps * vp - \
+            2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp))/ \
+            (2 * np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - \
+            2 * cpc * cps * ps * vp + cps**2 * ps * vp - 2 * cpc * csc * ps * vp - \
+            2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + \
+            2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + \
+            2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - \
+            cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)) - ((-cpc**2 * vp + 2 * cpc * cps * vp - \
+            cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) * (-1 + \
+            2 * csc * ps + vp - 2 * cpc * vp + 2 * cpc * ps * vp - cpc**2 * ps * vp - \
+            2 * cps * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp + cpc**2 * ps**2 * vp - \
+            2 * cpc * cps * ps**2 * vp + cps**2 * ps**2 * vp - 2 * cpc * csc * ps**2 * vp - \
+            2 * cps * csc * ps**2 * vp + \
+            csc**2 * ps**2 * vp - np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp +\
+            cps**2 * ps * vp - 2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + \
+            csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - \
+            cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)**2) 
+
+        else:
+            tang_slope = (2 * csc + 2 * cpc * vp - cpc**2 * vp - 2 * cps * vp + 2 * cpc * cps * vp - cps**2 * vp + \
+            2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp + 2 * cpc**2 * ps * vp - \
+            4 * cpc * cps * ps * vp + 2 * cps**2 * ps * vp - 4 * cpc * csc * ps * vp - \
+            4 * cps * csc * ps * vp + \
+            2 * csc**2 * ps * vp + (-4 * (-1 + 2 * csc * ps - 2 * csc * ps**2) * (-cpc**2 * vp + \
+            2 * cpc * cps * vp - cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - \
+            csc**2 * vp) - \
+            4 * (2 * csc - 4 * csc * ps) * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp) + \
+            2 * (-2 * csc - 2 * cpc * vp + cpc**2 * vp + 2 * cps * vp - 2 * cpc * cps * vp + \
+            cps**2 * vp - 2 * cpc * csc * vp - 2 * cps * csc * vp + csc**2 * vp - \
+            2 * cpc**2 * ps * vp + 4 * cpc * cps * ps * vp - 2 * cps**2 * ps * vp + \
+            4 * cpc * csc * ps * vp + 4 * cps * csc * ps * vp - 2 * csc**2 * ps * vp) * (1 - \
+            2 * csc * ps - vp + 2 * cpc * vp - 2 * cpc * ps * vp + cpc**2 * ps * vp + \
+            2 * cps * ps * vp - 2 * cpc * cps * ps * vp + cps**2 * ps * vp - \
+            2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + csc**2 * ps * vp - \
+            cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + \
+            2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp))/(2 * np.sqrt(-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - \
+            2 * cpc * cps * ps * vp + cps**2 * ps * vp - 2 * cpc * csc * ps * vp - \
+            2 * cps * csc * ps * vp + csc**2 * ps * vp - cpc**2 * ps**2 * vp + \
+            2 * cpc * cps * ps**2 * vp - cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + \
+            2 * cps * csc * ps**2 * vp - csc**2 * ps**2 * vp)**2)))/(2 * (-2 * cpc * vp - \
+            cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)) - ((-cpc**2 * vp + 2 * cpc * cps * vp - \
+            cps**2 * vp + 2 * cpc * csc * vp + 2 * cps * csc * vp - csc**2 * vp) * (-1 + \
+            2 * csc * ps + vp - 2 * cpc * vp + 2 * cpc * ps * vp - cpc**2 * ps * vp - \
+            2 * cps * ps * vp + 2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp + cpc**2 * ps**2 * vp - \
+            2 * cpc * cps * ps**2 * vp + cps**2 * ps**2 * vp - 2 * cpc * csc * ps**2 * vp - \
+            2 * cps * csc * ps**2 * vp + \
+            csc**2 * ps**2 * vp + np.sqrt (-4 * (-1 + 2 * csc * ps - \
+            2 * csc * ps**2) * (-2 * cpc * vp - cpc**2 * ps * vp + 2 * cpc * cps * ps * vp - \
+            cps**2 * ps * vp + 2 * cpc * csc * ps * vp + 2 * cps * csc * ps * vp - \
+            csc**2 * ps * vp) + (1 - 2 * csc * ps - vp + 2 * cpc * vp - \
+            2 * cpc * ps * vp + cpc**2 * ps * vp + 2 * cps * ps * vp - 2 * cpc * cps * ps * vp + \
+            cps**2 * ps * vp - 2 * cpc * csc * ps * vp - 2 * cps * csc * ps * vp + \
+            csc**2 * ps * vp - cpc**2 * ps**2 * vp + 2 * cpc * cps * ps**2  * vp - \
+            cps**2 * ps**2 * vp + 2 * cpc * csc * ps**2 * vp + 2 * cps * csc * ps**2 * vp - \
+            csc**2 * ps**2 * vp)**2))) / (2 * (-2 * cpc * vp - cpc**2 * ps * vp + \
+            2 * cpc * cps * ps * vp - cps**2 * ps * vp + 2 * cpc * csc * ps * vp + \
+            2 * cps * csc * ps * vp - csc**2 * ps * vp)**2)
+
+        return tang_slope
+
+    ##########################
+
+
+
+
+    ####################
+
+
     crits = np.vstack ((roots_up, roots_down))
     crits = remove_close_rows (crits, 1e-3)
-    ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='steelblue', s=0.5)
-    ax.scatter (crits[0,0], crits[0,1], color='k', edgecolors='greenyellow', s=1, zorder=15)
+
+    if args.ternary:
+        ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='k', edgecolors='greenyellow', s=1, zorder=15)
+    else:
+        ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='greenyellow', s=1)
 
     if len(crits) == 2:
         pass
@@ -883,20 +1022,20 @@ if __name__=="__main__":
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
 
     print ("Begin creating the meshes and painting the ternary diagram...", flush=True)
-    p_a_space = np.arange (0.001, 1-0.001, 0.001)
-    p_a = np.repeat (p_a_space, len(p_a_space))
+    p_s_space = np.arange (0.001, 1-0.001, 0.001)
+    p_s = np.repeat (p_s_space, len(p_s_space))
 
-    p_b = np.zeros (p_a.shape)
-    for i in range (len(p_a_space)):
-        p_b[i*len(p_a_space):(i+1)*len(p_a_space)] = np.linspace (0.001, 1-p_a_space[i], len(p_a_space))
+    p_p = np.zeros (p_s.shape)
+    for i in range (len(p_s_space)):
+        p_p[i*len(p_s_space):(i+1)*len(p_s_space)] = np.linspace (0.001, 1-p_s_space[i], len(p_s_space))
 
-    vals = stab_crit (p_a, p_b, chi_ab, chi_bc, chi_ac)
+    vals = stab_crit (p_s, p_p, chi_ps, chi_pc, chi_sc)
 
     to_keep = ~np.isnan(vals)
 
     vals = vals[to_keep]
-    p_a  = p_a [to_keep]
-    p_b  = p_b [to_keep]
+    p_s  = p_s [to_keep]
+    p_p  = p_p [to_keep]
 
     vmax = np.max (vals)
     vmin = np.min (vals)
@@ -913,12 +1052,14 @@ if __name__=="__main__":
     cols = cm.bwr (norm (vals))
 
     # Plot the points
-    p_c = 1 - p_a - p_b
-    ax.scatter  (p_a, p_b, s=0.01, color=cols, zorder=0, clip_on=True)
+    p_c = 1 - p_s - p_p
+    if args.ternary:
+        ax.scatter (p_s, p_c, p_p, s=1, color=cols, zorder=0, clip_on=True)
+    else:
+        ax.scatter  (p_s, p_p, s=0.01, color=cols, zorder=0, clip_on=True)
+
     print ("Painted the ternary diagram!", flush=True)
 
-    ax.set_xlabel('$\\phi _{S}$')
-    ax.set_ylabel('$\\phi _{P}$')
     print ("We have plotted the spinodal region!\n", flush=True)
     print ("###########################################################\n", flush=True)
     print ("Start binodal plotting...\n", flush=True)
@@ -927,20 +1068,50 @@ if __name__=="__main__":
     vb = N
     vc = 1
 
-    mu_a = lambda phi_a, phi_b: np.log(phi_a)         + 1 - phi_a - va/vb * phi_b - va/vc * (1-phi_a-phi_b) + va * (phi_b**2 * chi_ab + (1-phi_a-phi_b)**2 * chi_ac + phi_b * (1-phi_a-phi_b) * (chi_ab + chi_ac - chi_bc) ) 
-    mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vb/va * phi_a - vb/vc * (1-phi_a-phi_b) + vb * (phi_a**2 * chi_ab + (1-phi_a-phi_b)**2 * chi_bc + phi_a * (1-phi_a-phi_b) * (chi_ab + chi_bc - chi_ac) )
-    mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_ac + phi_b**2 * chi_bc + phi_a * phi_b * (chi_ac + chi_bc - chi_ab) )
+    mu_a = lambda phi_a, phi_b: np.log(phi_a)         + 1 - phi_a - va/vb * phi_b - va/vc * (1-phi_a-phi_b) + va * (phi_b**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_sc + phi_b * (1-phi_a-phi_b) * (chi_ps + chi_sc - chi_pc) ) 
+    mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vb/va * phi_a - vb/vc * (1-phi_a-phi_b) + vb * (phi_a**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_pc + phi_a * (1-phi_a-phi_b) * (chi_ps + chi_pc - chi_sc) )
+    mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_sc + phi_b**2 * chi_pc + phi_a * phi_b * (chi_sc + chi_pc - chi_ps) )
 
-    binodal_plotter (fig, ax, dumpfile, chi_ab, chi_bc, chi_ac, va, vb, vc, crits)
+
+    ff = open (args.boundary, 'w')
+    ff.write  ("phi_s_top|phi_p_top|phi_c_top|phi_s_bot|phi_p_bot|phi_c_bot\n")
+    ff.close  ()
+
+    for crit in crits:
+        print (f"@ crit point = {crit}...")
+        tangent_to_crit = tangent  (crit[0], crit[1], N, chi_ps, chi_pc, chi_sc)
+        normal_slope    = -1/tangent_to_crit
+        # normal_to_crit  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2)
+        normal_to_crit  = np.mean(crits, axis=0)
+        binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, normal_to_crit)
+
     print ("Done with binodal plotting!", flush=True)
 
-    # Set axis limits
-    ax.set_xlim (-0.01, 1)
-    ax.set_ylim (bottom=-0.01, top=1)
+    if args.ternary:
+        ax.set_tlabel('$\\phi _{S}$')
+        ax.set_llabel('$\\phi _{C}$')
+        ax.set_rlabel('$\\phi _{P}$')
+        ax.set_tlim(0, 1)
+        ax.set_llim(0, 1)
+        ax.set_rlim(0, 1)
+        positions = ['tick1', 'tick2']
+        for position in positions:
+            ax.taxis.set_ticks_position(position)
+            ax.laxis.set_ticks_position(position)
+            ax.raxis.set_ticks_position(position)
+
+    else:
+        ax.set_xlabel ("$\\phi _{S}$")
+        ax.set_ylabel ("$\\phi _{P}$")
+        ax.set_xlim   (0,1)
+        ax.set_ylim   (0,1)
 
     ax.grid()
 
-    fig.savefig  (args.img, dpi=1200)
+    if "." in args.img:
+        fig.savefig (args.img+".png", dpi=1200)
+    else:
+        fig.savefig  (args.img, dpi=1200)
     print ("Completed heat map computation.", flush=True)
     stop = time.time()
     print (f"Time for computation is {stop-start} seconds.", flush=True)

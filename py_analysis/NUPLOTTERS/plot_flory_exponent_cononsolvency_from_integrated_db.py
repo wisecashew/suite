@@ -62,7 +62,7 @@ if __name__ == "__main__":
 	fdict = {'color':  'black','weight': 'normal', 'size': 13.5}
 
 	lsize = 13.5
-	fig = plt.figure(figsize=(5, 5), constrained_layout=True)
+	fig = plt.figure(figsize=(2.5, 2.5), constrained_layout=True)
 	fig.tight_layout()
 	ax  = plt.axes ()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
@@ -83,13 +83,16 @@ if __name__ == "__main__":
 	df = pd.read_csv (args.df, sep='|', names=["x", "Hmix", "nu_mean", "nu_err"], skiprows=1)
 	i = 0
 
-	for U in U_list:
+	cols = ["rosybrown", "lightcoral", "indianred", "brown"]
+
+	for idx,U in enumerate(U_list):
+		idx = idx % len(cols)
 		df_ = df[df["Hmix"].isin([U])]
 		nu_averaged = df_["nu_mean"]/2
 		nu_err      = df_["nu_err" ]/2
 		fracs       = df_["x"]
 		ax.errorbar (fracs, nu_err, yerr=nu_err, ecolor='k', linewidth=0)
-		ax.plot     (fracs, nu_averaged, linewidth=1, marker='o', markersize=8/1.3, markeredgecolor='k', \
+		ax.plot     (fracs, nu_averaged, linewidth=1, marker='o', markersize=8/1.3, markeredgecolor='k', c=cols[idx], \
 		linestyle='--', clip_on=False, zorder=10, label=f"{U}")
 		i += 1
 		del df_
@@ -101,14 +104,16 @@ if __name__ == "__main__":
 	ax.axhline ( y=0.33, color='midnightblue', linestyle='--', mec='k', linewidth=1, zorder=11)
 	ax.axhline ( y=0.588, color='dimgray', linestyle='--', mec='k', linewidth=1, zorder=11)
 	yticks = np.arange (0.0, 0.9, 0.1)
-	ax.legend(loc="lower right")
+	# ax.legend(loc="lower right")
 	ax.set_yticks ( yticks )
 	ax.set_xticks ( np.linspace(0,1,6) )
-	ax.set_ylim   ( 0.0, 0.8 )
+	ax.set_ylim   ( 0.3, 0.8 )
 	ax.set_xlim   ( 0.0, 1 )
-
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
-	# ax.yaxis.set_major_formatter(tck.StrMethodFormatter('{x:1.1f}') )
+
+	ax.set_xticklabels([])
+	ax.set_yticklabels([])
+
 	ax.set_aspect('auto')
 
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)

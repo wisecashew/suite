@@ -12,6 +12,7 @@ from scipy.spatial.distance import cdist
 import sys
 import argparse
 import linecache
+import mpltern
 np.set_printoptions(threshold=sys.maxsize)
 import warnings 
 
@@ -28,6 +29,8 @@ parser.add_argument('--chisc', metavar='chi_sc', dest='chi_sc', type=float, acti
 parser.add_argument('--chips', metavar='chi_ps', dest='chi_ps', type=float, action='store', help='enter A-B exchange parameter.' )
 parser.add_argument('--chipc', metavar='chi_pc', dest='chi_pc', type=float, action='store', help='enter B-C exchange parameter.' )
 parser.add_argument('-N',      metavar='N',      dest='N',      type=int,   action='store', help='degree of polymerization of B.')
+parser.add_argument('--ternary', action='store_true', default=False, help='make the output a ternary plot.')
+parser.add_argument('--tang_norm', action='store_true', default=False, help='draw normal and tangent at critical point.')
 args = parser.parse_args()
 
 
@@ -159,13 +162,6 @@ if __name__=="__main__":
     print (f"roots_up   = {roots_up}")
     print (f"roots_down = {roots_down}")
 
-    lsize = 3
-    font = {'color':  'black',
-        'weight': 'normal',
-        'size': lsize}
-
-    fig = plt.figure(num=1, figsize=(5,5))
-    ax  = plt.axes() # fig.add_subplot (projection="ternary")
 
     def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
         return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
@@ -303,49 +299,84 @@ if __name__=="__main__":
     norm = colors.SymLogNorm (0.001, vmin=vmin, vmax=vmax)
     cols = cm.bwr (norm (vals))
 
+    lsize = 3
+    font = {'color':  'black',
+        'weight': 'normal',
+        'size': lsize}
+
+    fig = plt.figure(num=1, figsize=(8,8))
+    if args.ternary:
+        ax = fig.add_subplot (projection="ternary")
+    else:
+        ax = plt.axes()
+
     # Plot the points
     p_c = 1 - p_s - p_p
     crits      = np.vstack ((roots_up, roots_down))
-    print (f"crits = {crits}")
+    print (f"crits = \n{crits}")
     threshold  = 1e-3
     crits      = remove_close_rows (crits, threshold)
-    print (f"cleaned_crits = {crits}")
-    ax.scatter (p_s, p_p, s=1, color=cols)
-    ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='steelblue', s=0.5)
-    ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='k', edgecolors='darkred', s=1)
+    print (f"cleaned_crits = \n{crits}")
+
+    if args.ternary:
+        ax.scatter (p_s, 1-p_p-p_s, p_p, s=1, color=cols)
+        ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='forestgreen', edgecolors='forestgreen', s=4)
+        ax.scatter (np.mean (crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits,axis=0)[1], color='darkred', edgecolors='coral', s=4)
+    else:
+        ax.scatter (p_s, p_p, s=1, color=cols)
+        ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='limegreen', s=2)
+        ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='k', edgecolors='darkred', s=2)
     
     phi_ss = np.linspace (0,1,100)
 
-    cols = ["coral", "steelblue", "limegreen", "pink", "maroon"]
+    
+    if args.tang_norm:
+        cols = ["coral", "steelblue", "limegreen", "pink", "maroon"]
+        for idx,crit in enumerate(crits):    
 
-    for idx,crit in enumerate(crits):    
-
-        slope               = tangent (crit[0], crit[1], N, chi_pc, chi_ps, chi_sc)
-        perp_slope          = -1/slope
-
-        tangent_vector      = np.array([1, slope]) / np.sqrt(1+slope**2)
-        normal_vector       = np.array([1, perp_slope]) / np.sqrt(1+perp_slope**2)
+            slope               = tangent (crit[0], crit[1], N, chi_pc, chi_ps, chi_sc)
+            perp_slope          = -1/slope
+            tangent_vector      = np.array([1, slope]) / np.sqrt(1+slope**2)
+            normal_vector       = np.array([1, perp_slope]) / np.sqrt(1+perp_slope**2)
         
-        points_along_tangent = lambda L: np.array([crit[0] + L * tangent_vector[0], crit[1] + L * tangent_vector[1]])
-        points_along_normal  = lambda L: np.array([crit[0] + L * normal_vector [0], crit[1] + L * normal_vector[1] ])
+            points_along_tangent = lambda L: np.array([crit[0] + L * tangent_vector[0], crit[1] + L * tangent_vector[1]])
+            points_along_normal  = lambda L: np.array([crit[0] + L * normal_vector [0], crit[1] + L * normal_vector[1] ])
 
+            l = np.linspace (-10, 10, 100)
+            if args.ternary:
+                ax.plot (points_along_tangent(l)[0], 1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_tangent(l)[1], c=cols[idx], lw=0.5)
+                ax.plot (points_along_normal(l)[0],  1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_normal(l)[1],  c=cols[idx], lw=0.5)
 
-        l = np.linspace (-10, 10, 100)
-        ax.plot (points_along_tangent(l)[0], points_along_tangent(l)[1], c=cols[idx], lw=0.5)
-        ax.plot (points_along_normal(l)[0],  points_along_normal(l)[1],  c=cols[idx], lw=0.5)
+            else:
+                ax.plot (points_along_tangent(l)[0], points_along_tangent(l)[1], c=cols[idx], lw=0.5)
+                ax.plot (points_along_normal(l)[0],  points_along_normal(l)[1],  c=cols[idx], lw=0.5)
 
-        print (crit[0], crit[1])
+    if args.ternary:
 
-        break
+        ax.set_tlabel('Vol. frac. A')
+        ax.set_llabel('Vol. frac. C')
+        ax.set_rlabel('Vol. frac. B')
+        ax.set_tlim(0, 1)
+        ax.set_llim(0, 1)
+        ax.set_rlim(0, 1)
+        positions = ['tick1', 'tick2']
+        for position in positions:
+            ax.taxis.set_ticks_position(position)
+            ax.laxis.set_ticks_position(position)
+            ax.raxis.set_ticks_position(position)
 
-
-    ax.set_xlabel ("$\\phi _{S}$")
-    ax.set_ylabel ("$\\phi _{P}$")
-    ax.set_xlim   (0,1)
-    ax.set_ylim   (0,1)
+    else:
+        ax.set_xlabel ("$\\phi _{S}$")
+        ax.set_ylabel ("$\\phi _{P}$")
+        ax.set_xlim   (0,1)
+        ax.set_ylim   (0,1)
 
     ax.grid()
 
-    plt.savefig (f"signs-N_{N}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
+    if args.ternary:
+        plt.savefig (f"signs_tern-N_{N}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
+    else:
+        plt.savefig (f"signs_reg-N_{N}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png",  dpi=1200)
+
     print ("Completed heat map computation.")
 

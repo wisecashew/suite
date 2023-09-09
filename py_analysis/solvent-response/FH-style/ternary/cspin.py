@@ -28,8 +28,12 @@ parser = argparse.ArgumentParser(description="Locate the /c/ritical point on /sp
 parser.add_argument('--chisc', metavar='chi_sc', dest='chi_sc', type=float, action='store', help='enter A-C exchange parameter.' )
 parser.add_argument('--chips', metavar='chi_ps', dest='chi_ps', type=float, action='store', help='enter A-B exchange parameter.' )
 parser.add_argument('--chipc', metavar='chi_pc', dest='chi_pc', type=float, action='store', help='enter B-C exchange parameter.' )
-parser.add_argument('-N',      metavar='N',      dest='N',      type=int,   action='store', help='degree of polymerization of B.')
+parser.add_argument('-vs',      metavar='vs',      dest='vs',      type=float,   action='store', help='specific volume of solvent.')
+parser.add_argument('-vc',      metavar='vc',      dest='vc',      type=float,   action='store', help='specific volume of cosolvent.')
+parser.add_argument('-vp',      metavar='vp',      dest='vp',      type=float,   action='store', help='specific volume of polymer.')
+parser.add_argument('--dont-calc-crits', dest='crits', action='store_false', default=True, help='Put this in to make sure critical points are not calculated.')
 parser.add_argument('--ternary', action='store_true', default=False, help='make the output a ternary plot.')
+parser.add_argument('--draw-edges-spinodal', dest='edges', action='store_true', default=False, help="draw the edges of the spinodal.")
 parser.add_argument('--tang_norm', action='store_true', default=False, help='draw normal and tangent at critical point.')
 args = parser.parse_args()
 
@@ -147,24 +151,33 @@ if __name__=="__main__":
     chi_sc = args.chi_sc
     chi_ps = args.chi_ps
     chi_pc = args.chi_pc
-    N      = args.N
+    vs     = args.vs
+    vc     = args.vc
+    vp     = args.vp
 
 
-    discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4* N * (1 - 2* phi_s * chi_sc + 2 * phi_s ** 2 * chi_sc) * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) **2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) + \
-    (-1 + 2 * phi_s * chi_sc + N * (1 - 2*chi_pc - phi_s * (chi_ps ** 2 + chi_sc **2 - 2*chi_sc*chi_pc + (chi_pc -2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) + phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) ) ** 2
-    denom  = lambda phi_s, chi_ps, chi_pc, chi_sc:  1 / (2*N * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2*chi_ps * (chi_sc + chi_pc) ) ) )
-    prefac = lambda phi_s, chi_ps, chi_pc, chi_sc: 1 - 2 * phi_s * chi_sc + N * ( -1 + 2 * chi_pc + phi_s * (chi_ps ** 2 + chi_sc ** 2 - 2*chi_sc * chi_pc + (chi_pc - 2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) - phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) )
+    discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4*vc*vp*(2*chi_pc + phi_s*vs*chi_pc**2 + phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc))*(phi_s*vs+(-1+phi_s)*vc*(-1+2*phi_s*vs*chi_sc)) + (vp - 2*phi_s*vp *vs *chi_ps + vc*(-1+2*phi_s*vs*chi_sc+(-1+phi_s)*vp*(2*chi_pc+phi_s*vs*chi_pc**2 +phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc) ) ) )**2 # -4* vb * (- vc + phi_s * vc - phi_s * vs + 2*phi_s*vc*vs*chi_sc - 2*phi_s**2*vc*vs*chi_sc) * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) **2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) + \
+    # (-1 + 2 * phi_s * chi_sc + vb * (1 - 2*chi_pc - phi_s * (chi_ps ** 2 + chi_sc **2 - 2*chi_sc*chi_pc + (chi_pc -2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) + phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) ) ** 2
+    denom  = lambda phi_s, chi_ps, chi_pc, chi_sc: 1/(-2*vc*vp*(2*chi_pc+phi_s*vs*chi_pc**2+phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc)))  # 1 / (2*vb * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2*chi_ps * (chi_sc + chi_pc) ) ) )
+    prefac = lambda phi_s, chi_ps, chi_pc, chi_sc: vp - 2*phi_s*vp*vs*chi_ps+vc * (-1+2*phi_s*vs*chi_sc + (-1+phi_s) * vp * (2*chi_pc + phi_s*vs*chi_pc**2 + phi_s * vs * (chi_ps - chi_sc) **2 - 2 * phi_s * vs * chi_pc *(chi_ps + chi_sc) ) ) # 1 - 2 * phi_s * chi_sc + vb * ( -1 + 2 * chi_pc + phi_s * (chi_ps ** 2 + chi_sc ** 2 - 2*chi_sc * chi_pc + (chi_pc - 2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) - phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) )
     root_up  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) + np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
     root_lo  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
 
-    roots_up, roots_down = find_crit_point (N, chi_sc, chi_ps, chi_pc)
 
-    print (f"roots_up   = {roots_up}")
-    print (f"roots_down = {roots_down}")
+    if args.crits:
+        roots_up, roots_down = find_crit_point (vb, chi_sc, chi_ps, chi_pc)
+        crits      = np.vstack ((roots_up, roots_down))
+        print (f"crits = \n{crits}")
+        threshold  = 1e-3
+        crits      = remove_close_rows (crits, threshold)
+        print (f"cleaned_crits = \n{crits}")
+        print (f"roots_up   = {roots_up}")
+        print (f"roots_down = {roots_down}")
+    else:
+        print (f"We won't be calculating critical points.")
 
-
-    def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
-        return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
+    def stab_crit (p_s, p_p, c_ps, c_pc, c_sc):
+        return (1/(vp*p_p) + 1/(vc*(1-p_s - p_p)) - 2 * c_pc) * (1/(vs*p_s) + 1/(vc*(1-p_s - p_p)) - 2 * c_sc) - (1/(vc*(1-p_s-p_p)) + c_ps - c_pc - c_sc) ** 2
 
     def tangent (ps, pp, vp, cpc, cps, csc):
 
@@ -312,25 +325,67 @@ if __name__=="__main__":
 
     # Plot the points
     p_c = 1 - p_s - p_p
-    crits      = np.vstack ((roots_up, roots_down))
-    print (f"crits = \n{crits}")
-    threshold  = 1e-3
-    crits      = remove_close_rows (crits, threshold)
-    print (f"cleaned_crits = \n{crits}")
 
     if args.ternary:
         ax.scatter (p_s, 1-p_p-p_s, p_p, s=1, color=cols)
-        ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='forestgreen', edgecolors='forestgreen', s=4)
-        ax.scatter (np.mean (crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits,axis=0)[1], color='darkred', edgecolors='coral', s=4)
+        if args.crits:
+            ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='forestgreen', edgecolors='forestgreen', s=4)
+            ax.scatter (np.mean (crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits,axis=0)[1], color='darkred', edgecolors='coral', s=4)
+        else: 
+            pass
+       
+        if args.edges:
+            meshsize            = 1000
+            phi_s               = np.linspace (0.001, 1-0.001, meshsize*10)
+            chi_ps              = args.chi_ps
+            chi_pc              = args.chi_pc
+            chi_sc              = args.chi_sc
+
+            r1 = root_up (phi_s, chi_ps, chi_pc, chi_sc)
+            r2 = root_lo (phi_s, chi_ps, chi_pc, chi_sc)
+
+            to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
+            r1 = r1[to_keep_1]
+
+            to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0)
+            r2 = r2[to_keep_2]
+
+            # Plot the points
+            ax.scatter(phi_s[to_keep_1], 1-phi_s[to_keep_1]-r1, r1, color='springgreen', s=1)
+            ax.scatter(phi_s[to_keep_2], 1-phi_s[to_keep_2]-r2, r2, color='darkturquoise', s=1)
+            
+
     else:
         ax.scatter (p_s, p_p, s=1, color=cols)
-        ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='limegreen', s=2)
-        ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='k', edgecolors='darkred', s=2)
-    
-    phi_ss = np.linspace (0,1,100)
+        if args.crits:
+            ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='limegreen', s=2)
+            ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='k', edgecolors='darkred', s=2)
+        else:
+            pass
 
-    
-    if args.tang_norm:
+
+        if args.edges:
+            meshsize            = 1000
+            phi_s               = np.linspace (0.001, 1-0.001, meshsize*100)
+            chi_ps              = args.chi_ps
+            chi_pc              = args.chi_pc
+            chi_sc              = args.chi_sc
+
+            r1 = root_up (phi_s, chi_ps, chi_pc, chi_sc)
+            r2 = root_lo (phi_s, chi_ps, chi_pc, chi_sc)
+
+            to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
+            r1 = r1[to_keep_1]
+
+            to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0)
+            r2 = r2[to_keep_2]
+
+            # Plot the points
+            ax.scatter(phi_s[to_keep_1], r1, color='springgreen', s=1)
+            ax.scatter(phi_s[to_keep_2], r2, color='darkturquoise', s=1)
+
+
+    if args.tang_norm and args.crits:
         cols = ["coral", "steelblue", "limegreen", "pink", "maroon"]
         for idx,crit in enumerate(crits):    
 
@@ -353,9 +408,9 @@ if __name__=="__main__":
 
     if args.ternary:
 
-        ax.set_tlabel('Vol. frac. A')
-        ax.set_llabel('Vol. frac. C')
-        ax.set_rlabel('Vol. frac. B')
+        ax.set_tlabel ("$\\phi _{S}$") # ('Vol. frac. A')
+        ax.set_llabel ("$\\phi _{C}$") # ('Vol. frac. C')
+        ax.set_rlabel ("$\\phi _{P}$") # ('Vol. frac. B')
         ax.set_tlim(0, 1)
         ax.set_llim(0, 1)
         ax.set_rlim(0, 1)
@@ -374,7 +429,7 @@ if __name__=="__main__":
     ax.grid()
 
     if args.ternary:
-        plt.savefig (f"signs_tern-N_{N}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
+        plt.savefig (f"signs_tern-vs_{vs}-vc_{vc}-vp_{vp}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
     else:
         plt.savefig (f"signs_reg-N_{N}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png",  dpi=1200)
 

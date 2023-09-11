@@ -16,11 +16,6 @@ import mpltern
 np.set_printoptions(threshold=sys.maxsize)
 import warnings 
 
-def custom_warning_format(message, category, filename, lineno, line=None):
-    line = linecache.getline(filename, lineno).strip()
-    return f"There is a RunTimeWarning taking place on line {lineno}.\n"
-
-warnings.formatwarning = custom_warning_format
 
 import argparse 
 
@@ -35,9 +30,19 @@ parser.add_argument('-vp',      metavar='vp',      dest='vp',      type=float,  
 parser.add_argument('--dont-calc-crits',     dest='crits',     action='store_false', default=True,  help='Put this in to make sure critical points are not calculated.')
 parser.add_argument('--ternary',             dest='ternary',   action='store_true',  default=False, help='make the output a ternary plot.')
 parser.add_argument('--draw-edges-spinodal', dest='edges',     action='store_true',  default=False, help='draw the edges of the spinodal.')
+parser.add_argument('--no-rtw',              dest='nrtw',      action='store_true',  default=False, help="Don't print out the runtime warning.")
 parser.add_argument('--tang_norm',           dest='tang_norm', action='store_true',  default=False, help='draw normal and tangent at critical point.')
 parser.add_argument('--img-name',            dest='img',       action='store', type=str,  default="None", help='name of the image to be created (default: all of the inputs in the imagename).')
 args = parser.parse_args()
+
+def custom_warning_format(message, category, filename, lineno, line=None):
+    line = linecache.getline(filename, lineno).strip()
+    if args.nrtw:
+        return f"beep.\n"
+    else:
+        return f"There is a RunTimeWarning taking place on line {lineno}.\n"
+
+warnings.formatwarning = custom_warning_format
 
 
 def remove_close_rows(array, threshold):
@@ -444,7 +449,6 @@ if __name__=="__main__":
 
     if -vmin == vmax:
         print (f"There is no unstable region.")
-    
 
     if args.crits:
         roots_up, roots_down = find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc)
@@ -452,7 +456,7 @@ if __name__=="__main__":
         threshold  = 1e-6
         crits      = remove_close_rows (crits, threshold)
         print (f"cleaned_crits = \n{crits}")
-        
+
     else:
         print (f"We won't be calculating critical points.")
 
@@ -464,9 +468,9 @@ if __name__=="__main__":
         if args.crits:
             ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='darkred', edgecolors='darkred', s=4, zorder=15)
             ax.scatter (np.mean (crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits,axis=0)[1], color='darkred', edgecolors='darkred', s=4, zorder=15)
-        else: 
+        else:
             pass
-       
+
         if args.edges:
             meshsize            = 1000
             phi_s               = np.linspace (0.001, 1-0.001, meshsize*10)
@@ -478,14 +482,14 @@ if __name__=="__main__":
             r2 = root_lo (phi_s, chi_ps, chi_pc, chi_sc)
 
             to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
-            r1 = r1[to_keep_1]
+            r1        = r1[to_keep_1]
 
             to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0)
-            r2 = r2[to_keep_2]
+            r2        = r2[to_keep_2]
 
             # Plot the points
-            ax.scatter(phi_s[to_keep_1], 1-phi_s[to_keep_1]-r1, r1, color='springgreen', s=1)
-            ax.scatter(phi_s[to_keep_2], 1-phi_s[to_keep_2]-r2, r2, color='darkturquoise', s=1)
+            ax.scatter (phi_s[to_keep_1], 1-phi_s[to_keep_1]-r1, r1, color='springgreen',   s=1)
+            ax.scatter (phi_s[to_keep_2], 1-phi_s[to_keep_2]-r2, r2, color='darkturquoise', s=1)
             
 
     else:
@@ -496,10 +500,9 @@ if __name__=="__main__":
         else:
             pass
 
-
         if args.edges:
             meshsize            = 1000
-            phi_s               = np.linspace (0.001, 1-0.001, meshsize*100)
+            phi_s               = np.logspace (-6, np.log10(1-1e-6), meshsize*100) # np.linspace (0.001, 1-0.001, meshsize*100)
             chi_ps              = args.chi_ps
             chi_pc              = args.chi_pc
             chi_sc              = args.chi_sc
@@ -526,7 +529,7 @@ if __name__=="__main__":
             perp_slope          = -1/slope
             tangent_vector      = np.array([1, slope]) / np.sqrt(1+slope**2)
             normal_vector       = np.array([1, perp_slope]) / np.sqrt(1+perp_slope**2)
-        
+
             points_along_tangent = lambda L: np.array([crit[0] + L * tangent_vector[0], crit[1] + L * tangent_vector[1]])
             points_along_normal  = lambda L: np.array([crit[0] + L * normal_vector [0], crit[1] + L * normal_vector[1] ])
 

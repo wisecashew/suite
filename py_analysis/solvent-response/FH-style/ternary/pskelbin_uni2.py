@@ -13,6 +13,7 @@ import scipy.optimize as opt
 from matplotlib.ticker import StrMethodFormatter
 from matplotlib.ticker import Locator, AutoMinorLocator, MultipleLocator
 import sys
+import os
 import argparse
 import time
 import warnings
@@ -20,24 +21,28 @@ import linecache
 import multiprocessing as mp
 import itertools
 
-def custom_warning_format(message, category, filename, lineno, line=None):
-    line = linecache.getline(filename, lineno).strip()
-    return f"There is a RunTimeWarning taking place on line {lineno}.\n"
-
-warnings.formatwarning = custom_warning_format
-
 import argparse
 parser = argparse.ArgumentParser(description="Create a skeleton solution for the binodal. This is a memory-intensive computation.")
-parser.add_argument('--chisc', metavar='chi_sc', dest='chi_sc', type=float, action='store', help='enter S-C exchange parameter.')
-parser.add_argument('--chips', metavar='chi_ps', dest='chi_ps', type=float, action='store', help='enter P-S exchange parameter.')
-parser.add_argument('--chipc', metavar='chi_pc', dest='chi_pc', type=float, action='store', help='enter P-C exchange parameter.')
-parser.add_argument('-vs',      metavar='vs',      dest='vs',      type=float,   action='store', help='specific volume of solvent.')
-parser.add_argument('-vc',      metavar='vc',      dest='vc',      type=float,   action='store', help='specific volume of cosolvent.')
-parser.add_argument('-vp',      metavar='vp',      dest='vp',      type=float,   action='store', help='specific volume of polymer.')
-parser.add_argument('--mesh', metavar='mesh', dest='mesh', type=int, action='store', help='enter mesh fineness.')
-parser.add_argument('--skelfile', dest='skelfile', type=str, action='store', help="name of file where we are going to dump the skeleton of the binodal.")
+parser.add_argument('--chisc',  metavar='chi_sc', dest='chi_sc',  type=float, action='store', help='enter S-C exchange parameter.')
+parser.add_argument('--chips',  metavar='chi_ps', dest='chi_ps',  type=float, action='store', help='enter P-S exchange parameter.')
+parser.add_argument('--chipc',  metavar='chi_pc', dest='chi_pc',  type=float, action='store', help='enter P-C exchange parameter.')
+parser.add_argument('-vs',      metavar='vs',     dest='vs',      type=float,   action='store', help='specific volume of solvent.')
+parser.add_argument('-vc',      metavar='vc',     dest='vc',      type=float,   action='store', help='specific volume of cosolvent.')
+parser.add_argument('-vp',      metavar='vp',     dest='vp',      type=float,   action='store', help='specific volume of polymer.')
+parser.add_argument('--no-rtw', dest='nrtw',      action='store_true',  default=False, help="Don't print out the runtime warning.")
+parser.add_argument('--mesh',   metavar='mesh',   dest='mesh', type=int, action='store', help='enter mesh fineness.')
+parser.add_argument('--skelfile', dest='skelfile', type=str, action='store', help="name of file where we are going to dump the skeleton of the binodal (the default contains all the information provided above).", default="None")
 args = parser.parse_args()
 
+######
+def custom_warning_format(message, category, filename, lineno, line=None):
+    line = linecache.getline(filename, lineno).strip()
+    if args.nrtw:
+        return f"beep.\n"
+    else:
+        return f"There is a RunTimeWarning taking place on line {lineno}.\n"
+
+warnings.formatwarning = custom_warning_format
 ######
 
 def remove_close_rows(array, threshold):
@@ -57,13 +62,6 @@ def remove_close_rows(array, threshold):
     return filtered_array
 
 ######
-
-def process_sweep(args):
-    try:
-        return perform_sweep(*args)
-    except Exception as e:
-        traceback.print_exc()
-        return []
 
 ######
 
@@ -155,46 +153,11 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc):
 
 ######
 
-def get_limits (N):
-
-    discriminant = lambda phi_a, chi_ps, chi_pc, chi_sc: -4* N * (1 - 2* phi_a * chi_sc + 2 * phi_a ** 2 * chi_sc) * (2*chi_pc + phi_a * (chi_ps ** 2 + (chi_sc - chi_pc) **2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) + \
-    (-1 + 2 * phi_a * chi_sc + N * (1 - 2*chi_pc - phi_a * (chi_ps ** 2 + chi_sc **2 - 2*chi_sc*chi_pc + (chi_pc -2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) + phi_a ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) ) ** 2
-
-    denom  = lambda phi_a, chi_ps, chi_pc, chi_sc:  1 / (2*N * (2*chi_pc + phi_a * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2*chi_ps * (chi_sc + chi_pc) ) ) )
-
-    prefac = lambda phi_a, chi_ps, chi_pc, chi_sc: 1 - 2 * phi_a * chi_sc + N * ( -1 + 2 * chi_pc + phi_a * (chi_ps ** 2 + chi_sc ** 2 - 2*chi_sc * chi_pc + (chi_pc - 2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) - phi_a ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) )
-
-    root_up  = lambda phi_a, chi_ps, chi_pc, chi_sc: denom (phi_a, chi_ps, chi_pc, chi_sc) * ( prefac (phi_a, chi_ps, chi_pc, chi_sc) + np.sqrt(discriminant (phi_a, chi_ps, chi_pc, chi_sc) ) )
-    root_lo  = lambda phi_a, chi_ps, chi_pc, chi_sc: denom (phi_a, chi_ps, chi_pc, chi_sc) * ( prefac (phi_a, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_a, chi_ps, chi_pc, chi_sc) ) )
-
-    meshsize            = 1000
-    phi_a               = np.logspace (-6, np.log10(1-0.001), meshsize*10)
-    chi_ps              = args.chi_ps
-    chi_pc              = args.chi_pc
-    chi_sc              = args.chi_sc
-
-    r1 = root_up (phi_a, chi_ps, chi_pc, chi_sc)
-    r2 = root_lo (phi_a, chi_ps, chi_pc, chi_sc)
-
-    to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0) * (r1+phi_a<=1)
-    r1 = r1[to_keep_1]
-
-    to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0) * (r2+phi_a<=1)
-    r2 = r2[to_keep_2]
-
-    if len(r1) == 0 or len(r2) == 0:
-        return None, None
-
-    else:
-        curve_x = np.hstack((phi_a[to_keep_1], phi_a[to_keep_2]))
-        curve_y = np.hstack((r1, r2))
-        edges_x = [np.min(curve_x), np.max (curve_x)]
-        edges_y = [np.min(curve_y), np.max (curve_y)]
-        return edges_x, edges_y
 
 #########################################
-def perform_sweep (phi_b, mesh, chi_ps, chi_pc, chi_sc, crit_points, phi_a_edge, phi_b_edge):
+def perform_sweep (phi_b, mesh, chi_ps, chi_pc, chi_sc, crit_point, phi_a_edge, phi_b_edge, center):
 
+    print (f"pid = {os.getpid()}.", flush=True)
     phi_b = np.repeat (phi_b, mesh)
     phi_a = np.zeros  (phi_b.shape)
 
@@ -214,10 +177,8 @@ def perform_sweep (phi_b, mesh, chi_ps, chi_pc, chi_sc, crit_points, phi_a_edge,
 
     # now start splitting up phi_a, phi_b
     phis    = np.vstack((phi_a, phi_b)).T
-    # print (phis.shape)
 
-    center         = np.mean(crit_points, axis=0)
-    central_axis   = (crit_points[0]-center) / np.linalg.norm (crit_points[0]-center)
+    central_axis   = (crit_point-center) / np.linalg.norm (crit_point-center)
 
     # find those ABOVE axis
     direction      = (phis - center) / np.linalg.norm(phis-center, axis=1)[:, np.newaxis]
@@ -255,14 +216,8 @@ def perform_sweep (phi_b, mesh, chi_ps, chi_pc, chi_sc, crit_points, phi_a_edge,
     mu_lower   = np.array ([chem_pot_a_lower, chem_pot_b_lower, chem_pot_c_lower]).T
 
     distances       = np.linalg.norm (mu_upper[:, np.newaxis] - mu_lower, axis=2)
-    try:
-        closest_indices = np.argmin(distances, axis=1)
-        # print (phi_b)
-        # exit ()
-    except ValueError:
-        print ("This is the spot.")
-        print (phi_b)
-        exit ()
+    print (f"Memory size of distances is {distances.nbytes/1e+9} gigabytes.", flush=True)
+    closest_indices = np.argmin(distances, axis=1)
 
     phi_lower       = phi_lower[closest_indices]
     mu_lower        = mu_lower [closest_indices]
@@ -276,22 +231,21 @@ if __name__=="__main__":
 
     start = time.time()
 
-    N      = args.N
     chi_sc = args.chi_sc
     chi_ps = args.chi_ps
     chi_pc = args.chi_pc
 
-    va = args.vs
-    vb = args.vp
-    vc = args.vc
+    vs = args.vs; # va = args.vs
+    vp = args.vp; # vb = args.vp
+    vc = args.vc; # vc = args.vc
 
-    discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4* N * (1 - 2* phi_s * chi_sc + 2 * phi_s ** 2 * chi_sc) * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) **2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) + \
-    (-1 + 2 * phi_s * chi_sc + N * (1 - 2*chi_pc - phi_s * (chi_ps ** 2 + chi_sc **2 - 2*chi_sc*chi_pc + (chi_pc -2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) + phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) ) ** 2
-    denom    = lambda phi_s, chi_ps, chi_pc, chi_sc:  1 / (2*N * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2*chi_ps * (chi_sc + chi_pc) ) ) )
-    prefac   = lambda phi_s, chi_ps, chi_pc, chi_sc: 1 - 2 * phi_s * chi_sc + N * ( -1 + 2 * chi_pc + phi_s * (chi_ps ** 2 + chi_sc ** 2 - 2*chi_sc * chi_pc + (chi_pc - 2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) - phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) )
+
+    discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4*vc*vp*(2*chi_pc + phi_s*vs*chi_pc**2 + phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc))*(phi_s*vs+(-1+phi_s)*vc*(-1+2*phi_s*vs*chi_sc)) + (vp - 2*phi_s*vp *vs *chi_ps + vc*(-1+2*phi_s*vs*chi_sc+(-1+phi_s)*vp*(2*chi_pc+phi_s*vs*chi_pc**2 +phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc) ) ) )**2
+
+    denom  = lambda phi_s, chi_ps, chi_pc, chi_sc: 1/(-2*vc*vp*(2*chi_pc+phi_s*vs*chi_pc**2+phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc)))
+    prefac = lambda phi_s, chi_ps, chi_pc, chi_sc: vp - 2*phi_s*vp*vs*chi_ps+vc * (-1+2*phi_s*vs*chi_sc + (-1+phi_s) * vp * (2*chi_pc + phi_s*vs*chi_pc**2 + phi_s * vs * (chi_ps - chi_sc) **2 - 2 * phi_s * vs * chi_pc *(chi_ps + chi_sc) ) )
     root_up  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) + np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
     root_lo  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
-
 
     #######################################
     # find the edges of the binodal curve
@@ -315,12 +269,19 @@ if __name__=="__main__":
 
     phi_a_edge = np.hstack((phi_a_edge_1,phi_a_edge_2))
     phi_b_edge = np.hstack((r1,r2))
+    if len(phi_a_edge) == 0:
+        print ("There is no critical region. No binodals will be found. Exiting...")
+        exit ()
 
     ########################################
 
-    roots_up, roots_down = find_crit_point (N, chi_sc, chi_ps, chi_pc)
+    roots_up, roots_down = find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc)
     crits = np.vstack((roots_up, roots_down))
-    crits = remove_close_rows (crits, 1e-3)
+    crits = remove_close_rows (crits, 1e-6)
+
+    if len(crits) > 2:
+        print ("Number of crit points is greater than 2. The binodal calculation is going to be wacky and unstable. Exiting computation...", flush=True)
+        exit  ()
 
     def stab_crit (p_s, p_p, c_ps, c_pc, c_sc):
         return (1/(vp*p_p) + 1/(vc*(1-p_s - p_p)) - 2 * c_pc) * (1/(vs*p_s) + 1/(vc*(1-p_s - p_p)) - 2 * c_sc) - (1/(vc*(1-p_s-p_p)) + c_ps - c_pc - c_sc) ** 2
@@ -394,7 +355,7 @@ if __name__=="__main__":
             2 * ps * vs * cpc * (cps + csc))))**2)))/(2 * vc \
             * vp * (2 * cpc + ps * vs * cpc**2 + ps * vs * (cps - csc)**2 - \
             2 * ps * vs * cpc * (cps + csc))**2)
-            print (f"tang_slope = {tang_slope}")
+            print (f"tang_slope = {tang_slope}", flush=True)
 
         else:
             tang_slope = (-((2 * cpc + ps * vs * cpc**2 + ps * vs * (cps - csc)**2 - \
@@ -452,59 +413,66 @@ if __name__=="__main__":
             2 * ps * vs * cpc * (cps + csc))))**2)))/(2 * vc * \
             vp * (2 * cpc + ps * vs * cpc**2 + ps * vs * (cps - csc)**2 - \
             2 * ps * vs * cpc * (cps + csc))**2)
-            print (f"tang_slope = {tang_slope}")
+            print (f"tang_slope = {tang_slope}", flush=True)
 
         return tang_slope
 
     ##########################
 
     # FIND PHI_B GIVEN PHI_A
-    mu_a = lambda phi_a, phi_b: np.log(phi_a)         + 1 - phi_a - va/vb * phi_b - va/vc * (1-phi_a-phi_b) + va * (phi_b**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_sc + phi_b * (1-phi_a-phi_b) * (chi_ps + chi_sc - chi_pc) ) 
-    mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vb/va * phi_a - vb/vc * (1-phi_a-phi_b) + vb * (phi_a**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_pc + phi_a * (1-phi_a-phi_b) * (chi_ps + chi_pc - chi_sc) )
-    mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_sc + phi_b**2 * chi_pc + phi_a * phi_b * (chi_sc + chi_pc - chi_ps) )
+    mu_a = lambda phi_a, phi_b: np.log(phi_a)         + 1 - phi_a - vs/vp * phi_b - vs/vc * (1-phi_a-phi_b) + vs * (phi_b**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_sc + phi_b * (1-phi_a-phi_b) * (chi_ps + chi_sc - chi_pc) ) 
+    mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vp/vs * phi_a - vp/vc * (1-phi_a-phi_b) + vp * (phi_a**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_pc + phi_a * (1-phi_a-phi_b) * (chi_ps + chi_pc - chi_sc) )
+    mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/vs * phi_a - vc/vp * phi_b + vc * (phi_a**2 * chi_sc + phi_b**2 * chi_pc + phi_a * phi_b * (chi_sc + chi_pc - chi_ps) )
 
     mesh  = args.mesh
 
-    edges_x, edges_y = get_limits (N)
-    f = open (args.skelfile, 'w')
+    if args.skelfile == "None":
+        skelfile = f"bin-vs_{vs}-vc_{vc}-vp_{vp}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.skelfile"
+    else:
+        skelfile = args.skelfile
+    f = open (skelfile, 'w')
     f.write ("{:<6} {:<6} {:<6} {:<6} {:<6} {:<6} {:<6}\n"\
     .format ("dmu", "phi_a1", "phi_b1", "phi_c1", "phi_a2", "phi_b2", "phi_c2")) 
 
+    phi_b_spin_min = 0.01
+    phi_b_spin_max = 0.8
+
+    phi_b_list = [np.linspace(phi_b_spin_min*0.9, phi_b_spin_max+(1-phi_b_spin_max)*0.1, mesh), \
+          np.linspace(phi_b_spin_min*0.7, phi_b_spin_max+(1-phi_b_spin_max)*0.3, mesh), \
+          np.linspace(phi_b_spin_min*0.5, phi_b_spin_max+(1-phi_b_spin_max)*0.5, mesh), \
+          np.linspace(phi_b_spin_min*0.1, phi_b_spin_max+(1-phi_b_spin_max)*0.9, mesh), \
+          np.linspace(phi_b_spin_min*0.001, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh), \
+          np.logspace(-20, np.log10(0.9), mesh)]
+
+    pool    = mp.Pool (processes=len(phi_b_list))
+
     for crit in crits:
         print (f"@ crit point = {crit}...", flush=True)
-        tangent_to_crit = tangent  (crit[0], crit[1], vb, chi_ps, chi_pc, chi_sc)
+        tangent_to_crit = tangent2  (vs, vc, vp, crit[0], crit[1], chi_ps, chi_pc, chi_sc)
         normal_slope    = -1/tangent_to_crit
-        normal_to_crit  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2)
+        if len(crits) == 1:
+            center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
+        else:
+            center  = np.mean(crits, axis=0)
 
-        if edges_x == None or edges_y == None:
-            print ("There is no critical region in this regime. Terminating calculation.")
-            exit  ()
+        f.write  ("{:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f}\n"\
+        .format(0, crit[0], crit[1], 1-crit[0]-crit[1], crit[0], crit[1], 1-crit[0]-crit[1]))
 
-        phi_b_spin_min = 0.01
-        phi_b_spin_max = 0.8
 
-        phi_b_list = [np.linspace(phi_b_spin_min*0.9, phi_b_spin_max+(1-phi_b_spin_max)*0.1, mesh), \
-                  np.linspace(phi_b_spin_min*0.7, phi_b_spin_max+(1-phi_b_spin_max)*0.3, mesh), \
-                  np.linspace(phi_b_spin_min*0.5, phi_b_spin_max+(1-phi_b_spin_max)*0.5, mesh), \
-                  np.linspace(phi_b_spin_min*0.1, phi_b_spin_max+(1-phi_b_spin_max)*0.9, mesh), \
-                  np.linspace(phi_b_spin_min*0.001, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh), \
-                  np.logspace(-20, np.log10(0.9), mesh)]
-
-        pool    = mp.Pool (processes=len(phi_b_list))
-        results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ps), itertools.repeat(chi_pc), itertools.repeat(chi_sc), itertools.repeat(crits), itertools.repeat(phi_a_edge), itertools.repeat(phi_b_edge) ) )
-        pool.close ()
-        pool.join  ()
-
+        print (f"# of processes = {len(phi_b_list)}...", flush=True)
+        results = pool.starmap(perform_sweep, zip(phi_b_list, itertools.repeat(mesh), itertools.repeat(chi_ps), itertools.repeat(chi_pc), itertools.repeat(chi_sc), itertools.repeat(crit), itertools.repeat(phi_a_edge), itertools.repeat(phi_b_edge), itertools.repeat(center)) )
 
         for idx,res in enumerate(results):
             if len(res) == 0:
-                print (f"No critical condition in process {idx}.")
+                print (f"No critical condition in process {idx}.", flush=True)
                 continue
             for i in range(len (res[0]) ):
                 f.write  ("{:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f}\n"\
         .format(res[2][i], res[0][i,0], res[0][i,1], 1-res[0][i,0]-res[0][i,1], res[1][i,0], res[1][i,1], 1-res[1][i,0]-res[1][i,1]))
 
     f.close ()
+    pool.close ()
+    pool.join  ()
 
     stop = time.time ()
     print (f"Time taken to scan the ternary space has been {stop-start} seconds.", flush=True)

@@ -59,7 +59,7 @@ def get_limits (N):
     root_lo  = lambda phi_a, chi_ab, chi_bc, chi_ac: denom (phi_a, chi_ab, chi_bc, chi_ac) * ( prefac (phi_a, chi_ab, chi_bc, chi_ac) - np.sqrt(discriminant (phi_a, chi_ab, chi_bc, chi_ac) ) )
 
     meshsize            = 1000
-    phi_a               = np.linspace (0.001, 1-0.001, meshsize*10)
+    phi_a               = np.logspace (-20, np.log10(1-1e-20), meshsize*10)
     chi_ab              = args.chi_ab
     chi_bc              = args.chi_bc
     chi_ac              = args.chi_ac

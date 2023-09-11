@@ -18,12 +18,6 @@ import itertools
 import warnings
 import linecache
 
-def custom_warning_format(message, category, filename, lineno, line=None):
-    line = linecache.getline(filename, lineno).strip()
-    return f"There is a RunTimeWarning taking place on line {lineno}.\n"
-
-warnings.formatwarning = custom_warning_format
-
 np.set_printoptions(threshold=sys.maxsize)
 os.system("taskset -p 0xfffff %d" % os.getpid())
 os.environ['MKL_NUM_THREADS'] = '1'
@@ -43,16 +37,31 @@ parser.add_argument('-vc',               metavar='vc',        dest='vc',        
 parser.add_argument('-vp',               metavar='vp',        dest='vp',           type=float,     action='store',             help='specific volume of polymer.')
 parser.add_argument('--nadded-rows',     metavar='nar',       dest='nar',          type=int,       action='store',             help='number of rows to add while refining.', default=10)
 parser.add_argument('--dumpfile',        dest='dumpfile',     type=str,            action='store', help="name of file where the skeleton was dumped.")
-parser.add_argument('--bin-boundary',    dest='boundary',     type=str,            action='store', help="name of file where you will dump out your solution for the binodal")
+parser.add_argument('--bin-boundary',    dest='boundary',     type=str,            action='store', help="name of file where you will dump out your solution for the binodal (default name holds information about all inputs).", default="None")
 parser.add_argument('--ternary',         action='store_true', default=False,       help='make the output a ternary plot.')
 parser.add_argument('--tielines',        dest='tl',           action='store_true', default=False,  help="Option to include if you want to see all tie-lines.")
 parser.add_argument('--tieline-density', metavar='td',        dest='td',           type=int,       action='store',                  help='Plug in a density at which you want tielines (default=50).', default=50)
-parser.add_argument('--image',           dest='img',          type=str,            action='store', help="name of image generated.", default="None")
+parser.add_argument('--no-rtw', dest='nrtw',      action='store_true',  default=False, help="Don't print out the runtime warning.")
+parser.add_argument('--image',           dest='img',          type=str,            action='store', help="name of image generated (default name holds information about all inputs).", default="None")
 args = parser.parse_args()
 
+if args.boundary == "None":
+    boundaryfile = f"vs_{args.vs}-vc_{args.vc}-vp_{args.vp}-chisc_{args.chi_sc}-chips_{args.chi_ps}-chipc_{args.chi_pc}.binodal"
+else:
+    boundaryfile = args.boundary
 
 ###############
 
+######
+def custom_warning_format(message, category, filename, lineno, line=None):
+    line = linecache.getline(filename, lineno).strip()
+    if args.nrtw:
+        return f"beep.\n"
+    else:
+        return f"There is a RunTimeWarning taking place on line {lineno}.\n"
+
+warnings.formatwarning = custom_warning_format
+######
 
 def remove_close_rows(array, threshold):
 
@@ -73,28 +82,27 @@ def remove_close_rows(array, threshold):
 
 ###############
 
-def crit_condition (N, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
+def crit_condition (vs, vc, vp, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
 
     phi_c = 1-phi_p-phi_s
-    t1    = 1/phi_c + 1/(phi_p*N) - 2*chi_pc
-    t2    = (1/(phi_c)**2 - 1/phi_s**2)*(1/(phi_c) + 1/(phi_p*N) - 2*chi_pc) + (1/(phi_c) + 1/phi_s - 2*chi_sc)/(phi_c)**2 - 2*(1/phi_c - chi_pc - chi_sc + chi_ps)/(phi_c)**2
+    t1    = 1/(vc*phi_c) + 1/(phi_p*vp) - 2*chi_pc
+    t2    = (1/(vc*(phi_c)**2) - 1/(vs*phi_s**2))*(1/(vc*(phi_c)) + 1/(phi_p*vp) - 2*chi_pc) + (1/(vc*phi_c) + 1/(vs*phi_s) - 2*chi_sc)/(vc*(phi_c)**2) - 2*(1/(vc*phi_c) - chi_pc - chi_sc + chi_ps)/(vc*(phi_c)**2)
 
-    u1    = (1/phi_c + 1/(phi_p*N) - 2*chi_pc)/(phi_c)**2 + (1/(phi_c)**2 - 1/(phi_p**2 * N))*(1/phi_c + 1/phi_s - 2*chi_sc) - 2*(1/phi_c + chi_ps - chi_sc - chi_pc)/phi_c**2
-    u2    = 1/phi_c - chi_pc - chi_sc + chi_ps
+    u1    = (1/(vc*phi_c) + 1/(phi_p*vp) - 2*chi_pc)/(vc*(phi_c)**2) + (1/(vc*phi_c**2) - 1/(phi_p**2 * vp))*(1/(vc*phi_c) + 1/(vs*phi_s) - 2*chi_sc) - 2*(1/(vc*phi_c) + chi_ps - chi_sc - chi_pc)/(vc*phi_c**2)
+    u2    = 1/(vc*phi_c) - chi_pc - chi_sc + chi_ps
 
     return t1*t2 - u1*u2
 
-################
 
-def find_crit_point (N, chi_sc, chi_ps, chi_pc):
+def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc):
 
     def send_to_fsolve_r1 (phi_s):
         phi_p_upper = root_up (phi_s, chi_ps, chi_pc, chi_sc)
-        return crit_condition (N, phi_p_upper, phi_s, chi_sc, chi_ps, chi_pc)
+        return crit_condition (vs, vc, vp, phi_p_upper, phi_s, chi_sc, chi_ps, chi_pc)
 
     def send_to_fsolve_r2 (phi_s):
         phi_p_lower = root_lo (phi_s, chi_ps, chi_pc, chi_sc)
-        return crit_condition (N, phi_p_lower, phi_s, chi_sc, chi_ps, chi_pc)
+        return crit_condition (vs, vc, vp, phi_p_lower, phi_s, chi_sc, chi_ps, chi_pc)
 
     guesses = np.linspace (0, 1, 10000)
     roots_up   = np.empty ((0,2))
@@ -102,7 +110,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
 
     for g in guesses:
         root = fsolve (send_to_fsolve_r1, g)
-
+        
         if abs(send_to_fsolve_r1(root)) < 1e-6:
 
             if root >= 1 or root <= 0 or np.isnan(root):
@@ -124,8 +132,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
                         if similarity:
                             pass
                         else:
-                            roots_up = np.vstack ((roots_up,r_tup))
-
+                            roots_up = np.vstack ((roots_up,r_tup))   
         else:
             pass
 
@@ -145,7 +152,7 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
                 elif r_tup in roots_down:
                     pass
 
-                else:
+                else: 
                     if len(roots_down) == 0:
                         roots_down = np.vstack ((roots_down,r_tup))
                     else:
@@ -158,7 +165,8 @@ def find_crit_point (N, chi_sc, chi_ps, chi_pc):
         else:
             pass
 
-    return roots_up, roots_down
+    return roots_up, roots_down 
+
 
 ################################
 
@@ -287,7 +295,7 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
     side_2     = add_rows_at_index (side_2, m1, nadded_rows)
 
     print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v5...", flush=True)
-    print (f"m1 = {m1}.")
+    # print (f"m1 = {m1}.")
     print (f"from {side_1[m1+1]} to {side_1[m1+nadded_rows-1]}", flush=True)
 
     for idx, pt in enumerate (side_1[m1+1:m1+nadded_rows-1]):
@@ -485,7 +493,8 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
     unsolved_lower_bin = binodal_lower[bad_idx][:, 0:2]
     direction_binodal  = (unsolved_lower_bin[:,0:2]-center)/np.linalg.norm(unsolved_lower_bin[:,0:2]-center, axis=1)[:, np.newaxis]
     theta_binodal      = np.arccos(np.dot(direction_binodal, central_axis))
-    to_keep       = (theta_lower > theta1) & (theta_lower < theta2)
+    # to_keep            = (theta_lower > theta1) & (theta_lower < theta2)
+    to_keep            = (theta_binodal > theta1) & (theta_binodal < theta2)
 
     unsolved_lower_bin = unsolved_lower_bin[to_keep]
 
@@ -584,7 +593,7 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
 
 ######################################
 
-def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, normal_to_crit):
+def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit, normal_to_crit):
 
     try:
         df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["dmu", "phi_a1", "phi_b1", "phi_c1", "phi_a2", "phi_b2", "phi_c2"])
@@ -593,8 +602,8 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit
         print (f"File called {dumpfile} was not found. This was likely because pskelbin.py could not find reasonable guesses. Please check your parameters and inputs and try again.", flush=True)
         exit ()
 
-    def stab_crit (p_a, p_b, c_ab, c_bc, c_ac):
-        return (1/(N*p_b) + 1/(1-p_a - p_b) - 2 * c_bc) * (1/p_a + 1/(1-p_a - p_b) - 2 * c_ac) - (1/(1-p_a-p_b) + c_ab - c_bc - c_ac) ** 2
+    def stab_crit (p_s, p_p, c_ps, c_pc, c_sc):
+        return (1/(vp*p_p) + 1/(vc*(1-p_s - p_p)) - 2 * c_pc) * (1/(vs*p_s) + 1/(vc*(1-p_s - p_p)) - 2 * c_sc) - (1/(vc*(1-p_s-p_p)) + c_ps - c_pc - c_sc) ** 2
 
     # original point and the guess for the root... 
     phi_a_upper = df["phi_a1"].values; phi_a_lower = df["phi_a2"].values
@@ -730,7 +739,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit
         max_diff_down = np.max(diff_down)
         max_diff_count += 1
         print (f"max_diff_count = {max_diff_count}.")
-        if max_diff_count == 5:
+        if max_diff_count == 10:
             break
 
     ##################################################
@@ -774,12 +783,12 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit
         max_diff_down = np.max(diff_down)
         max_refine_count += 1
         print (f"max_refine_count = {max_refine_count}.")
-        if max_refine_count == 5:
+        if max_refine_count == 10:
             break
 
 
     ref_bin = [sol_upper, sol_lower]
-    print ("Both crit points should be well-populated.", flush=True)
+    print ("This particular crit points should be well-populated.", flush=True)
 
     # this is the binodal
     if args.ternary:
@@ -803,7 +812,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit
                            [ref_bin[0][i,1],ref_bin[1][i,1]], \
                            lw=0.5, ls='--', markersize=0, zorder=10, c='skyblue')
 
-    ff = open (args.boundary, 'a')
+    ff = open (boundaryfile, 'a')
     for i in range (len(ref_bin[0])):
         ff.write (f"{ref_bin[0][i][0]}|{ref_bin[0][i][1]}|{ref_bin[0][i][2]}|{ref_bin[1][i][0]}|{ref_bin[1][i][1]}|{ref_bin[1][i][2]}\n")
 
@@ -817,7 +826,7 @@ def pbin_plotter (dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit):
     normal_slope    = -1/tangent_to_crit
     normal_to_crit  = np.array([1, normal_slope]) / np.sqrt(1+normal_slope**2)
 
-    ref_bin = binodal_plotter (dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, normal_to_crit)
+    ref_bin = binodal_plotter (dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit, normal_to_crit)
 
     return ref_bin
 
@@ -849,18 +858,15 @@ if __name__=="__main__":
     else:
         ax  = plt.axes ()
 
-    
-    discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4* N * (1 - 2* phi_s * chi_sc + 2 * phi_s ** 2 * chi_sc) * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) **2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) + \
-    (-1 + 2 * phi_s * chi_sc + N * (1 - 2*chi_pc - phi_s * (chi_ps ** 2 + chi_sc **2 - 2*chi_sc*chi_pc + (chi_pc -2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) + phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) ) ) ** 2
-    denom  = lambda phi_s, chi_ps, chi_pc, chi_sc:  1 / (2*N * (2*chi_pc + phi_s * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2*chi_ps * (chi_sc + chi_pc) ) ) )
-    prefac = lambda phi_s, chi_ps, chi_pc, chi_sc: 1 - 2 * phi_s * chi_sc + N * ( -1 + 2 * chi_pc + phi_s * (chi_ps ** 2 + chi_sc ** 2 - 2*chi_sc * chi_pc + (chi_pc - 2) * chi_pc - 2 * chi_ps * (-1 + chi_sc + chi_pc) ) - phi_s ** 2 * (chi_ps ** 2 + (chi_sc - chi_pc) ** 2 - 2 * chi_ps * (chi_sc + chi_pc) ) )
+    discriminant = lambda phi_s, chi_ps, chi_pc, chi_sc: -4*vc*vp*(2*chi_pc + phi_s*vs*chi_pc**2 + phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc))*(phi_s*vs+(-1+phi_s)*vc*(-1+2*phi_s*vs*chi_sc)) + (vp - 2*phi_s*vp *vs *chi_ps + vc*(-1+2*phi_s*vs*chi_sc+(-1+phi_s)*vp*(2*chi_pc+phi_s*vs*chi_pc**2 +phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc) ) ) )**2
+
+    denom  = lambda phi_s, chi_ps, chi_pc, chi_sc: 1/(-2*vc*vp*(2*chi_pc+phi_s*vs*chi_pc**2+phi_s*vs*(chi_ps-chi_sc)**2 - 2*phi_s*vs*chi_pc*(chi_ps+chi_sc)))
+    prefac = lambda phi_s, chi_ps, chi_pc, chi_sc: vp - 2*phi_s*vp*vs*chi_ps+vc * (-1+2*phi_s*vs*chi_sc + (-1+phi_s) * vp * (2*chi_pc + phi_s*vs*chi_pc**2 + phi_s * vs * (chi_ps - chi_sc) **2 - 2 * phi_s * vs * chi_pc *(chi_ps + chi_sc) ) )
     root_up  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) + np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
     root_lo  = lambda phi_s, chi_ps, chi_pc, chi_sc: denom (phi_s, chi_ps, chi_pc, chi_sc) * ( prefac (phi_s, chi_ps, chi_pc, chi_sc) - np.sqrt(discriminant (phi_s, chi_ps, chi_pc, chi_sc) ) )
 
 
-    roots_up, roots_down = find_crit_point (N, chi_sc, chi_ps, chi_pc)
-    # ax.scatter (roots_up[:,0]  , roots_up[:,1]  , color='k', edgecolors='steelblue', s=0.1, zorder=11)
-    # ax.scatter (roots_down[:,0], roots_down[:,1], color='k', edgecolors='steelblue', s=0.1, zorder=11)
+    roots_up, roots_down = find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc)
 
     ###################
 
@@ -869,14 +875,8 @@ if __name__=="__main__":
 
     def tangent2 (vs, vc, vp, ps, pp, cpc, cps, csc):
 
-        # print (f"ps = {ps}, pp = {pp}")
-        # print (f"vs = {vs}, vc = {vc}, vp = {vp}, cpc = {cpc}, cps = {cps}, csc = {csc}.")
-
         dist_lo  = np.linalg.norm(pp - root_lo (ps, cps, cpc, csc))
         dist_up  = np.linalg.norm(pp - root_up (ps, cps, cpc, csc))
-
-        # print (f"lower root distance = {dist_lo}")
-        # print (f"upper root distance = {dist_up}")
 
         if dist_lo > dist_up:
             tang_slope = (-((2 * cpc + ps * vs * cpc**2 + ps * vs * (cps - csc)**2 - \
@@ -1008,9 +1008,14 @@ if __name__=="__main__":
     else:
         ax.scatter (crits[:,0], crits[:,1], color='k', edgecolors='greenyellow', s=1)
 
+    
     if len(crits) == 2:
         pass
+    elif len(crits) == 0:
+        print (f"There are no critical points. Exiting...")
+        exit ()
     elif len(crits) == 3:
+        print (f"Number of critical points is {len(crits)} >= 3. Currently, we do not have the ability to solve for such diagrams. Exiting...")
         pass
     elif len(crits) > 4:
         print (f"Number of critical points is {len(crits)} > 3. Currently, we do not have the ability to solve for such diagrams. Exiting...")
@@ -1046,6 +1051,10 @@ if __name__=="__main__":
 
     print (f"vmin = {vmin}, vmax = {vmax}", flush=True)
 
+    if len(vals) == 0:
+        print (f"There is no spinodal region.")
+        exit ()
+
     norm = colors.SymLogNorm (0.001, vmin=vmin, vmax=vmax)
     cols = cm.bwr (norm (vals))
 
@@ -1067,18 +1076,21 @@ if __name__=="__main__":
     mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/va * phi_a - vc/vb * phi_b + vc * (phi_a**2 * chi_sc + phi_b**2 * chi_pc + phi_a * phi_b * (chi_sc + chi_pc - chi_ps) )
 
 
-    ff = open (args.boundary, 'w')
+    ff = open (boundaryfile, 'w')
     ff.write  ("phi_s_top|phi_p_top|phi_c_top|phi_s_bot|phi_p_bot|phi_c_bot\n")
     ff.close  ()
 
     for crit in crits:
         print (f"@ crit point = {crit}...")
-        tangent_to_crit = tangent  (crit[0], crit[1], N, chi_ps, chi_pc, chi_sc)
+        tangent_to_crit = tangent2  (vs, vc, vp, crit[0], crit[1], chi_pc, chi_ps, chi_sc)
         normal_slope    = -1/tangent_to_crit
-        # normal_to_crit  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2)
-        normal_to_crit  = np.mean(crits, axis=0)
-        binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, normal_to_crit)
+        if len(crits) == 1:
+            center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
+        else:
+            center  = np.mean(crits, axis=0)
+        binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
 
+    print ("All crit points have been addressed.")
     print ("Done with binodal plotting!", flush=True)
 
     if args.ternary:

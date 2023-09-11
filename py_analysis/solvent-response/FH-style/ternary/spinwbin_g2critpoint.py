@@ -19,10 +19,10 @@ import warnings
 import linecache
 
 np.set_printoptions(threshold=sys.maxsize)
-os.system("taskset -p 0xfffff %d" % os.getpid())
-os.environ['MKL_NUM_THREADS'] = '1'
-os.environ['NUMEXPR_NUM_THREADS'] = '1'
-os.environ['OMP_NUM_THREADS'] = '1'
+# os.system("taskset -p 0xfffff %d" % os.getpid())
+# os.environ['MKL_NUM_THREADS'] = '1'
+# os.environ['NUMEXPR_NUM_THREADS'] = '1'
+# os.environ['OMP_NUM_THREADS'] = '1'
 
 sys.stdout.flush()
 
@@ -36,12 +36,15 @@ parser.add_argument('-vs',               metavar='vs',        dest='vs',        
 parser.add_argument('-vc',               metavar='vc',        dest='vc',           type=float,     action='store',             help='specific volume of cosolvent.')
 parser.add_argument('-vp',               metavar='vp',        dest='vp',           type=float,     action='store',             help='specific volume of polymer.')
 parser.add_argument('--nadded-rows',     metavar='nar',       dest='nar',          type=int,       action='store',             help='number of rows to add while refining.', default=10)
+parser.add_argument('--refine-count',    metavar='rc',        dest='rc',           type=int,       action='store',             help='number of times the refiner should go off (default: 10).', default=10)
+parser.add_argument('--diff-count',      metavar='dc',        dest='dc',           type=int,       action='store',             help='number of times the difference filler should go off (default: 10).', default=10)
 parser.add_argument('--dumpfile',        dest='dumpfile',     type=str,            action='store', help="name of file where the skeleton was dumped.")
 parser.add_argument('--bin-boundary',    dest='boundary',     type=str,            action='store', help="name of file where you will dump out your solution for the binodal (default name holds information about all inputs).", default="None")
 parser.add_argument('--ternary',         action='store_true', default=False,       help='make the output a ternary plot.')
+parser.add_argument('--only-one-crit',   dest='ooc',          action='store_true', default=False,  help='only go through one crit point. Useful only while debugging, probably. Avoid using otherwise! (default: False)')
 parser.add_argument('--tielines',        dest='tl',           action='store_true', default=False,  help="Option to include if you want to see all tie-lines.")
-parser.add_argument('--tieline-density', metavar='td',        dest='td',           type=int,       action='store',                  help='Plug in a density at which you want tielines (default=50).', default=50)
-parser.add_argument('--no-rtw', dest='nrtw',      action='store_true',  default=False, help="Don't print out the runtime warning.")
+parser.add_argument('--tieline-density', metavar='td',        dest='td',           type=int,       action='store',             help='Plug in a density at which you want tielines (default=50).', default=50)
+parser.add_argument('--no-rtw',          dest='nrtw',         action='store_true', default=False,  help="Don't print out the runtime warning.")
 parser.add_argument('--image',           dest='img',          type=str,            action='store', help="name of image generated (default name holds information about all inputs).", default="None")
 args = parser.parse_args()
 
@@ -262,22 +265,22 @@ def refined_binodal_v4 (side_1, side_2, nadded_rows):
                 p1 = np.array([pt[0], root[0], 1-root[0]-pt[0]])
                 p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
 
-            if stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
-                continue
+                if stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
+                    continue
 
-            elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
-                continue
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
+                    continue
 
-            elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
-                continue
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
+                    continue
 
-            # if the roots are basically the same point, write them out as bad 
-            root_store.append ((p1,p2))
-            dist_store.append (np.linalg.norm (p1-p2))
+                else:
+                    root_store.append ((p1,p2))
+                    dist_store.append (np.linalg.norm (p1-p2))
 
         # choose the root that is furthest away
         try:
-            best_root = np.argmax (dist_store)
+            best_root  = np.argmax (dist_store)
             root_combo = root_store[best_root]
             side_1[m1+1+idx] = root_combo[0]
             side_2[m1+1+idx] = root_combo[1]
@@ -323,18 +326,18 @@ def refined_binodal_v5 (side_1, side_2, nadded_rows):
                 p1 = np.array([root[0], pt[1], 1-root[0]-pt[1]])
                 p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
 
-            if stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
-                continue
+                if stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc) < 0 or stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc) < 0:
+                    continue
 
-            elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
-                continue
+                elif np.isnan(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isnan(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
+                    continue
 
-            elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
-                continue
+                elif np.isinf(stab_crit (p1[0], p1[1], chi_ps, chi_pc, chi_sc)) or np.isinf(stab_crit (p2[0], p2[1], chi_ps, chi_pc, chi_sc)):
+                    continue
 
-            # if the roots are basically the same point, write them out as bad 
-            root_store.append ((p1,p2))
-            dist_store.append (np.linalg.norm (p1-p2))
+                else: # if the roots are basically the same point, write them out as bad 
+                    root_store.append ((p1,p2))
+                    dist_store.append (np.linalg.norm (p1-p2))
 
         # choose the root that is furthest away
         try:
@@ -593,7 +596,7 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
 
 ######################################
 
-def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit, normal_to_crit):
+def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit, center):
 
     try:
         df = pd.read_csv (dumpfile, sep='\s+', engine="python", skiprows=1, names=["dmu", "phi_a1", "phi_b1", "phi_c1", "phi_a2", "phi_b2", "phi_c2"])
@@ -618,6 +621,13 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
 
     bad_idx  = []
     good_idx = []
+    
+    # start partitioning along a certain axis
+    central_axis   = (crit-center)/np.linalg.norm (crit-center)
+
+    print (f"center = {center}", flush=True)
+    print (f"central axis = {central_axis}", flush=True)
+    
     # f = open (args.boundary, 'w')
     print ("Start processing the dumpfile and find roots.", flush=True)
     print (f"I will be processing an array of size = {phi_a_upper.size}.", flush=True)
@@ -661,27 +671,25 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
 
             else:
                 good_idx.append (idx)
-                sol_upper = np.vstack ((sol_upper,p1))
-                sol_lower = np.vstack ((sol_lower,p2))
+                if np.cross (central_axis, p1[0:2]-center) >= 0:
+                    sol_upper = np.vstack ((sol_upper,p1))
+                    sol_lower = np.vstack ((sol_lower,p2))
+                else:
+                    sol_upper = np.vstack ((sol_upper,p2))
+                    sol_lower = np.vstack ((sol_lower,p1))
 
     print (f"Length of bad_idx = {len(bad_idx)}")
     print (f"Length of good_idx = {len(good_idx)}")
+    
+    ##################
+    ##################
 
-    # start partitioning along a certain axis
-    center         = crit
-    central_axis   = (crit-normal_to_crit)/np.linalg.norm (crit-normal_to_crit)
-
-    print (f"center = {center}", flush=True)
-    print (f"central axis = {central_axis}", flush=True)
-
-    direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
+    direction              = (sol_upper[:,0:2] - center) / np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
     theta_upper            = np.arccos (np.dot (direction, central_axis))
     sorted_theta_upper_idx = np.argsort (theta_upper)
     theta_upper            = theta_upper[sorted_theta_upper_idx]
-
     sol_upper              = sol_upper[sorted_theta_upper_idx]
     sol_lower              = sol_lower[sorted_theta_upper_idx]
-
 
     # I have sorted the solutions 
     # now, if the solution curve is sufficiently close, no need to perform more detailed searches -- so find maximum distances between points on the solution curves
@@ -693,7 +701,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
     max_diff_down = np.max(diff_down)
 
     max_diff_count = 0
-    while (max_diff_up > 0.1 or max_diff_down > 0.1):
+    while (max_diff_up > 0.1 or max_diff_down > 0.1) and max_diff_count != args.dc:
         
         # if max_diff_up > max_diff_down:
         print (f"Running a search on the top half...", flush=True)
@@ -739,8 +747,8 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
         max_diff_down = np.max(diff_down)
         max_diff_count += 1
         print (f"max_diff_count = {max_diff_count}.")
-        if max_diff_count == 10:
-            break
+        # if max_diff_count == args.dc:
+        #    break
 
     ##################################################
 
@@ -756,10 +764,12 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
 
     print ("Being refining!", flush=True)
     max_refine_count = 0
-    while (max_diff_up > 0.01 or max_diff_down > 0.01):
+    while (max_diff_up > 0.01 or max_diff_down > 0.01) and max_refine_count != args.rc:
+
         print (f"@ max_diff_up = {max_diff_up}, max_diff_down = {max_diff_down}...")
         nadded_rows = args.nar
-        sol_upper, sol_lower = refined_binodal_v4 (sol_upper, sol_lower, nadded_rows)
+
+        sol_upper, sol_lower   = refined_binodal_v4 (sol_upper, sol_lower, nadded_rows)
 
         direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
         theta_upper            = np.arccos (np.dot (direction, central_axis))
@@ -768,7 +778,8 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
         sol_upper              = sol_upper[sorted_theta_upper_idx]
         sol_lower              = sol_lower[sorted_theta_upper_idx]
 
-        sol_upper, sol_lower = refined_binodal_v5 (sol_upper, sol_lower, nadded_rows)
+        sol_upper, sol_lower   = refined_binodal_v5 (sol_upper, sol_lower, nadded_rows)
+
         direction              = (sol_upper[:,0:2] - center)/np.linalg.norm(sol_upper[:,0:2] - center, axis=1)[:, np.newaxis]
         theta_upper            = np.arccos (np.dot (direction, central_axis))
         sorted_theta_upper_idx = np.argsort (theta_upper)
@@ -783,8 +794,6 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
         max_diff_down = np.max(diff_down)
         max_refine_count += 1
         print (f"max_refine_count = {max_refine_count}.")
-        if max_refine_count == 10:
-            break
 
 
     ref_bin = [sol_upper, sol_lower]
@@ -1086,14 +1095,20 @@ if __name__=="__main__":
         normal_slope    = -1/tangent_to_crit
         if len(crits) == 1:
             center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
+            binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
         else:
             center  = np.mean(crits, axis=0)
-        binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
+            binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
+            if args.ooc:
+                break
+
+    # do a final sort
 
     print ("All crit points have been addressed.")
     print ("Done with binodal plotting!", flush=True)
 
     if args.ternary:
+        ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], c='limegreen', s=2, zorder=20)
         ax.set_tlabel('$\\phi _{S}$')
         ax.set_llabel('$\\phi _{C}$')
         ax.set_rlabel('$\\phi _{P}$')
@@ -1107,6 +1122,7 @@ if __name__=="__main__":
             ax.raxis.set_ticks_position(position)
 
     else:
+        ax.scatter (crits[:,0], crits[:,1], c='limegreen', s=2, zorder=20)
         ax.set_xlabel ("$\\phi _{S}$")
         ax.set_ylabel ("$\\phi _{P}$")
         ax.set_xlim   (0,1)

@@ -3,3 +3,5 @@
 *.slurm
 *.png 
 *.ipynb
+*.skelfile
+*.binodal

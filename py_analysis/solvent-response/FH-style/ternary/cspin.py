@@ -467,7 +467,7 @@ if __name__=="__main__":
         ax.scatter (p_s, 1-p_p-p_s, p_p, s=1, color=cols)
         if args.crits:
             ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='darkred', edgecolors='darkred', s=4, zorder=15)
-            ax.scatter (np.mean (crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits,axis=0)[1], color='darkred', edgecolors='darkred', s=4, zorder=15)
+            ax.scatter (np.mean (crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits,axis=0)[1], color='limegreen', edgecolors='limegreen', s=8, zorder=15)
         else:
             pass
 
@@ -496,7 +496,7 @@ if __name__=="__main__":
         ax.scatter (p_s, p_p, s=1, color=cols)
         if args.crits:
             ax.scatter (crits[:,0], crits[:,1], color='darkred', edgecolors='darkred', s=4, zorder=15)
-            ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='darkred', edgecolors='darkred', s=4, zorder=15)
+            ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='limegreen', edgecolors='limegreen', s=8, zorder=15)
         else:
             pass
 
@@ -539,8 +539,8 @@ if __name__=="__main__":
                 ax.plot (points_along_normal(l)[0],  1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_normal(l)[1],  c=cols[idx], lw=1)
 
             else:
-                ax.plot (points_along_tangent(l)[0], points_along_tangent(l)[1], c=cols[idx], lw=1)
-                ax.plot (points_along_normal(l)[0],  points_along_normal(l)[1],  c=cols[idx], lw=1)
+                ax.plot (points_along_tangent(l)[0],  points_along_tangent(l)[1],  c=cols[idx], lw=1)
+                ax.plot (points_along_normal (l)[0],  points_along_normal(l) [1],  c=cols[idx], lw=1)
 
     if args.ternary:
 

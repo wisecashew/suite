@@ -278,9 +278,9 @@ if __name__=="__main__":
     crits = np.vstack((roots_up, roots_down))
     crits = remove_close_rows (crits, 1e-6)
 
-    if len(crits) > 2:
-        print ("Number of crit points is greater than 2. The binodal calculation is going to be wacky and unstable. Exiting computation...", flush=True)
-        exit  ()
+    # if len(crits) > 2:
+    #     print ("Number of crit points is greater than 2. The binodal calculation is going to be wacky and unstable. Exiting computation...", flush=True)
+    #     exit  ()
 
     def stab_crit (p_s, p_p, c_ps, c_pc, c_sc):
         return (1/(vp*p_p) + 1/(vc*(1-p_s - p_p)) - 2 * c_pc) * (1/(vs*p_s) + 1/(vc*(1-p_s - p_p)) - 2 * c_sc) - (1/(vc*(1-p_s-p_p)) + c_ps - c_pc - c_sc) ** 2
@@ -443,15 +443,17 @@ if __name__=="__main__":
           np.linspace(phi_b_spin_min*0.001, phi_b_spin_max+(1-phi_b_spin_max)*0.999, mesh), \
           np.logspace(-20, np.log10(0.9), mesh)]
 
-    print (f"crits = {crits}")
+    print (f"crits = {crits}", flush=True)
     for crit in crits:
         print (f"@ crit point = {crit}...", flush=True)
         tangent_to_crit = tangent2  (vs, vc, vp, crit[0], crit[1], chi_ps, chi_pc, chi_sc)
         normal_slope    = -1/tangent_to_crit
         if len(crits) == 1:
             center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
-        else:
+        elif len(crits) == 2:
             center  = np.mean(crits, axis=0)
+        else:
+            center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
 
         f.write  ("{:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f} {:<1.20f}\n"\
         .format(0, crit[0], crit[1], 1-crit[0]-crit[1], crit[0], crit[1], 1-crit[0]-crit[1]))

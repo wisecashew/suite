@@ -38,14 +38,13 @@ parser.add_argument('-vp',               metavar='vp',        dest='vp',        
 parser.add_argument('--nadded-rows',     metavar='nar',       dest='nar',          type=int,       action='store',             help='number of rows to add while refining.', default=10)
 parser.add_argument('--refine-count',    metavar='rc',        dest='rc',           type=int,       action='store',             help='number of times the refiner should go off (default: 10).', default=10)
 parser.add_argument('--diff-count',      metavar='dc',        dest='dc',           type=int,       action='store',             help='number of times the difference filler should go off (default: 10).', default=10)
-parser.add_argument('--tieline-density', metavar='td',        dest='td',           type=int,       action='store',             help='Plug in a density at which you want tielines (default=50).', default=50)
 parser.add_argument('--dumpfile',        dest='dumpfile',     type=str,            action='store', help="name of file where the skeleton was dumped.")
 parser.add_argument('--bin-boundary',    dest='boundary',     type=str,            action='store', help="name of file where you will dump out your solution for the binodal (default name holds information about all inputs).", default="None")
 parser.add_argument('--ternary',         action='store_true', default=False,       help='make the output a ternary plot.')
 parser.add_argument('--only-one-crit',   dest='ooc',          action='store_true', default=False,  help='only go through one crit point. Useful only while debugging, probably. Avoid using otherwise! (default: False)')
 parser.add_argument('--tielines',        dest='tl',           action='store_true', default=False,  help="Option to include if you want to see all tie-lines.")
+parser.add_argument('--tieline-density', metavar='td',        dest='td',           type=int,       action='store',             help='Plug in a density at which you want tielines (default=50).', default=50)
 parser.add_argument('--no-rtw',          dest='nrtw',         action='store_true', default=False,  help="Don't print out the runtime warning.")
-parser.add_argument('--normal-cleave',   dest='normal',       action='store_true', default=False,  help="Cleave along the normal (default: cleave along the center of mass of critical points).")
 parser.add_argument('--image',           dest='img',          type=str,            action='store', help="name of image generated (default name holds information about all inputs).", default="None")
 args = parser.parse_args()
 
@@ -242,9 +241,9 @@ def refined_binodal_v4 (side_1, side_2, central_axis, nadded_rows):
     for idx, pt in enumerate (side_1x[m1+1:m1+nadded_rows-1]):
         if idx%25==0: print (f"idx = {idx} @ x,y = {pt[0],pt[1]}...", flush=True)
         def mu_equations (phi):
-            eq1 = mu_a(pt[0], phi[0]) - mu_a(phi[1], phi[2])
-            eq2 = mu_b(pt[0], phi[0]) - mu_b(phi[1], phi[2])
-            eq3 = mu_c(pt[0], phi[0]) - mu_c(phi[1], phi[2])
+            eq1 = (mu_a(pt[0], phi[0]) - mu_a(phi[1], phi[2]))/(np.linalg.norm(np.array([pt[0], phi[0]])-np.array([phi[1], phi[2]])))
+            eq2 = (mu_b(pt[0], phi[0]) - mu_b(phi[1], phi[2]))/(np.linalg.norm(np.array([pt[0], phi[0]])-np.array([phi[1], phi[2]])))
+            eq3 = (mu_c(pt[0], phi[0]) - mu_c(phi[1], phi[2]))/(np.linalg.norm(np.array([pt[0], phi[0]])-np.array([phi[1], phi[2]])))
             return [eq1, eq2, eq3]
 
         root_store = []
@@ -312,9 +311,9 @@ def refined_binodal_v5 (side_1, side_2, central_axis, nadded_rows):
     for idx, pt in enumerate (side_1x[m1+1:m1+nadded_rows-1]):
         if idx%25==0: print (f"idx = {idx} @ x, y = {pt[0],pt[1]}...", flush=True)
         def mu_equations (phi):
-            eq1 = mu_a(phi[0], pt[1]) - mu_a(phi[1], phi[2])
-            eq2 = mu_b(phi[0], pt[1]) - mu_b(phi[1], phi[2])
-            eq3 = mu_c(phi[0], pt[1]) - mu_c(phi[1], phi[2])
+            eq1 = (mu_a(phi[0], pt[1]) - mu_a(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], pt[1]])-np.array([phi[1], phi[2]])))
+            eq2 = (mu_b(phi[0], pt[1]) - mu_b(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], pt[1]])-np.array([phi[1], phi[2]])))
+            eq3 = (mu_c(phi[0], pt[1]) - mu_c(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], pt[1]])-np.array([phi[1], phi[2]])))
             return [eq1, eq2, eq3]
 
         root_store = []
@@ -401,9 +400,9 @@ def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper
     for idx in range (0, len(unsolved_upper_bin), 100):
         print (f"@ idx = {idx}...", flush=True)
         def mu_equations (phi):
-            eq1 = mu_a(phi[0], unsolved_upper_bin[idx][1]) - mu_a(phi[1], phi[2])
-            eq2 = mu_b(phi[0], unsolved_upper_bin[idx][1]) - mu_b(phi[1], phi[2])
-            eq3 = mu_c(phi[0], unsolved_upper_bin[idx][1]) - mu_c(phi[1], phi[2])
+            eq1 = (mu_a(phi[0], unsolved_upper_bin[idx][1]) - mu_a(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], unsolved_upper_bin[idx][1]])-np.array([phi[1], phi[2]])))
+            eq2 = (mu_b(phi[0], unsolved_upper_bin[idx][1]) - mu_b(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], unsolved_upper_bin[idx][1]])-np.array([phi[1], phi[2]])))
+            eq3 = (mu_c(phi[0], unsolved_upper_bin[idx][1]) - mu_c(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], unsolved_upper_bin[idx][1]])-np.array([phi[1], phi[2]])))
             return [eq1, eq2, eq3]
 
         for iidx in range(len(lower_guesses)):
@@ -444,9 +443,9 @@ def root_finder_with_scaling_lower (sol_upper, sol_lower, max_ind, binodal_upper
     for idx in range (0, len(unsolved_upper_bin), 100):
         print (f"@ idx = {idx}...", flush=True)
         def mu_equations (phi):
-            eq1 = mu_a(unsolved_upper_bin[idx][0], phi[0]) - mu_a(phi[1], phi[2])
-            eq2 = mu_b(unsolved_upper_bin[idx][0], phi[0]) - mu_b(phi[1], phi[2])
-            eq3 = mu_c(unsolved_upper_bin[idx][0], phi[0]) - mu_c(phi[1], phi[2])
+            eq1 = mu_a(unsolved_upper_bin[idx][0], phi[0]) - mu_a(phi[1], phi[2])/(np.linalg.norm(np.array([unsolved_upper_bin[idx][0], phi[0]])-np.array([phi[1], phi[2]])))
+            eq2 = mu_b(unsolved_upper_bin[idx][0], phi[0]) - mu_b(phi[1], phi[2])/(np.linalg.norm(np.array([unsolved_upper_bin[idx][0], phi[0]])-np.array([phi[1], phi[2]])))
+            eq3 = mu_c(unsolved_upper_bin[idx][0], phi[0]) - mu_c(phi[1], phi[2])/(np.linalg.norm(np.array([unsolved_upper_bin[idx][0], phi[0]])-np.array([phi[1], phi[2]])))
             return [eq1, eq2, eq3]
 
         for iidx in range(len(lower_guesses)):
@@ -531,9 +530,9 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
     for idx in range (0, len(unsolved_lower_bin), 100):
         print (f"@ idx = {idx}...", flush=True)
         def mu_equations (phi):
-            eq1 = mu_a(phi[0], unsolved_lower_bin[idx][1]) - mu_a(phi[1], phi[2])
-            eq2 = mu_b(phi[0], unsolved_lower_bin[idx][1]) - mu_b(phi[1], phi[2])
-            eq3 = mu_c(phi[0], unsolved_lower_bin[idx][1]) - mu_c(phi[1], phi[2])
+            eq1 = (mu_a(phi[0], unsolved_lower_bin[idx][1]) - mu_a(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], unsolved_lower_bin[idx][1]])-np.array([phi[1], phi[2]])))
+            eq2 = (mu_b(phi[0], unsolved_lower_bin[idx][1]) - mu_b(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], unsolved_lower_bin[idx][1]])-np.array([phi[1], phi[2]])))
+            eq3 = (mu_c(phi[0], unsolved_lower_bin[idx][1]) - mu_c(phi[1], phi[2]))/(np.linalg.norm(np.array([phi[0], unsolved_lower_bin[idx][1]])-np.array([phi[1], phi[2]])))
             return [eq1, eq2, eq3]
 
         for iidx in range(len(upper_guesses)):
@@ -573,9 +572,9 @@ def root_finder_with_scaling_upper (sol_upper, sol_lower, max_ind, binodal_upper
     for idx in range (0, len(unsolved_lower_bin), 100):
         print (f"@ idx = {idx}...", flush=True)
         def mu_equations (phi):
-            eq1 = mu_a(unsolved_lower_bin[idx][0], phi[0]) - mu_a(phi[1], phi[2])
-            eq2 = mu_b(unsolved_lower_bin[idx][0], phi[0]) - mu_b(phi[1], phi[2])
-            eq3 = mu_c(unsolved_lower_bin[idx][0], phi[0]) - mu_c(phi[1], phi[2])
+            eq1 = (mu_a(unsolved_lower_bin[idx][0], phi[0]) - mu_a(phi[1], phi[2]))/(np.linalg.norm(np.array([unsolved_lower_bin[idx][0], phi[0]])-np.array([phi[1], phi[2]])))
+            eq2 = (mu_b(unsolved_lower_bin[idx][0], phi[0]) - mu_b(phi[1], phi[2]))/(np.linalg.norm(np.array([unsolved_lower_bin[idx][0], phi[0]])-np.array([phi[1], phi[2]])))
+            eq3 = (mu_c(unsolved_lower_bin[idx][0], phi[0]) - mu_c(phi[1], phi[2]))/(np.linalg.norm(np.array([unsolved_lower_bin[idx][0], phi[0]])-np.array([phi[1], phi[2]])))
             return [eq1, eq2, eq3]
 
         for iidx in range(len(upper_guesses)):
@@ -657,13 +656,13 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
 
     bad_idx  = []
     good_idx = []
-    
+
     # start partitioning along a certain axis
     central_axis   = (crit-center)/np.linalg.norm (crit-center)
 
     print (f"center = {center}", flush=True)
     print (f"central axis = {central_axis}", flush=True)
-    
+
     # f = open (args.boundary, 'w')
     print ("Start processing the dumpfile and find roots.", flush=True)
     print (f"I will be processing an array of size = {phi_a_upper.size}.", flush=True)
@@ -671,10 +670,9 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
     for idx in range (len(phi_a_upper)):
 
         def mu_equations (phi):
-            eq1 = mu_a(phi[0], phi_b_upper[idx]) - mu_a(phi[1], phi[2])
-            eq2 = mu_b(phi[0], phi_b_upper[idx]) - mu_b(phi[1], phi[2])
-            eq3 = mu_c(phi[0], phi_b_upper[idx]) - mu_c(phi[1], phi[2])
-
+            eq1 = (mu_a(phi[0], phi_b_upper[idx]) - mu_a(phi[1], phi[2]))/np.linalg.norm(np.array([phi[0]-phi_b_upper[idx]])-np.array([phi[1], phi[2]]))
+            eq2 = (mu_b(phi[0], phi_b_upper[idx]) - mu_b(phi[1], phi[2]))/np.linalg.norm(np.array([phi[0]-phi_b_upper[idx]])-np.array([phi[1], phi[2]]))
+            eq3 = (mu_c(phi[0], phi_b_upper[idx]) - mu_c(phi[1], phi[2]))/np.linalg.norm(np.array([phi[0]-phi_b_upper[idx]])-np.array([phi[1], phi[2]]))
             return [eq1, eq2, eq3]
 
         root = fsolve (mu_equations, [phi_a_upper[idx], phi_a_lower[idx], phi_b_lower[idx]])
@@ -719,7 +717,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
 
     print (f"Length of bad_idx = {len(bad_idx)}")
     print (f"Length of good_idx = {len(good_idx)}")
-    
+
     ##################
     ##################
 
@@ -857,7 +855,7 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
     if args.ternary:
         ax.scatter (ref_bin[0][:,0], 1-ref_bin[0][:,0]-ref_bin[0][:,1], ref_bin[0][:,1], c='silver',     s=0.125, zorder=11)
         ax.scatter (ref_bin[1][:,0], 1-ref_bin[1][:,0]-ref_bin[1][:,1], ref_bin[1][:,1], c='darkred',    s=0.125, zorder=11)
-
+        
     else:
         ax.scatter (ref_bin[0][:,0], ref_bin[0][:,1], c='silver',     s=0.125, zorder=11)
         ax.scatter (ref_bin[1][:,0], ref_bin[1][:,1], c='darkred',    s=0.125, zorder=11)
@@ -882,8 +880,6 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
     return ref_bin
 
 ############################
-############################
-
 
 if __name__=="__main__":
 
@@ -1067,11 +1063,11 @@ if __name__=="__main__":
         print (f"There are no critical points. Exiting...")
         exit ()
     elif len(crits) == 3:
-        print (f"Number of critical points is {len(crits)} == 3. Currently, we do not have the ability to solve for such diagrams. Here we go...")
+        print (f"Number of critical points is {len(crits)} >= 3. Currently, we do not have the ability to solve for such diagrams. Exiting...")
         pass
     elif len(crits) > 4:
-        print (f"Number of critical points is {len(crits)} > 3. Currently, we do not have the ability to solve for such diagrams. Here we go...")
-        pass
+        print (f"Number of critical points is {len(crits)} > 3. Currently, we do not have the ability to solve for such diagrams. Exiting...")
+        exit ()
     
     print ("Number of critical points = ",len(crits), flush=True)
     print ("critical points = \n",crits, flush=True)
@@ -1130,30 +1126,18 @@ if __name__=="__main__":
     ff = open (boundaryfile, 'w')
     ff.write  ("phi_s_top|phi_p_top|phi_c_top|phi_s_bot|phi_p_bot|phi_c_bot\n")
     ff.close  ()
-    normals  = []
-    tangents = []
-    for idx,crit in enumerate(crits):
+
+    for crit in crits:
         print (f"@ crit point = {crit}...")
         tangent_to_crit = tangent2  (vs, vc, vp, crit[0], crit[1], chi_pc, chi_ps, chi_sc)
         normal_slope    = -1/tangent_to_crit
-        tangents.append (tangent_to_crit)
         if len(crits) == 1:
             center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
             binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
         elif len(crits) == 2:
-            if args.normal:
-                center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
-                binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
-                if idx == 1:
-                    pseudo_center = np.mean (crits, axis=0)
-                    direction = np.mean(tangents, axis=0)/np.linalg.norm(np.mean(tangents, axis=0))
-                    pseudo_crit = center + direction
-                    print ("The pseudo_center is {pseudo_center}, the pseudocrit point is {pseudo_crit}.", flush=True)
-                    binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc,va, vb, vc, pseudo_crit, pseudo_center)
-            else:
-                center  = np.mean(crits, axis=0)
-                binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
-                break
+            center  = np.mean(crits, axis=0)
+            binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)
+            break
         else:
             center  = np.array ([1, normal_slope]) / np.sqrt(1+normal_slope ** 2) + crit
             binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, va, vb, vc, crit, center)

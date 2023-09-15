@@ -329,23 +329,8 @@ int main (int argc, char** argv) {
 
 
         if ( IMP_BOOL ) {
-            acceptances[move_number] += 1;          
+            acceptances[move_number] += 1;
         }
-
-        /*
-        if ( v ){
-            if (IMP_BOOL){
-                std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
-                std::cout << "Accepted!" << std::endl;
-            }
-            else {
-                std::cout << "IMP_BOOL = " << IMP_BOOL << std::endl;
-                std::cout << "Rejected..." << std::endl;   
-            }
-            std::cout << "Checking if data structures are in good conditions..." << std::endl; 
-            CheckStructures (&Polymers, &Cosolvent, &LATTICE, x, y, z);
-        }
-        */ 
 
         if ( ( i % dfreq == 0 ) ){
             dumpPositionsOfPolymers (&Polymers, i, dfile); 
@@ -353,7 +338,7 @@ int main (int argc, char** argv) {
             // if ( i % (dfreq*10) == 0 ) {
             //     dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
             // }
-            
+
             if ( i % (lfreq) == 0 ){
                 dumpLATTICE ( &LATTICE, i, y, z, lattice_file_write ); 
             }
@@ -362,12 +347,17 @@ int main (int argc, char** argv) {
         IMP_BOOL = true;
     }
 
-    dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
-    
-    
-    stop = std::chrono::high_resolution_clock::now(); 
-    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
-	
+    // dump out everything
+    dumpLATTICE ( &LATTICE, step_number+max_iter, y, z, lattice_file_write );
+
+    // dump the move statistics
+    dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);
+
+    // now the clock
+    stop = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start);
+
+    // concluding remarks
     std::cout << "\n\nTime taken for simulation: " << duration.count()/1e+06 << " seconds.\n"; 
     std::cout << "That is all she wrote. Hope it worked." << std::endl;
     std::cout << "--------------------------------------------------------------------\n\n";

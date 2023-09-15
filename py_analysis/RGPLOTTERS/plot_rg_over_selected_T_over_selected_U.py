@@ -32,7 +32,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration plot given a degree of polymerization over a range of temperatures and potential energy surfaces.")
 parser.add_argument('-dop',           metavar='DOP',  dest='dop',            type=int,       action='store', help='enter a degree of polymerization.')
 parser.add_argument('-s',             metavar='S',    type=int,              dest='s',       action='store', help='start parsing after this move number (not index or line number in file).', default=100)
-parser.add_argument('--frac',         metavar='frac', dest='frac',           action='store', nargs='+',      type=float, help='Enter fractions you want probed.')
+parser.add_argument('--T',            metavar='T',    dest='T',           action='store', nargs='+',      type=float, help='Enter the temperatures you want probed.')
 parser.add_argument('--U',            metavar='U',    dest='U',              action='store', nargs='+',      type=str,   help='Enter U you want probed.')
 parser.add_argument('-nproc',         metavar='N',    type=int,              dest='nproc',   action='store', help='Request these many proccesses.')
 parser.add_argument('--coords',       dest='c',       metavar='coords.txt',  action='store', type=str,       help='Name of energy dump file to parse information.', default='coords.txt')
@@ -40,16 +40,16 @@ parser.add_argument('--show-legends', dest='sl',      action='store_true',   hel
 parser.add_argument('--png-name',     dest='pn',      metavar='imagename',   action='store', type=str,       help='Name of image file', default='rg_plot')
 args = parser.parse_args() 
 
-def get_starting_ind ( U, frac, num, dop, dumpfile):
-    filename = U + "/DOP_" + str(dop) + "/" + str(frac) + "/" + dumpfile + "_" + str(num) + ".mc"
+def get_starting_ind ( U, T, num, dop, dumpfile):
+    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
     df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
     L = len(df["energy"])
     return int(df["time_step"].values[L-2000])
 
 
-def infiltrate_coords_get_rg ( U, frac, num, dop, coords_files, starting_index ):
+def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
-    filename = U + "/DOP_" + str(dop) + "/" + str(frac) + "/"+ coords_files + "_" + str(num)+".mc" 
+    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num)+".mc" 
     edge = aux.edge_length (dop)
     master_dict = aux.get_pdict (filename, starting_index, dop, edge, edge, edge)
     rg = aux.get_Rg(master_dict, edge, edge, edge) 
@@ -57,7 +57,7 @@ def infiltrate_coords_get_rg ( U, frac, num, dop, coords_files, starting_index )
 
 
 
-if __name__ == "__main__":    
+if __name__ == "__main__":
 
     start = time.time() 
     ##################################
@@ -67,14 +67,14 @@ if __name__ == "__main__":
             if m.isdigit():
                 new_str = new_str+m
         return float(new_str)
-    
+
     U_list = args.U
     print (U_list, flush=True)
-    PLOT_DICT = {} 
+    PLOT_DICT = {}
     dop            = args.dop
     coords_files   = args.c
     starting_index = args.s
-    
+
     ######
     fig = plt.figure( figsize=(2.5,2.5), constrained_layout=True )
     ax  = plt.axes() 
@@ -82,37 +82,36 @@ if __name__ == "__main__":
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
     ax.tick_params(axis='x', labelsize=8)
     ax.tick_params(axis='y', labelsize=8)
-    i = 0 
-    
-    rg_max = (1+np.sqrt(2)+np.sqrt(3))/(3*6**0.5) * (dop**0.57) 
+    temperature_list = args.T
+    i = 0
+
+    rg_max = 1 # (1+np.sqrt(2)+np.sqrt(3))/(3*6**0.5) * (dop**0.57) 
     # instantiating pool
     nproc = args.nproc
     pool1 = multiprocessing.Pool ( processes=nproc )# len(num_list)) 
-    
-    pool_list = [pool1] # , pool2]
-    
+    pool_list = [pool1]
 
     for U in U_list:
         print (f"Diving into U = {U}...", flush=True)
-        frac_list = args.frac
-        rg_mean = [] 
-        rg_std  = [] 
-        
+        T_list = args.T
+        rg_mean = []
+        rg_std  = []
+
         # get num_list for each temperature 
-        master_frac_list     = []
+        master_temperature_list     = []
         master_num_list      = []
         master_index_list    = []
         rg_dict    = {}
         ntraj_dict = {}
-        for f in frac_list:
-            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(f) ) ) ) )
+        for T in temperature_list:
+            num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
             master_num_list.extend ( num_list )
             for num in num_list:
-                master_index_list.append (get_starting_ind (U, f, num, dop, "energydump") )
+                master_index_list.append (get_starting_ind (U, T, num, dop, "energydump") )
 
-            master_frac_list.extend ( [f]*len( num_list ) )
-            ntraj_dict[f] = len ( num_list )
-            rg_dict[f]    = []
+            master_temperature_list.extend ( [T]*len( num_list ) )
+            ntraj_dict[T] = len ( num_list )
+            rg_dict[T]    = []
 
         # start multiprocessing... keeping in mind that each node only has 96 cores 
         # start splitting up master_num_list and master_temp_list 
@@ -121,51 +120,48 @@ if __name__ == "__main__":
 
         for u_idx in range (idx_range):
             if u_idx == idx_range-1:
-                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_frac_list[u_idx*nproc:], master_num_list [u_idx*nproc:], itertools.repeat (dop), itertools.repeat (coords_files), master_index_list[u_idx*nproc:] ) )
+                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_temperature_list[u_idx*nproc:], master_num_list [u_idx*nproc:], itertools.repeat (dop), itertools.repeat (coords_files), master_index_list[u_idx*nproc:] ) )
             else:
-                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_frac_list[(u_idx)*nproc:(u_idx+1)*nproc], master_num_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), master_index_list[u_idx*nproc:(u_idx+1)*nproc] ) )
+                results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_temperature_list[(u_idx)*nproc:(u_idx+1)*nproc], master_num_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), master_index_list[u_idx*nproc:(u_idx+1)*nproc] ) )
 
             print ("Pool has been closed. This pool had {} threads.".format (len(results) ), flush=True )
 
-            for k in range( len( master_frac_list[u_idx*nproc:(u_idx+1)*nproc] ) ):
-                rg_dict[master_frac_list[u_idx*nproc + k]].append( results[k] )
+            for k in range( len( master_temperature_list[u_idx*nproc:(u_idx+1)*nproc] ) ):
+                rg_dict[master_temperature_list[u_idx*nproc + k]].append( results[k] )
 
-        for f in frac_list:
-            rg_mean.append( np.mean ( rg_dict[f] ) )
-            rg_std.append ( np.std  ( rg_dict[f] ) / np.sqrt(ntraj_dict[f] ) )
+        for temp in temperature_list:
+            rg_mean.append( np.mean ( rg_dict[temp] ) )
+            rg_std.append ( np.std  ( rg_dict[temp] ) / np.sqrt(ntraj_dict[temp] ) )
 
         PLOT_DICT [U] = ( np.asarray(rg_mean), np.asarray(rg_std) )
 
 
     pool1.close()
     pool1.join()
-    print ("rg_max = ", rg_max)
+    print (f"rg_max = {rg_max}...")
     i=0
 
     for U in U_list:
-        ax.errorbar ( frac_list, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
-        ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=3/2, label=f'{U}', markersize=4 ) 
+        ax.errorbar ( temperature_list, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
+        ax.plot     ( temperature_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', linewidth=3/2, label=f'{U}', markersize=4 ) 
         i += 1
 
     #########
     # plt.rcParams['text.usetex'] = True
-    ax.minorticks_on()
-    ax.set_xlim((-0.05, 1.05))
-    ax.set_ylim(0.4, 1.5)
-    ax.set_xticks (np.linspace (0, 1, 6))
-    ax.set_yticks (np.arange(0.4, 1.7, 0.2))
-    ax.set_yticklabels (ax.get_yticks(), weight='bold')
-    ax.set_xticklabels (ax.get_xticks(), weight='bold')
-    plt.gca().yaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
-    plt.gca().xaxis.set_major_formatter(StrMethodFormatter('{x:1.1f}'))
-    ax.xaxis.set_minor_locator(tck.AutoMinorLocator())
-    ax.yaxis.set_minor_locator(tck.AutoMinorLocator())
 
+    ax.set_xscale ('log')
+    yticks = np.arange (1,8,1)
+    ax.set_yticks (yticks)
+    ax.set_yticklabels ([])
+    ax.set_ylim (1, 7)
+    ax.set_xlim (0.01, 100)
+    ax.set_xticks (np.logspace (-2,2,5))
+    ax.set_xticklabels ([]) # np.logspace (-2,2,5), fontdict=font)
+    ax.yaxis.set_minor_locator(matplotlib.ticker.AutoMinorLocator())
     if args.sl:
         ax.legend(loc="upper right", fontsize=6)
 
     plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
-    
     ##################################
     stop = time.time() 
 

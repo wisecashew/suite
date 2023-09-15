@@ -444,11 +444,15 @@ if __name__=="__main__":
     if np.sign (vmax) == np.sign (vmin):
         if np.sign (vmax) >=0:
             vmin = -vmax
+            print (f"There is no unstable region.")
         else:
             vmax = -vmin
+            print ("There is mostly unstable region.")
 
-    if -vmin == vmax:
-        print (f"There is no unstable region.")
+    else:
+        print ("there exist unstable regions.")
+
+    
 
     if args.crits:
         roots_up, roots_down = find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc)

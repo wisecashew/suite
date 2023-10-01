@@ -41,6 +41,7 @@ import argparse
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain the flory exponent from that file.")
 parser.add_argument('--integrated-database', dest='df', metavar='df', action='store', type=str, help='Name of dump file.')
 parser.add_argument('-R', dest='R', metavar='R', action='store', nargs='+', type=str, help='Name of dump file.')
+parser.add_argument('--figsize', dest='figsize', action='store', nargs=2, type=float, help='Enter dimensions of image (width, height) (default: (2.5, 2.5)', default=[2.5,2.5])
 parser.add_argument('--gradient', dest='gradient', action='store_true', help='Mention this option if you want your background to have a gradient.', default=False)
 parser.add_argument('--png-name', dest='pn', metavar='imagename', action='store', type=str, help='Name of image.')
 args = parser.parse_args() 
@@ -54,8 +55,9 @@ if __name__ == "__main__":
 	fpath = Path (matplotlib.get_data_path(), "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/arial.ttf")
 	# plt.rcParams['font.family'] = 'Arial'
 
-	lsize = 13.5
-	fig = plt.figure(figsize=(2.5, 2.5), constrained_layout=True)
+	lsize  = 13.5
+	fsize = args.figsize
+	fig = plt.figure(figsize=(fsize[0], fsize[1]), constrained_layout=True)
 	fig.tight_layout()
 	ax  = plt.axes  ()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')

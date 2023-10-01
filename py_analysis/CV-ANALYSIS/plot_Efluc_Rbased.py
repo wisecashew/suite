@@ -30,11 +30,13 @@ os.environ['OMP_NUM_THREADS'] = '1'
 parser = argparse.ArgumentParser(description="Get the heat capacities from our simulation.")
 parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide degree of polymerization.', default=32) 
 parser.add_argument('-s', dest='s', action='store', type=int, help='Provide a starting index from when to sample.', default=100)
+parser.add_argument('--figsize', dest='figsize', action='store', nargs=2, type=float, help='Enter dimensions of image (width, height) (default: (2.5, 2.5)', default=[2.5,2.5])
 parser.add_argument('--T', dest='T', action='store', type=float, nargs='+', help='Provide a temperature list.')
 parser.add_argument('--database', dest='db', action='store', type=str, help='The database where the flory exponents is stored.')
 parser.add_argument('--dump-file', dest='e', metavar='energydump', action='store', type=str, help='Name of energy dump file to parse information.', default='energydump') 
 parser.add_argument('--R', dest='R', metavar='RX', action='store', type=str, help='Name of forcefield in database to plot.')
 parser.add_argument('--U', dest='U', metavar='UX', action='store', type=str, help='Name of forcefield directory.')
+parser.add_argument('--clip-on', dest='clipon', action='store_true', help='Option to clip points mpl.', default=False)
 parser.add_argument('--png-name', dest='pn', metavar='png name', action='store', type=str, help='Name of image.', default='ms_plot')
 
 args = parser.parse_args()
@@ -47,8 +49,9 @@ if __name__=="__main__":
 	temperatures = args.T
 	print (f"Temperatures to be probed = {args.T}...")
 
+	fsize = args.figsize
 	# get the entire list of potential energy surfaces 
-	fig = plt.figure   ( figsize=(1.7,1.7) )
+	fig = plt.figure   ( figsize=(fsize[0],fsize[1]) )
 	lsize = 14
 	fig.tight_layout()
 	ax  = plt.axes() 
@@ -91,7 +94,7 @@ if __name__=="__main__":
 	for U in U_list:
 		rgba_color = color_dict[args.R]
 		ax.errorbar ( temperatures, PLOT_DICT[U][0]/(args.dop), yerr=PLOT_DICT[U][1]/(args.dop), linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
-		ax.plot     ( temperatures, PLOT_DICT[U][0]/(args.dop), linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=8/1.3, clip_on=False, zorder=10)
+		ax.plot     ( temperatures, PLOT_DICT[U][0]/(args.dop), linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=8/1.3, clip_on=args.clipon, zorder=10)
 
 	'''
 	# plot the background

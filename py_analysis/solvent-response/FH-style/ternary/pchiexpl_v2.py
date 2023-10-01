@@ -71,88 +71,95 @@ def mesh_maker (ij_tups, chunksize, chimeshsize, chi_ab, chi_bc, chi_ac, p_a, p_
 
 if __name__=="__main__":
 
-    start = time.time()
+	start = time.time()
 
-    N     = args.N
-    lsize = 3
-    font = {'color':  'black',
-        'weight': 'normal',
-        'size': lsize}
+	N     = args.N
+	lsize = 3
+	font = {'color':  'black',
+		'weight': 'normal',
+		'size': lsize}
 
-    chi_ac = [args.chiac]# np.linspace (-10, 0, 11)
+	chi_ac = [args.chiac]# np.linspace (-10, 0, 11)
 
-    print (f"chi_ac [0] = {chi_ac[0]}")
+	print (f"chi_ac [0] = {chi_ac[0]}")
 
-    chimeshsize = args.chimeshsize
-    llim = args.llim
-    ulim = args.ulim
-    chi_ab, chi_bc = np.meshgrid ( np.linspace(llim, ulim, chimeshsize), np.linspace (llim, ulim, chimeshsize) )
+	chimeshsize = args.chimeshsize
+	llim = args.llim
+	ulim = args.ulim
+	chi_ab, chi_bc = np.meshgrid ( np.linspace(llim, ulim, chimeshsize), np.linspace (llim, ulim, chimeshsize) )
 
 
-    print (f"chi_ab = \n{chi_ab.shape}")
-    print (f"chi_bc = \n{chi_bc.shape}")
+	print (f"chi_ab = \n{chi_ab.shape}")
+	print (f"chi_bc = \n{chi_bc.shape}")
 
-    fig = plt.figure ()
-    ax  = plt.axes   ()
+	fig = plt.figure ()
+	ax  = plt.axes   ()
 
-    ax.axvline (x=0, c='k', ls='--')
-    ax.axhline (y=0, c='k', ls='--')
+	ax.axvline (x=0, c='k', ls='--')
+	ax.axhline (y=0, c='k', ls='--')
 
-    phimeshsize = args.phimeshsize
-    p_a_space = np.logspace (-3, np.log10(1-0.001), phimeshsize)
-    p_a = np.repeat (p_a_space, len(p_a_space))
-    p_b = np.empty (p_a.shape)
-    for i in range (len(p_a_space)):
-        lowlim = -3 if 1-p_a_space[i] > 0.001 else -4
-        uplim  = np.log10(1-p_a_space[i]-0.001)
-        p_b [i*len(p_a_space):(i+1)*len(p_a_space)] = np.logspace (lowlim, uplim, len(p_a_space))
+	phimeshsize = args.phimeshsize
+	p_a_space = np.logspace (-3, np.log10(1-0.001), phimeshsize)
+	p_a = np.repeat (p_a_space, len(p_a_space))
+	p_b = np.empty (p_a.shape)
+	for i in range (len(p_a_space)):
+		lowlim = -3 if 1-p_a_space[i] > 0.001 else -4
+		uplim  = np.log10(1-p_a_space[i]-0.001)
+		p_b [i*len(p_a_space):(i+1)*len(p_a_space)] = np.logspace (lowlim, uplim, len(p_a_space))
 
-    Z = np.zeros (chi_ab.shape)
+	Z = np.zeros (chi_ab.shape)
 
-    # this is the square chunk size 
-    chunksize = args.chunksize
+# this is the square chunk size 
+	chunksize = args.chunksize
 
-    # max possible number of chunks, given chunk size is...
-    max_chunks = (chimeshsize ** 2) // (chunksize ** 2)
+# max possible number of chunks, given chunk size is...
+	max_chunks = (chimeshsize ** 2) // (chunksize ** 2)
 
-    if max_chunks < args.nproc:
-        nproc       = max_chunks
-        cperprocess = 1
-    else:
-        nproc = args.nproc
-        cperprocess = 1
+	if max_chunks < args.nproc:
+		nproc       = max_chunks
+		cperprocess = 1
+	else:
+		nproc = args.nproc
+		cperprocess = 1
 
-    print (f"num process = {nproc}.")
-    print (f"Chi mesh length = {chimeshsize}.")
+	print (f"num process = {nproc}.")
+	print (f"Chi mesh length = {chimeshsize}.")
 
-    # check if total number of chunks can be equally distributed among all processes
+# check if total number of chunks can be equally distributed among all processes
 
-    print (f"chunks assigned per process = {cperprocess}")
+	print (f"chunks assigned per process = {cperprocess}")
 
-    ij_tups = []
-    val = int(np.sqrt (nproc))
-    for i in range (val):
-       for j in range (val):
-           ij_tups.append ([(i,j)])
+	ij_tups = []
+	val = int(np.sqrt (nproc))
+	for i in range (val):
+	   for j in range (val):
+		   ij_tups.append ([(i,j)])
 
-    pool = mp.Pool (processes=nproc)
+	pool = mp.Pool (processes=nproc)
 
-    results = pool.starmap (mesh_maker, zip (ij_tups, itertools.repeat(chunksize), itertools.repeat(chimeshsize), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac[0]), itertools.repeat (p_a), itertools.repeat(p_b) ) )
+	results = pool.starmap (mesh_maker, zip (ij_tups, itertools.repeat(chunksize), itertools.repeat(chimeshsize), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chi_ac[0]), itertools.repeat (p_a), itertools.repeat(p_b) ) )
 
-    pool.close ()
-    pool.join  ()
+	pool.close ()
+	pool.join  ()
 
-    for ind, indiv_proc in enumerate(results):
-        for plots in indiv_proc:
-            if len (plots) == 0:
-                pass
-            else:
+	for ind, indiv_proc in enumerate(results):
+		for plots in indiv_proc:
+			if len (plots) == 0:
+				pass
+			else:
                 # print (f"Ind = {ind}")
-                # print (f"plots[0].shape = {plots[0].shape}, plots[1].shape = {plots[1].shape}, plots[2].shape = {plots[2].shape}")
-                ax.pcolormesh (plots[0], plots[1], plots[2], cmap=cm.ocean, norm=colors.Normalize(vmin=0, vmax=1), shading="auto")
+				# print (f"plots[0].shape = {plots[0].shape}, plots[1].shape = {plots[1].shape}, plots[2].shape = {plots[2].shape}")
+                # ax.pcolormesh (plots[0], plots[1], plots[2], cmap="Greens", shading="auto")
+                # reshape shit
+				x    = plots[0].reshape(-1)
+				y    = plots[1].reshape(-1)
+				Z = plots[2].reshape(-1)
+				x = x[Z>0]
+				y = y[Z>0]
+				ax.scatter (x, y, c="coral", edgecolors="coral")
 
 
-    plt.savefig (args.img, dpi=1200)
-    print ("Completed cononsolvency computation.")
-    stop = time.time()
-    print (f"Time for computation is {stop-start} seconds.")
+	plt.savefig (args.img, dpi=1200)
+	print ("Completed cononsolvency computation.")
+	stop = time.time()
+	print (f"Time for computation is {stop-start} seconds.")

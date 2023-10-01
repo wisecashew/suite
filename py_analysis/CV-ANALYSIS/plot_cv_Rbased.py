@@ -30,6 +30,7 @@ os.environ['OMP_NUM_THREADS'] = '1'
 parser = argparse.ArgumentParser(description="Get the heat capacities from our simulation.")
 parser.add_argument('-dop', dest='dop', action='store', type=int, help='Provide degree of polymerization.', default=32) 
 parser.add_argument('-s', dest='s', action='store', type=int, help='Provide a starting index from when to sample.', default=100)
+parser.add_argument('--figsize', dest='figsize', action='store', nargs=2, type=float, help='Enter dimensions of image (width, height) (default: (2.5, 2.5)', default=[2.5,2.5])
 parser.add_argument('--yulim', dest='yulim', action='store', type=float, help='Provide an upper limit to y-axis.', default=None)
 parser.add_argument('--yllim', dest='yllim', action='store', type=float, help='Provide a lower limit to y-axis.', default=None)
 parser.add_argument('--T', dest='T', action='store', type=float, nargs='+', help='Provide a temperature list.')
@@ -40,6 +41,7 @@ parser.add_argument('--ylabels', dest='ylabels', action='store_true', default=Fa
 parser.add_argument('--no-kt2', dest='nokt2', action='store_true', default=False, help='Provide this label if you want to scale by kT^2.')
 parser.add_argument('--R', dest='R', metavar='RX', action='store', type=str, help='Name of forcefield in database to plot.')
 parser.add_argument('--U', dest='U', metavar='UX', action='store', type=str, help='Name of forcefield directory.')
+parser.add_argument('--clip-on', dest='clipon', action='store_true', help='Option to clip points mpl.', default=False)
 parser.add_argument('--png-name', dest='pn', metavar='png name', action='store', type=str, help='Name of image.', default='ms_plot')
 
 args = parser.parse_args()
@@ -169,9 +171,10 @@ if __name__=="__main__":
 
 	temperatures = args.T
 	print (f"Temperatures to be probed = {args.T}...")
+	fsize = args.figsize
 
 	# get the entire list of potential energy surfaces 
-	fig = plt.figure   ( figsize=(1.7,1.7) )
+	fig = plt.figure   ( figsize=(fsize[0],fsize[1]) )
 	lsize = 14
 	fig.tight_layout()
 	ax  = plt.axes() 
@@ -210,7 +213,7 @@ if __name__=="__main__":
 	for U in U_list:
 		rgba_color = color_dict[args.R]
 		ax.errorbar ( temperatures, PLOT_DICT[U][0], yerr=PLOT_DICT[U][1], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
-		ax.plot     ( temperatures, PLOT_DICT[U][0], linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=8/1.3, clip_on=False, zorder=10)
+		ax.plot     ( temperatures, PLOT_DICT[U][0], linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=8/1.3, clip_on=args.clipon, zorder=10)
 
 	# plot the background
 	color1 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB
@@ -260,7 +263,7 @@ if __name__=="__main__":
 		ax.set_yticklabels ([])
 
 	ax.set_ylim   (yllim, yulim)
-	ax.set_yticks (np.linspace(yllim, yulim, 5))
+	ax.set_yticks (np.linspace(yllim, yulim, 4))
 	ax.set_xlim   (0.01, 100)
 	ax.set_xticks (np.logspace(-2, 2, 5))
 	ax.set_xticklabels ([])

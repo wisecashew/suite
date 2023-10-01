@@ -7,9 +7,9 @@ import matplotlib.colors as colors
 import matplotlib.patheffects as pe
 from scipy.optimize import fsolve
 from scipy.optimize import root
+import matplotlib.ticker as tck
 from matplotlib.ticker import StrMethodFormatter
 import scipy.optimize as opt
-from matplotlib.ticker import StrMethodFormatter
 from matplotlib.ticker import Locator, AutoMinorLocator, MultipleLocator
 import sys
 import argparse
@@ -18,6 +18,7 @@ import multiprocessing as mp
 import os
 import copy
 import itertools
+from matplotlib.colors import LinearSegmentedColormap
 
 np.set_printoptions (threshold=sys.maxsize)
 
@@ -54,6 +55,10 @@ def sector_processor (x, y, p_a, p_b, N, chi_ab, chi_bc, chi_ac):
 if __name__=="__main__":
 
     start = time.time()
+    cols = ['white', 'coral']
+
+    # Create a colormap with two colors
+    cmap = LinearSegmentedColormap.from_list('white_to_coral', cols, N=256)
 
     N     = args.N
     nproc = args.nproc
@@ -63,11 +68,11 @@ if __name__=="__main__":
         'weight': 'normal',
         'size': lsize}
 
-    chi_ac = np.linspace (0, 100, 11)
+    chi_ac = [-10, -7, -4, 0] # np.linspace (0, 100, 11)
 
     chimeshsize = 1000
     plot_lim = 15
-    chi_ab, chi_bc = np.meshgrid ( np.linspace(0, plot_lim, chimeshsize), np.linspace (0, plot_lim, chimeshsize) )
+    chi_ab, chi_bc = np.meshgrid ( np.linspace(-plot_lim, 0, chimeshsize), np.linspace (-plot_lim, 0, chimeshsize) )
 
 
     phimeshsize = 100
@@ -104,11 +109,18 @@ if __name__=="__main__":
     pool = mp.Pool (processes=spawns)
 
     for idx, chiac in enumerate(chi_ac):
-        fig2  = plt.figure (num=idx)
+        fig2  = plt.figure (num=idx, figsize=(2.0,2.0))
         ax2   = plt.axes   ( )
+        ax2.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 
-        ax2.axvline (x=0, c='k', linestyle='--')
-        ax2.axhline (y=0, c='k', linestyle='--')
+        # ax2.axvline (x=0, c='k', linestyle='--')
+        # ax2.axhline (y=0, c='k', linestyle='--')
+        ax2.set_xticks([-15, -10, -5, 0])
+        ax2.set_yticks([-15, -10, -5, 0])
+        ax2.set_xticklabels([])
+        ax2.set_yticklabels([])
+        ax2.xaxis.set_minor_locator(tck.AutoMinorLocator())
+        ax2.yaxis.set_minor_locator(tck.AutoMinorLocator())
 
         print (f"num = {idx}, chi_ac = {chiac}")
         results = pool.starmap (sector_processor, zip(x_tups, y_tups, itertools.repeat(p_a), itertools.repeat(p_b), itertools.repeat(N), itertools.repeat(chi_ab), itertools.repeat(chi_bc), itertools.repeat(chiac) ) )
@@ -116,17 +128,14 @@ if __name__=="__main__":
             if len(things) == 0:
                 pass
             else:
-                ax2.pcolormesh (things[0], things[1], things[2], cmap=cm.ocean, norm=colors.Normalize(vmin=0, vmax=1), shading="auto")
-
-        fig2.savefig (f"cnscheck_test_par"+str(idx), dpi=1200, bbox_inches="tight")
+                ax2.pcolormesh (things[0], things[1], things[2], cmap=cmap, norm=colors.Normalize(vmin=0, vmax=1), shading="auto")
+        ax2.minorticks_on()
+        fig2.savefig (f"cnscheck_chiac"+str(chiac), dpi=1200, bbox_inches="tight")
 
     pool.close ()
     pool.join  ()
 
     # print (f"len(results) = {len(results)}")
-
-    # combine all plots
-
 
     print ("Completed cononsolvency computation.")
     stop = time.time()

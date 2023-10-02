@@ -1,0 +1,18 @@
+x = 34
+y = 34
+z = 34
+frac = 0.1
+kT = 0.1
+m1-m1:parallel
+m1-s1:parallel
+m1-s2:isotropic
+s1-s2:antiparallel
+Emm_a    = -1
+Emm_n    = -0
+Ems1_a   = 0
+Ems1_n   = 0
+Ems2_a   = -1
+Ems2_n   = -0
+Es1s2_a  = -0
+Es1s2_n  = -0
+END OF FILE

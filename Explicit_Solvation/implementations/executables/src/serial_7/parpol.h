@@ -1,6 +1,6 @@
 #ifndef _MC_CLASSES_H_
 #define _MC_CLASSES_H_ 
-#include <array>
+#include "misc.h"
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -79,20 +79,13 @@ public:
     };
 
     // print positions of monomer present in the polymer
-    void printChainCoords(); 
+    void print_chain(); 
 
     // print orientation of monomer present in the polymer
-    void printOrientation(); 
+    void print_orientation(); 
 
     // obtain connectivity map given the chain 
-    void ChainToConnectivityMap(); 
-
-    // find if there are kinks in the polymer structure 
-    std::vector <int> findKinks(); 
-
-    // find if there are any cranks in the polymer structure 
-    std::vector <int> findCranks(); 
-
+    void chain_to_connectivity_map(); 
 
 };
 
@@ -105,49 +98,4 @@ public:
 ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 
 
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-int ExtractNumberOfPolymers(std::string filename);
-std::vector <std::string> ExtractContentFromFile(std::string filename); 
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-// =====       END OF MONTE CARLO MOVES      =====
-
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-// extract topology from the topology file 
-/*
-class MonomerSwing {
-public:
-    
-    std::array <int,3> old_loc = {-1, -1, -1};
-    std::array <int,3> new_loc = {-1, -1, -1}; 
-
-    // constructor 
-    MonomerSwing () {};
-    MonomerSwing (std::array <int,3> ol, std::array <int,3> nl): old_loc (ol), new_loc (nl); 
-
-    // destructor 
-    ~MonomerSwing() {};
-};
-
-
-class OrientationFlip {
-public:
-
-    std::array <int,26> locations; 
-    std::array <int,26> old_orientations; 
-    std::array <int,26> new_orientations; 
-
-    // constructor 
-    OrientationFlip() {};
-
-    // destructor 
-    ~OrientationFlip () {}; 
-
-};
-*/
 #endif 

@@ -10,9 +10,9 @@ IFLAGS = -std=c++14 -O3 -flto -ipo -march=native -pedantic -Wall -Wextra -Wall -
 MACFLAGS = -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Ofast -mcpu=apple-a10 # -fopenmp
 OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Wnonnull -Wnull-dereference -Wno-return-local-addr -Wreturn-type
 
-McLattE: main.cpp misc.cpp classes.cpp
+McLattE: main.cpp Simulation.cpp Polymer.cpp Particle.cpp misc.cpp lattice_directions.cpp
 	@echo "Compiling main for simulation..."
-	@$(CC) $(LINUXFLAGS) main.cpp misc.cpp classes.cpp -o McLattE
+	@$(CC) $(MACFLAGS) main.cpp Simulation.cpp Polymer.cpp Particle.cpp misc.cpp lattice_directions.cpp -o McLattE
 	@echo "Compiled!" 
 
 dMcLattE: debug.cpp misc.cpp classes.cpp

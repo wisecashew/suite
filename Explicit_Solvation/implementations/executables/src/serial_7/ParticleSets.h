@@ -1,6 +1,6 @@
 #ifndef _PARTICLE_SETS_H_
 #define _PARTICLE_SETS_H_ 
-#include "classes.h"
+#include "Polymer.h"
 
 
 class ParticleSets{
@@ -15,6 +15,6 @@ public:
 	// destructor
 	~ParticleSets(){};
 
-}
+};
 
 #endif

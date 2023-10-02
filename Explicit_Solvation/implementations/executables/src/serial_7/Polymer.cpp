@@ -1,9 +1,5 @@
-#include <iostream> 
-#include <vector>
-#include <string> 
-#include <array> 
-#include "parpol.h"
-#include "misc.h" 
+#include <iostream>
+#include "Polymer.h"
 
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -18,7 +14,7 @@
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: printChainCoords
+// NAME OF FUNCTION: print_chain
 //
 // PARAMETERS: none, method on a Polymer
 // 
@@ -46,7 +42,7 @@ void Polymer::print_chain(){
 //============================================================
 //============================================================
 // 
-// NAME OF FUNCTION: printOrientation
+// NAME OF FUNCTION: print_orientation
 //
 // PARAMETERS: none, method on a Polymer
 // 
@@ -120,39 +116,3 @@ void Polymer::chain_to_connectivity_map(){
 //                End of ChainToConnectivityMap. 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-//                    PARTICLE METHODS. 
-
-/*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
-
-//============================================================
-//============================================================
-// 
-// NAME OF FUNCTION: printCoords
-//
-// PARAMETERS: none, method on a particle
-// 
-// WHAT THE FUNCTION DOES: Given a particle, it will print out coordinates in a nice way 
-//
-// DEPENDENCIES: print
-//
-// THE CODE: 
-
-void Particle::print_coords(){
-    print(this->coords); 
-    return; 
-}
-
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//             End of printCoords. 
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-
-
-

@@ -8,10 +8,10 @@ m1-s1:parallel
 m1-s2:isotropic
 s1-s2:antiparallel
 Emm_a    = -1
-Emm_n    = -0
+Emm_n    = -1
 Ems1_a   = 0
 Ems1_n   = 0
-Ems2_a   = -1
+Ems2_a   = -0
 Ems2_n   = -0
 Es1s2_a  = -0
 Es1s2_n  = -0

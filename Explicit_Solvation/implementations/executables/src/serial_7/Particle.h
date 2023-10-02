@@ -41,3 +41,8 @@ public:
     void print_coords(); 
 
 };
+
+void print (std::vector <Particle> pvec);
+void print (std::map<std::array<int,3>,Particle*> LATTICE);
+
+#endif

@@ -1,5 +1,6 @@
 #include "Simulation.h"
 #include "lattice_directions.h"
+#include "History.h"
 
 //////////////////////////////////////////////////////////
 //
@@ -1487,47 +1488,295 @@ void Simulation::dump_lattice(int step_num){
 //
 //////////////////////////////////////////////////////////
 
+
+void Simulation::swing_monomer(int m, std::vector<History>* history_store, double* energy_forw, std::array <int,8>* contacts, double* prob_forw){
+
+    if (m == this->PSETS.Polymers[0].size() - 1){
+        this->IMP_BOOL = true;
+        return;
+    }
+
+    History move;
+
+    std::array <double,5> energies;
+    std::array <double,8>               current_contacts = *contacts; 
+    std::array <std::array<double,8>,5> contacts_store; 
+    std::array <double,5> boltzmann;
+    std::array <int,3>    loc_m = this->PSETS.Polymers[0].chain[m+1]->coords;
+
+    // generate possible locations to jump to
+    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list (this->PSETS.Polymers[0].chain[m]->coords, this->x, this->y, this->z);
+
+    // randomly select five of them
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::shuffle (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
+
+    // doubles for energy transfer 
+    double rboltzmann = 0; // running sum for boltzmann weights 
+    double Em         = 0;
+    double Es         = 0; 
+    double Em_n       = 0; 
+    double Es_n       = 0; 
+    double Esys       = *energy_forw; 
+    double Epair      = 0;
+    double Epair_n    = 0;
+
+    std::array <double,8> cm   = {0,0,0,0,0,0,0,0};
+    std::array <double,8> cs   = {0,0,0,0,0,0,0,0};
+    std::array <double,8> cm_n = {0,0,0,0,0,0,0,0};
+    std::array <double,8> cs_n = {0,0,0,0,0,0,0,0};    
+
+    // start attempting jumps 
+
+    int block_counter       = 0 ; 
+    int idx_counter         = 0 ; 
+    int self_swap_idx       = -1; 
+    int c_idx               = 0;
+    int c_idx_n             = 0;
+
+    while (idx_counter<5) {
+        if (ne_list[idx_counter] == loc_m){
+            // current position
+            energies[idx_counter]       = Esys;
+            contacts_store[idx_counter] = current_contacts;
+            block_counter += 1;
+        }
+
+        else if ( this->PSETS.Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm' ){
+
+            for (int u{0}; u<deg_poly; ++u){
+                if ( this->PSETS.Polymers[0].chain[u]->coords == ne_list[idx_counter] ){
+                    self_swap_idx = u;
+                    break;
+                }
+            }
+
+            // if it is with other head units, do the swap 
+            // if not, discourage it 
+            // std::cout << "self_swap_idx = " << self_swap_idx << std::endl; 
+
+            if (self_swap_idx < m){
+                // maintain current state, and sample another state 
+                energies[idx_counter] = 1e+08; // very unfavorable state 
+                contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1}; 
+                block_counter += 1;   
+            }
+            else {
+                // get the initial neighboring energies. 
+                Es = this->neighbor_energetics (&cs, lattice_index(ne_list[idx_counter], this->y, this->z));
+                Em = this->neighbor_energetics (&cm, lattice_index(loc_m, this->y, this->z)); 
+                Epair = isolated_pair_particle_interaction (this->PSETS.Lattice[lattice_index (ne_list[idx_counter], this->y, this->z)], this->PSETS.Lattice[lattice_index (loc_m, this->y, this->z)], &c_idx);
+
+                // prep the swap 
+                (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
+                (*Polymers)[p_index].chain[m_index+1]->coords       = ne_list[idx_counter];
+                
+                // perform the swap (since coords were changed, this swap works)
+                (*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
+                (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ] = (*Polymers)[p_index].chain[m_index+1];
+
+                // get the new energies
+                Es_n = neighbor_energetics(&cs_n, lattice_index(ne_list[idx_counter], this->y, this->z));
+                Em_n = neighbor_energetics(&cm_n, lattice_index(loc_m, this->y, this->z)); 
+                Epair_n = isolated_pair_particle_interaction(this->PSETS.Lattice[lattice_index (ne_list[idx_counter], this->y, this->z)], this->PSETS.Lattice[lattice_index (loc_m, this->y, this->z)], &c_idx_n);
+
+                energies       [idx_counter] = Esys - (Es+Em-Epair) + (Es_n+Em_n-Epair_n); 
+                contacts_store [idx_counter] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) ); 
+                contacts_store [idx_counter][c_idx] += 1;
+                contacts_store [idx_counter][c_idx_n] -= 1; 
+
+                // revert back to original structure 
+                this->PSETS.Lattice[lattice_index(loc_m, this->y, this->z)]->coords = ne_list[idx_counter];
+                this->PSETS.Polymers[0].chain[m+1]->coords  = loc_m;
+                
+                // perform the swap (since coords were changed, this swap works)
+                this->PSETS.Lattice[lattice_index(ne_list[idx_counter], y, z)]    = this->PSETS.Lattice[lattice_index (loc_m, y, z)];
+                this->PSETS.Lattice[lattice_index(loc_m, y, z)]                   = this->PSETS.Polymers[0].chain[m+1];
+
+            }
+
+        }
+
+        else {
+            // std::cout << "solvent swap time." << std::endl;
+            Es = neighbor_energetics (&cs, lattice_index(ne_list[idx_counter], this->y, this->z));
+            Em = neighbor_energetics (&cm, lattice_index(loc_m, this->y, this->z)); 
+            Epair = IsolatedPairParticleInteraction (this->PSETS.Lattice[lattice_index (ne_list[idx_counter], this->y, this->z)], (*LATTICE)[lattice_index (loc_m, this->y, this->z)], &c_idx);
+
+            // prep the swap 
+            this->PSETS.Lattice[lattice_index(ne_list[idx_counter], y, z)]->coords = loc_m;
+            this->PSETS.Polymers[0].chain[m_index+1]->coords = ne_list[idx_counter];
+            
+            // perform the swap (since coords were changed, this swap works)
+            this->PSETS.Lattice[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[idx_counter], y, z)];
+            this->PSETS.Lattice[ lattice_index (ne_list[idx_counter], y, z) ] = this->PSETS.Polymers[p_index].chain[m_index+1];
+
+            // get the new energies
+            Es_n = neighbor_energetics (&cs_n, lattice_index(ne_list[idx_counter], this->y, this->z));
+            Em_n = neighbor_energetics (&cm_n, lattice_index(loc_m, this->y, this->z));
+            Epair_n = isolated_pair_particle_interaction (this->PSETS.Lattice[lattice_index (ne_list[idx_counter], y, z)], this->PSETS.Lattice[lattice_index (loc_m, this->y, this->z)], &c_idx_n);
+
+            energies       [ idx_counter ] = Esys - (Es+Em-Epair) + (Es_n+Em_n-Epair_n); 
+            contacts_store [ idx_counter ] = add_arrays (subtract_arrays (current_contacts, add_arrays (cs, cm)), add_arrays (cs_n, cm_n) );    
+            contacts_store [ idx_counter ][ c_idx ]   += 1;
+            contacts_store [ idx_counter ][ c_idx_n ] -= 1;
+
+            // revert back to original structure 
+            this->PSETS.Lattice[lattice_index(loc_m, y, z)]->coords = ne_list[idx_counter];
+            this->PSETS.Polymers[0].chain[m_index+1]->coords  = loc_m;
+            
+            // perform the swap (since coords were changed, this swap works)
+            this->PSETS.Lattice[lattice_index(ne_list[idx_counter], y, z)]    = this->PSETS.Lattice[lattice_index (loc_m, y, z)];
+            this->PSETS.Lattice[lattice_index(loc_m, y, z)]         = this->PSETS.Polymers[0].chain[m_index+1];
+
+        }
+        idx_counter += 1;
+    }
+
+    if ( block_counter == 5 ){
+        this->IMP_BOOL = false; 
+        return; 
+    }
+
+    // now that i have all the energies, and boltzmann weights, i can choose a configuration 
+    // std::cout << "Energies are "; print(energies); 
+
+    double Emin = *std::min_element ( energies.begin(), energies.end() ); 
+    // std::cout << "Emin = " << Emin << std::endl; 
+
+    for (int i{0}; i<5; ++i){
+        boltzmann[i] = std::exp(-1/temperature*( energies[i] - Emin ) ); 
+        rboltzmann  += boltzmann[i]; 
+    }
+
+    // std::cout << "Boltzmann weights are: "; print(boltzmann); 
+    double rng_acc = rng_uniform (0.0, 1.0); 
+    double rsum    = 0; 
+    int    e_idx   = 0; 
+    
+    // std::cout << "normalization = " << rboltzmann << std::endl;
+    // std::cout << "rng = " << rng_acc << std::endl;
+
+    for (int j{0}; j<5; ++j){
+        rsum += boltzmann[j]/rboltzmann; 
+        if ( rng_acc < rsum ){
+            e_idx = j; 
+            break; 
+        }   
+    }
+
+    // now that I have chosen a configuration, go with it
+    *prob_forw     *= boltzmann[e_idx]/rboltzmann; 
+    *energy_forw    = energies[e_idx];
+    *contacts_forw  = contacts_store [e_idx]; 
+
+    // update the history 
+    
+    // do the swap again
+    (*LATTICE)[lattice_index(ne_list[e_idx], y, z)]->coords = loc_m;
+    (*Polymers)[0].chain[m_index+1]->coords           = ne_list[e_idx];
+
+    // perform the swap (since coords were changed, this swap works)
+    (*LATTICE)[ lattice_index (loc_m, y, z) ] = (*LATTICE)[lattice_index(ne_list[e_idx], y, z)];
+    (*LATTICE)[ lattice_index (ne_list[e_idx], y, z) ]  = (*Polymers)[0].chain[m_index+1];
+    move.LocH[(*Polymers)[0].chain[m_index+1]].push_back(lattice_index((*Polymers)[0].chain[m_index+1]->coords, this->y, this->z));
+
+    return;
+
+}
+
+
+
+
+
+
 void Simulation::iced_regrowth(){
 
 	// assumption that only one polymer is in Polymers
 	int deg_poly = this->PSETS.Polymers[0].chain.size();
-	int m_index  = rng_uniform(1, deg_poly-2);
-
-	// holds location (index) and the orientation of a particle before perturbing
-	std::map <Particle*, std::tuple<int,int>> history; 
+	int m_index  = deg_poly/2 + 1; // rng_uniform(1, deg_poly-2);
 
 	double prob_forw {1}; 
 	double prob_back {1}; 
 
+    double energy_curr {this->sysEnergy};
+    double energy_back {this->sysEnergy};
 	double energy_forw {this->sysEnergy};
+
+    std::array <int,8> contacts_curr {this->contacts};
+    std::array <int,8> contacts_forw {this->contacts};
+    std::array <int,8> contacts_back {this->contacts};
+
+
+    History history_store;
 
 	// decide which half of the polymer is going to regrow
 	int growth_dir {-1}; 
 
 	if ( deg_poly % 2 == 0 ){
-		growth = (0.5 >= (m_index+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
+		growth_dir = (0.5 >= (m_index+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
 	}
 	else {
 		if ( 0.5 == (m_index+1)/static_cast<double>(deg_poly+1) ){
-			growth = rng_uniform (0, 1);
+			growth_dir = rng_uniform (0, 1);
 		}
 		else {
-			growth = (0.5 > (m_index+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
+			growth_dir = (0.5 > (m_index+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
 		}
 	}
 
-	if (growth){
+	if (growth_dir) {
+        
+        for (int m{m_index+1}; m<deg_poly; ++m){
+            history_store.LocH [m] = lattice_index(this->PSETS.Polymers[0].chain[m]->coords, this->y, this->z);
+            history_store.SpinH[this->PSETS.Polymers[0].chain[m]].push_back(this->PSETS.Polymers[0].chain[m]->orientation);
+        }
 
 		// start the head regrowth...
-		// generate possible locations to jump to
-		std::array <std::array<int,3>, 26> ne_list = obtain_ne_list(this->PSETS.Polymers[0].chain[m_index], this->x, this->y, this->z);
-		
+        for (int m {m_index}; m<deg_poly; ++m){
+            this->swing_monomer(m, &history_store, &energy_forw, &contacts_forw, &prob_forw);
+            this->kick_orientation(m, &history_store, &energy_forw, &contacts_forw, &prob_forw);
+        }
+        this->check_structures();
+
+        this->calculate_energetics();
+        if (this->sysEnergy != energy_forw || this->contacts != contacts_forw){
+            std::cout << "energy_forw = " << energy_forw << " while sysEnergy = " << this->sysEnergy << "." << std::endl;
+            std::cout << "contacts_forw = "; print(contacts_forw, ", "); std::cout << "while contacts = "; print(contacts);
+            std::cout << "We have a problem." << std::endl;
+            exit(EXIT_FAILURE);
+        }
+
+        contacts_back = contacts_forw;
+        energy_back   = energy_forw;
+
+        // flow backwards...
+        for (int m{m_index}; m<deg_poly; ++m){
+            this->unswing_monomer(m, &history_store, &energy_back, &contacts_back, &prob_back);
+            this->restore_orientation(m, &history_store, &energy_back, &contacts_back, &prob_back);
+        }
+        this->check_structures(); 
+
+        if (energy_back != energy_curr || contacts_back != contacts_curr){
+            std::cout << "Energy after back flow is " << energy_back <<" as opposed to energy_curr = " << energy_curr << std::endl;
+            std::cout << "contacts_back = "; print(contacts_back, ", "); std::cout << "while contacts_curr = "; print(contacts_curr);
+            std::cout << "We have a problem." << std::endl; 
+            exit(EXIT_FAILURE);
+        }
 
 
+        // check for acceptance
+        double rng_acc = rng_uniform (0.0, 1.0);
+        if ( rng_acc < std::exp(-1/temperature * (energy_forw - energy_curr)) * prob_forw/prob_back){
 
+            this->adopt_new_structure (&history_store); 
+            this->sysEnergy = energy_forw; 
+            this->contacts  = contacts_forw;
+
+        }
 	}
 
-
+    return;
 
 }
 

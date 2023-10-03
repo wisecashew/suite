@@ -115,6 +115,12 @@ public:
     void dump_lattice (int step_num);
 
     // perturbation methods
+    void swing_monomer      (int m, std::vector<History>* history_store, double* energy_forw, std::array <int,8>* contacts, double* prob_forw);
+    void kick_orientation   (int m, std::vector<History>* history_store, double* energy_forw, std::array <int,8>* contacts, double* prob_forw);
+    void unswing_monomer    (int m, std::vector<History>* history_store, double* energy_back, std::array <int,8>* contacts, double* prob_back);
+    void restore_orientation(int m, std::vector<History>* history_store, double* energy_back, std::array <int,8>* contacts, double* prob_back);
+    void adopt_new_structure(std::vector<History>* history_store);
+    void iced_regrowth();
     void perturb_system();
     void perturb_system_V();
     void perturb_system_D();

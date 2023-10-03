@@ -796,6 +796,26 @@ double NumberExtractor(std::string s){
 }
 
 
+int heads_or_tails(int m_index, int deg_poly){
+
+	int growth_dir {-1}; 
+
+	if ( deg_poly % 2 == 0 ){
+		growth_dir = (0.5 >= (m_index+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
+	}
+	else {
+		if ( 0.5 == (m_index+1)/static_cast<double>(deg_poly+1) ){
+			growth_dir = rng_uniform (0, 1);
+		}
+		else {
+			growth_dir = (0.5 > (m_index+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
+		}
+	}
+	return growth_dir;
+}
+
+
+
 void input_parser(int dfreq, int lfreq, int max_iter, bool r, \
 	std::string positions, std::string topology, std::string dfile, \
 	std::string efile, std::string mfile, std::string stats_file, \

@@ -4893,7 +4893,7 @@ void SolventFlip_UNBIASED_debug ( std::vector <Polymer>* Polymers, std::vector <
 
 	// number of sites to flip 
 	std::cout << "*E[0] = " << (*E)[0] << std::endl;
-	int deg_poly = static_cast<int> ( (*Polymers)[index].chain.size() );
+	int deg_poly = static_cast<int>((*Polymers)[index].chain.size());
 	int nflips = rng_uniform (1, static_cast<int>(std::ceil(deg_poly/4.0*deg_poly/4.0*deg_poly/4.0) ) ); 
 	
 	std::array <double,8> copy_contacts            = *contacts; 
@@ -8506,11 +8506,11 @@ void TailRegrowthPlusOrientationFlip_BIASED (std::vector <Polymer>* Polymers, st
 	// doubles for energy transfer 
 	double rboltzmann = 0; // running sum for boltzmann weights 
 	double Em         = 0;
-	double Es         = 0; 
-	double Em_n       = 0; 
+	double Es         = 0;
+	double Em_n       = 0;
 	double Es_n       = 0;
-	double Epair      = 0;  
-	double Epair_n    = 0; 
+	double Epair      = 0;
+	double Epair_n    = 0;
 	double Esys       = *frontflow_energy; 
 
 

@@ -1,11 +1,15 @@
-#ifndef _POLYMER_H_
-#define _POLYMER_H_ 
+#ifndef _HISTORY_H_
+#define _HISTORY_H_ 
 #include "Particle.h"
 
-class History{
+class History {
 public:
+
+	std::vector <std::array<int,3>> old_cut;
+	std::vector <std::array<int,3>> new_cut;
 	std::map <Particle*,std::vector<int>> SpinH;
-	std::map <int,int> LocH;
+	std::map <Particle*,std::vector<int>> LocH;
+	std::map <Particle*,std::vector<Particle*>>  SolventIdentities;
 
 	// constructor
 	History(){};
@@ -13,4 +17,6 @@ public:
 	// destructor
 	~History(){};
 
-}
+};
+
+#endif

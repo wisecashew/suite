@@ -172,5 +172,3 @@ if __name__=="__main__":
 	stop = time.time()
 	print ("Time to get the contacts database is " + str(stop-start) + " seconds.", flush=True)
 
-
-

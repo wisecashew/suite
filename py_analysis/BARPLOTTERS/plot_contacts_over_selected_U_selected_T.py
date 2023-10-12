@@ -24,7 +24,9 @@ parser.add_argument('--database', dest='db', action='store', type=str,  help='Pr
 parser.add_argument('--figsize', dest='figsize', action='store', nargs=2, type=float, help='Enter dimensions of image (width, height) (default: (2.5, 2.5)', default=[2.5,2.5])
 parser.add_argument('--yulim', dest='yulim', action='store', type=float, help='Provide an upper limit to y-axis.', default=None)
 parser.add_argument('--yllim', dest='yllim', action='store', type=float, help='Provide a lower limit to y-axis.',  default=None)
+parser.add_argument('--markersize', dest='ms', action='store', type=float, help='Provide a markersize.',  default=8/1.3)
 parser.add_argument('--ylabels', dest='ylabels', action='store_true', default=False, help='Provide this label if you want to see ylabels.')
+parser.add_argument('--clip-on', dest='clipon', action='store_true', default=False, help='Provide this label if you want to clip markers.')
 parser.add_argument('--U',  dest='U',   action='store', nargs='+', type=str,       help='Provide energy surface.')
 parser.add_argument('--T',  dest='T',   action='store', nargs='+', type=float,     help='Provide temperatures to probe.')
 parser.add_argument('--R', dest='R', metavar='RX', action='store', type=str, help='Name of forcefield in database to plot.')
@@ -109,35 +111,35 @@ if __name__=="__main__":
 		for key in args.key:
 			if key == "mm_contacts_over_total":
 				Y = mm/total
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=False, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			elif key == "ms_contacts_over_total":
 				Y = ms/total
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=False, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			elif key == "mm_aligned_fraction":
 				Y = mma/mm
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=False, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			elif key == "ms_aligned_fraction":
 				Y = msa/ms
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=False, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			elif key == "aligned_over_total":
 				Y = ali/total
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=False, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			elif key == "naligned_over_total":
 				Y = nali/total
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=False, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			elif key == "mm_over_ms":
 				Y = mm/ms
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=False, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			elif key == "naligned_over_aligned":
 				Y = nali/ali
-				ax.plot(temperatures, Y, marker='o', mec='k', markersize=8/1.3, clip_on=True, c=rgba_color, zorder=15, ls='--')
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
 			else:
 				print ("Bad key.")

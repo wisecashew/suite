@@ -11,6 +11,11 @@ import argparse
 parser = argparse.ArgumentParser (description="Create vectorized plots.")
 parser.add_argument ('-g', metavar='g', dest='g', type=float, action='store', help='p_Omega value for calcs.')
 parser.add_argument ('--pv', metavar='pv', dest='pv', type=float, action='store', help='p_v value for calcs.')
+parser.add_argument ('--figsize', metavar='fs', dest='fs', type=float, nargs='+', action='store', help='p_v value for calcs.', default=[2.5,2.5])
+parser.add_argument ('--Emmn-llim', dest='Emmnllim', type=float, action='store', help='Lower limit of Emmn.')
+parser.add_argument ('--Emmn-ulim', dest='Emmnulim', type=float, action='store', help='Upper limit of Emmn.')
+parser.add_argument ('--Emma-llim', dest='Emmallim', type=float, action='store', help='Lower limit of Emma.')
+parser.add_argument ('--Emma-ulim', dest='Emmaulim', type=float, action='store', help='Upper limit of Emma.')
 parser.add_argument ('--image', metavar='img', dest='img', type=str, action='store', help='Name of the image to be created.')
 args   = parser.parse_args ()
 
@@ -78,15 +83,14 @@ if __name__=="__main__":
     E_ms_a_list = [-1, -0.5, 0]
     E_ms_n_list = [-1, -0.5, 0]
 
-    fig, axes = plt.subplots(nrows=len(E_ms_a_list), ncols=len(E_ms_n_list), figsize=(8,6), constrained_layout=True)
+    fig, axes = plt.subplots(nrows=len(E_ms_a_list), ncols=len(E_ms_n_list), figsize=(args.fs[0],args.fs[1]), constrained_layout=True)
     start = time.time()
 
     # define density of time points and range of plots
     linrange = 1000
-    plot_lim = 5/2
 
     # define energies to plot things over 
-    E_mm_a, E_mm_n = np.meshgrid (np.linspace(-plot_lim, 1, linrange), np.linspace (-plot_lim, 1, linrange))
+    E_mm_a, E_mm_n = np.meshgrid (np.linspace(args.Emmnllim, args.Emmnulim, linrange), np.linspace (args.Emmallim, args.Emmaulim, linrange))
 
     # get temperatures
     T  = np.logspace (-2, 2, 50)
@@ -181,13 +185,14 @@ if __name__=="__main__":
             del hold
 
 
-            ax.set_xlim (-plot_lim, 1)
-            ax.set_ylim (-plot_lim, 1)
-            ax.set_yticks([-plot_lim,0,1])
-            ax.set_xticks([-plot_lim,0,1])
+            ax.set_xlim (args.Emmnllim, args.Emmnulim)
+            ax.set_ylim (args.Emmallim, args.Emmaulim)
+            ax.set_yticks([args.Emmnllim, args.Emmnulim])
+            ax.set_xticks([args.Emmallim, args.Emmaulim])
 
             ax.set_xticklabels ([])
             ax.set_yticklabels ([])
+            '''
             if 2-rcount == 0 and ccount == 0:
                 ax.set_xticklabels ([]) # ax.get_xticks(), fontdict=font)
                 ax.set_yticklabels (ax.get_yticks(), fontdict=font)
@@ -203,8 +208,8 @@ if __name__=="__main__":
             elif 2-rcount == 2 and ccount > 0:
                 ax.set_xticklabels (ax.get_xticks(), fontdict=font)
                 ax.set_yticklabels ([]) # , fontdict=font)
-
-            ax.minorticks_on()
+            '''
+            # ax.minorticks_on()
             print ("plotted!", flush=True)
 
         del E_ms_a

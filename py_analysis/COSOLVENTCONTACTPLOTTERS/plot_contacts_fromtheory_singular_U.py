@@ -28,6 +28,7 @@ parser = argparse.ArgumentParser(description="Go into lattice dump and get conta
 parser.add_argument('--real'  , dest='real', action='store', type=str, help='enter the address of the real contacts.')
 parser.add_argument('--Hmix'  , dest='Hmix', action='store', type=str, nargs='+', help="enter the enthalpic conditions.")
 parser.add_argument('--suffix', dest='s', action='store', type=str, help='enter suffix to images.')
+parser.add_argument('--color', dest='color', action='store', type=str, help='enter color of plot.')
 parser.add_argument('--show-ylabels', dest='show_ylabels', action='store_true', default=False, help='enter suffix to images.')
 args = parser.parse_args() 
 
@@ -69,12 +70,12 @@ if __name__=="__main__":
 	cols    = color_map("coral", "darkred", len(Hmix))
 	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(2.5,2.5))
 
-	keys    = ["M1-M1", "M1-S", "S1-S2", "M1-S1", "M1-S2", "M1-S1-A", "M1-S1-N"]
+	keys    = ["M1-M1", "M1-S", "S1-S2", "M1-S1", "M1-S2", "M1-S1-A", "M1-S1-N", "S1-S2-A"]
 	titles  = ["Monomer-monomer contacts", "Solvent-cosolvent contacts", "Monomer-solvent contacts", "Monomer-cosolvent contacts", "Solvent-solvent contacts", "cosolvent-cosolvent contacts"]
 
-	ylims   = [(-0.55,2.1),(-0.001,0.35), (-1.125, 0.375), (-1.125, 0.375), (-1.125, 0.375), (-1.125, 0.375)]
+	ylims   = [(30,180), (400,800), (0, 3.5e+5), (0, 800), (0, 800), (0, 800), (0, 800), (0,3.5e+5)]
 	ypads   = [3, 1, 1, 1, 1, 3]
-	yticks  = [np.arange(-0.5, 2.5, 0.5), np.arange(0, 0.4, 0.05), np.arange(-1.0, 0.375, 0.25), np.arange(-1.0, 0.375, 0.25), np.arange(-1.0, 0.5, 0.25), np.arange (-1, 0.375, 0.25)]
+	yticks  = [np.linspace(30, 180, 6), np.linspace(400,800,5), np.linspace(0,4e+5, 5), np.linspace(0, 800, 5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0, 4e+5,5)]
 
 	df_real = pd.read_csv (args.real, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 	x_real  = df_real ["x"]
@@ -85,6 +86,8 @@ if __name__=="__main__":
 		ax[0][0].tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both')
 		ax[0][0].tick_params(axis='x', labelsize=8)
 		ax[0][0].tick_params(axis='y', labelsize=8)
+		ax[0][0].set_ylim(ylims[k][0], ylims[k][1])
+		ax[0][0].set_yticks(yticks[k])
 		if args.show_ylabels:
 			pass # ax[0][0].get_yticks(), weight='bold')
 		else:
@@ -92,6 +95,7 @@ if __name__=="__main__":
 		ax[0][0].set_xlim (0.0, 1.0)
 		ax[0][0].set_xticks (np.arange(0,1.2,0.2))
 		ax[0][0].set_xticklabels ([]) # ax[0][0].get_xticks(), weight='bold')
+		
 		ax[0][0].minorticks_on()
 		if k == 0 or k > 1:
 			pass 

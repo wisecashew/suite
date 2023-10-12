@@ -59,25 +59,10 @@ def infiltrate_coords_get_rg ( U, frac, num, dop, coords_files, starting_index )
     rg = aux.get_Rg(master_dict, edge, edge, edge) 
     return rg 
 
-
-import matplotlib.colors as mcolors
-def color_map(start_color, end_color, n_steps):
-	start_rgb = mcolors.hex2color(mcolors.CSS4_COLORS[start_color])
-	end_rgb   = mcolors.hex2color(mcolors.CSS4_COLORS[end_color])
-
-	# linearly interpolate the RGB values
-	r = [start_rgb[0] + (end_rgb[0] - start_rgb[0]) * i/n_steps for i in range(n_steps+1)]
-	g = [start_rgb[1] + (end_rgb[1] - start_rgb[1]) * i/n_steps for i in range(n_steps+1)]
-	b = [start_rgb[2] + (end_rgb[2] - start_rgb[2]) * i/n_steps for i in range(n_steps+1)]
-	
-	colors = [mcolors.to_hex([r[i], g[i], b[i]]) for i in range(n_steps+1)]
-
-	return colors
-
 if __name__ == "__main__":
 
 	start = time.time()
-##################################
+	##################################
 	def mysorter_f (x):
 		new_str = ""
 		for m in x:
@@ -86,35 +71,35 @@ if __name__ == "__main__":
 		return float(new_str)
 
 	U_list = args.U
-	cols    = args.color # color_map("coral", "darkred", len(U_list))
+	cols    = args.colors # color_map("coral", "darkred", len(U_list))
 	print (U_list, flush=True)
-	PLOT_DICT = {} 
+	PLOT_DICT = {}
 	dop            = args.dop
 	coords_files   = args.c
 	starting_index = args.s
 
-######
-	fig = plt.figure( figsize=(2.5,2.5), constrained_layout=True )
-	ax  = plt.axes() 
-# plt.rcParams["axes.labelweight"] = "bold"
+	#################################
+	fig = plt.figure(figsize=(2.5,2.5), constrained_layout=True)
+	ax  = plt.axes()
+	# plt.rcParams["axes.labelweight"] = "bold"
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	ax.tick_params(axis='x', labelsize=8)
 	ax.tick_params(axis='y', labelsize=8)
-	i = 0 
+	i = 0
 
-	rg_max = 1 # (1+np.sqrt(2)+np.sqrt(3))/(3*6**0.5) * (dop**0.57) 
-# instantiating pool
+	rg_max = 1
+	# instantiating pool
 	nproc = args.nproc
 	pool1 = multiprocessing.Pool ( processes=nproc )# len(num_list)) 
 
-	pool_list = [pool1] # , pool2]
+	pool_list = [pool1]
 
 	for U in U_list:
 		print (f"Diving into U = {U}...", flush=True)
 		frac_list = args.frac
-		rg_mean = [] 
-		rg_std  = [] 
-		
+		rg_mean = []
+		rg_std  = []
+
 		# get num_list for each temperature 
 		master_frac_list     = []
 		master_num_list      = []
@@ -138,9 +123,9 @@ if __name__ == "__main__":
 
 		for u_idx in range (idx_range):
 			if u_idx == idx_range-1:
-				results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_frac_list[u_idx*nproc:], master_num_list [u_idx*nproc:], itertools.repeat (dop), itertools.repeat (coords_files), master_index_list[u_idx*nproc:] ) )
+				results = pool_list[0] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_frac_list[u_idx*nproc:], master_num_list [u_idx*nproc:], itertools.repeat (dop), itertools.repeat (coords_files), master_index_list[u_idx*nproc:] ) )
 			else:
-				results = pool_list[ 0 ] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_frac_list[(u_idx)*nproc:(u_idx+1)*nproc], master_num_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), master_index_list[u_idx*nproc:(u_idx+1)*nproc] ) )
+				results = pool_list[0] .starmap ( infiltrate_coords_get_rg, zip( itertools.repeat(U), master_frac_list[(u_idx)*nproc:(u_idx+1)*nproc], master_num_list[u_idx*nproc:(u_idx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), master_index_list[u_idx*nproc:(u_idx+1)*nproc] ) )
 
 			print ("\tPool has been closed. This pool had {} threads.".format (len(results) ), flush=True )
 
@@ -160,8 +145,8 @@ if __name__ == "__main__":
 	i=0
 
 	for idx,U in enumerate(U_list):
-		ax.errorbar ( frac_list, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
-		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=args.color, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10) 
+		ax.errorbar (frac_list, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
+		ax.plot     (frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=args.colors, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10)
 		i += 1
 
 	#########
@@ -185,7 +170,6 @@ if __name__ == "__main__":
 		print ("No legends in image.")
 		ax.legend().remove()
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
-
 ##################################
 	stop = time.time() 
 

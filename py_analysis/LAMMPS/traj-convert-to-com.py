@@ -208,8 +208,8 @@ def create_traj_object(sim_info, trajfile):
 						traj[ts]["molid"][molid]["masses"]   = np.empty(0, dtype=np.float64)
 
 					coords = np.array([float(contents[2]), float(contents[3]), float(contents[4])], dtype=np.float64)
-					traj[ts]["molid"][molid]["coords"] = np.vstack((traj[ts][molid]["coords"], coords))
-					traj[ts]["molid"][molid]["masses"] = np.hstack((traj[ts][molid]["masses"], sim_info["masses"][int(contents[1])]))
+					traj[ts]["molid"][molid]["coords"] = np.vstack((traj[ts]["molid"][molid]["coords"], coords))
+					traj[ts]["molid"][molid]["masses"] = np.hstack((traj[ts]["molid"][molid]["masses"], sim_info["masses"][int(contents[1])]))
 					break
 				else:
 					continue
@@ -217,24 +217,22 @@ def create_traj_object(sim_info, trajfile):
 
 	return traj
 
-def unwrap_molecule(molecule, bonds, box_dims):
+def unwrap_molecule(molecule, bonds, box_dims, sr_llim):
 
 	untested = list(range(len(molecule)))
 	tested   = []
 	queue    = []
 
 	while untested:
-		
 		wait = []
 		if not queue:
 			queue.append(untested[0])
-
 		for i in queue:
-			neighbors = bonds[i]
+			neighbors = bonds[i+1+sr_llim]
 			neighbors = [ni for ni in neighbors if ni not in tested]
 			ri = molecule[i]
 			for j in neighbors:
-				rj = polymer[j]
+				rj = molecule[j-sr_llim]
 				dr = rj - ri
 				shift = np.round(dr/box_dims)
 				molecule[j] -= shift*box_dims
@@ -248,15 +246,16 @@ def unwrap_molecule(molecule, bonds, box_dims):
 def unwrap_trajectory(traj_info):
 
 	for ts in traj_info:
-		for molid in traj_info[ts]:
+		sr_llim = 1
+		for molid in traj_info[ts]["molid"]:
 			box_dims = np.array([traj_info[ts]["xhi"]-traj_info[ts]["xlo"], \
 				traj_info[ts]["yhi"]-traj_info[ts]["ylo"], \
 				traj_info[ts]["zhi"]-traj_info[ts]["zlo"]])
-			print(f'traj_info[{ts}][{molid}]={traj_info[ts][molid]}')
-			traj_info[ts][molid]["coords"][:,0] -= traj_info[ts]["xlo"]
-			traj_info[ts][molid]["coords"][:,1] -= traj_info[ts]["ylo"]
-			traj_info[ts][molid]["coords"][:,2] -= traj_info[ts]["zlo"]
-			unwrap_molecule(traj_info[ts][molid]["coords"], traj_info[ts][molid]["bond_map"], box_dims)
+			traj_info[ts]["molid"][molid]["coords"][:,0] -= traj_info[ts]["xlo"]
+			traj_info[ts]["molid"][molid]["coords"][:,1] -= traj_info[ts]["ylo"]
+			traj_info[ts]["molid"][molid]["coords"][:,2] -= traj_info[ts]["zlo"]
+			unwrap_molecule(traj_info[ts]["molid"][molid]["coords"], traj_info[ts]["molid"][molid]["bond_map"], box_dims, sr_llim)
+			sr_llim += len(traj_info[ts]["molid"][molid]["coords"])
 
 	return
 
@@ -265,39 +264,39 @@ def coarse_grain_traj(traj_info):
 	coarse_traj_info = copy.copy(traj_info)
 	for ts in traj_info:
 		dL = np.array([traj_info["xhi"]-traj_info["xlo"], traj_info["yhi"]-traj_info["ylo"], traj_info["zhi"]-traj_info["zlo"]])
-		for molid in traj_info:
-			coarse_traj_info[ts][molid]["coords"]   = np.empty((0,3))
-			coarse_traj_info[ts][molid]["masses"]   = np.empty(0)
-			coarse_traj_info[ts][molid]["bond_map"] = {}
+		for molid in traj_info["molid"]:
+			coarse_traj_info[ts]["molid"][molid]["coords"]   = np.empty((0,3))
+			coarse_traj_info[ts]["molid"][molid]["masses"]   = np.empty(0)
+			coarse_traj_info[ts]["molid"][molid]["bond_map"] = {}
 			if molid == 1:
 				# make the 19 monomers
 				for i in range(30):
 					if i==0:
-						coords  = traj_info[ts][molid]["coords"][0:21]*traj_info[ts][molid]["masses"][0:21]/np.sum(traj_info[ts][molid]["masses"][0:21])
+						coords  = traj_info[ts]["molid"][molid]["coords"][0:21]*traj_info[ts]["molid"][molid]["masses"][0:21]/np.sum(traj_info[ts]["molid"][molid]["masses"][0:21])
 						coords %= dL
-						coarse_traj_info[ts][molid]["coords"]      = np.vstack((coarse_traj_info[ts][molid]["coords"],coords))
-						coarse_traj_info[ts][molid]["masses"]      = np.hstack((coarse_traj_info[ts][molid]["masses"], np.sum(traj_info[ts][molid]["masses"][0:21])))
-						coarse_traj_info[ts][molid]["bond_map"][i+1] = [i+1+1]
+						coarse_traj_info[ts]["molid"][molid]["coords"]      = np.vstack((coarse_traj_info[ts]["molid"][molid]["coords"],coords))
+						coarse_traj_info[ts]["molid"][molid]["masses"]      = np.hstack((coarse_traj_info[ts]["molid"][molid]["masses"], np.sum(traj_info[ts]["molid"][molid]["masses"][0:21])))
+						coarse_traj_info[ts]["molid"][molid]["bond_map"][i+1] = [i+1+1]
 					elif i<29:
-						coords  = traj_info[ts][molid]["coords"][20+(i-1)*19:20+i*19]*traj_info[ts][molid]["masses"][20+(i-1)*19:20+i*19]/np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:20+i*19])
+						coords  = traj_info[ts]["molid"][molid]["coords"][20+(i-1)*19:20+i*19]*traj_info[ts]["molid"][molid]["masses"][20+(i-1)*19:20+i*19]/np.sum(traj_info[ts]["molid"][molid]["masses"][20+(i-1)*19:20+i*19])
 						coords %= dL
-						coarse_traj_info[ts][molid]["coords"]      = np.vstack((coarse_traj_info[ts][molid]["coords"],coords))
-						coarse_traj_info[ts][molid]["masses"]      = np.hstack((coarse_traj_info[ts][molid]["masses"], np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:20+i*19])))
-						coarse_traj_info[ts][molid]["bond_map"][i+1] = [i+1-1,i+1+1]
+						coarse_traj_info[ts]["molid"][molid]["coords"]      = np.vstack((coarse_traj_info[ts]["molid"][molid]["coords"],coords))
+						coarse_traj_info[ts]["molid"][molid]["masses"]      = np.hstack((coarse_traj_info[ts]["molid"][molid]["masses"], np.sum(traj_info[ts]["molid"][molid]["masses"][20+(i-1)*19:20+i*19])))
+						coarse_traj_info[ts]["molid"][molid]["bond_map"][i+1] = [i+1-1,i+1+1]
 					else:
-						coords  = traj_info[ts][molid]["coords"][20+(i-1)*19:]*traj_info[ts][molid]["masses"][20+(i-1)*19:]/np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:])
+						coords  = traj_info[ts]["molid"][molid]["coords"][20+(i-1)*19:]*traj_info[ts]["molid"][molid]["masses"][20+(i-1)*19:]/np.sum(traj_info[ts]["molid"][molid]["masses"][20+(i-1)*19:])
 						coords %= dL
-						coarse_traj_info[ts][molid]["coords"]      = np.vstack((coarse_traj_info[ts][molid]["coords"],coords))
-						coarse_traj_info[ts][molid]["masses"]      = np.hstack((coarse_traj_info[ts][molid]["masses"], np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:])))
-						coarse_traj_info[ts][molid]["bond_map"][i+1] = [i+1-1]
+						coarse_traj_info[ts]["molid"][molid]["coords"]      = np.vstack((coarse_traj_info[ts]["molid"][molid]["coords"],coords))
+						coarse_traj_info[ts]["molid"][molid]["masses"]      = np.hstack((coarse_traj_info[ts]["molid"][molid]["masses"], np.sum(traj_info[ts]["molid"][molid]["masses"][20+(i-1)*19:])))
+						coarse_traj_info[ts]["molid"][molid]["bond_map"][i+1] = [i+1-1]
 
 				pass
 				
 			else:
-				rcom = (traj_info[ts][molid]["coords"]*traj_info[ts]["masses"])/np.sum(traj_info[ts][molid]["masses"])
-				coarse_traj_info[ts][molid]["coords"]   = rcom.reshape((1,-1))
-				coarse_traj_info[ts][molid]["bond_map"] = {}
-				coarse_traj_info[ts][molid]["masses"]   = np.sum(traj_info[ts][molid]["masses"])
+				rcom = (traj_info[ts]["molid"][molid]["coords"]*traj_info[ts]["masses"])/np.sum(traj_info[ts]["molid"][molid]["masses"])
+				coarse_traj_info[ts]["molid"][molid]["coords"]   = rcom.reshape((1,-1))
+				coarse_traj_info[ts]["molid"][molid]["bond_map"] = {}
+				coarse_traj_info[ts]["molid"][molid]["masses"]   = np.sum(traj_info[ts]["molid"][molid]["masses"])
 
 	return coarse_traj_info
 
@@ -316,8 +315,8 @@ def write_cg_traj(coarse_traj_info, sim_data, cg_traj_filename, natoms):
 		f.write(f'{coarse_traj_info[ts]["zlo"]}    {coarse_traj_info[ts]["zhi"]}\n')
 		f.write("ITEM: ATOMS id type x y z")
 		srno = 0
-		for molid in coarse_grain_traj[ts]:
-			for sr_atom, atom in enumerate(coarse_grain_traj[ts][molid]["coords"]):
+		for molid in coarse_grain_traj[ts]["molid"]:
+			for sr_atom, atom in enumerate(coarse_grain_traj[ts]["molid"][molid]["coords"]):
 				srno += 1
 				f.write(f'{srno} {sim_data["atoms"][srno]["atm_num"]} {atom[sr_atom][0]} {atom[sr_atom][1]} {atom[sr_atom][2]}\n')
 

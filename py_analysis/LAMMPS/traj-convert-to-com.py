@@ -192,6 +192,7 @@ def create_traj_object(sim_info, trajfile):
 		elif numatoms_flag:
 			contents = line.strip().split()
 			traj[ts]["natoms"] = contents[0]
+			traj[ts]["molid"]  = {}
 			continue
 
 		elif itematoms_flag:
@@ -200,15 +201,15 @@ def create_traj_object(sim_info, trajfile):
 			# figure out which molecule this particle is in
 			for molid in sim_info["molecules"]:
 				if atm_sr in sim_info["molecules"][molid]["atoms"]:
-					if not(molid in traj[ts]):
-						traj[ts][molid] = {}
-						traj[ts][molid]["coords"]   = np.empty((0,3))
-						traj[ts][molid]["bond_map"] = sim_info["molecules"][molid]["bonds"]
-						traj[ts][molid]["masses"]   = np.empty(0, dtype=np.float64)
+					if not(molid in traj[ts]["molid"]):
+						traj[ts]["molid"][molid] = {}
+						traj[ts]["molid"][molid]["coords"]   = np.empty((0,3))
+						traj[ts]["molid"][molid]["bond_map"] = sim_info["molecules"][molid]["bonds"]
+						traj[ts]["molid"][molid]["masses"]   = np.empty(0, dtype=np.float64)
 
 					coords = np.array([float(contents[2]), float(contents[3]), float(contents[4])], dtype=np.float64)
-					traj[ts][molid]["coords"] = np.vstack((traj[ts][molid]["coords"], coords))
-					traj[ts][molid]["masses"] = np.hstack((traj[ts][molid]["masses"], sim_info["masses"][int(contents[1])]))
+					traj[ts]["molid"][molid]["coords"] = np.vstack((traj[ts][molid]["coords"], coords))
+					traj[ts]["molid"][molid]["masses"] = np.hstack((traj[ts][molid]["masses"], sim_info["masses"][int(contents[1])]))
 					break
 				else:
 					continue
@@ -248,12 +249,10 @@ def unwrap_trajectory(traj_info):
 
 	for ts in traj_info:
 		for molid in traj_info[ts]:
-			print(f"traj_info[{ts}] = {traj_info[ts]}")
 			box_dims = np.array([traj_info[ts]["xhi"]-traj_info[ts]["xlo"], \
 				traj_info[ts]["yhi"]-traj_info[ts]["ylo"], \
 				traj_info[ts]["zhi"]-traj_info[ts]["zlo"]])
-			print(f'traj_info[ts]["xlo"]={traj_info[ts]["xlo"]}')
-			print(f'traj_info[ts][molid]["coords"]={traj_info[ts][molid]["coords"]}')
+			print(f'traj_info[{ts}][{molid}]={traj_info[ts][molid]}')
 			traj_info[ts][molid]["coords"][:,0] -= traj_info[ts]["xlo"]
 			traj_info[ts][molid]["coords"][:,1] -= traj_info[ts]["ylo"]
 			traj_info[ts][molid]["coords"][:,2] -= traj_info[ts]["zlo"]

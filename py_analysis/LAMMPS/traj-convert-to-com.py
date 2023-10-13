@@ -1,13 +1,15 @@
 import numpy as np 
 import re
 import argparse
+import time
+import copy
 
 parser = argparse.ArgumentParser (description="Edit the data file to put the polymer in the center of the box.")
 parser.add_argument ("--trajfile", dest='traj', action='store', type=str, help="Name of trajfile.")
+parser.add_argument ("--ntrajfile", dest='ntraj', action='store', type=str, help="Name of cg'd trajfile.")
 parser.add_argument ("--datafile", dest='data', action='store', type=str, help="Name of original datafile.")
 
 args = parser.parse_args()
-
 
 def create_simulation_object(datafile):
 
@@ -96,6 +98,7 @@ def create_simulation_object(datafile):
 			content = line.strip().split()
 			sim_data["masses"][int(content[0])] = float(content[1])
 			continue
+
 		elif extract_atoms:
 			content = line.strip().split()
 			sim_data["atoms"][int(content[0])] = {}
@@ -103,20 +106,28 @@ def create_simulation_object(datafile):
 			sim_data["atoms"][int(content[0])]["atm_num"] = int(content[2])
 			sim_data["atoms"][int(content[0])]["q"]       = float(content[3])
 			if not(int(content[1]) in sim_data["molecules"]):
-				sim_data["molecules"][int(content[1])] = []
-			sim_data["molecules"][int(content[1])].append(int(content[0]))
-
+				sim_data["molecules"][int(content[1])] = {}
+				sim_data["molecules"][int(content[1])]["atoms"] = []
+				sim_data["molecules"][int(content[1])]["bonds"] = {}
+			sim_data["molecules"][int(content[1])]["atoms"].append(int(content[0]))
+			sim_data["molecules"][int(content[1])]["bonds"][int(content[0])] = []
 			continue
+
 		elif extract_bonds:
 			content = line.strip().split()
 			sim_data["bonds"].append((int(content[2]), int(content[3])))
-			continue
+			# search which molecule the atoms are in 
+			for molid in sim_data["molecules"]:
+				if (int(content[2]) in sim_data["molecules"][molid]["atoms"]):
+					sim_data["molecules"][molid]["bonds"][int(content[2])].append(int(content[3]))
+					sim_data["molecules"][molid]["bonds"][int(content[3])].append(int(content[2]))
+					break
 
 	sim_data["nmolecules"] = len(sim_data["molecules"])
 
 	return sim_data
 
-def create_traj_object(trajfile):
+def create_traj_object(sim_info, trajfile):
 
 	traj = {}
 
@@ -150,7 +161,6 @@ def create_traj_object(trajfile):
 			continue
 
 		elif re.findall(r'^ITEM: ATOMS id type x y z', line):
-			traj[ts]["coords"] = {}
 			timestep_flag  = False
 			numatoms_flag  = False
 			boxbounds_flag = False
@@ -186,16 +196,29 @@ def create_traj_object(trajfile):
 
 		elif itematoms_flag:
 			contents = line.strip().split()
-			traj[ts]["coords"][int(contents[0])] = {}
-			traj[ts]["coords"][int(contents[0])]["id"]  = contents[1]
-			traj[ts]["coords"][int(contents[0])]["loc"] = np.array([float(contents[2]), float(contents[3]), float(contents[4])], dtype=np.float64)
+			atm_sr   = int(contents[0])
+			# figure out which molecule this particle is in
+			for molid in sim_info["molecules"]:
+				if atm_sr in sim_info["molecules"][molid]["atoms"]:
+					if not(molid in traj[ts]):
+						traj[ts][molid] = {}
+						traj[ts][molid]["coords"]   = np.empty((0,3))
+						traj[ts][molid]["bond_map"] = sim_info["molecules"][molid]["bonds"]
+						traj[ts][molid]["masses"]   = np.empty(0, dtype=np.float64)
+
+					coords = np.array([float(contents[2]), float(contents[3]), float(contents[4])], dtype=np.float64)
+					traj[ts][molid]["coords"] = np.vstack((traj[ts][molid]["coords"], coords))
+					traj[ts][molid]["masses"] = np.hstack((traj[ts][molid]["masses"], sim_info["masses"][int(contents[1])]))
+					break
+				else:
+					continue
 			continue
 
 	return traj
 
 def unwrap_molecule(molecule, bonds, box_dims):
 
-	untested = list(range(len(polymer)))
+	untested = list(range(len(molecule)))
 	tested   = []
 	queue    = []
 
@@ -208,28 +231,131 @@ def unwrap_molecule(molecule, bonds, box_dims):
 		for i in queue:
 			neighbors = bonds[i]
 			neighbors = [ni for ni in neighbors if ni not in tested]
-			ri = polymer[i]
+			ri = molecule[i]
 			for j in neighbors:
 				rj = polymer[j]
 				dr = rj - ri
 				shift = np.round(dr/box_dims)
-				polymer[j] -= shift*box_dims
+				molecule[j] -= shift*box_dims
 			tested.append(i)
 			untested.remove(i)
 			wait.extend(neighbors)
 		queue = list(set(wait[:]))
 
-	return polymer 
+	return # molecule
+
+def unwrap_trajectory(traj_info):
+
+	for ts in traj_info:
+		for molid in traj_info[ts]:
+			print(f"traj_info[{ts}] = {traj_info[ts]}")
+			box_dims = np.array([traj_info[ts]["xhi"]-traj_info[ts]["xlo"], \
+				traj_info[ts]["yhi"]-traj_info[ts]["ylo"], \
+				traj_info[ts]["zhi"]-traj_info[ts]["zlo"]])
+			print(f'traj_info[ts]["xlo"]={traj_info[ts]["xlo"]}')
+			print(f'traj_info[ts][molid]["coords"]={traj_info[ts][molid]["coords"]}')
+			traj_info[ts][molid]["coords"][:,0] -= traj_info[ts]["xlo"]
+			traj_info[ts][molid]["coords"][:,1] -= traj_info[ts]["ylo"]
+			traj_info[ts][molid]["coords"][:,2] -= traj_info[ts]["zlo"]
+			unwrap_molecule(traj_info[ts][molid]["coords"], traj_info[ts][molid]["bond_map"], box_dims)
+
+	return
+
+def coarse_grain_traj(traj_info):
+
+	coarse_traj_info = copy.copy(traj_info)
+	for ts in traj_info:
+		dL = np.array([traj_info["xhi"]-traj_info["xlo"], traj_info["yhi"]-traj_info["ylo"], traj_info["zhi"]-traj_info["zlo"]])
+		for molid in traj_info:
+			coarse_traj_info[ts][molid]["coords"]   = np.empty((0,3))
+			coarse_traj_info[ts][molid]["masses"]   = np.empty(0)
+			coarse_traj_info[ts][molid]["bond_map"] = {}
+			if molid == 1:
+				# make the 19 monomers
+				for i in range(30):
+					if i==0:
+						coords  = traj_info[ts][molid]["coords"][0:21]*traj_info[ts][molid]["masses"][0:21]/np.sum(traj_info[ts][molid]["masses"][0:21])
+						coords %= dL
+						coarse_traj_info[ts][molid]["coords"]      = np.vstack((coarse_traj_info[ts][molid]["coords"],coords))
+						coarse_traj_info[ts][molid]["masses"]      = np.hstack((coarse_traj_info[ts][molid]["masses"], np.sum(traj_info[ts][molid]["masses"][0:21])))
+						coarse_traj_info[ts][molid]["bond_map"][i+1] = [i+1+1]
+					elif i<29:
+						coords  = traj_info[ts][molid]["coords"][20+(i-1)*19:20+i*19]*traj_info[ts][molid]["masses"][20+(i-1)*19:20+i*19]/np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:20+i*19])
+						coords %= dL
+						coarse_traj_info[ts][molid]["coords"]      = np.vstack((coarse_traj_info[ts][molid]["coords"],coords))
+						coarse_traj_info[ts][molid]["masses"]      = np.hstack((coarse_traj_info[ts][molid]["masses"], np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:20+i*19])))
+						coarse_traj_info[ts][molid]["bond_map"][i+1] = [i+1-1,i+1+1]
+					else:
+						coords  = traj_info[ts][molid]["coords"][20+(i-1)*19:]*traj_info[ts][molid]["masses"][20+(i-1)*19:]/np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:])
+						coords %= dL
+						coarse_traj_info[ts][molid]["coords"]      = np.vstack((coarse_traj_info[ts][molid]["coords"],coords))
+						coarse_traj_info[ts][molid]["masses"]      = np.hstack((coarse_traj_info[ts][molid]["masses"], np.sum(traj_info[ts][molid]["masses"][20+(i-1)*19:])))
+						coarse_traj_info[ts][molid]["bond_map"][i+1] = [i+1-1]
+
+				pass
+				
+			else:
+				rcom = (traj_info[ts][molid]["coords"]*traj_info[ts]["masses"])/np.sum(traj_info[ts][molid]["masses"])
+				coarse_traj_info[ts][molid]["coords"]   = rcom.reshape((1,-1))
+				coarse_traj_info[ts][molid]["bond_map"] = {}
+				coarse_traj_info[ts][molid]["masses"]   = np.sum(traj_info[ts][molid]["masses"])
+
+	return coarse_traj_info
+
+def write_cg_traj(coarse_traj_info, sim_data, cg_traj_filename, natoms):
+
+	f = open(cg_traj_filename, 'w')
+
+	for idx,ts in enumerate(coarse_grain_traj):
+		f.write("ITEM: TIMESTEP\n")
+		f.write(f"{int(ts)}\n")
+		f.write("ITEM: NUMBER OF ATOMS\n")
+		f.write(f"{natoms}\n")
+		f.write("ITEM: BOX BOUNDS pp pp pp\n")
+		f.write(f'{coarse_traj_info[ts]["xlo"]}    {coarse_traj_info[ts]["xhi"]}\n')
+		f.write(f'{coarse_traj_info[ts]["ylo"]}    {coarse_traj_info[ts]["yhi"]}\n')
+		f.write(f'{coarse_traj_info[ts]["zlo"]}    {coarse_traj_info[ts]["zhi"]}\n')
+		f.write("ITEM: ATOMS id type x y z")
+		srno = 0
+		for molid in coarse_grain_traj[ts]:
+			for sr_atom, atom in enumerate(coarse_grain_traj[ts][molid]["coords"]):
+				srno += 1
+				f.write(f'{srno} {sim_data["atoms"][srno]["atm_num"]} {atom[sr_atom][0]} {atom[sr_atom][1]} {atom[sr_atom][2]}\n')
+
+	f.close()
+
+	return
 
 if __name__=="__main__":
 
-	print("Creating the simulation object...")
+
+	start = time.time()
+	print("Creating the topology object...")
 	sim_info  = create_simulation_object(args.data)
-	print(sim_info)
+	print (f"Time to make the topology is {time.time()-start} seconds.")
 
+	start = time.time()
 	print("Creating the trajectory object...")
-	traj_info = create_traj_object(args.traj)
+	traj_info = create_traj_object(sim_info, args.traj)
+	print (f"Time to make the traj object is {time.time()-start} seconds.")
 
-	print ("Created both!")
+	print ("Created both the simulation object and traj object!")
+
+	start = time.time()
+	unwrap_trajectory(traj_info)
+	print(f"Time to unwrap trajectory is {time.time()-start} seconds.")
+
+	start = time.time()
+	print(f"Creating the cg'd traj...")
+	cg_traj = coarse_grain_traj(traj_info)
+	print(f"Coarse-grained the trajectory in {time.time()-start} seconds.")
+
+	start = time.time()
+	print(f"Writing out cg'd traj...")
+	write_cg_traj(cg_traj, sim_infomargs.ntraj, sim_info["natoms"])
+	print(f"Wrote out coarse-grained trajectory in {time.time()-start} seconds.")
+
+	
+
 
 

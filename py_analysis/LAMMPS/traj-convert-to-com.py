@@ -3,6 +3,7 @@ import re
 import argparse
 import time
 import copy
+import pickle
 
 parser = argparse.ArgumentParser (description="Edit the data file to put the polymer in the center of the box.")
 parser.add_argument ("--trajfile", dest='traj', action='store', type=str, help="Name of trajfile.")
@@ -219,7 +220,8 @@ def create_traj_object(sim_info, trajfile):
 
 def unwrap_molecule(molecule, bonds, box_dims, sr_llim):
 
-	untested = list(range(len(molecule)))
+	untested = list(range(sr_llim, sr_llim+len(molecule)))
+	print(f"untested = {untested}")
 	tested   = []
 	queue    = []
 
@@ -228,17 +230,23 @@ def unwrap_molecule(molecule, bonds, box_dims, sr_llim):
 		if not queue:
 			queue.append(untested[0])
 		for i in queue:
-			neighbors = bonds[i+1+sr_llim]
+			print(f"i = {i}")
+			neighbors = bonds[i+sr_llim]
 			neighbors = [ni for ni in neighbors if ni not in tested]
 			ri = molecule[i]
 			for j in neighbors:
 				rj = molecule[j-sr_llim]
 				dr = rj - ri
 				shift = np.round(dr/box_dims)
-				molecule[j] -= shift*box_dims
+				molecule[j-sr_llim] -= shift*box_dims
+				print(j)
+				print(bonds[j])
+				bonds[j].remove(i)
 			tested.append(i)
+			print(f"right before remove, i = {i}...")
 			untested.remove(i)
 			wait.extend(neighbors)
+		print(f"queue = {queue}")
 		queue = list(set(wait[:]))
 
 	return # molecule
@@ -254,7 +262,8 @@ def unwrap_trajectory(traj_info):
 			traj_info[ts]["molid"][molid]["coords"][:,0] -= traj_info[ts]["xlo"]
 			traj_info[ts]["molid"][molid]["coords"][:,1] -= traj_info[ts]["ylo"]
 			traj_info[ts]["molid"][molid]["coords"][:,2] -= traj_info[ts]["zlo"]
-			unwrap_molecule(traj_info[ts]["molid"][molid]["coords"], traj_info[ts]["molid"][molid]["bond_map"], box_dims, sr_llim)
+			bond_map = copy.copy(traj_info[ts]["molid"][molid]["bond_map"])
+			unwrap_molecule(traj_info[ts]["molid"][molid]["coords"], bond_map, box_dims, sr_llim)
 			sr_llim += len(traj_info[ts]["molid"][molid]["coords"])
 
 	return
@@ -263,8 +272,8 @@ def coarse_grain_traj(traj_info):
 
 	coarse_traj_info = copy.copy(traj_info)
 	for ts in traj_info:
-		dL = np.array([traj_info["xhi"]-traj_info["xlo"], traj_info["yhi"]-traj_info["ylo"], traj_info["zhi"]-traj_info["zlo"]])
-		for molid in traj_info["molid"]:
+		dL = np.array([traj_info[ts]["xhi"]-traj_info[ts]["xlo"], traj_info[ts]["yhi"]-traj_info[ts]["ylo"], traj_info[ts]["zhi"]-traj_info[ts]["zlo"]])
+		for molid in traj_info[ts]["molid"]:
 			coarse_traj_info[ts]["molid"][molid]["coords"]   = np.empty((0,3))
 			coarse_traj_info[ts]["molid"][molid]["masses"]   = np.empty(0)
 			coarse_traj_info[ts]["molid"][molid]["bond_map"] = {}
@@ -326,10 +335,10 @@ def write_cg_traj(coarse_traj_info, sim_data, cg_traj_filename, natoms):
 
 if __name__=="__main__":
 
-
 	start = time.time()
 	print("Creating the topology object...")
 	sim_info  = create_simulation_object(args.data)
+
 	print (f"Time to make the topology is {time.time()-start} seconds.")
 
 	start = time.time()
@@ -350,7 +359,7 @@ if __name__=="__main__":
 
 	start = time.time()
 	print(f"Writing out cg'd traj...")
-	write_cg_traj(cg_traj, sim_infomargs.ntraj, sim_info["natoms"])
+	write_cg_traj(cg_traj, sim_info, args.ntraj, sim_info["nmolecules"]+29)
 	print(f"Wrote out coarse-grained trajectory in {time.time()-start} seconds.")
 
 	

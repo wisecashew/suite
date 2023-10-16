@@ -9,6 +9,13 @@ parser.add_argument("--atm1", dest="atm1", action='store', type=int, help="Name 
 parser.add_argument("--atm2", dest="atm2", action='store', type=int, help="Name of atom type 2.")
 args = parser.parse_args()
 
+v = [[0,0,0], [1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1], [1, 1, 0], [-1, 1, 0], [1, -1, 0], \
+[-1, -1, 0], [0, 1, 1], [0, -1, 1], [0, 1, -1], [0, -1, -1], \
+[1, 0, 1], [-1, 0, 1], [1, 0, -1], [-1, 0, -1], \
+[1, 1, 1], [-1, 1, 1], [1, -1, 1], [1, 1, -1], [-1, -1, 1], \
+[-1, 1, -1], [1, -1, -1], [-1, -1, -1]]
+v = np.array([np.array(u) for u in v])
+
 def create_traj_object(trajfile):
 
 	traj = {}
@@ -48,7 +55,6 @@ def create_traj_object(trajfile):
 			numatoms_flag  = False
 			boxbounds_flag = False
 			itematoms_flag = True
-			print(f"ts = {ts}.")
 			traj[ts]["coords"] = {}
 			continue
 
@@ -122,21 +128,24 @@ def calculate_rdf(traj, atm_type_1, atm_type_2, N_1, N_2, num_bins=1000):
 		box_dims = np.array([ traj[ts]["xhi"]-traj[ts]["xlo"], traj[ts]["yhi"]-traj[ts]["ylo"], traj[ts]["zhi"]-traj[ts]["zlo"] ], dtype=np.float64)
 		coords_1 = traj[ts]["coords"][atm_type_1]
 		coords_2 = traj[ts]["coords"][atm_type_2]
-		delta_r  = coords_1[:, np.newaxis, :] - coords_2
-		delta_r -= box_dims * np.round(delta_r / box_dims)
+		perturb_coords_2 = np.vstack([pdist+coords_2 for pdist in v])
+		distances        = np.linalg.norm(coords_1[:,np.newaxis] - perturb_coords_2, axis=2)
+		distances        = distances.reshape(-1)
+		max_distance     = np.min(box_dims)/2.0
+		distances        = distances[distances < max_distance]
 
-		r = np.sqrt(np.sum(delta_r**2, axis=2))
+		# create the histogram
+		hist, bin_edges  = np.histogram(distances, bins=num_bins, range=(0, max_distance))
 
-		max_distance = np.min(box_dims)/2.0
-		bin_edges = np.linspace(0, max_distance, num_bins + 1)
+		# calculate the bin centers 
+		bin_centers = (bin_edges[1:] + bin_edges[:-1])/2
+		bin_width   = bin_edges[1] - bin_edges[0]
 
-		# calculate rdf
-		rdf, _ = np.histogram(delta_r, bins=bin_edges)
-		normalization_factor = N_1 / (4*np.pi*bin_edges**2*(bin_edges[1]-bin_edges[0]))
-		rdf = np.array(rdf, dtype=np.float64)
-		rdf /= normalization_factor
-		bin_centers = 0.5 * (bin_edges[1:] + bin_edges[:-1])
-		rdf_total += rdf
+		# density of particle 2
+		rho_2 = N_2/np.prod(box_dims)
+		hist = hist/(4*np.pi*(bin_centers**2)*bin_width*rho_2*N_1*27)
+
+		rdf_total += hist
 
 	rdf_total /= len(traj)
 
@@ -148,14 +157,16 @@ if __name__=="__main__":
 
 	# get all the information from the trajectory file
 	traj, n_atoms = create_traj_object(args.traj)
-	print(traj)
 
 	# now calculate the rdf
+	print(n_atoms[0], n_atoms[1])
 	rdf, bins = calculate_rdf(traj, args.atm1, args.atm2, n_atoms[0], n_atoms[1])
 
 	fig = plt.figure(figsize=(5,5))
 	ax  = plt.axes()
 
-	ax.plot(bins, rdf, c='coral', marker='o', mec='k')
+	ax.plot(bins, rdf, c='steelblue', lw=1)
+	ax.set_xlim(0,10)
+	ax.axhline(y=1, c='r', ls='--')
 	fig.savefig('rdf', dpi=1200, bbox_inches="tight")
 

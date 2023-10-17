@@ -5,6 +5,7 @@ import re
 import argparse
 import matplotlib.pyplot as plt
 import time
+import numba
 
 parser = argparse.ArgumentParser (description="Edit the data file to put the polymer in the center of the box.")
 parser.add_argument("--trajfile", dest='traj', action='store', type=str, help="Name of trajfile.")
@@ -109,49 +110,35 @@ def create_traj_object(trajfile):
 		n_atoms[atm_sr] = len(traj[ts]["coords"][atm_sr])
 	return traj, n_atoms
 
+@numba.njit
+def big_calcs(coords_1, coords_2, box_dims, rdf_total, atm_type_1, atm_type_2, N_1, N_2, num_bins):
+
+	perturb_coords_2 = np.vstack([pdist+coords_2 for pdist in v])
+	distances        = np.linalg.norm(coords_1[:,np.newaxis] - perturb_coords_2, axis=2)
+	distances        = distances.reshape(-1)
+	max_distance     = np.min(box_dims)/2.0
+	distances        = distances[distances < max_distance]
+	low_dists        = distances > 1e-2
+	distances        = distances[low_dists]
+
+	# create the histogram
+	hist, bin_edges  = np.histogram(distances, bins=num_bins, range=(0, max_distance))
+
+	# calculate the bin centers 
+	bin_centers = (bin_edges[1:] + bin_edges[:-1])/2
+	bin_width   = bin_edges[1] - bin_edges[0]
+
+	# density of particle 2
+	rho_2 = N_2/np.prod(box_dims)
+	hist = hist/(4*np.pi*(bin_centers**2)*bin_width*rho_2*N_1*27)
+
+	rdf_total += hist
+
+	return rdf_total
+
 def calculate_rdf(traj, atm_type_1, atm_type_2, N_1, N_2, num_bins=1000):
 
-	"""
-	Calculate RDF between particles of type 'a' and 'b' considering periodic boundary conditions using vectorization.
-
-	Parameters:
-	- coordinates_a: Numpy array of coordinates of particles of type 'a'.
-	- coordinates_b: Numpy array of coordinates of particles of type 'b'.
-	- atm_type_1: Particle type for 1.
-	- atm_type_2: Particle type for 2.
-
-	Returns:
-	- rdf: RDF values for each bin.
-	- bin_centers: Radial distance bin centers.
-	"""
-	rdf_total = np.zeros(num_bins, dtype=np.float64)
-
-	# Pairwise distances (using broadcasting) between particles of type 'a' and 'b'
-	for ts in traj:
-		box_dims = np.array([ traj[ts]["xhi"]-traj[ts]["xlo"], traj[ts]["yhi"]-traj[ts]["ylo"], traj[ts]["zhi"]-traj[ts]["zlo"] ], dtype=np.float64)
-		coords_1 = traj[ts]["coords"][atm_type_1]
-		coords_2 = traj[ts]["coords"][atm_type_2]
-		perturb_coords_2 = np.vstack([pdist+coords_2 for pdist in v])
-		distances        = np.linalg.norm(coords_1[:,np.newaxis] - perturb_coords_2, axis=2)
-		distances        = distances.reshape(-1)
-		max_distance     = np.min(box_dims)/2.0
-		distances        = distances[distances < max_distance]
-		low_dists        = distances > 1e-2
-		distances        = distances[low_dists]
-
-		# create the histogram
-		hist, bin_edges  = np.histogram(distances, bins=num_bins, range=(0, max_distance))
-
-		# calculate the bin centers 
-		bin_centers = (bin_edges[1:] + bin_edges[:-1])/2
-		bin_width   = bin_edges[1] - bin_edges[0]
-
-		# density of particle 2
-		rho_2 = N_2/np.prod(box_dims)
-		hist = hist/(4*np.pi*(bin_centers**2)*bin_width*rho_2*N_1*27)
-
-		rdf_total += hist
-
+	rdf_total = big_calcs(traj, atm_type_1, atm_type_2, N_1, N_2, num_bins)
 	rdf_total /= len(traj)
 
 	return rdf_total, bin_centers

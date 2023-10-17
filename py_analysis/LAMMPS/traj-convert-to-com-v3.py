@@ -6,12 +6,18 @@ import argparse
 import time
 import copy
 import pickle
+import multiprocessing
+multiprocessing.set_start_method('fork')
+import itertools
+import sys
 
 parser = argparse.ArgumentParser (description="Edit the data file to put the polymer in the center of the box.")
 parser.add_argument ("--trajfile", dest='traj', action='store', type=str, help="Name of trajfile.")
 parser.add_argument ("--ntrajfile", dest='ntraj', action='store', type=str, help="Name of cg'd trajfile.")
+parser.add_argument ("--topology", dest="top", action="store", type=str, help="Enter name of pickled simulation topology.", default=None)
+parser.add_argument ("--trajectory", dest="trajpkl", action="store", type=str, help="Enter name of pickled trajectory dictionary.", default=None)
+parser.add_argument ("--nproc", dest='nproc', action='store', type=int, help="Number of processes to request.")
 parser.add_argument ("--datafile", dest='data', action='store', type=str, help="Name of original datafile.")
-parser.add_argument ("--nspecies", dest='nspecies', action='store', type=int, help="Number of species present in the trajectory.")
 
 args = parser.parse_args()
 
@@ -168,10 +174,70 @@ def create_simulation_object(datafile):
 
 	return sim_data
 
-def create_traj_object(sim_info, trajfile):
 
-	traj = {}
 
+def divide_list_into_n_slices(list_to_divide, n_slices):
+	"""Divides a list into N slices.
+
+	Args:
+	list_to_divide: The list to divide.
+	n_slices: The number of slices to divide the list into.
+
+	Returns:
+	A list of lists, where each sublist contains the elements in one slice of the
+	original list.
+	"""
+
+	# Check if the list is empty.
+	if len(list_to_divide) == 0:
+		return []
+
+	# Check if the number of slices is greater than the length of the list.
+	if n_slices > len(list_to_divide):
+		raise ValueError("Number of slices must be less than or equal to the length of the list.")
+
+	# Calculate the slice size.
+	slice_size = len(list_to_divide) // n_slices
+
+	# Create a list to store the slices.
+	slices = []
+
+	# Iterate over the slices and add the elements in each slice to the slices list.
+	for i in range(n_slices):
+		start_index = i * slice_size
+		if i == n_slices - 1:
+			sl = list_to_divide[start_index:]
+		else:
+			end_index = (i + 1) * slice_size
+			sl = list_to_divide[start_index:end_index]
+		slices.append(sl)
+
+	# Return the list of slices.
+	return slices
+
+def traj_poker(trajfile):
+	timesteps = []
+	timestep_flag  = False
+	ts = None
+
+	f = open(trajfile, 'r')
+	for line in f:
+		if re.findall(r'^ITEM: TIMESTEP$', line):
+			timestep_flag = True
+			continue
+		elif timestep_flag:
+			contents = line.strip().split()
+			timesteps.append(int(contents[0]))
+			timestep_flag = False
+			continue
+	
+	return timesteps
+
+
+
+def traj_prober(sim_info, trajfile, timestep):
+	traj = dict()
+	approved       = False
 	timestep_flag  = False
 	numatoms_flag  = False
 	boxbounds_flag = False
@@ -181,20 +247,20 @@ def create_traj_object(sim_info, trajfile):
 	f = open(trajfile, 'r')
 	for line in f:
 		if re.findall(r'^ITEM: TIMESTEP$', line):
-			timestep_flag = True
+			timestep_flag  = True
 			numatoms_flag  = False
 			boxbounds_flag = False
 			itematoms_flag = False
 			continue
 
-		elif re.findall(r'^ITEM: NUMBER OF ATOMS$', line):
+		elif approved and re.findall(r'^ITEM: NUMBER OF ATOMS$', line):
 			timestep_flag  = False
 			numatoms_flag  = True
 			boxbounds_flag = False
 			itematoms_flag = False
 			continue
 
-		elif re.findall(r'^ITEM: BOX BOUNDS pp pp pp$', line):
+		elif approved and re.findall(r'^ITEM: BOX BOUNDS pp pp pp$', line):
 			timestep_flag  = False
 			numatoms_flag  = False
 			boxbounds_flag = True
@@ -202,14 +268,14 @@ def create_traj_object(sim_info, trajfile):
 			itematoms_flag = False
 			continue
 
-		elif re.findall(r'^ITEM: ATOMS id type x y z', line):
+		elif approved and re.findall(r'^ITEM: ATOMS id type x y z', line):
 			timestep_flag  = False
 			numatoms_flag  = False
 			boxbounds_flag = False
 			itematoms_flag = True
 			continue
 
-		elif boxbounds_flag:
+		elif approved and boxbounds_flag:
 			contents = line.strip().split()
 			if idx==0:
 				traj[ts]["xlo"] = float(contents[0])
@@ -226,17 +292,18 @@ def create_traj_object(sim_info, trajfile):
 			continue
 
 		elif timestep_flag:
-			if ts == None:
-				pass
-			else:
-				print("Processed!", flush=True)
+			print(line)
 			contents = line.strip().split()
 			ts = int(contents[0])
-			if ts > 50000:
-				return traj
-			traj[ts] = {}
-			print(f"Processing timestep {ts}...", end=' ', flush=True)
-			continue
+			if ts in timestep:
+				approved = True
+				contents = line.strip().split()
+				traj[ts] = {}
+				print(f"Processing timestep {ts}...", end=' ', flush=True)
+				continue
+			else:
+				approved = False
+				continue
 
 		elif numatoms_flag:
 			contents = line.strip().split()
@@ -264,6 +331,29 @@ def create_traj_object(sim_info, trajfile):
 				else:
 					continue
 			continue
+	f.close()
+	return traj
+
+
+def create_traj_object(sim_info, trajfile, timesteps, nproc):
+
+	# traj_prober has been defined above
+	# time to send out the processes
+
+	ts_list = divide_list_into_n_slices(timesteps, nproc)
+	pool = multiprocessing.Pool(processes=nproc)
+	results = pool.starmap(traj_prober, zip(itertools.repeat(sim_info), itertools.repeat(trajfile), ts_list))
+	pool.close()
+	pool.join()
+
+	print(results)
+
+	traj = results[0]
+	for idx,d in enumerate(results):
+		if idx == 0:
+			continue
+		else:
+			traj.update(d)
 
 	return traj
 
@@ -400,33 +490,50 @@ if __name__=="__main__":
 
 	abs_start = time.time()
 	start = time.time()
-	print("Creating the topology object...")
-	sim_info  = create_simulation_object(args.data)
+	print("Creating the topology object...", flush=True)
+	if args.top == None:
+		sim_info  = create_simulation_object(args.data)
+		with open("top.pkl", 'wb') as f:
+			pickle.dump(sim_info, f)
+	else:
+		with open(args.top, 'rb') as f:
+			sim_info = pickle.load(f)
 
-	print (f"Time to make the topology is {time.time()-start} seconds.")
+	print(sim_info)
+	print(f"Time to make the topology is {time.time()-start} seconds.", flush=True)
 
 	start = time.time()
-	print("Creating the trajectory object...")
-	traj_info = create_traj_object(sim_info, args.traj)
-	print (f"Processed!.\nTime to make the traj object is {time.time()-start} seconds.")
+	timestep_arr = traj_poker(args.traj)
+	print(timestep_arr)
+	print(f"Time taken to poke traj file is {time.time()-start} seconds.", flush=True)
 
-	print ("Created both the simulation object and traj object!")
+	start = time.time()
+	print("Creating the trajectory object...", flush=True)
+	if args.trajpkl == None:
+		traj_info  = create_traj_object(sim_info, args.traj, timestep_arr, args.nproc)
+		with open("traj.pkl", 'wb') as f:
+			pickle.dump(traj_info, f)
+	else:
+		with open(args.top, 'rb') as f:
+			traj_info = pickle.load(f)
+	print (f"traj_info = {traj_info}")
+	print (f"Processed!.\nTime to make the traj object is {time.time()-start} seconds.", flush=True)
+
+	print ("Created both the simulation object and traj object!", flush=True)
 
 	start = time.time()
 	unwrap_trajectory(traj_info)
-	print(f"Time to unwrap trajectory is {time.time()-start} seconds.")
+	print(f"Time to unwrap trajectory is {time.time()-start} seconds.", flush=True)
 
 	start = time.time()
-	print(f"Writing the cg'd traj...")
+	print(f"Writing the cg'd traj...", flush=True)
 	cg_traj = coarse_grain_traj(traj_info)
-	print(f"Coarse-grained the trajectory in {time.time()-start} seconds.")
+	print(f"Coarse-grained the trajectory in {time.time()-start} seconds.", flush=True)
 
 	start = time.time()
-	print(f"Writing out cg'd traj...")
+	print(f"Writing out cg'd traj...", flush=True)
 	write_cg_traj(cg_traj, sim_info, args.ntraj, sim_info["nmolecules"]+29)
-	print(f"Wrote out coarse-grained trajectory in {time.time()-start} seconds.")
+	print(f"Wrote out coarse-grained trajectory in {time.time()-start} seconds.", flush=True)
 
-	print(f"Time to write out entire trajectory is {time.time()-abs_start} seconds.")
-
-
+	print(f"Time to run computation was {time.time()-abs_start} seconds.", flush=True)
 

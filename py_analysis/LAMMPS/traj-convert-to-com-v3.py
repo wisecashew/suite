@@ -10,6 +10,7 @@ import multiprocessing
 multiprocessing.set_start_method('fork')
 import itertools
 import sys
+from collections import OrderedDict
 
 parser = argparse.ArgumentParser (description="Edit the data file to put the polymer in the center of the box.")
 parser.add_argument ("--trajfile", dest='traj', action='store', type=str, help="Name of trajfile.")
@@ -34,7 +35,19 @@ def create_simulation_object(datafile):
 	f = open(datafile, 'r')
 
 	for line in f:
-		if re.findall(r'atoms$', line):
+		if not(line.strip().split()):
+			continue
+		elif re.findall(r"Coeffs", line):
+			extract_masses = False
+			extract_atoms  = False
+			extract_bonds  = False
+			continue
+		elif re.findall(r"Velocities", line):
+			extract_masses = False
+			extract_atoms  = False
+			extract_bonds  = False
+			continue
+		elif re.findall(r'atoms$', line):
 			sim_data["natoms"] = int((line.strip().split())[0])
 			continue
 		elif re.findall(r'atom types$', line): 
@@ -66,39 +79,39 @@ def create_simulation_object(datafile):
 			continue
 		elif not line.strip().split():
 			continue
-		elif re.findall(r'^Masses$', line):
+		elif re.findall(r'^Masses', line):
 			extract_atoms  = False
 			extract_bonds  = False
 			extract_masses = True
 			sim_data["masses"] = {}
 			continue
-		elif re.findall(r'^Atoms$', line):
+		elif re.findall(r'^Atoms', line):
 			extract_atoms  = True
 			extract_bonds  = False
 			extract_masses = False
 			sim_data["atoms"] = {}
 			sim_data["molecules"] = {}
 			continue
-		elif re.findall(r'^Bonds$', line):
+		elif re.findall(r'^Bonds', line):
 			extract_atoms  = False
 			extract_bonds  = True
 			extract_masses = False
 			sim_data["bonds"] = []
 			continue
 
-		elif re.findall(r'^Angles$', line):
+		elif re.findall(r'^Angles', line):
 			extract_atoms  = False
 			extract_bonds  = False
 			extract_masses = False
 			continue
 
-		elif re.findall(r'^Dihedrals$', line):
+		elif re.findall(r'^Dihedrals', line):
 			extract_atoms  = False
 			extract_bonds  = False
 			extract_masses = False
 			continue
 
-		elif re.findall(r'^Impropers$', line):
+		elif re.findall(r'^Impropers', line):
 			extract_atoms  = False
 			extract_bonds  = False
 			extract_masses = False
@@ -134,11 +147,22 @@ def create_simulation_object(datafile):
 					sim_data["molecules"][molid]["bonds"][int(content[2])].append(int(content[3]))
 					sim_data["molecules"][molid]["bonds"][int(content[3])].append(int(content[2]))
 					break
+	
+	# now sort out the dictionary
+	sim_data["atoms"]      = dict(OrderedDict(sorted(sim_data["atoms"].items())))
+	sim_data["molecules"]  = dict(OrderedDict(sorted(sim_data["molecules"].items())))
 	sim_data["nmolecules"] = len(sim_data["molecules"])
 
-	# make tuple out of the list of atom types in sim_data["molecules"][molid]["atom_type"]
+	# sort the molecules
+	print(f'Number of atoms in simulation is {len(sim_data["atoms"])}.', flush=True)
+	print(f'Number of molecules is {sim_data["nmolecules"]}.', flush=True)
+
+	# sort and then tuple out of the list of atom types in sim_data["molecules"][molid]["atom_type"]
 	for molid in sim_data["molecules"]:
+		sim_data["molecules"][molid]["atom_type"] = [z for _,z in sorted(zip(sim_data["molecules"][molid]["atoms"],sim_data["molecules"][molid]["atom_type"]))]
+		sim_data["molecules"][molid]["atoms"].sort()
 		sim_data["molecules"][molid]["atom_type"] = tuple(sim_data["molecules"][molid]["atom_type"])
+
 
 	# find number of different types of molecules
 	mol_set  = set()
@@ -159,6 +183,7 @@ def create_simulation_object(datafile):
 		ATM_LIST.append(sim_data["atoms"][srno]["atm_num"])
 	sim_data["nspecies"] = len(mol_set)
 
+	print(f'Number of species in simulation is {sim_data["nspecies"]}.')
 	# now that i know molecules exist, figure out which molid is which molecule
 	mol_name = dict()
 	for idx,element in enumerate(mol_set):
@@ -254,6 +279,7 @@ def traj_prober(sim_info, trajfile, timestep):
 			continue
 
 		elif approved and re.findall(r'^ITEM: NUMBER OF ATOMS$', line):
+			# print(f"good line = {line}")
 			timestep_flag  = False
 			numatoms_flag  = True
 			boxbounds_flag = False
@@ -292,18 +318,20 @@ def traj_prober(sim_info, trajfile, timestep):
 			continue
 
 		elif timestep_flag:
-			print(line)
 			contents = line.strip().split()
-			ts = int(contents[0])
+			try:
+				ts = int(contents[0])
+			except:
+				print(f"Exiting.")
+				exit()
 			if ts in timestep:
 				approved = True
-				contents = line.strip().split()
 				traj[ts] = {}
-				print(f"Processing timestep {ts}...", end=' ', flush=True)
-				continue
+				# print(f"Processing timestep {ts}...", end=' ', flush=True)
 			else:
 				approved = False
-				continue
+				timestep_flag = False
+			continue
 
 		elif numatoms_flag:
 			contents = line.strip().split()
@@ -322,6 +350,7 @@ def traj_prober(sim_info, trajfile, timestep):
 						traj[ts]["molid"][molid]["coords"]   = np.empty((0,3))
 						traj[ts]["molid"][molid]["bond_map"] = sim_info["molecules"][molid]["bonds"]
 						traj[ts]["molid"][molid]["masses"]   = np.empty(0, dtype=np.float64)
+						print(f"molid = {molid}", flush=True)
 						traj[ts]["molid"][molid]["mol_name"] = sim_info["molecules"][molid]["mol_name"]
 
 					coords = np.array([float(contents[2]), float(contents[3]), float(contents[4])], dtype=np.float64)
@@ -340,13 +369,20 @@ def create_traj_object(sim_info, trajfile, timesteps, nproc):
 	# traj_prober has been defined above
 	# time to send out the processes
 
+	if len(timesteps) < nproc:
+		nproc = len(timesteps)
+
 	ts_list = divide_list_into_n_slices(timesteps, nproc)
+	# print(f"ts_list = {ts_list}")
+	print("Sending out trajetory probe...", flush=True)
+
 	pool = multiprocessing.Pool(processes=nproc)
 	results = pool.starmap(traj_prober, zip(itertools.repeat(sim_info), itertools.repeat(trajfile), ts_list))
+
+	print("Trajectory has been probed!", flush=True)
+
 	pool.close()
 	pool.join()
-
-	print(results)
 
 	traj = results[0]
 	for idx,d in enumerate(results):
@@ -499,12 +535,11 @@ if __name__=="__main__":
 		with open(args.top, 'rb') as f:
 			sim_info = pickle.load(f)
 
-	print(sim_info)
 	print(f"Time to make the topology is {time.time()-start} seconds.", flush=True)
 
 	start = time.time()
 	timestep_arr = traj_poker(args.traj)
-	print(timestep_arr)
+	# print(timestep_arr)
 	print(f"Time taken to poke traj file is {time.time()-start} seconds.", flush=True)
 
 	start = time.time()
@@ -516,7 +551,7 @@ if __name__=="__main__":
 	else:
 		with open(args.top, 'rb') as f:
 			traj_info = pickle.load(f)
-	print (f"traj_info = {traj_info}")
+	# print (f"traj_info = {traj_info}")
 	print (f"Processed!.\nTime to make the traj object is {time.time()-start} seconds.", flush=True)
 
 	print ("Created both the simulation object and traj object!", flush=True)

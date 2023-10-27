@@ -66,19 +66,22 @@ if __name__=="__main__":
 		ax.plot (df["rg"].values, df["fes"].values, c='steelblue', lw=1)
 
 	if args.yllim == None or args.yulim == None:
-		ax.set_ylim((0, 250))
+		ax.set_ylim((np.min(df["fes"].values), np.max(df["fes"].values)))
 	else:
 		ax.set_ylim((args.yllim, args.yulim))
 
 	if args.xllim == None or args.xulim == None:
-		ax.set_xlim((0, 30))
+		ax.set_xlim((np.min(df["rg"].values), np.max(df["rg"].values)))
 	else:
 		ax.set_xlim((args.xllim, args.xulim))
 
 
-	if "." in args.o:
+	if (".png" in args.o[:-4]):
+		img_name = args.o
+	elif ("." in args.o):
 		img_name = args.o + ".png"
 	else:
 		img_name = args.o
 	ax.minorticks_on()
 	fig.savefig (img_name, dpi=1200, bbox_inches="tight")
+

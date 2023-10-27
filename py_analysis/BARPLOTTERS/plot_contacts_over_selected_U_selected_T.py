@@ -24,6 +24,8 @@ parser.add_argument('--database', dest='db', action='store', type=str,  help='Pr
 parser.add_argument('--figsize', dest='figsize', action='store', nargs=2, type=float, help='Enter dimensions of image (width, height) (default: (2.5, 2.5)', default=[2.5,2.5])
 parser.add_argument('--yulim', dest='yulim', action='store', type=float, help='Provide an upper limit to y-axis.', default=None)
 parser.add_argument('--yllim', dest='yllim', action='store', type=float, help='Provide a lower limit to y-axis.',  default=None)
+parser.add_argument('--xulim', dest='xulim', action='store', type=float, help='Provide an upper limit to x-axis.', default=None)
+parser.add_argument('--xllim', dest='xllim', action='store', type=float, help='Provide a lower limit to x-axis.', default=None)
 parser.add_argument('--markersize', dest='ms', action='store', type=float, help='Provide a markersize.',  default=8/1.3)
 parser.add_argument('--ylabels', dest='ylabels', action='store_true', default=False, help='Provide this label if you want to see ylabels.')
 parser.add_argument('--clip-on', dest='clipon', action='store_true', default=False, help='Provide this label if you want to clip markers.')
@@ -163,6 +165,16 @@ if __name__=="__main__":
 	else:
 		yllim = args.yllim
 
+	if args.xulim == None:
+		xulim = 100 # np.max(PLOT_DICT[U][0]) * 1.1 if np.max(PLOT_DICT[U][0]) > 0 else np.max(PLOT_DICT[U][0])*0.9
+	else:
+		xulim = args.xulim
+
+	if args.xllim == None:
+		xllim = 0.01 # np.min(PLOT_DICT[U][0]) * 0.9 if np.max(PLOT_DICT[U][0]) > 0 else np.min(PLOT_DICT[U][0]) * 1.1
+	else:
+		xllim = args.xllim
+
 	y = np.array([yllim, yulim])
 	
 	df = pd.read_csv (args.db, sep='|', engine='python', skiprows=1, names=["U", "T", "nu_mean", "nu_err"])
@@ -205,6 +217,8 @@ if __name__=="__main__":
 	ax.set_xticks (np.logspace(-2,2,5))
 	ax.set_xticks ( np.hstack((np.arange(0.01,0.1,0.01), np.arange(0.1, 1, 0.1), np.arange(1,10,1), np.arange(10,100,10))), minor=True)
 	ax.set_xticklabels([])
+	ax.set_xlim   (xllim, xulim)
+	ax.set_xticklabels ([])
 
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.set_aspect('auto')

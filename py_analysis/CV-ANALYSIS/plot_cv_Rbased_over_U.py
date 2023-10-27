@@ -35,6 +35,8 @@ parser.add_argument('--nyticks', dest='nyticks', action='store', type=int, help=
 parser.add_argument('--markersize', dest='ms', action='store', type=float, help='Provide marker size.', default=8/1.3)
 parser.add_argument('--yulim', dest='yulim', action='store', type=float, help='Provide an upper limit to y-axis.', default=None)
 parser.add_argument('--yllim', dest='yllim', action='store', type=float, help='Provide a lower limit to y-axis.', default=None)
+parser.add_argument('--xulim', dest='xulim', action='store', type=float, help='Provide an upper limit to x-axis.', default=None)
+parser.add_argument('--xllim', dest='xllim', action='store', type=float, help='Provide a lower limit to x-axis.', default=None)
 parser.add_argument('--T', dest='T', action='store', type=float, nargs='+', help='Provide a temperature list.')
 parser.add_argument('--database', dest='db', action='store', type=str, help='The database where the flory exponents is stored.')
 parser.add_argument('--dump-file', dest='e', metavar='energydump', action='store', type=str, help='Name of energy dump file to parse information.', default='energydump')
@@ -233,6 +235,15 @@ if __name__=="__main__":
 	else:
 		yllim = args.yllim
 
+	if args.xulim == None:
+		xulim = 100 # np.max(PLOT_DICT[U][0]) * 1.1 if np.max(PLOT_DICT[U][0]) > 0 else np.max(PLOT_DICT[U][0])*0.9
+	else:
+		xulim = args.xulim
+
+	if args.xllim == None:
+		xllim = 0.01 # np.min(PLOT_DICT[U][0]) * 0.9 if np.max(PLOT_DICT[U][0]) > 0 else np.min(PLOT_DICT[U][0]) * 1.1
+	else:
+		xllim = args.xllim
 	y = np.array([yllim, yulim])
 
 	df = pd.read_csv (args.db, sep='|', engine='python', skiprows=1, names=["U", "T", "nu_mean", "nu_err"])
@@ -273,6 +284,8 @@ if __name__=="__main__":
 	ax.set_xticks (np.logspace(-2, 2, 5))
 	ax.set_xticks (np.hstack((np.arange(0.01,0.1,0.01), np.arange(0.1, 1, 0.1), np.arange(1,10,1), np.arange(10,100,10))), minor=True)
 	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
+	ax.set_xticklabels ([])
+	ax.set_xlim   (xllim, xulim)
 	ax.set_xticklabels ([])
 	ax.set_aspect ('auto')
 	plt.savefig   (args.pn, bbox_inches='tight', dpi=1200)

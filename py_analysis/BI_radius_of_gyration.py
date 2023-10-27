@@ -7,10 +7,9 @@ import matplotlib.pyplot as plt
 
 import argparse
 
-parser = argparse.ArgumentParser(description="Analyze polymer for rouse modes.")
-parser.add_argument ("-i", dest='i', type=str, action='store', help="Name of rg file.")
-args = parser.parse_args ()
-
+parser = argparse.ArgumentParser(description="Analyze radius of gyration.")
+parser.add_argument("-i", dest='i', type=str, action='store', help="Name of rg file.")
+args = parser.parse_args()
 
 
 if __name__=="__main__":

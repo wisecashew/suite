@@ -73,15 +73,14 @@ if __name__=="__main__":
 	keys    = ["M1-M1", "M1-S", "S1-S2", "M1-S1", "M1-S2", "M1-S1-A", "M1-S1-N", "S1-S2-A"]
 	titles  = ["Monomer-monomer contacts", "Solvent-cosolvent contacts", "Monomer-solvent contacts", "Monomer-cosolvent contacts", "Solvent-solvent contacts", "cosolvent-cosolvent contacts"]
 
-	ylims   = [(30,180), (400,800), (0, 3.5e+5), (0, 800), (0, 800), (0, 800), (0, 800), (0,3.5e+5)]
+	ylims   = [(0,180//26), (400//26,800//26), (0, 3), (0, 25), (0, 25), (0, 25), (0, 25), (0,3)]
 	ypads   = [3, 1, 1, 1, 1, 3]
-	yticks  = [np.linspace(30, 180, 6), np.linspace(400,800,5), np.linspace(0,4e+5, 5), np.linspace(0, 800, 5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0, 4e+5,5)]
+	yticks  = [np.linspace(0, 180//26, 7), np.linspace(400//26,800//26,5), np.linspace(0,3,4), np.linspace(0, 25, 6), np.linspace(0,25,6), np.linspace(0,25,6), np.linspace(0,25,5), np.linspace(0,3,4)]
 
 	df_real = pd.read_csv (args.real, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 	x_real  = df_real ["x"]
 
-	colormap = cm.get_cmap ("coolwarm")
-	for k in range( len(keys) ):
+	for k,key in enumerate(keys):
 
 		ax[0][0].tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both')
 		ax[0][0].tick_params(axis='x', labelsize=8)
@@ -104,13 +103,22 @@ if __name__=="__main__":
 
 		for idx, hmix in enumerate(Hmix):
 			df_subset = df_real [df_real ["H"] == hmix]
-			print (df_subset)
+			
+			if "M1-M1" in keys[k]:
+				normalization = np.ones(df_subset["x"].values.shape)*M
+			elif "S1-S2" in keys[k]:
+				Nsolv = 34**3 - M
+				normalization = 1/2*z*Nsolv*df_subset["x"].values*(1-df_subset["x"].values)
+				normalization[normalization==0] = 1
+			elif "M1-S" in keys[k]:
+				normalization = np.ones(df_subset["x"].values.shape)*M
+
 			idx = idx % len(cols)
-			if keys == "M1-S1" or keys == "M1-S2":
+			if keys[k] == "M1-S1" or keys[k] == "M1-S2":
 				p_diff = (df_subset [keys[k]].values - 0) # df_id ["x"].values*z*M)
 			else:
 				p_diff = (df_subset [keys[k]].values - 0) # df_id [keys[k]].values)
-			ax[0][0].plot (df_subset["x"].values, p_diff, marker='o', c=cols[idx], linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10)
+			ax[0][0].plot (df_subset["x"].values, p_diff/normalization, marker='o', c=args.color, linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10)
 
 		plt.savefig ("contact-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
 		ax[0][0].cla()

@@ -4,7 +4,6 @@ import numpy as np
 from pathlib import Path
 import re 
 import matplotlib
-from matplotlib import rcParams
 import matplotlib.style as mpl
 matplotlib.use('Agg')
 import matplotlib.cm as cm
@@ -53,7 +52,6 @@ if __name__ == "__main__":
 	##################################
 
 	fpath = Path (matplotlib.get_data_path(), "/scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/arial.ttf")
-	# plt.rcParams['font.family'] = 'Arial'
 
 	lsize  = 13.5
 	fsize = args.figsize

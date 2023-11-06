@@ -105,7 +105,7 @@ if __name__=="__main__":
 	g.close()
 	for j in range(len(U_list)):
 		ax.axhline (y=0, c='k', linewidth=1)
-		ax.set_ylim((-0.01 , 1.01))
+		ax.set_ylim((0.0 , 1.0))
 		ax.set_xlim((-0.5, len(temperatures)-0.5))
 		ax.set_xticks (np.arange(len(temperatures)))
 		ax.set_xticklabels ([]) # [str(i) for i in temperatures], font=fpath, fontsize=12)

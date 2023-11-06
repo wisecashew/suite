@@ -25,10 +25,8 @@ trap 'echo "\"${last_command}\" command filed with exit code $?." ' EXIT
 ### code block for running simulations in the simple FH regime 
 #~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~!~
 
-srun --nodes=1 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=100GB python h4hourglass_corr.py --png-name spinodal_corr_tot --range-index 0 > outputcorr0.net 2>&1 &
-# srun --nodes=1 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=36GB python h4hourglass_corr.py --png-name spinodal_corr_sub --range-index 1 > outputcorr1.net 2>&1 &
-srun --nodes=1 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=100GB python h4hourglass_lock.py --png-name spinodal_lock_tot --range-index 0 > outputlock0.net 2>&1 &
-# srun --nodes=1 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=36GB python h4hourglass_lock.py --png-name spinodal_lock_sub --range-index 1 > outputlock1.net 2>&1 &
+srun --nodes=1 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=100GB python h4hourglass.py --png-name spinodal_corr_tot -pv 1.0 --delta-ms 0 -0.523 -0.5237 -1.3 > outputcorr0.net 2>&1 &
+srun --nodes=1 --ntasks=1 --cpus-per-task=1 --mem-per-cpu=100GB python h4hourglass.py --png-name spinodal_lock_tot -pv 0.25 --delta-ms -1 -2.07 -2.075 -3.7 > outputlock0.net 2>&1 &
 
 wait
 # python h4hourglass.py --png-name spinplots_net  --range-index 0 > output0.net 2>&1 &

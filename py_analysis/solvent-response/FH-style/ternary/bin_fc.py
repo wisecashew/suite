@@ -21,6 +21,7 @@ import linecache
 import itertools
 import ternary
 import tangent
+import mpltern
 
 import argparse
 parser = argparse.ArgumentParser(description="Create a skeleton solution for the binodal. This is a memory-intensive computation.")
@@ -61,7 +62,7 @@ def generate_points_on_circle(x, r, M):
 
 def generate_mesh_within_circle(x, rmin, rmax, rdensity, M):
 
-	r_ = np.linspace(rmin, rmax, rdensity)
+	r_ = np.logspace(rmin, rmax, rdensity)
 	for idx,r in enumerate(r_):
 		if idx == 0:
 			mesh = generate_points_on_circle(x, r, M)
@@ -76,7 +77,7 @@ def perform_sweep (chi_ps, chi_pc, chi_sc, crit_point, center):
 
 	# print (f"pid = {os.getpid()}.", flush=True)
 	# generate points
-	mesh = generate_mesh_within_circle(center, 0.1, 1, 10, 10)
+	mesh = generate_mesh_within_circle(center, -8, -6, 100, 50)
 
 	phi_a = mesh[:,0]
 	phi_b = mesh[:,1]
@@ -148,7 +149,8 @@ def perform_sweep (chi_ps, chi_pc, chi_sc, crit_point, center):
 #########################################
 
 def find_binodals(phi_upper, phi_lower, central_axis, center):
-
+	print(f"center = {center}")
+	print(f"central_axis = {central_axis}")
 	sol_bin_up   = np.empty((0,3))
 	sol_bin_down = np.empty((0,3))
 
@@ -163,12 +165,12 @@ def find_binodals(phi_upper, phi_lower, central_axis, center):
 
 		for jdx, pl in enumerate(phi_lower):
 			root = fsolve(mu_equations, [pu[1], pl[0], pl[1]])
-			if (np.abs(np.array(mu_equations(root))>1e-6)).any():
+			if (np.abs(np.array(mu_equations(root))>1e-8)).any():
 				continue
 
 			else:
-				p1 = np.array([pu[0], root[0], 1-pu[0]-root[0]])
-				p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+				p1 = np.array([pu[0], 1-pu[0]-root[0], root[0]])
+				p2 = np.array([root[1], 1-root[1]-root[2], root[2]])
 
 				if np.linalg.norm(p1-p2) < 1e-3:
 					continue
@@ -186,11 +188,11 @@ def find_binodals(phi_upper, phi_lower, central_axis, center):
 					if np.sign(np.cross (central_axis, p1[0:2]-center)) == np.sign(np.cross (central_axis, p2[0:2]-center)):
 						continue
 					elif np.cross (central_axis, p1[0:2]-center)>=0:
-						sol_bin_up   = np.vstack((sol_bin_up, p1))
-						sol_bin_down = np.vstack((sol_bin_down,p2))
+						sol_bin_up   = np.vstack((sol_bin_up,   p1))
+						sol_bin_down = np.vstack((sol_bin_down, p2))
 					else:
-						sol_bin_up   = np.vstack((sol_bin_up, p2 ))
-						sol_bin_down = np.vstack((sol_bin_down,p1))
+						sol_bin_up   = np.vstack((sol_bin_up,   p2))
+						sol_bin_down = np.vstack((sol_bin_down, p1))
 					print ("HIT!", flush=True, end=' ')
 					print (f"p1 = {p1}, p2 = {p2}!", flush=True)
 					break
@@ -205,10 +207,8 @@ if __name__=="__main__":
 	start = time.time()
 
 	#####################################################
-	fig = plt.figure(figsize=(3,3))
-	ax = fig.add_subplot (projection="ternary")
-	
-
+	fig = plt.figure(figsize=(8,8))
+	ax  = fig.add_subplot(projection="ternary")
 	########################################################
 
 	chi_sc = args.chi_sc
@@ -250,6 +250,19 @@ if __name__=="__main__":
 	#####################################################################
 
 	#####################################################################
+
+	# get all the crit points
+	# roots_up, roots_down = ternary.find_crit_point(vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s)
+
+	# put them all together
+	# crits      = np.vstack ((roots_up, roots_down))
+
+	# get rid ofthe redundant ones
+	# threshold  = 1e-6
+	# crits      = ternary.remove_close_rows (crits, threshold)
+	crits=np.array([[0.37037037, 0.37037037],[0.37037037,0.25925926],[0.25925926, 0.37037037]])
+	print (f"cleaned_crits = \n{crits}")
+
 	tern_b  = True
 	edge_b  = True
 	crits_b = True
@@ -260,7 +273,7 @@ if __name__=="__main__":
 	for i in range (len(p_s_space)):
 		p_p[i*len(p_s_space):(i+1)*len(p_s_space)] = np.linspace (0.001, 1-p_s_space[i], len(p_s_space))
 
-	vals = ternary.stab_crit (p_s, p_p, chi_ps, chi_pc, chi_sc)
+	vals = ternary.stab_crit (p_s, p_p, vs, vc, vp, chi_ps, chi_pc, chi_sc)
 
 	to_keep = ~np.isnan(vals)
 
@@ -271,10 +284,10 @@ if __name__=="__main__":
 	if len(vals) == 0:
 		print (f"There will be no critical points and no spinodal region.")
 
-	vmax = np.max (vals)
-	vmin = np.min (vals)
-	norm = colors.SymLogNorm (0.001, vmin=vmin, vmax=vmax)
-	cols = cm.bwr (norm (vals))
+	vmax = np.max(vals)
+	vmin = np.min(vals)
+	norm = colors.SymLogNorm(0.001, vmin=vmin, vmax=vmax) 
+	cols = cm.bwr(norm (vals))
 
 	if np.sign (vmax) == np.sign (vmin):
 		if np.sign (vmax) >=0:
@@ -288,20 +301,13 @@ if __name__=="__main__":
 		print ("there exist unstable regions.")
 	
 	# plot the thing
-	ternary.plot(ax, args.ternary, args.edges, args.crits, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols)
+	ternary.plot(ax, True, True, True, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols, root_up_s, root_lo_s)
 
 	############################################################
-	# get the critical points
-	print("Finding roots...", flush=True)
-	roots_up, roots_down = ternary.find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s)
-	crits = np.vstack((roots_up, roots_down))
-	crits = ternary.remove_close_rows (crits, 1e-6)
-
 	# FIND PHI_B GIVEN PHI_A
 	mu_a = lambda phi_a, phi_b: np.log(phi_a)         + 1 - phi_a - vs/vp * phi_b - vs/vc * (1-phi_a-phi_b) + vs * (phi_b**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_sc + phi_b * (1-phi_a-phi_b) * (chi_ps + chi_sc - chi_pc) ) 
 	mu_b = lambda phi_a, phi_b: np.log(phi_b)         + 1 - phi_b - vp/vs * phi_a - vp/vc * (1-phi_a-phi_b) + vp * (phi_a**2 * chi_ps + (1-phi_a-phi_b)**2 * chi_pc + phi_a * (1-phi_a-phi_b) * (chi_ps + chi_pc - chi_sc) )
 	mu_c = lambda phi_a, phi_b: np.log(1-phi_a-phi_b) + 1 - (1-phi_a-phi_b) - vc/vs * phi_a - vc/vp * phi_b + vc * (phi_a**2 * chi_sc + phi_b**2 * chi_pc + phi_a * phi_b * (chi_sc + chi_pc - chi_ps) )
-
 
 	# numerically find the binodal points in the blast radius
 	print(f"Computing test binodal points...", flush=True)
@@ -322,11 +328,16 @@ if __name__=="__main__":
 
 	print(f"phi_arm_1.shape={phi_arm_1.shape}")
 	print(f"phi_arm_2.shape={phi_arm_2.shape}")
-	ax.scatter(phi_arm_1[:,0], phi_arm_1[:,1], edgecolors='k', c='steelblue')
-	ax.scatter(phi_arm_2[:,0], phi_arm_2[:,1], edgecolors='k', c='coral')
+	ax.scatter(phi_arm_1[:,0], 1-phi_arm_1[:,0]-phi_arm_1[:,1], phi_arm_1[:,1], edgecolors='k', c='steelblue')
+	ax.scatter(phi_arm_2[:,0], 1-phi_arm_2[:,0]-phi_arm_2[:,1], phi_arm_2[:,1], edgecolors='k', c='coral')
 	###################################################################
 	
+	# plot the tangent and normal
+	ternary.add_tang_norm(ax, False, True, True, crits, vs, vc, vp, chi_pc, chi_ps, chi_sc, root_up_s, root_lo_s)
 
+	# add the plot embellishments
+	ternary.embelish(ax, True)
+	ax.grid()
 	fig.savefig("binodal_blastradius", dpi=1200, bbox_inches="tight")
 
 	stop = time.time ()

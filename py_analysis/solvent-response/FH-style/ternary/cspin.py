@@ -30,6 +30,7 @@ parser.add_argument('-vp',      metavar='vp',      dest='vp',      type=float,  
 #
 parser.add_argument('--dont-calc-crits',     dest='crits',     action='store_false', default=True,  help='Put this in to make sure critical points are not calculated.')
 parser.add_argument('--ternary',             dest='ternary',   action='store_true',  default=False, help='make the output a ternary plot.')
+parser.add_argument('--plot-crits',          dest='pc',        action='store_true',  default=False, help='plot critical points.')
 parser.add_argument('--draw-edges-spinodal', dest='edges',     action='store_true',  default=False, help='draw the edges of the spinodal.')
 parser.add_argument('--no-rtw',              dest='nrtw',      action='store_true',  default=False, help="Don't print out the runtime warning.")
 parser.add_argument('--tang_norm',           dest='tang_norm', action='store_true',  default=False, help='draw normal and tangent at critical point.')
@@ -57,9 +58,9 @@ if __name__=="__main__":
 		'weight': 'normal',
 		'size': lsize}
 
-	fig = plt.figure(num=1, figsize=(8,8))
+	fig = plt.figure(figsize=(8,8))
 	if args.ternary:
-		ax = fig.add_subplot (projection="ternary")
+		ax = fig.add_subplot(projection="ternary")
 	else:
 		ax = plt.axes()
 
@@ -107,7 +108,7 @@ if __name__=="__main__":
 	for i in range (len(p_s_space)):
 		p_p[i*len(p_s_space):(i+1)*len(p_s_space)] = np.linspace (0.001, 1-p_s_space[i], len(p_s_space))
 
-	vals = ternary.stab_crit (p_s, p_p, chi_ps, chi_pc, chi_sc)
+	vals = ternary.stab_crit (p_s, p_p, vs, vc, vp, chi_ps, chi_pc, chi_sc)
 
 	to_keep = ~np.isnan(vals)
 
@@ -135,7 +136,7 @@ if __name__=="__main__":
 		print ("there exist unstable regions.")
 
 	# get all the crit points
-	roots_up, roots_down = ternary.find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc)
+	roots_up, roots_down = ternary.find_crit_point(vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s)
 
 	# put them all together
 	crits      = np.vstack ((roots_up, roots_down))
@@ -146,17 +147,14 @@ if __name__=="__main__":
 
 	print (f"cleaned_crits = \n{crits}")
 
-	else:
-		print (f"We won't be calculating critical points.")
-
 	# Plot the points
 	p_c = 1 - p_s - p_p
 
 	# plot the thing
-	ternary.plot(ax, args.ternary, args.edges, args.crits, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols)
+	ternary.plot(ax, args.ternary, args.edges, args.pc, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols)
 
 	# plot the tangent and normal
-	ternary.add_tang_norm(ax, args.tang_norm, args.crits)
+	ternary.add_tang_norm(ax, args.tang_norm, args.ternary, args.pc, crits, vs, vc, vp, chi_pc, chi_ps, chi_sc, root_up_s, root_lo_s)
 
 	# add the plot embellishments
 	ternary.embelish(ax, args.ternary)
@@ -166,9 +164,9 @@ if __name__=="__main__":
 
 
 	if args.img != "None":
-		if (".png" in args.o[-4:]):
+		if (".png" in args.img[-4:]):
 			img_name = args.img
-		elif ("." in args.o):
+		elif ("." in args.img):
 			img_name = args.img + ".png"
 		else:
 			img_name = args.img

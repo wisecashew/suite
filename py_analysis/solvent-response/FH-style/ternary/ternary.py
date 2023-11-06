@@ -210,13 +210,13 @@ def embelish(ax, tern_b):
 
 #############################################################################################################
 
-def add_tang_norm(ax, tang_b, crit_b, crits):
+def add_tang_norm(ax, tang_b, tern_b, crit_b, crits, vs, vc, vp, chi_pc, chi_ps, chi_sc, root_up_s, root_lo_s):
 
 	if tang_b and crit_b:
 		cols = ["steelblue", "limegreen", "pink", "maroon"]
 		for idx,crit in enumerate(crits):    
 			idx = idx%len(crits)
-			slope               = tangent.tangent2 (vs, vc, vp, crit[0], crit[1], chi_pc, chi_ps, chi_sc)
+			slope               = tangent.tangent2 (vs, vc, vp, crit[0], crit[1], chi_pc, chi_ps, chi_sc, root_up_s, root_lo_s)
 			perp_slope          = -1/slope
 			tangent_vector      = np.array([1, slope]) / np.sqrt(1+slope**2)
 			normal_vector       = np.array([1, perp_slope]) / np.sqrt(1+perp_slope**2)
@@ -225,7 +225,7 @@ def add_tang_norm(ax, tang_b, crit_b, crits):
 			points_along_normal  = lambda L: np.array([crit[0] + L * normal_vector [0], crit[1] + L * normal_vector[1] ])
 
 			l = np.linspace (-10, 10, 100)
-			if args.ternary:
+			if tern_b:
 				ax.plot (points_along_tangent(l)[0], 1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_tangent(l)[1], c=cols[idx], lw=1)
 				ax.plot (points_along_normal(l)[0],  1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_normal(l)[1],  c=cols[idx], lw=1)
 
@@ -237,7 +237,7 @@ def add_tang_norm(ax, tang_b, crit_b, crits):
 
 #############################################################################################################
 
-def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols):
+def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols, root_up_s, root_lo_s):
 
 	if tern_b:
 		ax.scatter(p_s, 1-p_p-p_s, p_p, s=1, color=cols)
@@ -252,12 +252,12 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 		if edges_b:
 			meshsize            = 1000
 			phi_s               = np.linspace (0.001, 1-0.001, meshsize*10)
-			chi_ps              = args.chi_ps
-			chi_pc              = args.chi_pc
-			chi_sc              = args.chi_sc
+			chi_ps              = chi_ps
+			chi_pc              = chi_pc
+			chi_sc              = chi_sc
 
-			r1 = root_up_s (phi_s, chi_ps, chi_pc, chi_sc)
-			r2 = root_lo_s (phi_s, chi_ps, chi_pc, chi_sc)
+			r1 = root_up_s (p_s)
+			r2 = root_lo_s (p_s)
 
 			to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
 			r1        = r1[to_keep_1]
@@ -266,8 +266,8 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 			r2        = r2[to_keep_2]
 
 			# Plot the points
-			ax.scatter (phi_s[to_keep_1], 1-phi_s[to_keep_1]-r1, r1, color='springgreen',   s=1)
-			ax.scatter (phi_s[to_keep_2], 1-phi_s[to_keep_2]-r2, r2, color='darkturquoise', s=1)
+			ax.scatter (p_s[to_keep_1], 1-p_s[to_keep_1]-r1, r1, color='springgreen',   s=1)
+			ax.scatter (p_s[to_keep_2], 1-p_s[to_keep_2]-r2, r2, color='darkturquoise', s=1)
 
 	else:
 		ax.scatter (p_s, p_p, s=1, color=cols)
@@ -280,12 +280,12 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 		if edges_b:
 			meshsize            = 1000
 			phi_s               = np.logspace (-6, np.log10(1-1e-6), meshsize*100)
-			chi_ps              = args.chi_ps
-			chi_pc              = args.chi_pc
-			chi_sc              = args.chi_sc
+			chi_ps              = chi_ps
+			chi_pc              = chi_pc
+			chi_sc              = chi_sc
 
-			r1 = root_up_s (phi_s, chi_ps, chi_pc, chi_sc)
-			r2 = root_lo_s (phi_s, chi_ps, chi_pc, chi_sc)
+			r1 = root_up_s (p_s, chi_ps, chi_pc, chi_sc)
+			r2 = root_lo_s (p_s, chi_ps, chi_pc, chi_sc)
 
 			to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
 			r1 = r1[to_keep_1]
@@ -294,8 +294,8 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 			r2 = r2[to_keep_2]
 
 			# Plot the points
-			ax.scatter(phi_s[to_keep_1], r1, color='springgreen', s=1)
-			ax.scatter(phi_s[to_keep_2], r2, color='darkturquoise', s=1)
+			ax.scatter(p_s[to_keep_1], r1, color='springgreen',   s=1)
+			ax.scatter(p_s[to_keep_2], r2, color='darkturquoise', s=1)
 
 	return
 

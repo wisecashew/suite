@@ -26,7 +26,7 @@ parser.add_argument('--chipc',  metavar='chi_pc',  dest='chi_pc',  type=float,  
 parser.add_argument('-vs',      metavar='vs',      dest='vs',      type=float,   action='store', help='specific volume of solvent.')
 parser.add_argument('-vc',      metavar='vc',      dest='vc',      type=float,   action='store', help='specific volume of cosolvent.')
 parser.add_argument('-vp',      metavar='vp',      dest='vp',      type=float,   action='store', help='specific volume of polymer.')
-#
+parser.add_argument('--dumpfile',            dest='df',        action='store',   type=str, help="Name of dump file to store all the information.")
 parser.add_argument('--dont-calc-crits',     dest='crits',     action='store_false', default=True,  help='Put this in to make sure critical points are not calculated.')
 parser.add_argument('--ternary',             dest='ternary',   action='store_true',  default=False, help='make the output a ternary plot.')
 parser.add_argument('--draw-edges-spinodal', dest='edges',     action='store_true',  default=False, help='draw the edges of the spinodal.')
@@ -468,6 +468,11 @@ if __name__=="__main__":
     p_c = 1 - p_s - p_p
 
     if args.ternary:
+        f = open(args.df, 'w')
+        for i in len(ps):
+            signs = np.sign(vals)
+            f.write(f"{p_s[i]} {1-p_p[i]-p_s[i]} {p_p[i]} {signs[i]}\n")
+        f.close()
         ax.scatter (p_s, 1-p_p-p_s, p_p, s=1, color=cols)
         if args.crits:
             ax.scatter (crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='darkred', edgecolors='darkred', s=4, zorder=15)

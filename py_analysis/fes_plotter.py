@@ -17,8 +17,9 @@ parser.add_argument("--img", dest='o', type=str, action='store', help="Enter add
 parser.add_argument("--multiple", dest='multiple', action='store_true', help="Enter name of file over which the evolution is taking place.", default=False)
 parser.add_argument("--address", dest='addr', action='store', type=str, help="Enter address of fes evolution.", default=".")
 parser.add_argument("--start", dest='start', action='store', type=int, help="Enter index at which you need to start probing.", default=0)
-parser.add_argument("--stop", dest='stop', action='store', type=int, help="Enter index at which you need to stop probing.")
+parser.add_argument("--stop", dest='stop', action='store', type=int, help="Enter index at which you need to stop probing.", default=None)
 parser.add_argument("--skip", dest='skip', action='store', type=int, help="Enter how many files to skip (this option only matters if --multiple is called).")
+parser.add_argument("--mintozero", dest='mnz', action='store_true',  help="Zero out the minimum.", default=False)
 
 def get_fes_files(address):
 	"""Returns a list of all the files in the current directory with names "fes_xxx.dat" where "xxx" is a number, sorted by the number "xxx".
@@ -48,13 +49,21 @@ if __name__=="__main__":
 
 	if args.multiple:
 		list_of_files = get_fes_files(args.addr)
+		if args.stop == None:
+			args.stop = len(list_of_files)
+		if args.start == None:
+			args.start = int(len(list_of_file)*0.9)
 		# print (list_of_files)
 		fig = plt.figure(figsize=(3,3))
 		ax  = plt.axes()
 		ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 		for idx, f in enumerate(list_of_files[args.start:args.stop:args.skip]):
 			df = pd.read_csv (args.addr+f, engine="python", skiprows=5, names=["rg", "fes", "dfes"], sep='\s+')
-			ax.plot (df["rg"].values, df["fes"].values, lw=1, label=f"iter ={args.start+idx*args.skip}")
+			rg = df["rg"].values
+			fes = df["fes"].values
+			if args.mnz:
+				fes = fes-np.min(fes)
+			ax.plot (rg, fes, lw=1, label=f"iter ={args.start+idx*args.skip}")
 
 		ax.legend (loc="upper right", fontsize=2)
 
@@ -63,18 +72,32 @@ if __name__=="__main__":
 		fig = plt.figure(figsize=(3,3))
 		ax  = plt.axes ()
 		ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-		ax.plot (df["rg"].values, df["fes"].values, c='steelblue', lw=1)
+		rg  = df["rg"].values
+		fes = df["fes"].values
+		if args.mnz:
+			fes = fes-np.min(fes)
+		ax.plot (rg, fes, c='steelblue', lw=1)
 
-	if args.yllim == None or args.yulim == None:
-		ax.set_ylim((np.min(df["fes"].values), np.max(df["fes"].values)))
+	if args.yllim == None:
+		ax.set_ylim(bottom=np.min(fes))
 	else:
-		ax.set_ylim((args.yllim, args.yulim))
+		ax.set_ylim(bottom=args.yllim)
 
-	if args.xllim == None or args.xulim == None:
-		ax.set_xlim((np.min(df["rg"].values), np.max(df["rg"].values)))
+
+	if args.yulim == None:
+		ax.set_ylim(top=np.max(fes))
 	else:
-		ax.set_xlim((args.xllim, args.xulim))
+		ax.set_ylim(top=args.yulim)
 
+	if args.xllim == None:
+		ax.set_xlim(left=np.min(rg))
+	else:
+		ax.set_xlim(left=args.xllim)
+
+	if args.xulim == None:
+		ax.set_xlim(right=np.max(rg))
+	else:
+		ax.set_xlim(right=args.xulim)
 
 	if (".png" in args.o[:-4]):
 		img_name = args.o

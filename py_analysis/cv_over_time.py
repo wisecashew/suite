@@ -26,7 +26,7 @@ if __name__=="__main__":
 	ax  = plt.axes()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 
-	df = pd.read_csv(args.i, sep='\s+', names=["time", "rg", "restraint"], engine='python', comment='#')
+	df = pd.read_csv(args.i, sep='\s+', names=["time", "rg", "uwall_bias", "uwall_force", "lwall_bias", "lwall_force", "res_bias", "res_rbias", "res_rct"], engine='python', comment='#')
 	time = list(range(len(df["time"].values)))
 	# print(time)
 	ax.scatter(time, df["rg"].values, c="steelblue", s=0.5)

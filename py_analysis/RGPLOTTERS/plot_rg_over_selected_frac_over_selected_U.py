@@ -164,7 +164,7 @@ if __name__ == "__main__":
 		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=args.color, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10) 
 		i += 1
 
-	#########
+	##############################
 	# plt.rcParams['text.usetex'] = True
 	ax.minorticks_on()
 	ax.set_xlim((0.0, 1.0))
@@ -186,7 +186,7 @@ if __name__ == "__main__":
 		ax.legend().remove()
 	plt.savefig   ( args.pn, bbox_inches='tight', dpi=1200)
 
-##################################
+	##################################
 	stop = time.time() 
 
 	print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)

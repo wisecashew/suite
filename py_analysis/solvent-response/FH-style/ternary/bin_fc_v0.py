@@ -1,26 +1,15 @@
+#!/home/satyend/.conda/envs/phase/bin/python
+
 import numpy as np
-import numba as nb
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
 from scipy.optimize import fsolve
-from scipy.optimize import root
-import scipy.spatial.distance
-from scipy.spatial.distance import cdist
-from matplotlib.ticker import StrMethodFormatter
-import scipy.optimize as opt 
-from matplotlib.ticker import StrMethodFormatter
-from matplotlib.ticker import Locator, AutoMinorLocator, MultipleLocator
-import sys
-import os
 import argparse
 import time
 import warnings
 import linecache
-import itertools
 import ternary
-import tangent
 import mpltern
 
 import argparse
@@ -44,7 +33,6 @@ def custom_warning_format(message, category, filename, lineno, line=None):
         return f"There is a RunTimeWarning taking place on line {lineno}.\n"
 
 warnings.formatwarning = custom_warning_format
-
 #########################################
 
 def generate_points_on_circle(x, r, M):
@@ -60,9 +48,11 @@ def generate_points_on_circle(x, r, M):
 
 	return points
 
+#########################################
+
 def generate_mesh_within_circle(x, rmin, rmax, rdensity, M):
 
-	r_ = np.logspace(rmin, rmax, rdensity)
+	r_ = np.linspace(rmin, rmax, rdensity)
 	for idx,r in enumerate(r_):
 		if idx == 0:
 			mesh = generate_points_on_circle(x, r, M)
@@ -77,7 +67,7 @@ def perform_sweep (chi_ps, chi_pc, chi_sc, crit_point, center):
 
 	# print (f"pid = {os.getpid()}.", flush=True)
 	# generate points
-	mesh = generate_mesh_within_circle(center, -8, -6, 100, 50)
+	mesh = generate_mesh_within_circle(center, 0.01, 0.1, 100, 50)
 
 	phi_a = mesh[:,0]
 	phi_b = mesh[:,1]
@@ -167,7 +157,6 @@ def find_binodals(phi_upper, phi_lower, central_axis, center):
 			root = fsolve(mu_equations, [pu[1], pl[0], pl[1]])
 			if (np.abs(np.array(mu_equations(root))>1e-8)).any():
 				continue
-
 			else:
 				p1 = np.array([pu[0], 1-pu[0]-root[0], root[0]])
 				p2 = np.array([root[1], 1-root[1]-root[2], root[2]])
@@ -197,8 +186,49 @@ def find_binodals(phi_upper, phi_lower, central_axis, center):
 					print (f"p1 = {p1}, p2 = {p2}!", flush=True)
 					break
 
-	return sol_bin_up, sol_bin_down
+	for idx, pu in enumerate(phi_upper):
+		print(f"idx = {idx}... {idx}/{phi_upper.shape[0]}.")
+		def mu_equations(phi):
+			eq1 = mu_a(phi[0], pu[1]) - mu_a(phi[1], phi[2])
+			eq2 = mu_b(phi[0], pu[1]) - mu_b(phi[1], phi[2])
+			eq3 = mu_c(phi[0], pu[1]) - mu_c(phi[1], phi[2])
+			return [eq1, eq2, eq3]
 
+		for jdx, pl in enumerate(phi_lower):
+			root = fsolve(mu_equations, [pu[1], pl[0], pl[1]])
+			if (np.abs(np.array(mu_equations(root))>1e-8)).any():
+				continue
+			else:
+				p1 = np.array([root[0], 1-pu[1]-root[0], pu[1]])
+				p2 = np.array([root[1], 1-root[1]-root[2], root[2]])
+
+				if np.linalg.norm(p1-p2) < 1e-3:
+					continue
+
+				elif np.isnan(ternary.stab_crit(p1[0], p1[1], vs, vc, vp, chi_ps, chi_pc, chi_sc)) or np.isnan(ternary.stab_crit(p2[0], p2[1], vs, vc, vp, chi_ps, chi_pc, chi_sc)):
+					continue
+
+				elif np.isinf(ternary.stab_crit (p1[0], p1[1], vs, vc, vp, chi_ps, chi_pc, chi_sc)) or np.isinf(ternary.stab_crit (p2[0], p2[1], vs, vc, vp, chi_ps, chi_pc, chi_sc)):
+					continue
+
+				elif args.ons and (ternary.stab_crit (p1[0], p1[1], vs, vc, vp, chi_ps, chi_pc, chi_sc)<0 or ternary.stab_crit (p2[0], p2[1], vs, vc, vp, chi_ps, chi_pc, chi_sc) < 0):
+					continue
+
+				else:
+					if np.sign(np.cross (central_axis, p1[0:2]-center)) == np.sign(np.cross (central_axis, p2[0:2]-center)):
+						continue
+					elif np.cross (central_axis, p1[0:2]-center)>=0:
+						sol_bin_up   = np.vstack((sol_bin_up,   p1))
+						sol_bin_down = np.vstack((sol_bin_down, p2))
+					else:
+						sol_bin_up   = np.vstack((sol_bin_up,   p2))
+						sol_bin_down = np.vstack((sol_bin_down, p1))
+					print ("HIT!", flush=True, end=' ')
+					print (f"p1 = {p1}, p2 = {p2}!", flush=True)
+					break
+
+	
+	return sol_bin_up, sol_bin_down
 
 #########################################
 
@@ -210,11 +240,13 @@ if __name__=="__main__":
 	fig = plt.figure(figsize=(8,8))
 	ax  = fig.add_subplot(projection="ternary")
 	########################################################
-
+	# set up the inputs
+	# set up the chi values
 	chi_sc = args.chi_sc
 	chi_ps = args.chi_ps
 	chi_pc = args.chi_pc
 
+	# set up the volume fractions
 	vs = args.vs
 	vp = args.vp
 	vc = args.vc
@@ -261,15 +293,15 @@ if __name__=="__main__":
 	# threshold  = 1e-6
 	# crits      = ternary.remove_close_rows (crits, threshold)
 	crits=np.array([[0.37037037, 0.37037037],[0.37037037,0.25925926],[0.25925926, 0.37037037]])
-	print (f"cleaned_crits = \n{crits}")
+	print(f"cleaned_crits = \n{crits}")
 
 	tern_b  = True
 	edge_b  = True
 	crits_b = True
-	p_s_space = np.arange (0.001, 1-0.001, 0.001)
-	p_s = np.repeat (p_s_space, len(p_s_space))
+	p_s_space = np.arange(0.001, 1-0.001, 0.001)
+	p_s = np.repeat(p_s_space, len(p_s_space))
 
-	p_p = np.zeros (p_s.shape)
+	p_p = np.zeros(p_s.shape)
 	for i in range (len(p_s_space)):
 		p_p[i*len(p_s_space):(i+1)*len(p_s_space)] = np.linspace (0.001, 1-p_s_space[i], len(p_s_space))
 
@@ -312,6 +344,7 @@ if __name__=="__main__":
 	# numerically find the binodal points in the blast radius
 	print(f"Computing test binodal points...", flush=True)
 	results = perform_sweep(chi_ps, chi_pc, chi_sc, crits[0], np.mean(crits, axis=0))
+	print(f"results[0].shape = {results[0].shape}, results[1].shape = {results[1].shape}", flush=True)
 	print("Found something!", flush=True)
 	distances = results[2]
 	# pick a threshold distance
@@ -338,9 +371,7 @@ if __name__=="__main__":
 	# add the plot embellishments
 	ternary.embelish(ax, True)
 	ax.grid()
-	fig.savefig("binodal_blastradius", dpi=1200, bbox_inches="tight")
+	fig.savefig("binodal_blastradius_v0", dpi=1200, bbox_inches="tight")
 
-	stop = time.time ()
+	stop = time.time()
 	print (f"Time taken to scan the ternary space has been {stop-start} seconds.", flush=True)
-
-

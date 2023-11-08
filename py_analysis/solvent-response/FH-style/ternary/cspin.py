@@ -27,7 +27,6 @@ parser.add_argument('--chipc',  metavar='chi_pc',  dest='chi_pc',  type=float,  
 parser.add_argument('-vs',      metavar='vs',      dest='vs',      type=float,   action='store', help='specific volume of solvent.')
 parser.add_argument('-vc',      metavar='vc',      dest='vc',      type=float,   action='store', help='specific volume of cosolvent.')
 parser.add_argument('-vp',      metavar='vp',      dest='vp',      type=float,   action='store', help='specific volume of polymer.')
-#
 parser.add_argument('--dont-calc-crits',     dest='crits',     action='store_false', default=True,  help='Put this in to make sure critical points are not calculated.')
 parser.add_argument('--ternary',             dest='ternary',   action='store_true',  default=False, help='make the output a ternary plot.')
 parser.add_argument('--plot-crits',          dest='pc',        action='store_true',  default=False, help='plot critical points.')
@@ -151,7 +150,7 @@ if __name__=="__main__":
 	p_c = 1 - p_s - p_p
 
 	# plot the thing
-	ternary.plot(ax, args.ternary, args.edges, args.pc, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols)
+	ternary.plot(ax, args.ternary, args.edges, args.pc, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols, root_up_s, root_lo_s)
 
 	# plot the tangent and normal
 	ternary.add_tang_norm(ax, args.tang_norm, args.ternary, args.pc, crits, vs, vc, vp, chi_pc, chi_ps, chi_sc, root_up_s, root_lo_s)

@@ -24,13 +24,14 @@ if __name__=="__main__":
 	try:
 		u = mda.Universe(args.data, args.c, format="LAMMPS", lengthunit="angstrom", timeunit="ns")
 	except:
-		u = mda.Universe(args.data, args.c, atom_style="id type x y z", lengthunit="angstrom", timeunit="fs") #, lengthunit="angstrom", timeunit="ns")
+		u = mda.Universe(args.data, args.c, atom_style="id type x y z", lengthunit="angstrom", timeunit="ns") #, lengthunit="angstrom", timeunit="ns")
 
 	# access atom types for hbonding
 	hbonds = HBA(universe=u, hydrogens_sel=args.h, acceptors_sel=args.acc, donors_sel=args.don)
 	hbonds.run()
 
 	times  = hbonds.times
+	print(times)
 	counts = hbonds.count_by_time()
 
 	fig = plt.figure(figsize=(2,2))

@@ -105,7 +105,7 @@ class Binodal:
 	d_delta_mu_c_dps1 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2:  1 + 1/(-1 + phi_s1 + phi_p1) + 2 * self.chi_sc * phi_s1 * self.vc + (self.chi_pc - self.chi_ps + self.chi_sc) * phi_p1 * self.vc - self.vc/self.vs
 	d_delta_mu_c_dps2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: -1 - 1/(-1 + phi_s2 + phi_p2) - (2 * self.chi_sc * phi_s2 + (self.chi_pc - self.chi_ps + self.chi_sc) * phi_p2) * self.vc + self.vc/self.vs
 	d_delta_mu_c_dpp1 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2:  1 + 1/(-1 + phi_s1 + phi_p1) + (self.chi_pc - self.chi_ps + self.chi_sc) * phi_s1 * self.vc + 2 * self.chi_pc * phi_p1 * self.vc - self.vc/self.vp
-	d_delta_mu_c_dpp2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: -1 - 1/(-1 + phi_s2 + phi_p2) - ((self.chi_pc - self.chi_ps + self.chi_sc) * phi_s2 + 2 * self.chi_pc * phi_p2) * vc + self.vc/self.vp
+	d_delta_mu_c_dpp2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: -1 - 1/(-1 + phi_s2 + phi_p2) - ((self.chi_pc - self.chi_ps + self.chi_sc) * phi_s2 + 2 * self.chi_pc * phi_p2) * self.vc + self.vc/self.vp
 
 	# get all the crit points
 	def obtain_crits(self):
@@ -177,7 +177,8 @@ class Binodal:
 		c1 = self.d_delta_mu_c_dps1(phi1[0], phi1[1], phi2[0], phi2[1])
 		c2 = self.d_delta_mu_c_dps1(phi1[0], phi1[1], phi2[0], phi2[1])
 		c3 = self.d_delta_mu_c_dps1(phi1[0], phi1[1], phi2[0], phi2[1])
-		c4 = -delta_phip2 * self.d_delta_mu_c_dps1(phi1[0], phi1[1], phi2[0], phi2[1])
+		c4 = -delta_phip2 * self.d_delta_mu_c_dpp2(phi1[0], phi1[1], phi2[0], phi2[1])
+		# c4 = -delta_phip2 * self.d_delta_mu_c_dps1(phi1[0], phi1[1], phi2[0], phi2[1])
 
 		D  = np.array([[a1,a2,a3],[b1,b2,b3],[c1,c2,c3]])
 		Dx = np.array([[a4,a2,a3],[b4,b2,b3],[c4,c2,c3]])
@@ -250,17 +251,75 @@ if __name__=="__main__":
 
 	# define the center and crit point around which you want to find the binodal
 	center     = np.mean(B.crits, axis=0)
-	crit_point = B.crits[0]
+	crit_point = B.crits[1]
 	print(f"crit_point = {crit_point}", flush=True)
 
 	#######
-	delta_pp2 = [0.01] 
+	delta_pp2 = [] 
 	phi_s1 = [crit_point[0]]
 	phi_s2 = [crit_point[0]]
 	phi_p1 = [crit_point[1]]
 	phi_p2 = [crit_point[1]]
 
+	good_root = False
+	eps  = 0.01
+	pert = [-eps, 0, eps]
+	for dp_s1 in pert:
+		for dp_p1 in pert:
+			for dp_s2 in pert:
+				for dp_p2 in pert:
+					def dmu_init(phi_):
+						eq1 = B.delta_mu_s(phi_[0], phi_[1], phi_[2], crit_point[1]+dp_p2) # /np.linalg.norm(np.array([phi_[0], phi_[1]]) - np.array([phi_[2], phi_p2[-1]+delta_pp2]))
+						eq2 = B.delta_mu_p(phi_[0], phi_[1], phi_[2], crit_point[1]+dp_p2) # /np.linalg.norm(np.array([phi_[0], phi_[1]]) - np.array([phi_[2], phi_p2[-1]+delta_pp2]))
+						eq3 = B.delta_mu_c(phi_[0], phi_[1], phi_[2], crit_point[1]+dp_p2) # /np.linalg.norm(np.array([phi_[0], phi_[1]]) - np.array([phi_[2], phi_p2[-1]+delta_pp2]))
+						return [eq1, eq2, eq3]
 
+					print(f"Guess provided: phi1 = ({crit_point[0]+dp_s1, crit_point[1]+dp_p1}), phi2 = ({crit_point[0]+dp_s2, crit_point[1]+dp_p2})...", flush=True)
+					root = fsolve(dmu_init, [crit_point[0]+dp_s1, crit_point[1]+dp_p1, crit_point[0]+dp_s2], xtol=1e-16)
+					p1   = np.array([root[0], root[1]])
+					p2   = np.array([root[2], crit_point[1]+dp_p2])
+
+					if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
+						print("Breaking out...")
+						continue
+					#####
+					if (np.abs(dmu_init(root))>1e-9).any():
+						print(f"Bad root: phi1 = ({root[0], root[1]}), phi2 = ({root[2], crit_point[1]+dp_p2})...", flush=True)
+						continue
+					elif np.linalg.norm(p1-p2) < 1e-3: 
+						continue
+					else:
+						print(f"Found root: phi1 = ({root[0], root[1]}), phi2 = ({root[2], crit_point[1]+dp_p2})...", flush=True)
+						good_root = True
+						delta_pp2.append(dp_p2)
+						phi_s1.append(root[0])
+						phi_p1.append(root[1])
+						phi_s2.append(root[2])
+						phi_p2.append(crit_point[1]+dp_p2)
+						break
+
+				# at this line, I am out of dp_p2 and in dp_s2
+				if good_root:
+					break
+			# at this line, I am out of dp_s2 and in dp_p1
+			if good_root:
+				break
+		# at this line, I am out of dp_p1 and in dp_s1
+		if good_root:
+			break
+
+	if not good_root:
+		print(f"No neighboring solution found. Shit's fucked.")
+		exit()
+
+	print("I have found the initial root outside of the critical point. Time to go beyond.", flush=True)
+	print(f"phi_s1 = {phi_s1}")
+	print(f"phi_p1 = {phi_p1}")
+	print(f"phi_s2 = {phi_s2}")
+	print(f"phi_p2 = {phi_p2}")
+	# exit()
+
+	print(f"delta_pp2 = {delta_pp2}")
 	ncycles = 1000
 	for i in range(ncycles):
 
@@ -269,20 +328,16 @@ if __name__=="__main__":
 		if (np.abs(preprocessor) < 1e-16).all():
 			delta_pp2.append(0.01)
 
-
 		print(f"@ i = {i}/{ncycles}...", flush=True)
-		if i > 0:
-			phi1 = [phi_s1[-1], phi_p1[-1]]
-			phi2 = [phi_s2[-1], phi_p2[-1]]
-			deltas = B.delta_finder(phi1, phi2, delta_pp2[-1])
-			delta_ps1 = -deltas[0]
-			delta_pp1 = -deltas[1]
-			delta_ps2 = deltas[2]
-			print(f"delta_ps1 = {delta_ps1}, delta_pp1 = {delta_pp1}, delta_ps2 = {delta_ps2}, delta_pp2 = {delta_pp2[-1]}", flush=True)
-		else:
-			delta_ps1 = -0.01
-			delta_pp1 = -0.01
-			delta_ps2 =  0.01
+
+		phi1 = [phi_s1[-1], phi_p1[-1]]
+		phi2 = [phi_s2[-1], phi_p2[-1]]
+		deltas = B.delta_finder(phi1, phi2, delta_pp2[-1])
+		delta_ps1 = -deltas[0]
+		delta_pp1 = -deltas[1]
+		delta_ps2 = deltas[2]
+		print(f"delta_ps1 = {delta_ps1}, delta_pp1 = {delta_pp1}, delta_ps2 = {delta_ps2}, delta_pp2 = {delta_pp2[-1]}", flush=True)
+
 
 		def dmu(phi_):
 			eq1 = B.delta_mu_s(phi_[0], phi_[1], phi_[2], phi_p2[-1]+delta_pp2[-1]) # /np.linalg.norm(np.array([phi_[0], phi_[1]]) - np.array([phi_[2], phi_p2[-1]+delta_pp2]))

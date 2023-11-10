@@ -280,7 +280,7 @@ class Binodal:
 
 			phi1 = [phi_s1[-1], phi_p1[-1]]
 			phi2 = [phi_s2[-1], phi_p2[-1]]
-			delta_ps1, delta_pp1, delta_ps2 = self.D_det_calcs_pert_p2(phi1, phi2, delta_pp2[-1]) # delta_finder_pert_p2(phi1, phi2, delta_pp2[-1])
+			delta_ps1, delta_pp1, delta_ps2 = B.D_det_calcs_pert_p2(phi1, phi2, delta_pp2[-1]) # delta_finder_pert_p2(phi1, phi2, delta_pp2[-1])
 			print(f"delta_ps1 = {delta_ps1}, delta_pp1 = {delta_pp1}, delta_ps2 = {delta_ps2}, delta_pp2 = {delta_pp2[-1]}", flush=True)
 
 			def dmu(phi_):

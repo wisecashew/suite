@@ -1,4 +1,9 @@
-import numpy as numpy
+import numpy as np
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import matplotlib.colors as colors
 import tangent
 import ternary 
 
@@ -10,7 +15,7 @@ class Spinodal:
 		self.vs     = inputs["vs"]
 		self.vc     = inputs["vc"]
 		self.vp     = inputs["vp"]
-		self.crits  = crits 
+		self.crits  = crits
 		return
 
 	# edges of the spinodal in terms of phi_s (arbitrary choice!)
@@ -26,44 +31,33 @@ class Spinodal:
 		return d
 
 	def denom_s(self, phi_s):
-		d = 1/(-2*self.vc*self.vp*(2*self.chi_pc+phi_s*self.vs*self.chi_pc**2+\
-			phi_s*self.vs*(self.chi_ps-self.chi_sc)**2 - \
-			2*phi_s*self.vs*self.chi_pc*(self.chi_ps+self.chi_sc)))
-		return d
+		return 1/(-2*self.vc*self.vp*(2*self.chi_pc+phi_s*self.vs*self.chi_pc**2+phi_s*self.vs*(self.chi_ps-self.chi_sc)**2 - 2*phi_s*self.vs*self.chi_pc*(self.chi_ps+self.chi_sc)))
 
 	def prefac_s(self, phi_s):
-		p = 1/(-2*self.vc*self.vp*(2*self.chi_pc+phi_s*self.vs*self.chi_pc**2+\
-			phi_s*self.vs*(self.chi_ps-self.chi_sc)**2 - 2*phi_s*self.vs*self.chi_pc*(self.chi_ps+self.chi_sc)))
-		return p
+		return self.vp - 2*phi_s*self.vp*self.vs*self.chi_ps+self.vc * (-1+2*phi_s*self.vs*self.chi_sc + (-1+phi_s) * self.vp *\
+	(2*self.chi_pc + phi_s*self.vs*self.chi_pc**2 + phi_s * self.vs * (self.chi_ps - self.chi_sc) **2 - 2 * phi_s * self.vs * self.chi_pc *(self.chi_ps + self.chi_sc)))
 
 	def root_up_s(self, phi_s):
-		r = self.denom_s(phi_s)*(self.prefac_s(phi_s) + np.sqrt(self.discriminant_s(phi_s)))
-		return r
+		return self.denom_s(phi_s)*(self.prefac_s(phi_s) + np.sqrt(self.discriminant_s(phi_s)))
 
-	def root_up_p(self, phi_s):
-		r = self.denom_s(phi_s)*(self.prefac_s(phi_s) - np.sqrt(self.discriminant_s(phi_s)))
-		return r
+	def root_lo_s(self, phi_s):
+		return self.denom_s(phi_s)*(self.prefac_s(phi_s) - np.sqrt(self.discriminant_s(phi_s)))
 
 	# edges of the spinodal in terms of phi_s (arbitrary choice!)
 	# solution in terms of phi_p
 	def discriminant_p(self,phi_p): 
-		d = -4*self.vc*self.vs*(phi_p*self.vp+(-1+phi_p)*self.vc*(-1+2*phi_p*self.vp*self.chi_pc))*(2*self.chi_sc+phi_p*self.vp*\
-			(self.chi_pc**2+(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(self.chi_ps+self.chi_sc)))+(self.vs-2*phi_p*self.vp*self.vs*self.chi_ps+self.vc*(-1-2*self.vs*self.chi_sc+phi_p**2*\
-			self.vp*self.vs*(self.chi_pc**2+(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(self.chi_ps+self.chi_sc))+phi_p*(2*self.vs*self.chi_sc-self.vp*(self.vs*self.chi_pc**2+self.vs*(self.chi_ps-self.chi_sc)**2\
-			-2*self.chi_pc*(1+self.vs*(self.chi_ps+self.chi_sc))))))**2
-		return d
+		return -4*self.vc*self.vs*(phi_p*self.vp+(-1+phi_p)*self.vc*(-1+2*phi_p*self.vp*self.chi_pc))*(2*self.chi_sc+phi_p*self.vp*\
+	(self.chi_pc**2+(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(self.chi_ps+self.chi_sc)))+(self.vs-2*phi_p*self.vp*self.vs*self.chi_ps+self.vc*(-1-2*self.vs*self.chi_sc+phi_p**2*\
+	self.vp*self.vs*(self.chi_pc**2+(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(self.chi_ps+self.chi_sc))+phi_p*(2*self.vs*self.chi_sc-self.vp*(self.vs*self.chi_pc**2+self.vs*(self.chi_ps-self.chi_sc)**2\
+	-2*self.chi_pc*(1+self.vs*(self.chi_ps+self.chi_sc))))))**2
 
 	def denom_p(self,phi_p): 
-		d = 1/(-2*self.vc*self.vs*(2*self.chi_sc+phi_p*self.vp*(self.chi_pc**2+\
-			(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(self.chi_ps+self.chi_sc))))
-		return d 
+		return 1/(-2*self.vc*self.vs*(2*self.chi_sc+phi_p*self.vp*(self.chi_pc**2+(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(self.chi_ps+self.chi_sc))))
+		
 
 	def prefac_p(self, phi_p):
-		p = self.vs-2*phi_p*self.vp*self.vs*self.chi_ps+self.vc*\
-		(-1-2*self.vs*self.chi_sc+phi_p**2*self.vp*self.vs*(self.chi_pc**2+(self.chi_ps-self.chi_sc)**2-\
-		2*self.chi_pc*(self.chi_ps+self.chi_sc))+phi_p*(2*self.vs*self.chi_sc-\
-		self.vp*(self.vs*self.chi_pc**2+self.vs*(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(1+self.vs*(self.chi_ps+self.chi_sc)))))
-		return p
+		return self.vs-2*phi_p*self.vp*self.vs*self.chi_ps+self.vc*(-1-2*self.vs*self.chi_sc+phi_p**2*self.vp*self.vs*(self.chi_pc**2+(self.chi_ps-self.chi_sc)**2-\
+	2*self.chi_pc*(self.chi_ps+self.chi_sc))+phi_p*(2*self.vs*self.chi_sc-self.vp*(self.vs*self.chi_pc**2+self.vs*(self.chi_ps-self.chi_sc)**2-2*self.chi_pc*(1+self.vs*(self.chi_ps+self.chi_sc)))))
 
 	def root_up_p(self, phi_p):
 		r = self.denom_p(phi_p)*(self.prefac_p(phi_p)+np.sqrt(self.discriminant_p(phi_p)))
@@ -83,8 +77,6 @@ class Spinodal:
 		crits      = ternary.remove_close_rows (crits, threshold)
 		self.crits = crits
 		return 
-
-
 
 	def stability_plots(self, ax, tern_b, edges_b, crits_b):
 		p_s_space = np.arange(0.001, 1-0.001, 0.001)
@@ -127,4 +119,3 @@ class Spinodal:
 		ax.grid()
 		return
 
-	

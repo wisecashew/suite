@@ -4,20 +4,20 @@ from scipy.optimize import fsolve
 
 def add_rows_between_largest_gap (array, M):
 
-    diff        = np.diff (array, axis=0)
-    distances   = np.linalg.norm (diff, axis=1)
-    max_dists   = np.argmax (distances)
-    insert_rows = np.linspace (array[max_dists], array[max_dists+1], M)
-    array       = np.insert (array, max_dists+1, insert_rows[1:-1], axis=0)
+	diff        = np.diff (array, axis=0)
+	distances   = np.linalg.norm (diff, axis=1)
+	max_dists   = np.argmax (distances)
+	insert_rows = np.linspace (array[max_dists], array[max_dists+1], M)
+	array       = np.insert (array, max_dists+1, insert_rows[1:-1], axis=0)
 
-    return array, max_dists
+	return array, max_dists
 
 def add_rows_at_index (array, idx, M):
 
-    insert_rows = np.linspace (array[idx], array[idx+1], M)
-    array       = np.insert (array, idx+1, insert_rows[1:-1],axis=0)
+	insert_rows = np.linspace (array[idx], array[idx+1], M)
+	array       = np.insert (array, idx+1, insert_rows[1:-1],axis=0)
 
-    return array
+	return array
 
 
 def remove_close_rows(array, threshold):

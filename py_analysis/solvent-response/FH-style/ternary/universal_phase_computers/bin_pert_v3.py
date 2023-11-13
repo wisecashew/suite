@@ -95,9 +95,9 @@ class Binodal:
 		return
 
 	# calculate chemical potentials
-	mu_s = lambda self, phi_s, phi_p: np.float64(np.log(phi_s)         + 1 - phi_s - self.vs/self.vp * phi_p - self.vs/self.vc * (1-phi_s-phi_p) + self.vs * (phi_p**2 * self.chi_ps + (1-phi_s-phi_p)**2 * self.chi_sc + phi_p * (1-phi_s-phi_p) * (self.chi_ps + self.chi_sc - self.chi_pc) ))
-	mu_p = lambda self, phi_s, phi_p: np.float64(np.log(phi_p)         + 1 - phi_p - self.vp/self.vs * phi_s - self.vp/self.vc * (1-phi_s-phi_p) + self.vp * (phi_s**2 * self.chi_ps + (1-phi_s-phi_p)**2 * self.chi_pc + phi_s * (1-phi_s-phi_p) * (self.chi_ps + self.chi_pc - self.chi_sc) ))
-	mu_c = lambda self, phi_s, phi_p: np.float64(np.log(1-phi_s-phi_p) + 1 - (1-phi_s-phi_p) - self.vc/self.vs * phi_s - self.vc/self.vp * phi_p + self.vc * (phi_s**2 * self.chi_sc + phi_p**2 * self.chi_pc + phi_s * phi_p * (self.chi_sc + self.chi_pc - self.chi_ps) ))
+	mu_s = lambda self, phi_s, phi_p: np.float64(np.log(phi_s)         + 1 - phi_s - self.vs/self.vp * phi_p - self.vs/self.vc * (1-phi_s-phi_p) + self.vs * (phi_p**2 * self.chi_ps + (1-phi_s-phi_p)**2 * self.chi_sc + phi_p * (1-phi_s-phi_p) * (self.chi_ps + self.chi_sc - self.chi_pc)))
+	mu_p = lambda self, phi_s, phi_p: np.float64(np.log(phi_p)         + 1 - phi_p - self.vp/self.vs * phi_s - self.vp/self.vc * (1-phi_s-phi_p) + self.vp * (phi_s**2 * self.chi_ps + (1-phi_s-phi_p)**2 * self.chi_pc + phi_s * (1-phi_s-phi_p) * (self.chi_ps + self.chi_pc - self.chi_sc)))
+	mu_c = lambda self, phi_s, phi_p: np.float64(np.log(1-phi_s-phi_p) + 1 - (1-phi_s-phi_p) - self.vc/self.vs * phi_s - self.vc/self.vp * phi_p + self.vc * (phi_s**2 * self.chi_sc + phi_p**2           * self.chi_pc + phi_s * phi_p           * (self.chi_sc + self.chi_pc - self.chi_ps)))
 
 	delta_mu_s = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64(self.mu_s(phi_s1, phi_p1) - self.mu_s(phi_s2, phi_p2))
 	delta_mu_p = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64(self.mu_p(phi_s1, phi_p1) - self.mu_p(phi_s2, phi_p2))
@@ -113,10 +113,10 @@ class Binodal:
 	d_delta_mu_p_dpp1 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64(-1 + 1/phi_p1 - self.chi_pc * phi_s1 * self.vp - self.chi_ps * phi_s1 * self.vp + self.chi_sc * phi_s1 * self.vp + self.vp/self.vc)
 	d_delta_mu_p_dpp2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64( 1 - 1/phi_p2 + self.chi_pc * phi_s2 * self.vp + self.chi_ps * phi_s2 * self.vp - self.chi_sc * phi_s2 * self.vp - self.vp/self.vc)
 
-	d_delta_mu_c_dps1 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64( 1 - 1/( 1 - phi_p1 - phi_s1) + self.chi_pc * phi_p1 * self.vc - self.chi_ps * phi_p1 * self.vc + self.chi_sc * ( phi_p1 + 2 * phi_s1) * self.vc - self.vc/self.vs)
-	d_delta_mu_c_dps2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64(-1 + 1/( 1 - phi_p2 - phi_s2) - self.chi_pc * phi_p2 * self.vc + self.chi_ps * phi_p2 * self.vc + self.chi_sc * (-phi_p2 - 2 * phi_s2) * self.vc + self.vc/self.vs)
-	d_delta_mu_c_dpp1 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64( 1 - 1/( 1 - phi_p1 - phi_s1) - self.chi_ps * phi_s1 * self.vc + self.chi_sc * phi_s1 * self.vc + self.chi_pc * ( 2 * phi_p1 + phi_s1) * self.vc - self.vc/self.vp)
-	d_delta_mu_c_dpp2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64(-1 + 1/( 1 - phi_p2 - phi_s2) + self.chi_ps * phi_s2 * self.vc - self.chi_sc * phi_s2 * self.vc + self.chi_pc * (-2 * phi_p2 - phi_s2) * self.vc + self.vc/self.vp)
+	d_delta_mu_c_dps1 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64( 1 - 1/(1 - phi_p1 - phi_s1) + self.chi_pc * phi_p1 * self.vc - self.chi_ps * phi_p1 * self.vc + self.chi_sc * ( phi_p1 + 2 * phi_s1) * self.vc - self.vc/self.vs)
+	d_delta_mu_c_dps2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64(-1 + 1/(1 - phi_p2 - phi_s2) - self.chi_pc * phi_p2 * self.vc + self.chi_ps * phi_p2 * self.vc + self.chi_sc * (-phi_p2 - 2 * phi_s2) * self.vc + self.vc/self.vs)
+	d_delta_mu_c_dpp1 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64( 1 - 1/(1 - phi_p1 - phi_s1) - self.chi_ps * phi_s1 * self.vc + self.chi_sc * phi_s1 * self.vc + self.chi_pc * ( 2 * phi_p1 + phi_s1) * self.vc - self.vc/self.vp)
+	d_delta_mu_c_dpp2 = lambda self, phi_s1, phi_p1, phi_s2, phi_p2: np.float64(-1 + 1/(1 - phi_p2 - phi_s2) + self.chi_ps * phi_s2 * self.vc - self.chi_sc * phi_s2 * self.vc + self.chi_pc * (-2 * phi_p2 - phi_s2) * self.vc + self.vc/self.vp)
 
 	######################################################
 	# plot the stability criterion on the ternary plot

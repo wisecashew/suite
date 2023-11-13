@@ -24,8 +24,8 @@ parser.add_argument('-vc',      metavar='vc',     dest='vc',      type=float,   
 parser.add_argument('-vp',      metavar='vp',     dest='vp',      type=float,   action='store', help='specific volume of polymer.')
 parser.add_argument('--plot-edges', dest='pe',    action='store_true', help='plot the edges of the spinodal.')
 parser.add_argument('--plot-crits', dest='pc',    action='store_true', help='plot the critical points.')
-parser.add_argument('--no-rtw', dest='nrtw',      action='store_true',  default=False, help="Dont print out the runtime warning.")
-parser.add_argument('--img',    dest='img', action='store',      type=str, default="None", help="name of image to be created. (default: blastradius).")
+parser.add_argument('--no-rtw',     dest='nrtw',  action='store_true',  default=False, help="Dont print out the runtime warning.")
+parser.add_argument('--img',        dest='img',   action='store',      type=str, default="None", help="name of image to be created. (default: blastradius).")
 args = parser.parse_args()
 
 #########################################
@@ -62,8 +62,11 @@ if __name__=="__main__":
 	# set up objects and crit points
 	print(f"Setting up objects...", flush=True, end=' ')
 	P = phase.Phase(inputs)
+	# P.spinodal.obtain_crits()
+	# P.crits = P.spinodal.crits
 	P.spinodal.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
 	P.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
+	print(f"crits = {P.crits}")
 	print(f"done!", flush=True)
 
 	print(f"Plotting the ternary diagram...", flush=True,end=' ')
@@ -71,22 +74,18 @@ if __name__=="__main__":
 	print(f"done!", flush=True)
 
 	# start charting out the curve
-	# print(f"Get the binodal curve...", flush=True, end=' ')
-	# phi_s1, phi_s2, phi_p1, phi_p2 = P.mu_ps.binodal_run(P.crits[0])
-	# print(f"done!", flush=True)
+	for idx in [1]:
+		print(f"Get the binodal curve...", flush=True, end=' ')
+		phi_s1, phi_s2, phi_p1, phi_p2 = P.mu_ps.binodal_run_in_p2(P.crits[idx])
+		print(f"done!", flush=True)
 
-	# start plotting out the curve
-	# print("Begin plotting...", flush=True, end=' ')
-	# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='plum',   s=1)
-	# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='skyblue', s=1)
-
-	# start charting out another curve
-	phi_p1, phi_p2, phi_c1, phi_c2 = P.mu_pc.binodal_run(P.crits[0])
-	ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='plum',   s=1)
-	ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='skyblue', s=1)
-
+		# start plotting out the curve
+		print("Begin plotting...", flush=True, end=' ')
+		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='plum',   s=1)
+		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='skyblue', s=1)
 
 	# create the image
+	print("Saving image...")
 	if args.img != "None":
 		if (".png" in args.img[-4:]):
 			img_name = args.img

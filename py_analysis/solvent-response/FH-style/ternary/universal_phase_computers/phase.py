@@ -12,8 +12,7 @@ class Phase:
 		self.vp       = inputs["vp"]
 		self.spinodal = spinodal.Spinodal(inputs)
 		self.crits    = self.spinodal.crits
-		self.mu_ps    = mu.Mu_PS(inputs)
-		self.mu_pc    = mu.Mu_PC(inputs)
-		self.mu_sc    = mu.Mu_SC(inputs)
+		self.mu_ps    = mu.Mu_PS(inputs, self.spinodal)
+		self.sym_mu_ps = mu.sym_mu_ps(inputs, self.spinodal)
 		return
 

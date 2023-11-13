@@ -75,7 +75,15 @@ class Spinodal:
 		# get rid of the redundant ones
 		threshold  = 1e-6
 		crits      = ternary.remove_close_rows (crits, threshold)
-		self.crits = crits
+
+		crits_     = np.empty((0,3))
+		for i in range(len(crits)):
+			c = np.array([crits[i][0], crits[i][1], 1-crits[i][0]-crits[i][1]])
+			crits_ = np.vstack((crits_, c))
+
+		self.crits = crits_
+		# print(f"self.crits = {self.crits}")
+		# exit()
 		return 
 
 	def stability_plots(self, ax, tern_b, edges_b, crits_b):

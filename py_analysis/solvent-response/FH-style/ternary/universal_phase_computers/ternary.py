@@ -71,11 +71,11 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 	roots_down = np.empty ((0,2))
 
 
-	print ("In r1...")
+	print ("\tIn r1...")
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r1, g)
 
-		if abs(send_to_fsolve_r1(root)) < 1e-6:
+		if abs(send_to_fsolve_r1(root)) < 1e-12:
 
 			if root >= 1 or root <= 0 or np.isnan(root):
 				pass
@@ -100,11 +100,11 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 		else:
 			pass
 
-	print ("In r3...")
+	print ("\tIn r3...")
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r3, g)
 
-		if abs(send_to_fsolve_r3(root)) < 1e-6:
+		if abs(send_to_fsolve_r3(root)) < 1e-12:
 
 			if root >= 1 or root <= 0 or np.isnan(root):
 				pass
@@ -130,11 +130,11 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 			pass
 
 
-	print ("In r2...")
+	print ("\tIn r2...")
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r2, g)
 
-		if abs(send_to_fsolve_r2(root)) < 1e-6:
+		if abs(send_to_fsolve_r2(root)) < 1e-12:
 
 			if root >= 1 or root <= 0 or np.isnan(root):
 				pass
@@ -161,11 +161,11 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 			pass
 
 
-	print ("In r4...")
+	print ("\tIn r4...")
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r4, g)
 
-		if abs(send_to_fsolve_r4(root)) < 1e-6:
+		if abs(send_to_fsolve_r4(root)) < 1e-12:
 
 			if root >= 1 or root <= 0 or np.isnan(root):
 				pass

@@ -62,30 +62,46 @@ if __name__=="__main__":
 	# set up objects and crit points
 	print(f"Setting up objects...", flush=True, end=' ')
 	P = phase.Phase(inputs)
-	# P.spinodal.obtain_crits()
-	# P.crits = P.spinodal.crits
-	P.spinodal.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
-	P.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
+	print("done!", flush=True)
+	P.spinodal.obtain_crits()
+	P.crits = P.spinodal.crits
+	# P.spinodal.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
+	# P.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
 	print(f"crits = {P.crits}")
 	print(f"done!", flush=True)
+	exit()
 
 	print(f"Plotting the ternary diagram...", flush=True,end=' ')
 	P.spinodal.stability_plots(ax, tern_b, edges_b, crits_b)
 	print(f"done!", flush=True)
 
 	# start charting out the curve
-	for idx in [1]:
+	for idx in range(len(P.crits)):
 		print(f"Get the binodal curve...", flush=True, end=' ')
-		phi_s1, phi_s2, phi_p1, phi_p2 = P.mu_ps.binodal_run_in_p2(P.crits[idx])
+		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_p2(P.crits[idx])
 		print(f"done!", flush=True)
 
 		# start plotting out the curve
 		print("Begin plotting...", flush=True, end=' ')
 		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='plum',   s=1)
 		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='skyblue', s=1)
+		print("Plotted out!", flush=True)
+
+	for idx in range(len(P.crits)):
+		print(f"Get the binodal curve...", flush=True, end=' ')
+		phi_s1, phi_s2, phi_c1, phi_c2 = P.sym_mu_sc.binodal_run_in_c2(P.crits[idx])
+		print(f"done!", flush=True)
+
+		# start plotting out the curve
+		print("Begin plotting...", flush=True, end=' ')
+		ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='deeppink',   s=1)
+		ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='ghostwhite', s=1)
+		print("Plotted out!", flush=True)
+
+
 
 	# create the image
-	print("Saving image...")
+	print("Making image...")
 	if args.img != "None":
 		if (".png" in args.img[-4:]):
 			img_name = args.img
@@ -101,3 +117,4 @@ if __name__=="__main__":
 
 	stop = time.time()
 	print(f"Time for computation is {stop-start} seconds.", flush=True)
+

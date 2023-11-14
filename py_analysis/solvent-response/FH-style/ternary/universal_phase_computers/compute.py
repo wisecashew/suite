@@ -32,7 +32,7 @@ args = parser.parse_args()
 def custom_warning_format(message, category, filename, lineno, line=None):
 	line = linecache.getline(filename, lineno).strip()
 	if args.nrtw:
-		return f"beep.\n"
+		return f""
 	else:
 		return f"There is a RunTimeWarning taking place on line {lineno}.\n"
 
@@ -65,8 +65,6 @@ if __name__=="__main__":
 	print("done!", flush=True)
 	P.spinodal.obtain_crits()
 	P.crits = P.spinodal.crits
-	# P.spinodal.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
-	# P.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
 	print(f"crits = {P.crits}")
 	print(f"done!", flush=True)
 
@@ -81,52 +79,65 @@ if __name__=="__main__":
 		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_s2(P.crits[idx])
 
 		# start plotting out the curve
-		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='plum',   s=1)
-		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='skyblue', s=1)
+		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='#C8442F', s=1)
+		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='#2FB3C8', s=1)
 
 		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_p2(P.crits[idx])
 
 		# start plotting out the curve
-		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='plum',   s=1)
-		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='skyblue', s=1)
+		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='#C8442F', s=1)
+		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='#2FB3C8', s=1)
 
 		print("Plotted out!", flush=True)
 
-	
-	'''
 	for idx in range(len(P.crits)):
 		print(f"Get the binodal curve...", flush=True, end=' ')
 		phi_s1, phi_s2, phi_c1, phi_c2 = P.sym_mu_sc.binodal_run_in_s2(P.crits[idx])
 
 		# start plotting out the curve
-		ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='deeppink',   s=1)
-		ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='ghostwhite', s=1)
+		ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='#346ECB',   s=1)
+		ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='#CB9134', s=1)
 
 		phi_s1, phi_s2, phi_c1, phi_c2 = P.sym_mu_sc.binodal_run_in_c2(P.crits[idx])
 
 		# start plotting out the curve
-		ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='deeppink',   s=1)
-		ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='ghostwhite', s=1)
+		ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='#346ECB',   s=1)
+		ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='#CB9134', s=1)
 
 		print("Plotted out!", flush=True)
-	
-	
+
 	for idx in range(len(P.crits)):
 		print(f"Get the binodal curve...", flush=True, end=' ')
 		phi_p1, phi_p2, phi_c1, phi_c2 = P.sym_mu_pc.binodal_run_in_p2(P.crits[idx])
 
 		# start plotting out the curve
-		ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='deeppink',   s=1)
-		ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='ghostwhite', s=1)
+		ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='#C8442F',   s=1)
+		ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='#2FB3C8', s=1)
 
 		phi_p1, phi_p2, phi_c1, phi_c2 = P.sym_mu_pc.binodal_run_in_c2(P.crits[idx])
 
 		# start plotting out the curve
-		ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='deeppink',   s=1)
-		ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='ghostwhite', s=1)
+		ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='#C8442F',   s=1)
+		ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='#2FB3C8', s=1)
 
 		print("Plotted out!", flush=True)
-	'''
+
+	if len(P.crits) == 1:
+		along_normal = True
+		print(f"Get the binodal curve...", flush=True, end=' ')
+		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_s2(P.crits[idx], along_normal)
+
+		# start plotting out the curve
+		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='#C8442F',   s=1)
+		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='#2FB3C8', s=1)
+
+		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_p2(P.crits[idx], along_normal)
+
+		# start plotting out the curve
+		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='#C8442F', s=1)
+		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='#2FB3C8', s=1)
+
+		print("Plotted out!", flush=True)
 
 	# create the image
 	print("Making image...")
@@ -137,10 +148,9 @@ if __name__=="__main__":
 			img_name = args.img + ".png"
 		else:
 			img_name = args.img
-		plt.savefig (img_name, dpi=1200, bbox_inches="tight")
+		fig.savefig (img_name, dpi=1200, bbox_inches="tight")
 	else:
-		plt.savefig (f"bin_tern-vs_{P.vs}-vc_{P.vc}-vp_{P.vp}-chisc_{P.chi_sc}-chips_{P.chi_ps}-chipc_{P.chi_pc}.png", dpi=1200)
-
+		fig.savefig (f"bin_tern-vs_{P.vs}-vc_{P.vc}-vp_{P.vp}-chisc_{P.chi_sc}-chips_{P.chi_ps}-chipc_{P.chi_pc}.png", dpi=1200)
 	print(f"done!", flush=True)
 
 	stop = time.time()

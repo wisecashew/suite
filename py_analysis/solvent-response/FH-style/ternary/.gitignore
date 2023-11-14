@@ -1,7 +1,0 @@
-*.out
-*.txt
-*.slurm
-*.png 
-*.ipynb
-*.skelfile
-*.binodal

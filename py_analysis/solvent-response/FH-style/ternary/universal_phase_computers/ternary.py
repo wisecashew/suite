@@ -71,7 +71,7 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 	roots_down = np.empty ((0,2))
 
 
-	print ("\tIn r1...")
+	print ("\tIn r1...", flush=True)
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r1, g)
 
@@ -100,7 +100,7 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 		else:
 			pass
 
-	print ("\tIn r3...")
+	print ("\tIn r3...", flush=True)
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r3, g)
 
@@ -130,7 +130,7 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 			pass
 
 
-	print ("\tIn r2...")
+	print ("\tIn r2...", flush=True)
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r2, g)
 
@@ -161,7 +161,7 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 			pass
 
 
-	print ("\tIn r4...")
+	print ("\tIn r4...", flush=True)
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r4, g)
 

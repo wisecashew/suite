@@ -69,7 +69,6 @@ if __name__=="__main__":
 	# P.crits = np.array([[0.37037037, 0.37037037, 1-0.37037037-0.37037037],[0.37037037,0.25925926,1-0.37037037-0.25925926],[0.25925926, 0.37037037, 1-0.25925926-0.37037037]])
 	print(f"crits = {P.crits}")
 	print(f"done!", flush=True)
-	exit()
 
 	print(f"Plotting the ternary diagram...", flush=True,end=' ')
 	P.spinodal.stability_plots(ax, tern_b, edges_b, crits_b)

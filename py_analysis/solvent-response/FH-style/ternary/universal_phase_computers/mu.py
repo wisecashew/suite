@@ -1233,19 +1233,19 @@ class sym_mu_ps:
 			d2_ = p2_ - p2__
 
 
-			if np.linalg.norm(root[1] - phi_p2[-1]+delta_pp2[-1]) > 1e-6:
-				print(f"p1 = {p1}, p2 = {p2}")
-				print(f"p1_ = {p1_}, p2_ = {p2_}")
-				print(f"p1__ = {p1__}, p2__ = {p2__}")
-				print ("PROBLEM!")
+			# if np.linalg.norm(root[1] - phi_p2[-1]+delta_pp2[-1]) > 1e-6:
+			# 	print(f"p1 = {p1}, p2 = {p2}")
+			# 	print(f"p1_ = {p1_}, p2_ = {p2_}")
+			# 	print(f"p1__ = {p1__}, p2__ = {p2__}")
+			# 	print ("PROBLEM!")
 
 			if (np.abs(dmu(root))>1e-12).any():
 				print(f"Bad root: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_p2[-1]+delta_pp2[-1]})...", flush=True)
-				delta_pp2.append(delta_pp2[-1]/2)
+				delta_pp2.append(delta_pp2[-1]/1.1)
 				continue
 			elif np.linalg.norm(p1-p2) < 1e-6: 
 				print(f"Too close: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_p2[-1]+delta_pp2[-1]})...", flush=True)
-				delta_pp2.append(delta_pp2[-1]/2)
+				delta_pp2.append(delta_pp2[-1]/1.1)
 				continue
 			# elif np.dot(d1/np.linalg.norm(d1), d1_/np.linalg.norm(d1_)) <= 0 or np.dot(d2/np.linalg.norm(d2), d2_/np.linalg.norm(d2_)) <= 0:
 				# print(f"Making an about turn: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_p2[-1]+delta_pp2[-1]})...", flush=True)
@@ -1535,11 +1535,11 @@ class sym_mu_sc:
 
 			if (np.abs(dmu(root))>1e-12).any():
 				print(f"Bad root: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_c2[-1]+delta_pc2[-1]})...", flush=True)
-				delta_pc2.append(delta_pc2[-1]/2)
+				delta_pc2.append(delta_pc2[-1]/1.1)
 				continue
 			elif np.linalg.norm(p1-p2) < 1e-6: 
 				print(f"Too close: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_c2[-1]+delta_pc2[-1]})...", flush=True)
-				delta_pc2.append(delta_pc2[-1]/2)
+				delta_pc2.append(delta_pc2[-1]/1.1)
 				continue
 			# elif np.dot(d1/np.linalg.norm(d1), d1_/np.linalg.norm(d1_)) <= 0 or np.dot(d2/np.linalg.norm(d2), d2_/np.linalg.norm(d2_)) <= 0:
 				# print(f"Making an about turn: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_p2[-1]+delta_pp2[-1]})...", flush=True)

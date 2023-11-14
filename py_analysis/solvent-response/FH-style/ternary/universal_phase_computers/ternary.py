@@ -28,7 +28,7 @@ def remove_close_rows(array, threshold):
 			filtered_array = np.vstack((filtered_array, elem))
 			continue
 		else:
-			sieve = (np.linalg.norm(filtered_array - elem, axis=1) < 1e-3).any()
+			sieve = (np.linalg.norm(filtered_array - elem, axis=1) < 1e-6).any()
 			if sieve:
 				continue
 			else:

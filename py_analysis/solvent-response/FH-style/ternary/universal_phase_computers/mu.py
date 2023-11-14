@@ -253,7 +253,6 @@ class sym_mu_ps:
 			d1_ = p1_ - p1__
 			d2_ = p2_ - p2__
 
-
 			# if np.linalg.norm(root[1] - phi_p2[-1]+delta_pp2[-1]) > 1e-6:
 			# 	print(f"p1 = {p1}, p2 = {p2}")
 			# 	print(f"p1_ = {p1_}, p2_ = {p2_}")
@@ -355,7 +354,7 @@ class sym_mu_ps:
 		print(f"phi_s2 = {phi_s2}", flush=True)
 		print(f"phi_p2 = {phi_p2}", flush=True)
 
-		return phi_s1, phi_s2, phi_p1, phi_p2, delta_ps2	
+		return phi_s1, phi_s2, phi_p1, phi_p2, delta_ps2
 
 	def calc_perts_in_s2(self, phi1, phi2, delta_phis2):
 
@@ -439,7 +438,6 @@ class sym_mu_ps:
 
 			d1_ = p1_ - p1__
 			d2_ = p2_ - p2__
-
 
 			# if np.linalg.norm(root[1] - phi_p2[-1]+delta_pp2[-1]) > 1e-6:
 			# 	print(f"p1 = {p1}, p2 = {p2}")

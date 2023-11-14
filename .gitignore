@@ -2,3 +2,10 @@
 *.binodal
 *.h5
 *.skelfile
+*.out
+*.txt
+*.slurm
+*.png
+*.ipynb
+*.skelfile
+*.binodal

@@ -73,7 +73,6 @@ if __name__=="__main__":
 	print(f"done!", flush=True)
 
 	# start charting out the curve
-	
 	for idx in range(len(P.crits)):
 		print(f"Get the binodal curve...", flush=True, end=' ')
 		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_s2(P.crits[idx])
@@ -90,45 +89,13 @@ if __name__=="__main__":
 
 		print("Plotted out!", flush=True)
 
-	for idx in range(len(P.crits)):
-		print(f"Get the binodal curve...", flush=True, end=' ')
-		phi_s1, phi_s2, phi_c1, phi_c2 = P.sym_mu_sc.binodal_run_in_s2(P.crits[idx])
-
-		# start plotting out the curve
-		ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='#346ECB',   s=1)
-		ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='#CB9134', s=1)
-
-		phi_s1, phi_s2, phi_c1, phi_c2 = P.sym_mu_sc.binodal_run_in_c2(P.crits[idx])
-
-		# start plotting out the curve
-		ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='#346ECB',   s=1)
-		ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='#CB9134', s=1)
-
-		print("Plotted out!", flush=True)
-
-	for idx in range(len(P.crits)):
-		print(f"Get the binodal curve...", flush=True, end=' ')
-		phi_p1, phi_p2, phi_c1, phi_c2 = P.sym_mu_pc.binodal_run_in_p2(P.crits[idx])
-
-		# start plotting out the curve
-		ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='#C8442F',   s=1)
-		ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='#2FB3C8', s=1)
-
-		phi_p1, phi_p2, phi_c1, phi_c2 = P.sym_mu_pc.binodal_run_in_c2(P.crits[idx])
-
-		# start plotting out the curve
-		ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='#C8442F',   s=1)
-		ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='#2FB3C8', s=1)
-
-		print("Plotted out!", flush=True)
-
 	if len(P.crits) == 1:
 		along_normal = True
 		print(f"Get the binodal curve...", flush=True, end=' ')
 		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_s2(P.crits[idx], along_normal)
 
 		# start plotting out the curve
-		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='#C8442F',   s=1)
+		ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='#C8442F', s=1)
 		ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='#2FB3C8', s=1)
 
 		phi_s1, phi_s2, phi_p1, phi_p2 = P.sym_mu_ps.binodal_run_in_p2(P.crits[idx], along_normal)

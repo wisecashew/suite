@@ -1,0 +1,9 @@
+Probably a math sqrt error (line 157).
+EMSA = -1.0, EMSN = 0, EMMA = -0.4, EMMN = -0.4, ESSA = -0.65, ESSN = -0.65, PV = 0.25, PWMS = 0.25, PWMM = 0.01, PWSS = 0.01
+Probably a math sqrt error (line 127).
+Probably a math sqrt error (line 128).
+EMSA = -2.07, EMSN = 0, EMMA = -0.4, EMMN = -0.4, ESSA = -0.65, ESSN = -0.65, PV = 0.25, PWMS = 0.25, PWMM = 0.01, PWSS = 0.01
+EMSA = -2.075, EMSN = 0, EMMA = -0.4, EMMN = -0.4, ESSA = -0.65, ESSN = -0.65, PV = 0.25, PWMS = 0.25, PWMM = 0.01, PWSS = 0.01
+EMSA = -3.7, EMSN = 0, EMMA = -0.4, EMMN = -0.4, ESSA = -0.65, ESSN = -0.65, PV = 0.25, PWMS = 0.25, PWMM = 0.01, PWSS = 0.01
+Plotted!
+Elapsed time is 483.8410918712616 seconds.

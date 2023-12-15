@@ -133,7 +133,7 @@ def refined_binodal_v4 (side_1, side_2, central_axis, nadded_rows, chi_ps, chi_p
 	side_2x     = add_rows_at_index (side_2, m1, nadded_rows)
 
 	print (f"side_1.shape = {side_1.shape}, side_2.shape = {side_2.shape}.\nRefining binodal with v4...", flush=True)
-# print (f"m1 = {m1}, m2 = {m2}.")
+	# print (f"m1 = {m1}, m2 = {m2}.")
 	print (f"from {side_1x[m1+1]} to {side_1x[m1+nadded_rows-1]}", flush=True)
 
 	add_counter = 0
@@ -705,7 +705,6 @@ def binodal_plotter (fig, ax, dumpfile, chi_ps, chi_pc, chi_sc, vs, vp, vc, crit
 			eq1 = mu_a(phi[0], phi_b_upper[idx]) - mu_a(phi[1], phi[2])
 			eq2 = mu_b(phi[0], phi_b_upper[idx]) - mu_b(phi[1], phi[2])
 			eq3 = mu_c(phi[0], phi_b_upper[idx]) - mu_c(phi[1], phi[2])
-
 			return [eq1, eq2, eq3]
 
 		root = fsolve (mu_equations, [phi_a_upper[idx], phi_a_lower[idx], phi_b_lower[idx]])

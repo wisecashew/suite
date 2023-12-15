@@ -129,7 +129,6 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 		else:
 			pass
 
-
 	print ("\tIn sweep three...", flush=True)
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r2, g)
@@ -160,7 +159,6 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 		else:
 			pass
 
-
 	print ("\tIn sweep four...", flush=True)
 	for g in guesses:
 		root = fsolve (send_to_fsolve_r4, g)
@@ -190,6 +188,46 @@ def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, r
 
 		else:
 			pass
+
+	print(f"roots_up = {roots_up}")
+	print(f"roots_down = {roots_down}")
+	# check for consistency
+	# First determinant
+	def first_det(phi_s, phi_p):
+		phi_c = 1-phi_s-phi_p
+		t1 = (1/(vp*phi_p) + 1/(vc * (1 - phi_p - phi_s)) - 2*chi_pc) 
+		t2 = (1/(vc * phi_c**2) - 1/(vs * phi_s**2))*(1/(vp*phi_p) + 1/(vc*phi_c) - 2 * chi_pc) + (1/(vc * phi_c) + 1/(vs * phi_s) - 2*chi_sc)/(vc * phi_c**2) - 2*(1/(vc * phi_c) - chi_pc + chi_ps - chi_sc)/(vc * phi_c**2) 
+		t3 = 1/(vc * phi_c) - chi_pc + chi_ps - chi_sc 
+		t4 = (1/(vp * phi_p) + 1/(vc * phi_c) - 2 * chi_pc)/(vc * phi_c**2) + (-1/(vp * phi_p**2) + 1/(vc * phi_c**2)) * (1/(vc * phi_c) + 1/(vs * phi_s) - 2*chi_sc) - 2*(1/(vc * phi_c) - chi_pc + chi_ps - chi_sc)/(vc * phi_c**2)
+		return t1*t2 - t3*t4
+	
+	def second_det(phi_s, phi_p):
+		phi_c = 1-phi_s-phi_p
+		t1 = 1/(vc * phi_c) + 1/(vs * phi_s) - 2*chi_sc
+		t2 = (1/(vp*phi_p) + 1/(vc * phi_c) - 2 * chi_pc)/(vc * phi_c ** 2) + (-1/(vp * phi_p**2) + 1/(vc * phi_c**2))*(1/(vc*phi_c) + 1/(vs*phi_s) - 2*chi_sc) - 2*(1/(vc * phi_c) - chi_pc + chi_ps - chi_sc)/(vc * phi_c ** 2)
+		t3 = 1/(vc * phi_c) - chi_pc + chi_ps - chi_sc 
+		t4 = (1/(vc*phi_c**2) - 1/(vs*phi_s**2))*(1/(vp*phi_p) + 1/(vc * phi_c) - 2*chi_pc) + (1/(vc*phi_c) + 1/(vs*phi_s) - 2*chi_sc)/(vc * phi_c**2) - 2*(1/(vc * phi_c) - chi_pc + chi_ps - chi_sc)/(vc * phi_c**2)
+		return t1*t2 - t3*t4
+
+	print(f"first_det_up  = {first_det (roots_up[:,0], roots_up[:,1])}")
+	print(f"second_det_up = {second_det(roots_up[:,0], roots_up[:,1])}")
+
+	check1_up = np.abs(first_det (roots_up[:,0], roots_up[:,1])) < 1e-4
+	check2_up = np.abs(second_det(roots_up[:,0], roots_up[:,1])) < 1e-4
+	print(f"up_check = {check1_up}")
+	print(f"up_check = {check2_up}")
+	roots_up = roots_up[np.logical_and(check1_up, check2_up)]
+	print(f"roots_up = {roots_up}")
+
+	print(f"first_det_up  = {first_det (roots_down[:,0], roots_down[:,1])}")
+	print(f"second_det_up = {second_det(roots_down[:,0], roots_down[:,1])}")
+
+	check1_down = np.abs(first_det (roots_down[:,0], roots_down[:,1])) < 1e-4
+	check2_down = np.abs(second_det(roots_down[:,0], roots_down[:,1])) < 1e-4
+	print(f"check1_down = {check1_down}")
+	print(f"check2_down = {check2_down}")
+	roots_down  = roots_down[np.logical_and(check1_down, check2_down)]
+	print(f"roots_down = {roots_down}")
 
 	print("Complete critical point sweeps!", flush=True)
 	return roots_up, roots_down
@@ -235,9 +273,13 @@ def add_tang_norm(ax, tang_b, tern_b, crit_b, crits, vs, vc, vp, chi_pc, chi_ps,
 		for idx,crit in enumerate(crits):    
 			idx = idx%len(crits)
 			slope               = tangent.tangent2 (vs, vc, vp, crit[0], crit[1], chi_pc, chi_ps, chi_sc, root_up_s, root_lo_s)
-			perp_slope          = -1/slope
-			tangent_vector      = np.array([1, slope]) / np.sqrt(1+slope**2)
-			normal_vector       = np.array([1, perp_slope]) / np.sqrt(1+perp_slope**2)
+			if np.isnan(slope) or np.isinf(slope):
+				tangent_vector = np.array([0,1], dtype=np.float64)
+				normal_vector  = np.array([1,0], dtype=np.float64)
+			else:
+				perp_slope          = -1/slope
+				tangent_vector      = np.array([1, slope]) / np.sqrt(1+slope**2)
+				normal_vector       = np.array([1, perp_slope]) / np.sqrt(1+perp_slope**2)
 
 			points_along_tangent = lambda L: np.array([crit[0] + L * tangent_vector[0], crit[1] + L * tangent_vector[1]])
 			points_along_normal  = lambda L: np.array([crit[0] + L * normal_vector [0], crit[1] + L * normal_vector[1] ])
@@ -255,7 +297,7 @@ def add_tang_norm(ax, tang_b, tern_b, crit_b, crits, vs, vc, vp, chi_pc, chi_ps,
 
 #############################################################################################################
 
-def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols, root_up_s, root_lo_s):
+def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols, root_up_p, root_lo_p, root_up_s, root_lo_s):
 
 	if tern_b:
 		ax.scatter(p_s, 1-p_p-p_s, p_p, s=1, color=cols)
@@ -284,8 +326,20 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 			r2        = r2[to_keep_2]
 
 			# Plot the points
-			ax.scatter (p_s[to_keep_1], 1-p_s[to_keep_1]-r1, r1, color='springgreen',   s=1)
-			ax.scatter (p_s[to_keep_2], 1-p_s[to_keep_2]-r2, r2, color='darkturquoise', s=1)
+			ax.scatter (p_s[to_keep_1], 1-p_s[to_keep_1]-r1, r1, color='seagreen',  s=1)
+			ax.scatter (p_s[to_keep_2], 1-p_s[to_keep_2]-r2, r2, color='darkgreen', s=1)
+
+			r1 = root_up_p(p_p)
+			r2 = root_lo_p(p_p)
+
+			to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
+			r1        = r1[to_keep_1]
+
+			to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0)
+			r2        = r2[to_keep_2]
+
+			ax.scatter (r1, 1-p_p[to_keep_1]-r1, p_p[to_keep_1], color='seagreen',  s=1)
+			ax.scatter (r2, 1-p_p[to_keep_2]-r2, p_p[to_keep_2], color='darkgreen', s=1)
 
 	else:
 		ax.scatter (p_s, p_p, s=1, color=cols)
@@ -312,8 +366,20 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 			r2 = r2[to_keep_2]
 
 			# Plot the points
-			ax.scatter(p_s[to_keep_1], r1, color='springgreen',   s=1)
-			ax.scatter(p_s[to_keep_2], r2, color='darkturquoise', s=1)
+			ax.scatter(p_s[to_keep_1], r1, color='darkgreen', s=1)
+			ax.scatter(p_s[to_keep_2], r2, color='seagreen',  s=1)
+
+			r1 = root_up_p(p_p)
+			r2 = root_lo_p(p_p)
+
+			to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
+			r1        = r1[to_keep_1]
+
+			to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0)
+			r2        = r2[to_keep_2]
+
+			ax.scatter (r1, p_p[to_keep_1], color='darkgreen', s=1)
+			ax.scatter (r2, p_p[to_keep_2], color='seagreen',  s=1)
 
 	return
 

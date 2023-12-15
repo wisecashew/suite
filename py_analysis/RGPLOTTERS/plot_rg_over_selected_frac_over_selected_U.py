@@ -86,7 +86,7 @@ if __name__ == "__main__":
 		return float(new_str)
 
 	U_list = args.U
-	cols    = args.color # color_map("coral", "darkred", len(U_list))
+	cols    = args.colors # color_map("coral", "darkred", len(U_list))
 	print (U_list, flush=True)
 	PLOT_DICT = {} 
 	dop            = args.dop
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
 	for idx,U in enumerate(U_list):
 		ax.errorbar ( frac_list, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
-		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=args.color, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10) 
+		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=cols, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10) 
 		i += 1
 
 	##############################

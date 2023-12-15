@@ -87,6 +87,7 @@ class Spinodal:
 		return 
 
 	def stability_plots(self, ax, tern_b, edges_b, crits_b):
+
 		p_s_space = np.arange(0.001, 1-0.001, 0.001)
 		p_s = np.repeat(p_s_space, len(p_s_space))
 
@@ -107,8 +108,28 @@ class Spinodal:
 
 		vmax = np.max(vals)
 		vmin = np.min(vals)
-		norm = colors.SymLogNorm(0.001, vmin=vmin, vmax=vmax) 
-		cols = cm.bwr(norm (vals))
+		# norm = colors.SymLogNorm(0.001, vmin=vmin, vmax=vmax) 
+		norm = colors.Normalize(vmin=-1, vmax=1)
+		vals[vals<0]  = -1
+		vals[vals==0] = 0
+		vals[vals>0]  = 1
+
+		# Define colors
+		start_color = "dodgerblue"
+		end_color   = "lightcoral"
+
+		# Number of color steps
+		num_steps = 256
+
+		# Create colormap
+		cmap = colors.LinearSegmentedColormap.from_list(
+			name="custom_cmap", colors=[start_color, end_color], N=num_steps
+		)
+
+		# Test the colormap
+		norm = plt.Normalize(vmin=-1, vmax=1)
+
+		cols = cmap(norm (vals))
 
 		if np.sign (vmax) == np.sign (vmin):
 			if np.sign (vmax) >=0:
@@ -122,7 +143,7 @@ class Spinodal:
 			print ("there exist unstable regions.", flush=True)
 		
 		# plot the thing
-		ternary.plot(ax, tern_b, edges_b, crits_b, self.crits, self.chi_ps, self.chi_pc, self.chi_sc, p_s, p_p, cols, self.root_up_s, self.root_lo_s)
+		ternary.plot(ax, tern_b, edges_b, crits_b, self.crits, self.chi_ps, self.chi_pc, self.chi_sc, p_s, p_p, cols, self.root_up_p, self.root_lo_p, self.root_up_s, self.root_lo_s)
 		ternary.embelish(ax, tern_b)
 		ax.grid()
 		return

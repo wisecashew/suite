@@ -122,6 +122,7 @@ def perform_sweep (phi_b, mesh, chi_ps, chi_pc, chi_sc, crit_point, phi_a_edge, 
 	closest_indices = np.argmin(distances, axis=1)
 
 	# partition, partition... 
+	# i am rearranging phi_lower so that it aligns with the closest phi_uppers -- closest as measured by difference in chemical potentials
 	phi_lower       = phi_lower[closest_indices]
 	mu_lower        = mu_lower [closest_indices]
 	min_distances   = distances[np.arange(len(mu_upper)), closest_indices]

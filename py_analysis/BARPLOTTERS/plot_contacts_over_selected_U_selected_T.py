@@ -24,6 +24,7 @@ parser.add_argument('--database', dest='db', action='store', type=str,  help='Pr
 parser.add_argument('--figsize', dest='figsize', action='store', nargs=2, type=float, help='Enter dimensions of image (width, height) (default: (2.5, 2.5)', default=[2.5,2.5])
 parser.add_argument('--yulim', dest='yulim', action='store', type=float, help='Provide an upper limit to y-axis.', default=None)
 parser.add_argument('--yllim', dest='yllim', action='store', type=float, help='Provide a lower limit to y-axis.',  default=None)
+parser.add_argument('--ylog',  dest='ylog',  action='store_true', help='Make y-axis log scale.',  default=False)
 parser.add_argument('--xulim', dest='xulim', action='store', type=float, help='Provide an upper limit to x-axis.', default=None)
 parser.add_argument('--xllim', dest='xllim', action='store', type=float, help='Provide a lower limit to x-axis.', default=None)
 parser.add_argument('--markersize', dest='ms', action='store', type=float, help='Provide a markersize.',  default=8/1.3)
@@ -131,6 +132,10 @@ if __name__=="__main__":
 				Y = ali/total
 				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
 
+			elif key == "total_over_aligned":
+				Y = total/ali
+				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
+
 			elif key == "naligned_over_total":
 				Y = nali/total
 				ax.plot(temperatures, Y, marker='o', mec='k', markersize=args.ms, clip_on=args.clipon, c=rgba_color, zorder=15, ls='--')
@@ -206,11 +211,16 @@ if __name__=="__main__":
 	# write data points out for text later 
 	# yticks = np.arange(0.0, 1.1, 0.1) 
 	# ax.set_yticks ( yticks )
+	if args.ylog:
+		ax.set_ylim   (yllim, yulim)
+		ax.set_yscale('log')
+	else:
+		ax.set_ylim   (yllim, yulim)
+		ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	if args.ylabels:
 		pass
 	else:
 		ax.set_yticklabels([])
-	ax.set_ylim   (yllim, yulim)
 	ax.set_xlim   ( 0.01, 100 )
 	ax.set_xticks (np.logspace(-2, 2, 5))
 	ax.set_xscale('log')
@@ -220,7 +230,6 @@ if __name__=="__main__":
 	ax.set_xlim   (xllim, xulim)
 	ax.set_xticklabels ([])
 
-	ax.yaxis.set_minor_locator (matplotlib.ticker.AutoMinorLocator())
 	ax.set_aspect('auto')
 
 	plt.savefig   (args.pn, dpi=1200, bbox_inches="tight")

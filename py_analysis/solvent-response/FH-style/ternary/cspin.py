@@ -17,6 +17,7 @@ np.set_printoptions(threshold=sys.maxsize)
 import warnings 
 import tangent
 import ternary
+from sklearn.cluster import DBSCAN
 
 import argparse 
 
@@ -115,13 +116,16 @@ if __name__=="__main__":
 	p_s  = p_s  [to_keep]
 	p_p  = p_p  [to_keep]
 
+	vals[vals>=0] = 1
+	vals[vals<0]  = -1
+
 	if len(vals) == 0:
 		print (f"There will be no critical points and no spinodal region.")
 
 	vmax = np.max (vals)
 	vmin = np.min (vals)
 	norm = colors.SymLogNorm (0.001, vmin=vmin, vmax=vmax)
-	cols = cm.bwr (norm (vals))
+	cols = cm.Set3 (norm (vals))
 
 	if np.sign (vmax) == np.sign (vmin):
 		if np.sign (vmax) >=0:
@@ -135,22 +139,27 @@ if __name__=="__main__":
 		print ("there exist unstable regions.")
 
 	# get all the crit points
-	roots_up, roots_down = ternary.find_crit_point(vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s)
+	if args.crits:
+		roots_up, roots_down = ternary.find_crit_point(vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s)
 
-	# put them all together
-	crits      = np.vstack ((roots_up, roots_down))
+		# put them all together
+		crits      = np.vstack ((roots_up, roots_down))
 
-	# get rid ofthe redundant ones
-	threshold  = 1e-6
-	crits      = ternary.remove_close_rows (crits, threshold)
+		# get rid ofthe redundant ones
+		threshold  = 1e-6
+		crits      = ternary.remove_close_rows (crits, threshold)
 
-	print (f"cleaned_crits = \n{crits}")
+		print (f"cleaned_crits = \n{crits}")
+
+	else:
+		crits = None
 
 	# Plot the points
 	p_c = 1 - p_s - p_p
 
 	# plot the thing
-	ternary.plot(ax, args.ternary, args.edges, args.pc, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols, root_up_s, root_lo_s)
+	spinodal_phi_s, spinodal_phi_p = ternary.plot(ax, args.ternary, args.edges, args.pc, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, cols, root_up_p, root_lo_p, root_up_s, root_lo_s)
+	pts = np.array([spinodal_phi_s, spinodal_phi_p]).T
 
 	# plot the tangent and normal
 	ternary.add_tang_norm(ax, args.tang_norm, args.ternary, args.pc, crits, vs, vc, vp, chi_pc, chi_ps, chi_sc, root_up_s, root_lo_s)

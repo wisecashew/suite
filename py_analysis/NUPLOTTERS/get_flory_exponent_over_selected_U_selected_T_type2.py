@@ -73,8 +73,14 @@ def get_avg_flory (U, T, num, dop, coords_file, starting_index, d1, d2):
 	for delta in x:
 		y.append ( aux.single_sim_flory_exp (U, T, num, dop, coords_file, starting_index, delta) )
 	nu = []
+
 	y = np.asarray (np.log(y))
 	x = np.asarray (np.log(x)).reshape((-1,1))
+
+	f = open(f"nu_plots_T-{T}_U-{U}.dat", 'w')
+	for i in range(len(x)):
+		f.write(f"{x[i][0]}  {y[i]}\n")
+
 	for j in range (1, len(x)-1):
 		model = HuberRegressor()
 		model.fit(x[j-1:j+2], y[j-1:j+2])

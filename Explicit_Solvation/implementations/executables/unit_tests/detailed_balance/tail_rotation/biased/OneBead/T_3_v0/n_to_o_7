@@ -1,0 +1,57 @@
+Input file has no overlaps! Input polymers are well-connected! 
+
+Preparing for take-off...
+
+Chemical information: 
+Number of polymers in system = 1.
+
+Geometric information about simulation cell: 
+x = 10, y = 10, z = 10.
+
+Thermodynamic and energetic information about simulation: 
+Temperature = 3.
+Fraction of Solvent II = 1.
+Monomer-Monomer energetics: isotropic, Emm_a = -1, Emm_n = -1.
+Monomer-Solvent I energetics: isotropic, Ems1_a = 0, Ems1_n = 0.
+Monomer-Solvent II energetics: isotropic, Ems2_a = -0, Ems2_n = -0.
+Solvent I-Solvent II energetics: isotropic, Es1s2_a = -0, Es1s2_n = -0.
+Off to a good start. 
+
+--------------------------------------------------------------------
+
+Running some more checks on input... 
+
+Setting up the lattice from scratch! 
+Input file has no overlaps! Input polymers are well-connected! 
+
+--------------------------------------------------------------------
+
+Begin adding cosolvent... 
+Number of particles of cosolvent being added is 992.
+Cell has been solvated!
+Solvation took 1524 microseconds.
+
+
+Checking validity of coords...
+checkForOverlaps says: Input file has no overlaps! true.
+Input file has no overlaps! No random monomers floating around!!
+Input file has no overlap between and internally amongst solvent and monomers!
+checkConnectivity says: Input polymers are well-connected! 
+true.
+Input polymers are well-connected! 
+We good. LATTICE is in good shape.
+Cosolvent vector looks good!
+
+Calculating energy...
+Time required for serial computation = 801 microseconds. 
+Energy of system is -9.
+
+Initiation complete. We are ready to go. The engine will output information every 100000 configuration(s).
+Number of iteration to perform: 10000000.
+Number of hits is 8638.
+
+
+Time taken for simulation: 2339.38 seconds.
+That is all she wrote. Hope it worked.
+--------------------------------------------------------------------
+

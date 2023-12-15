@@ -67,7 +67,7 @@ if __name__=="__main__":
 	z       = 26
 	M       = 32
 	Hmix    = args.Hmix
-	cols    = color_map("coral", "darkred", len(Hmix))
+	cols    = args.color # color_map("coral", "darkred", len(Hmix))
 	fig     = plt.figure(figsize=(2.5,2.5), constrained_layout=True)
 	ax      = plt.axes()
 
@@ -76,7 +76,7 @@ if __name__=="__main__":
 
 	ylims   = [(30,180), (400,800), (0, 3.5e+5), (0, 800), (0, 800), (0, 800), (0, 800), (0,3.5e+5)]
 	ypads   = [3, 1, 1, 1, 1, 3]
-	yticks  = [np.linspace(30, 180, 6), np.linspace(0,800,5), np.linspace(0,4e+5, 5), np.linspace(0, 800, 5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0, 4e+5,5)]
+	yticks  = [np.linspace(30, 180, 6), np.linspace(400,800,5), np.linspace(0,4e+5, 5), np.linspace(0, 800, 5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0, 4e+5,5)]
 
 	df_real = pd.read_csv (args.real, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 	x_real  = df_real ["x"]
@@ -90,13 +90,12 @@ if __name__=="__main__":
 		ax.set_ylim(ylims[k][0], ylims[k][1])
 		ax.set_yticks(yticks[k])
 		if args.show_ylabels:
-			pass # ax[0][0].get_yticks(), weight='bold')
+			pass
 		else:
 			ax.set_yticklabels([])
 		ax.set_xlim (0.0, 1.0)
 		ax.set_xticks (np.arange(0,1.2,0.2))
-		ax.set_xticklabels ([]) # ax[0][0].get_xticks(), weight='bold')
-		
+		ax.set_xticklabels([])
 		ax.minorticks_on()
 		if k == 0 or k > 1:
 			pass 
@@ -108,10 +107,10 @@ if __name__=="__main__":
 			print (df_subset)
 			idx = idx % len(cols)
 			if keys == "M1-S1" or keys == "M1-S2":
-				p_diff = (df_subset [keys[k]].values - 0) # df_id ["x"].values*z*M)
+				p_diff = (df_subset [keys[k]].values - 0)
 			else:
-				p_diff = (df_subset [keys[k]].values - 0) # df_id [keys[k]].values)
-			ax.plot (df_subset["x"].values, p_diff, marker='o', c=cols[idx], linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10)
+				p_diff = (df_subset [keys[k]].values - 0)
+			ax.plot (df_subset["x"].values, p_diff, marker='o', c=cols, linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10)
 
 		plt.savefig ("contact-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
 		ax.cla()

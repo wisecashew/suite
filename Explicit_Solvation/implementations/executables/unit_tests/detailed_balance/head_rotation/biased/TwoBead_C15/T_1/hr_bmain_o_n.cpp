@@ -335,8 +335,8 @@ int main (int argc, char** argv) {
         // std::cout << "sysEnergy = " << sysEnergy << std::endl;
         sysEnergy = sysEnergy_;
         contacts  = contacts_;
-        IMP_BOOL = true;     
-        hitcheck = 1;  
+        IMP_BOOL = true;
+        hitcheck = 1;
     }
 
     dumpMoveStatistics (&attempts, &acceptances, max_iter, stats_file);  
@@ -349,7 +349,7 @@ int main (int argc, char** argv) {
 
     stop = std::chrono::high_resolution_clock::now(); 
     duration = std::chrono::duration_cast<std::chrono::milliseconds> (stop-start); 
-	
+
     std::cout << "\n\nTime taken for simulation: " << duration.count() << " milliseconds." << std::endl; 
     std::cout << "That is all she wrote. Hope it worked." << std::endl;
     std::cout << "--------------------------------------------------------------------" << std::endl << std::endl;

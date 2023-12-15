@@ -9,3 +9,5 @@
 *.ipynb
 *.skelfile
 *.binodal
+*.mc
+*.dump

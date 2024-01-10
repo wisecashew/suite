@@ -71,14 +71,15 @@ class Spinodal:
 	def obtain_crits(self):
 		roots_up, roots_down = ternary.find_crit_point(self.vs, self.vc, self.vp, self.chi_sc, self.chi_ps, self.chi_pc, self.root_up_p, self.root_up_s, self.root_lo_p, self.root_lo_s)
 		crits      = np.vstack ((roots_up, roots_down))
-
+		print(f"crits = {crits}", flush=True)
 		# get rid of the redundant ones
 		threshold  = 1e-6
-		crits      = ternary.remove_close_rows (crits, threshold)
-
+		crits, kept      = ternary.remove_close_rows (crits, threshold)
 		crits_     = np.empty((0,3))
+		print(f"crits = {crits}")
 		for i in range(len(crits)):
-			c = np.array([crits[i][0], crits[i][1], 1-crits[i][0]-crits[i][1]])
+			c = np.array([ crits[i][0], crits[i][1], 1-crits[i][0]-crits[i][1] ])
+			print(f"c = {c}", flush=True)
 			crits_ = np.vstack((crits_, c))
 
 		self.crits = crits_
@@ -115,8 +116,8 @@ class Spinodal:
 		vals[vals>0]  = 1
 
 		# Define colors
-		start_color = "dodgerblue"
-		end_color   = "lightcoral"
+		start_color = "lightcoral"
+		end_color   = "dodgerblue"
 
 		# Number of color steps
 		num_steps = 256

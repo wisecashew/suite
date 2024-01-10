@@ -155,7 +155,7 @@ if __name__=="__main__":
 
 		# get rid ofthe redundant ones
 		threshold  = 1e-6
-		crits      = ternary.remove_close_rows (crits, threshold)
+		crits      = (ternary.remove_close_rows (crits, threshold))[0]
 
 		print (f"cleaned_crits = \n{crits}")
 

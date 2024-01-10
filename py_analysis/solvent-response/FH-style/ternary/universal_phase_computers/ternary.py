@@ -20,21 +20,23 @@ def add_rows_at_index (array, idx, M):
 	return array
 
 
-def remove_close_rows(array, threshold):
-
-	filtered_array = np.empty ((0,2))
+def remove_close_rows(array, threshold=1e-6):
+	kept_indices   = []
+	filtered_array = np.empty ((0,array.shape[1]))
 	for i, elem in enumerate(array):
 		if i == 0:
 			filtered_array = np.vstack((filtered_array, elem))
+			kept_indices.append(i)
 			continue
 		else:
-			sieve = (np.linalg.norm(filtered_array - elem, axis=1) < 1e-6).any()
+			sieve = (np.linalg.norm(filtered_array - elem, axis=1) < threshold).any()
 			if sieve:
 				continue
 			else:
 				filtered_array = np.vstack((filtered_array, elem))
+				kept_indices.append(i)
 
-	return filtered_array
+	return filtered_array, np.array(kept_indices)
 
 
 def crit_condition (vs, vc, vp, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
@@ -47,6 +49,103 @@ def crit_condition (vs, vc, vp, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
 	u2    = 1/(vc*phi_c) - chi_pc - chi_sc + chi_ps
 
 	return t1*t2 - u1*u2
+
+def row_exists(array, row):
+	"""
+	Checks if a row exists in a numpy array.
+
+	Args:
+	array: A numpy array.
+	row: A numpy array representing the row to search for.
+
+	Returns:
+	True if the row exists in the array, False otherwise.
+	"""
+	if array.shape[1] != row.shape[0]:
+		raise ValueError("Row dimension mismatch")
+
+	return np.any(np.all(array == row, axis=1))
+
+
+neighbors     = np.array([[1,0], [1,1], [0,1], [-1,1], [-1,0], [-1,-1], [0, -1], [1, -1]], dtype=int)
+
+def annex_islands(my_island, stable_points, loc):
+	options = []
+	for n in neighbors:
+		if row_exists(stable_points, loc+n) and (not row_exists(my_island, loc+n)): # and (loc+n>=0).all():
+			my_island = np.vstack((my_island,(loc+n)))
+			options.append(loc+n)
+	return np.array(options), my_island
+
+def annex_islands_with_options(my_island, stable_points, options):
+	new_options = np.empty((0,2), dtype=int)
+	for o in options:
+		for n in neighbors:
+			if row_exists(stable_points, o+n) and (not row_exists(my_island, o+n)) and (not row_exists(new_options, o+n)): # and (o+n>=0).all():
+				my_island   = np.vstack((my_island,o+n))
+				new_options = np.vstack((new_options,o+n))
+
+	return new_options, my_island
+
+
+def find_islands(mesh):
+	"""
+	Finds and returns islands of ones in a 2D numpy mesh.
+
+	Args:
+	mesh: A 2D numpy array of ones and zeros.
+
+	Returns:
+	A list of lists, where each sublist contains the coordinates of a single island.
+	"""
+	islands = []
+	# get the indices to loop over
+	stable_points = np.argwhere(mesh==1)
+	print(f"Length of stable_points = {len(stable_points)}", flush=True)
+	print("==========================", flush=True)
+
+	loop   = True
+	spoint = stable_points[0]
+
+	print(f"starter point = {spoint}", flush=True)
+	print(f"stable_points[-1] = {stable_points[-1]}", flush=True)
+
+
+	while loop:
+		my_island = np.array([spoint], dtype=int)
+		options, my_island = annex_islands(my_island, stable_points, spoint)
+		while len(options)>0:
+			options, my_island = annex_islands_with_options(my_island, stable_points, options)
+			# print(f"my_island = {my_island[0:5],my_island[-5:]} with len(islands) = {len(islands)}", flush=True)
+		
+		to_del = []
+		for midx, isl in enumerate(my_island):
+			check = np.logical_and(isl[0]==stable_points[:,0], isl[1]==stable_points[:,1])
+			if check.any():
+				to_del.append(np.arange(len(stable_points))[check][0])
+			# for sidx, sp in enumerate(stable_points):
+			#	if isl[0] == sp[0] and isl[1] == sp[1]:
+			#		to_del.append(sidx)
+			#		continue 
+		stable_points = np.delete(stable_points, to_del, axis=0)
+
+		# eliminate all points in islands from stable_points
+		# print(f"Cleaning up stable points...")
+		# mask = np.isin(stable_points, my_island).all(axis=1)
+		# stable_points = stable_points[~mask]
+
+		print(f"================================")
+		print(f"stable_points = {len(stable_points)}...", flush=True)
+		print(f"================================")
+
+		if len(stable_points) > 0:
+			spoint = stable_points[0]
+		else:
+			loop = False
+		islands.append(my_island)
+
+	return islands
+
 
 def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s):
 
@@ -286,12 +385,12 @@ def add_tang_norm(ax, tang_b, tern_b, crit_b, crits, vs, vc, vp, chi_pc, chi_ps,
 
 			l = np.linspace (-10, 10, 100)
 			if tern_b:
-				ax.plot (points_along_tangent(l)[0], 1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_tangent(l)[1], c=cols[idx], lw=1)
-				ax.plot (points_along_normal(l)[0],  1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_normal(l)[1],  c=cols[idx], lw=1)
+				ax.plot (points_along_tangent(l)[0], 1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_tangent(l)[1], c=cols[idx%len(cols)], lw=1)
+				ax.plot (points_along_normal(l)[0],  1-points_along_tangent(l)[0]-points_along_tangent(l)[1], points_along_normal(l)[1],  c=cols[idx%len(cols)], lw=1)
 
 			else:
-				ax.plot (points_along_tangent(l)[0],  points_along_tangent(l)[1],  c=cols[idx], lw=1)
-				ax.plot (points_along_normal (l)[0],  points_along_normal(l) [1],  c=cols[idx], lw=1)
+				ax.plot (points_along_tangent(l)[0],  points_along_tangent(l)[1],  c=cols[idx%len(cols)], lw=1)
+				ax.plot (points_along_normal (l)[0],  points_along_normal(l) [1],  c=cols[idx%len(cols)], lw=1)
 
 	return
 
@@ -302,7 +401,7 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 	if tern_b:
 		ax.scatter(p_s, 1-p_p-p_s, p_p, s=1, color=cols)
 
-		if crits_b:
+		if crits_b and not(crits is None):
 			ax.scatter(crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='darkred', edgecolors='darkred',s=4, zorder=15)
 			ax.scatter(np.mean(crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits, axis=0)[1], color="limegreen", edgecolors="limegreen", s=8, zorder=15)
 
@@ -329,21 +428,28 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 			ax.scatter (p_s[to_keep_1], 1-p_s[to_keep_1]-r1, r1, color='seagreen',  s=1)
 			ax.scatter (p_s[to_keep_2], 1-p_s[to_keep_2]-r2, r2, color='darkgreen', s=1)
 
-			r1 = root_up_p(p_p)
-			r2 = root_lo_p(p_p)
+			r3 = root_up_p(p_p)
+			r4 = root_lo_p(p_p)
 
-			to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
-			r1        = r1[to_keep_1]
+			to_keep_3 = (~np.isnan(r3)) * (r3 <= 1) * (r3 >= 0)
+			r3        = r3[to_keep_3]
 
-			to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0)
-			r2        = r2[to_keep_2]
+			to_keep_4 = (~np.isnan(r4)) * (r4 <= 1) * (r4 >= 0)
+			r4        = r4[to_keep_4]
 
-			ax.scatter (r1, 1-p_p[to_keep_1]-r1, p_p[to_keep_1], color='seagreen',  s=1)
-			ax.scatter (r2, 1-p_p[to_keep_2]-r2, p_p[to_keep_2], color='darkgreen', s=1)
+			ax.scatter (r3, 1-p_p[to_keep_3]-r3, p_p[to_keep_3], color='seagreen',  s=1)
+			ax.scatter (r4, 1-p_p[to_keep_4]-r4, p_p[to_keep_4], color='darkgreen', s=1)
+
+			spinodal_phi_s = np.hstack([p_s[to_keep_1], p_s[to_keep_2], r3, r4])
+			spinodal_phi_p = np.hstack([r1, r2, p_p[to_keep_3], p_p[to_keep_4]])
+
+		else:
+			spinodal_phi_s = np.array([])
+			spinodal_phi_p = np.array([])
 
 	else:
 		ax.scatter (p_s, p_p, s=1, color=cols)
-		if crits_b:
+		if crits_b and not(crits is None):
 			ax.scatter (crits[:,0], crits[:,1], color='darkred', edgecolors='darkred', s=4, zorder=15)
 			ax.scatter (np.mean (crits, axis=0)[0], np.mean(crits, axis=0)[1], color='limegreen', edgecolors='limegreen', s=8, zorder=15)
 		else:
@@ -356,8 +462,8 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 			chi_pc              = chi_pc
 			chi_sc              = chi_sc
 
-			r1 = root_up_s (p_s, chi_ps, chi_pc, chi_sc)
-			r2 = root_lo_s (p_s, chi_ps, chi_pc, chi_sc)
+			r1 = root_up_s (p_s)
+			r2 = root_lo_s (p_s)
 
 			to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
 			r1 = r1[to_keep_1]
@@ -369,19 +475,27 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 			ax.scatter(p_s[to_keep_1], r1, color='darkgreen', s=1)
 			ax.scatter(p_s[to_keep_2], r2, color='seagreen',  s=1)
 
-			r1 = root_up_p(p_p)
-			r2 = root_lo_p(p_p)
+			r3 = root_up_p(p_p)
+			r4 = root_lo_p(p_p)
 
-			to_keep_1 = (~np.isnan(r1)) * (r1 <= 1) * (r1 >= 0)
-			r1        = r1[to_keep_1]
+			to_keep_3 = (~np.isnan(r3)) * (r3 <= 1) * (r3 >= 0)
+			r3        = r3[to_keep_3]
 
-			to_keep_2 = (~np.isnan(r2)) * (r2 <= 1) * (r2 >= 0)
-			r2        = r2[to_keep_2]
+			to_keep_4 = (~np.isnan(r4)) * (r4 <= 1) * (r4 >= 0)
+			r4        = r4[to_keep_4]
 
-			ax.scatter (r1, p_p[to_keep_1], color='darkgreen', s=1)
-			ax.scatter (r2, p_p[to_keep_2], color='seagreen',  s=1)
+			# plot the points
+			ax.scatter (p_s[to_keep_1], r1, color='darkgreen', s=1)
+			ax.scatter (p_s[to_keep_2], r2, color='seagreen',  s=1)
 
-	return
+			spinodal_phi_s = np.hstack([p_s[to_keep_1], p_s[to_keep_2], r3, r4])
+			spinodal_phi_p = np.hstack([r1, r2, p_p[to_keep_3], p_p[to_keep_4]])
+
+		else:
+			spinodal_phi_s = np.array([])
+			spinodal_phi_p = np.array([])
+
+	return spinodal_phi_s, spinodal_phi_p
 
 #############################################################################################################
 

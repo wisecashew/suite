@@ -17,173 +17,178 @@ class Phase:
 		self.sym_mu_pc = mu.sym_mu_pc(inputs, self.spinodal)
 		return
 	
-	def tangent_tracing(self, ax):
+	def tangent_tracing(self, BINODALS):
 		bin_count = 0
 		for idx, c in enumerate(self.crits):
-			if idx != 1:
-				continue
+			
+			for test_idx in BINODALS["groupings"]:
+				if idx in BINODALS["groupings"][test_idx]["raw_list"]:
+					uidx = test_idx
+					break
+			
+
 			print(f"Get the binodal curve...", flush=True, end=' ')
 
 			# start with mu_ps
-			
+			print("Binodal run for ps along s2...")
 			phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_s2(self.crits[idx])
 
-			min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			min_dist   = np.min([min_dist_1, min_dist_2])
-
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or min_dist < 1e-2) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
-				ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='pink', s=3)
+				# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
+				# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='pink', s=3)
 				print("Found a complete binodal. Moving on...")
-				bin_count += 1
-				# continue
+				phi_1 = np.array([phi_s1, phi_p1]).T
+				phi_2 = np.array([phi_s2, phi_p2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
 
+			# do the other run 
+			print("Binodal run for ps along p2...")
 			phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_p2(self.crits[idx])
-			
-			min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			min_dist   = np.min([min_dist_1, min_dist_2])
 
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or min_dist < 1e-2) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
-				ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='pink', s=3)
+				# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
+				# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='pink', s=3)
 				print("Found a complete binodal. Moving on...")
-				bin_count += 1
-				# continue
+				phi_1 = np.array([phi_s1, phi_p1]).T
+				phi_2 = np.array([phi_s2, phi_p2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
+
 			
 			# move on to mu_pc
 			print("Binodal run for pc along c2...")
 			phi_p1, phi_p2, phi_c1, phi_c2 = self.sym_mu_pc.binodal_run_in_c2(self.crits[idx])
-			min_dist = np.min(np.linalg.norm(self.crits-np.array([[phi_c1[-1],phi_p1[-1],1-phi_c1[-1]-phi_p1[-1]]]), axis=1))
-			if True: # (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) or (min_dist < 1e-2) and len(phi_s1) > 10:
+			
+			if (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting 
-				ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
-				ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
+				# ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
+				# ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				bin_count += 1
+				phi_1 = np.array([1-phi_p1-phi_c1, phi_p1]).T
+				phi_2 = np.array([1-phi_p2-phi_c2, phi_p2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
 				continue
+
+
 
 			print("Binodal run for pc along p2...")
 			phi_p1, phi_p2, phi_c1, phi_c2 = self.sym_mu_pc.binodal_run_in_p2(self.crits[idx])
-			min_dist = np.min(np.linalg.norm(self.crits-np.array([[phi_c1[-1],phi_p1[-1],1-phi_c1[-1]-phi_p1[-1]]]), axis=1))
-			if True: # (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) or (min_dist < 1e-2 and len(phi_s1) > 10):
+			
+			if (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting 
-				ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
-				ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
+				# ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
+				# ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				bin_count += 1
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
 				continue
+
 			
 			print("Binodal run for sc along c2...")
 			phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_c2(self.crits[idx])
-			# min_dist = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_c1[-1],1-phi_c1[-1]-phi_p1[-1]]]), axis=1))
-			if True: # (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) or (min_dist < 1e-2) and len(phi_s1) > 10:
+			
+			if (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting 
-				ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
-				ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
+				# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
+				# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				bin_count += 1
-				# continue
+				phi_1 = np.array([phi_s1, 1-phi_s1-phi_c1]).T
+				phi_2 = np.array([phi_s2, 1-phi_s2-phi_c2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
+
 			
 			print("Binodal run for sc along s2...")
 			phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_s2(self.crits[idx])
-			# min_dist = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_c1[-1],1-phi_c1[-1]-phi_p1[-1]]]), axis=1))
-			if True: # (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) or (min_dist < 1e-2) and len(phi_s1) > 10:
-				# start plotting 
-				ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
-				ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
-				print("Found a complete binodal. Moving on...")
-				bin_count += 1
-				# continue
 			
-
-		print("Plotted out first sweep!", flush=True)
-		print("Running along the normal...", flush=True)
-		# if bin_count == len(self.crits):
-		# 	return
-		
-		for idx in range(len(self.crits)):
-			if idx != 1:
+			if (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) and len(phi_s1) > 10:
+				# start plotting 
+				# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
+				# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
+				print("Found a complete binodal. Moving on...")
+				phi_1 = np.array([phi_s1, 1-phi_s1-phi_c1]).T
+				phi_2 = np.array([phi_s2, 1-phi_s2-phi_c2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
 				continue
-			print(f"@ idx = {idx}")
+
+		
 			along_normal = True
 			print(f"Get the binodal curve...", flush=True, end=' ')
 			phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_s2(self.crits[idx], along_normal)
 
-			min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			min_dist   = np.min([min_dist_1, min_dist_2])
-
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist<0.01)) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
-				ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='lime', s=3)
+				# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
+				# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				# continue
+				phi_1 = np.array([phi_s1, phi_p1]).T
+				phi_2 = np.array([phi_s2, phi_p2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
 
 			phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_p2(self.crits[idx], along_normal)
-			min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			min_dist   = np.min([min_dist_1, min_dist_2])
 
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist < 0.01)) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
-				ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='lime', s=3)
+				# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
+				# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				# continue
-			print(f"@ idx = {idx}")
-			along_normal = True
+				phi_1 = np.array([phi_s1, phi_p1]).T
+				phi_2 = np.array([phi_s2, phi_p2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
+			
 			print(f"Get the binodal curve...", flush=True, end=' ')
 			phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_s2(self.crits[idx], along_normal)
 
-			# min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			# min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			# min_dist   = np.min([min_dist_1, min_dist_2])
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist<0.01)) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
-				ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
+				# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
+				# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				# continue
+				phi_1 = np.array([phi_s1, 1-phi_p1-phi_s1]).T
+				phi_2 = np.array([phi_s2, 1-phi_p2-phi_s2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
 
 			phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_c2(self.crits[idx], along_normal)
-			# min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			# min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			# min_dist   = np.min([min_dist_1, min_dist_2])
 
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist < 0.01)) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist < 0.01)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
-				ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
+				# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
+				# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				# continue
+				phi_1 = np.array([phi_s1, 1-phi_s1-phi_c1]).T
+				phi_2 = np.array([phi_s2, 1-phi_s2-phi_c2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
 		
 			phi_p1, phi_p2, phi_c1, phi_c2 = self.sym_mu_pc.binodal_run_in_p2(self.crits[idx], along_normal)
 
-			# min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			# min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			# min_dist   = np.min([min_dist_1, min_dist_2])
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist<0.01)) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
-				ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
+				# ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
+				# ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				# continue
+				phi_1 = np.array([1-phi_p1-phi_c1, phi_p1]).T
+				phi_2 = np.array([1-phi_p2-phi_c2, phi_p2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
 
 			phi_p1, phi_p2, phi_c1, phi_c2 = self.sym_mu_pc.binodal_run_in_c2(self.crits[idx], along_normal)
-			# min_dist_1 = np.min(np.linalg.norm(self.crits-np.array([[phi_s1[-1],phi_p1[-1],1-phi_s1[-1]-phi_p1[-1]]]), axis=1))
-			# min_dist_2 = np.min(np.linalg.norm(self.crits-np.array([[phi_s2[-1],phi_p2[-1],1-phi_s2[-1]-phi_p2[-1]]]), axis=1))
-			# min_dist   = np.min([min_dist_1, min_dist_2])
 
-			if True: # (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist < 0.01)) and len(phi_s1) > 10:
+			if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist < 0.01)) and len(phi_s1) > 10:
 				# start plotting out the curve
-				ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='gold', s=3)
-				ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='lime', s=3)
+				# ax.scatter(1-phi_c1-phi_p1, phi_c1, phi_p1, c='gold', s=3)
+				# ax.scatter(1-phi_c2-phi_p2, phi_c2, phi_p2, c='lime', s=3)
 				print("Found a complete binodal. Moving on...")
-				# continue
+				phi_1 = np.array([1-phi_p1-phi_c1, phi_p1]).T
+				phi_2 = np.array([1-phi_p2-phi_c2, phi_p2]).T
+				BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
+				continue
+			
+			BINODALS["groupings"][uidx]["center"]["binodals"] = [phi_1, phi_2]
 		
-		return
+		return 

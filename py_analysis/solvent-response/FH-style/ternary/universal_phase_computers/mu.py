@@ -638,40 +638,224 @@ class sym_mu_ps:
 					sol1 = np.vstack((sol1, p1))
 					sol2 = np.vstack((sol2, p2))			
 
-				def mu_equations(phi):
-					eq1 = self.mu_s(island1[idx,0], phi[0]) - self.mu_s(phi[1], phi[2])
-					eq2 = self.mu_p(island1[idx,0], phi[0]) - self.mu_p(phi[1], phi[2])
-					eq3 = self.mu_c(island1[idx,0], phi[0]) - self.mu_c(phi[1], phi[2])
-					return [eq1, eq2, eq3]
+			def mu_equations(phi):
+				eq1 = self.mu_s(island1[idx,0], phi[0]) - self.mu_s(phi[1], phi[2])
+				eq2 = self.mu_p(island1[idx,0], phi[0]) - self.mu_p(phi[1], phi[2])
+				eq3 = self.mu_c(island1[idx,0], phi[0]) - self.mu_c(phi[1], phi[2])
+				return [eq1, eq2, eq3]
 
-				root = fsolve(mu_equations, [island1[idx,1], island2[idx,0], island2[idx,1]])
-				p1   = np.array([island1[idx,0], root[0], 1-island1[idx,0]-root[0]])
-				p2   = np.array([root[1], root[2], 1-root[1]-root[2]])
+			root = fsolve(mu_equations, [island1[idx,1], island2[idx,0], island2[idx,1]])
+			p1   = np.array([island1[idx,0], root[0], 1-island1[idx,0]-root[0]])
+			p2   = np.array([root[1], root[2], 1-root[1]-root[2]])
 
-				if (np.abs(np.array(mu_equations(root)))>1e-6).any():
+			if (np.abs(np.array(mu_equations(root)))>1e-12).any():
+				continue
+			else:
+				if (ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0) or (ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0):
+					continue 
+
+				elif np.isnan(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isnan(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue 
+				
+				elif np.isinf(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isinf(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
 					continue
+
+				elif np.linalg.norm(p1-p2) < 1e-4:
+					continue
+
+				elif (not hull1.contains_point(p1[0:2])) or (not hull2.contains_point(p2[0:2])):
+					continue 
+
 				else:
-					if (ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0) or (ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0):
-						continue 
-
-					elif np.isnan(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isnan(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
-						continue 
-					
-					elif np.isinf(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isinf(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
-						continue
-
-					elif np.linalg.norm(p1-p2) < 1e-4:
-						continue
-
-					elif (not hull1.contains_point(p1[0:2])) or (not hull2.contains_point(p2[0:2])):
-						continue 
-
-					else:
-						sol1 = np.vstack((sol1, p1))
-						sol2 = np.vstack((sol2, p2))
+					sol1 = np.vstack((sol1, p1))
+					sol2 = np.vstack((sol2, p2))
 		
 
 		return sol1, sol2 
+
+	def binodal_finder_(self, island1, island2, hull):
+
+		sol1 = np.empty((0,3))
+		sol2 = np.empty((0,3))
+
+		for idx, i1 in enumerate(island1):
+			def mu_equations(phi):
+				eq1 = self.mu_s(phi[0], island1[idx,1]) - self.mu_s(phi[1], phi[2])
+				eq2 = self.mu_p(phi[0], island1[idx,1]) - self.mu_p(phi[1], phi[2])
+				eq3 = self.mu_c(phi[0], island1[idx,1]) - self.mu_c(phi[1], phi[2])
+				return [eq1, eq2, eq3]
+
+			root = fsolve(mu_equations, [island1[idx,0], island2[idx,0], island2[idx,1]])
+			p1   = np.array([root[0], island1[idx,1], 1-root[0]-island1[idx,1]])
+			p2   = np.array([root[1], root[2], 1-root[1]-root[2]])		
+
+			if (np.abs(np.array(mu_equations(root)))>1e-12).any():
+				continue
+			else:
+				if (ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0) or (ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0):
+					continue 
+
+				elif np.isnan(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isnan(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue 
+				
+				elif np.isinf(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isinf(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue 
+
+				elif np.linalg.norm(p1-p2) < 1e-4:
+					continue
+
+				elif not(hull.contains_point(p1[0:2])) or not(hull.contains_point(p2[0:2])):
+					continue 
+
+				else:
+					sol1 = np.vstack((sol1, p1))
+					sol2 = np.vstack((sol2, p2))
+
+			def mu_equations(phi):
+				eq1 = self.mu_s(island1[idx,0], phi[0]) - self.mu_s(phi[1], phi[2])
+				eq2 = self.mu_p(island1[idx,0], phi[0]) - self.mu_p(phi[1], phi[2])
+				eq3 = self.mu_c(island1[idx,0], phi[0]) - self.mu_c(phi[1], phi[2])
+				return [eq1, eq2, eq3]
+
+			root = fsolve(mu_equations, [island1[idx,1], island2[idx,0], island2[idx,1]])
+			p1   = np.array([island1[idx,0], root[0], 1-island1[idx,0]-root[0]])
+			p2   = np.array([root[1], root[2], 1-root[1]-root[2]])
+
+			if (np.abs(np.array(mu_equations(root)))>1e-12).any():
+				continue
+			else:
+				if (ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0) or (ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0):
+					continue 
+
+				elif np.isnan(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isnan(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue 
+				
+				elif np.isinf(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isinf(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue
+
+				elif np.linalg.norm(p1-p2) < 1e-4:
+					continue
+				
+				elif not(hull.contains_point(p1[0:2])) or not(hull.contains_point(p2[0:2])):
+					continue 
+
+				else:
+					sol1 = np.vstack((sol1, p1))
+					sol2 = np.vstack((sol2, p2))
+		
+
+		return sol1, sol2 
+
+	def binodal_finder__(self, island1, island2):
+
+		sol1 = np.empty((0,3))
+		sol2 = np.empty((0,3))
+
+		for idx, i1 in enumerate(island1):
+			def mu_equations(phi):
+				eq1 = self.mu_s(phi[0], island1[idx,1]) - self.mu_s(phi[1], phi[2])
+				eq2 = self.mu_p(phi[0], island1[idx,1]) - self.mu_p(phi[1], phi[2])
+				eq3 = self.mu_c(phi[0], island1[idx,1]) - self.mu_c(phi[1], phi[2])
+				return [eq1, eq2, eq3]
+
+			root = fsolve(mu_equations, [island1[idx,0], island2[idx,0], island2[idx,1]])
+			p1   = np.array([root[0], island1[idx,1], 1-root[0]-island1[idx,1]])
+			p2   = np.array([root[1], root[2], 1-root[1]-root[2]])		
+
+			if (np.abs(np.array(mu_equations(root)))>1e-12).any():
+				continue
+			else:
+				if (ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0) or (ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0):
+					continue 
+
+				elif np.isnan(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isnan(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue 
+				
+				elif np.isinf(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isinf(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue 
+
+				elif np.linalg.norm(p1-p2) < 1e-4:
+					continue
+
+				else:
+					sol1 = np.vstack((sol1, p1))
+					sol2 = np.vstack((sol2, p2))			
+
+			def mu_equations(phi):
+				eq1 = self.mu_s(island1[idx,0], phi[0]) - self.mu_s(phi[1], phi[2])
+				eq2 = self.mu_p(island1[idx,0], phi[0]) - self.mu_p(phi[1], phi[2])
+				eq3 = self.mu_c(island1[idx,0], phi[0]) - self.mu_c(phi[1], phi[2])
+				return [eq1, eq2, eq3]
+
+			root = fsolve(mu_equations, [island1[idx,1], island2[idx,0], island2[idx,1]])
+			p1   = np.array([island1[idx,0], root[0], 1-island1[idx,0]-root[0]])
+			p2   = np.array([root[1], root[2], 1-root[1]-root[2]])
+
+			if (np.abs(np.array(mu_equations(root)))>1e-12).any():
+				continue
+			else:
+				if (ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0) or (ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)<0):
+					continue 
+
+				elif np.isnan(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isnan(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue 
+				
+				elif np.isinf(ternary.stab_crit(p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isinf(ternary.stab_crit(p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+					continue
+
+				elif np.linalg.norm(p1-p2) < 1e-4:
+					continue
+
+				else:
+					sol1 = np.vstack((sol1, p1))
+					sol2 = np.vstack((sol2, p2))
+		
+
+		return sol1, sol2 
+
+	def solve_within(self, side1, side2, center, central_axis):
+
+		b1 = np.empty((0,3))
+		b2 = np.empty((0,3))
+
+		for idx, pt in enumerate(side1):
+			# print(f"pt = {pt}", flush=True)
+			def mu_equations(phi):
+				eq1 = self.mu_s(side1[idx,0], phi[0]) - self.mu_s(phi[1], phi[2])
+				eq2 = self.mu_p(side1[idx,0], phi[0]) - self.mu_p(phi[1], phi[2])
+				eq3 = self.mu_c(side1[idx,0], phi[0]) - self.mu_c(phi[1], phi[2])
+				# print(f"eq1 = {eq1}, eq2 = {eq2}, eq3 = {eq3}", flush=True)
+				return [eq1, eq2, eq3]
+
+			for tidx, tpt in enumerate(side2):
+				root = fsolve(mu_equations, [pt[1], tpt[0], tpt[1]])
+				if (np.abs(np.array(mu_equations(root)))>1e-6).any():
+					continue
+				else:
+					p1 = np.array([pt[0], root[0], 1-root[0]-pt[0]])
+					p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+
+					if np.isnan(ternary.stab_crit (p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isnan(ternary.stab_crit (p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+						continue
+
+					elif np.isinf(ternary.stab_crit (p1[0], p1[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)) or np.isinf(ternary.stab_crit (p2[0], p2[1], self.vs, self.vc, self.vp, self.chi_ps, self.chi_pc, self.chi_sc)):
+						continue
+
+					elif np.linalg.norm(p1[0:2]-p2[0:2]) < 1e-6:
+						continue
+
+					else:
+						if np.sign(np.cross(central_axis, p1[0:2]-center[0:2])) == np.sign(np.cross(central_axis, p2[0:2]-center[0:2])):
+							continue
+						elif np.cross(central_axis, p1[0:2]-center[0:2]) >=0:
+							b1 = np.vstack((b1, p1))
+							b2 = np.vstack((b2, p2))
+						else:
+							b1 = np.vstack((b1, p2))
+							b2 = np.vstack((b2, p1))
+						break
+
+		return b1, b2
 
 # end of class sym_mu_ps
 

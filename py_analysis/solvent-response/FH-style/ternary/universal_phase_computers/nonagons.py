@@ -123,7 +123,7 @@ def clean_and_sort(sol1, sol2, crit, norm_vec):
 	pos_sol = pos_sol[np.argsort(dists)]
 	neg_sol = neg_sol[np.argsort(dists)]
 
-	return pos_sol, neg_sol
+	return neg_sol, pos_sol
 
 #########################################
 
@@ -194,104 +194,300 @@ def remove_intersecting_segments(sol1, sol2):
 
 def add_rows(array, M, idx):
 	insert_rows = np.linspace(array[idx], array[idx+1], M)
-	pop_array       = np.insert(array, idx+1, insert_rows[1:-1], axis=0)
-	return pop_array
+	# pop_array   = np.insert(array, idx+1, insert_rows[1:-1], axis=0)
+	# return pop_array
+	return insert_rows
 
 #########################################
 
-def solve_within(a1, a2, P, center, central_axis):
+def solve_within(arm_neg, arm_pos, P, center, central_axis):
 
-	b1 = np.empty((0,3))
-	b2 = np.empty((0,3))
+	b_neg = np.empty((0,3))
+	b_pos = np.empty((0,3))
 
-	for idx, pt in enumerate(a1):
+	for idx, pt in enumerate(arm_neg):
 		def mu_equations(phi):
-			eq1 = P.sym_mu_ps.delta_mu_s(pt[0], phi[0], phi[1], phi[2]) # /(np.linalg.norm(np.array([pt[0], phi[0]])-np.array([phi[1], phi[2]])))
-			eq2 = P.sym_mu_ps.delta_mu_p(pt[0], phi[0], phi[1], phi[2]) # /(np.linalg.norm(np.array([pt[0], phi[0]])-np.array([phi[1], phi[2]])))
-			eq3 = P.sym_mu_ps.delta_mu_c(pt[0], phi[0], phi[1], phi[2]) # /(np.linalg.norm(np.array([pt[0], phi[0]])-np.array([phi[1], phi[2]])))
-			# print(f"eq1 = {eq1}, eq2 = {eq2}, eq3 = {eq3}", flush=True)
+			eq1 = P.sym_mu_ps.delta_mu_s(pt[0], phi[0], phi[1], phi[2]) 
+			eq2 = P.sym_mu_ps.delta_mu_p(pt[0], phi[0], phi[1], phi[2]) 
+			eq3 = P.sym_mu_ps.delta_mu_c(pt[0], phi[0], phi[1], phi[2]) 
 			return [eq1, eq2, eq3]
 
-		for tidx, tpt in enumerate(a2):
+		for tidx, tpt in enumerate(arm_pos):
 			root = fsolve(mu_equations, [pt[1], tpt[0], tpt[1]])
 			if (np.abs(np.array(mu_equations(root)))>1e-6).any():
 				continue
 			else:
 				p1 = np.array([pt[0], root[0], 1-root[0]-pt[0]])
 				p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
-
+				# print(f"p1 = {p1}, p2 = {p2}")
 				if np.isnan(ternary.stab_crit (p1[0], p1[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)) or np.isnan(ternary.stab_crit (p2[0], p2[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)):
+					# print(f"Nan points.")
 					continue
 
 				elif np.isinf(ternary.stab_crit (p1[0], p1[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)) or np.isinf(ternary.stab_crit (p2[0], p2[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)):
+					# print(f"Inf points.")
 					continue
 
+				elif ternary.stab_crit (p1[0], p1[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc) < 0 or ternary.stab_crit (p2[0], p2[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc) < 0:
+					# print(f"Unstable points.")
+					continue 
+
 				elif np.linalg.norm(p1[0:2]-p2[0:2]) < 1e-6:
+					# print(f"Too close.")
 					continue
 
 				else:
 					if np.sign(np.cross(central_axis, p1[0:2]-center[0:2])) == np.sign(np.cross(central_axis, p2[0:2]-center[0:2])):
+						# print(f"Same side.")
 						continue
-					elif np.cross(central_axis, p1[0:2]-center[0:2]) >=0:
-						b1 = np.vstack((b1, p1))
-						b2 = np.vstack((b2, p2))
+					elif np.sign(np.cross(central_axis, p1[0:2]-center[0:2])) >=0 and np.sign(np.cross(central_axis, p2[0:2] - center[0:2])) <= 0:
+						# print(f"Good!.")
+						b_neg = np.vstack((b_neg, p2))
+						b_pos = np.vstack((b_pos, p1))
+					elif np.sign(np.cross(central_axis, p1[0:2]-center[0:2])) <=0 and np.sign(np.cross(central_axis, p2[0:2] - center[0:2])) >= 0:
+						# print(f"Good!")
+						b_neg = np.vstack((b_neg, p1))
+						b_pos = np.vstack((b_pos, p2))
 					else:
-						b1 = np.vstack((b1, p2))
-						b2 = np.vstack((b2, p1))
+						# print(f"Something else...")
+						continue
 					break
 
-	return b1, b2
+	return b_neg, b_pos
 				
 #########################################
 
-def add_and_solve(arm1, arm2, P, center, central_axis, M):
+def add_and_solve(arm_neg, arm_pos, P, center, central_axis, M):
+
 	# find point with greatest gap
-	dist1     = np.linalg.norm(np.diff(arm1, axis=0), axis=1)
-	max_dist1 = np.argmax(dist1)
-	dist2     = np.linalg.norm(np.diff(arm2, axis=0), axis=1)
-	max_dist2 = np.argmax(dist2)
+	print(f"arm_neg.shape = {arm_neg.shape}", flush=True)
+	print(f"arm_pos.shape = {arm_pos.shape}", flush=True)
+	dist_neg     = np.linalg.norm(np.diff(arm_neg, axis=0), axis=1)
+	max_dist_neg = np.argmax(dist_neg)
+	dist_pos     = np.linalg.norm(np.diff(arm_pos, axis=0), axis=1)
+	max_dist_pos = np.argmax(dist_pos)
 
-	print(f"dist1 = {dist1[max_dist1]}, dist2 = {dist2[max_dist2]}", flush=True)
-	iter = 0
-	while dist1[max_dist1] > 0.0005 or dist2[max_dist2] > 0.0005:
-		
-		if dist1[max_dist1] > dist2[max_dist2] and dist1[max_dist1] > 0.0005:
-			new_arm1 = add_rows(arm1, M, max_dist1)
-			new_arm2 = add_rows(arm2, M, max_dist1)
+	# print(f"maximum gap in dist_neg = {dist_neg[max_dist_neg]}, maximum gap in dist_pos = {dist_pos[max_dist_pos]}", flush=True)
+	# print(f"Negative points are: {arm_neg[max_dist_neg], arm_neg[max_dist_neg+1]}")
+	# print(f"Positive points are: {arm_pos[max_dist_pos], arm_pos[max_dist_pos+1]}")
+	iterx = 0
 
-			b1, b2   = solve_within(new_arm1[max_dist1+1:max_dist1+1+M], new_arm2[max_dist1+1:max_dist1+1+M], P, center, central_axis)
-			arm1 = np.vstack((arm1, b1))
-			arm2 = np.vstack((arm2, b2))
-			arm1, arm2 = clean_and_sort(arm1, arm2, center, central_axis)
+	while dist_neg[max_dist_neg] > 0.0005 or dist_pos[max_dist_pos] > 0.0005:
 
-		elif dist2[max_dist1] > dist1[max_dist2] and dist2[max_dist2] > 0.0005:
-			new_arm1 = add_rows(arm1, M, max_dist2)
-			new_arm2 = add_rows(arm2, M, max_dist2)
+		# print(f"Negative points are: {arm_neg[max_dist_neg], arm_neg[max_dist_neg+1]}")
+		# print(f"Positive points are: {arm_pos[max_dist_pos], arm_pos[max_dist_pos+1]}")
 
-			b1, b2   = solve_within(new_arm1[max_dist2+1:max_dist2+1+M], new_arm2[max_dist2+1:max_dist2+1+M], P, center, central_axis)
-			arm1 = np.vstack((arm1, b1))
-			arm2 = np.vstack((arm2, b2))
+		if dist_neg[max_dist_neg] > dist_pos[max_dist_pos] and dist_neg[max_dist_neg] > 0.0005:
+			# print("Filling in for negative distances...", flush=True)
+			new_arm_neg = add_rows(arm_neg, M, max_dist_neg)
+			new_arm_pos = add_rows(arm_pos, M, max_dist_neg) 
 
-			arm1, arm2 = clean_and_sort(arm1, arm2, center, central_axis)
+			# print(f"the new arm neg is =\n{new_arm_neg[:5], new_arm_neg[-5:]} ")
+			# print(f"the new arm pos is =\n{new_arm_pos[:5], new_arm_pos[-5:]} ")
+
+			# b_neg, b_pos  = solve_within(new_arm_neg[max_dist_neg+1:max_dist_neg+1+M], new_arm_pos[max_dist_neg+1:max_dist_neg+1+M], P, center, central_axis)
+			b_neg, b_pos  = solve_within(new_arm_neg, new_arm_pos, P, center, central_axis)
+
+			# print(f"b_neg = \n{b_neg}, b_pos = \n{b_pos}")
+
+			arm_neg = np.vstack((arm_neg, b_neg))
+			arm_pos = np.vstack((arm_pos, b_pos))
+			arm_neg, arm_pos = clean_and_sort(arm_neg, arm_pos, center, central_axis)
+
+
+		elif dist_pos[max_dist_pos] > dist_neg[max_dist_neg] and dist_neg[max_dist_neg] > 0.0005:
+			# print("Filling in for positive distances...", flush=True)
+			new_arm_neg = add_rows(arm_neg, M, max_dist_pos)
+			new_arm_pos = add_rows(arm_pos, M, max_dist_pos)
+
+			# print(f"the new arm neg is =\n{new_arm_neg[:5], new_arm_neg[-5:]} ")
+			# print(f"the new arm pos is =\n{new_arm_pos[:5], new_arm_pos[-5:]} ")
+
+			# b1, b2  = solve_within(new_arm_neg[max_dist_pos+1:max_dist_pos+1+M], new_arm_pos[max_dist_pos+1:max_dist_pos+1+M], P, center, central_axis)
+			b_neg, b_pos     = solve_within(new_arm_neg, new_arm_pos, P, center, central_axis)
+			arm_neg          = np.vstack((arm_neg, b_neg))
+			arm_pos          = np.vstack((arm_pos, b_pos))
+			arm_neg, arm_pos = clean_and_sort(arm_neg, arm_pos, center, central_axis)
 
 		# find point with greatest gap
-		dist1     = np.linalg.norm(np.diff(arm1, axis=0), axis=1)
-		max_dist1 = np.argmax(dist1)
-		dist2     = np.linalg.norm(np.diff(arm2, axis=0), axis=1)
-		max_dist2 = np.argmax(dist2)
-		arm1, keep = ternary.remove_close_rows(arm1, 1e-12)
-		arm2       = arm2[keep]
-		print(f"dist1 = {dist1[max_dist1]}, dist2 = {dist2[max_dist2]}", flush=True)
-		iter += 1
-		if iter > 100:
+		arm_neg, keep = ternary.remove_close_rows(arm_neg, 1e-12)
+		arm_pos       = arm_pos[keep]
+
+		dist_neg      = np.linalg.norm(np.diff(arm_neg, axis=0), axis=1)
+		max_dist_neg  = np.argmax(dist_neg)
+		dist_pos      = np.linalg.norm(np.diff(arm_pos, axis=0), axis=1)
+		max_dist_pos  = np.argmax(dist_pos)
+
+		print(f"iterx = {iterx}", flush=True)
+		# print(f"maximum gap in dist_neg = {dist_neg[max_dist_neg]}, maximum gap in dist_pos = {dist_pos[max_dist_pos]}", flush=True)
+		iterx += 1
+		if iterx > 100:
 			break
 
-	return arm1, arm2 
-
-
-
+	return arm_neg, arm_pos 
 
 #########################################
+
+def distance_from_axis(point, axial_point, axis):
+	r     = np.linalg.norm(point[0:2]-axial_point[0:2])
+	rhat  = (point[0:2] - axial_point[0:2])/np.linalg.norm(point[0:2] - axial_point[0:2])
+	theta = np.arccos(np.sum(rhat[0:2]*axis[0:2]))
+	distance = r*np.sin(theta)
+	return distance 
+
+##########################################
+
+def solve_central(arm_neg, arm_pos, center, central_axis):
+
+	b_neg = np.empty((0,3))
+	b_pos = np.empty((0,3))
+
+	for idx, pt in enumerate(arm_neg):
+		def mu_equations(phi):
+			eq1 = P.sym_mu_ps.delta_mu_s(pt[0], phi[0], phi[1], phi[2]) 
+			eq2 = P.sym_mu_ps.delta_mu_p(pt[0], phi[0], phi[1], phi[2]) 
+			eq3 = P.sym_mu_ps.delta_mu_c(pt[0], phi[0], phi[1], phi[2]) 
+			return [eq1, eq2, eq3]
+
+		for tidx, tpt in enumerate(arm_pos):
+			root = fsolve(mu_equations, [pt[1], tpt[0], tpt[1]])
+			if (np.abs(np.array(mu_equations(root)))>1e-6).any():
+				continue
+			else:
+				p1 = np.array([pt[0], root[0], 1-root[0]-pt[0]])
+				p2 = np.array([root[1], root[2], 1-root[1]-root[2]])
+				# print(f"p1 = {p1}, p2 = {p2}")
+				if np.isnan(ternary.stab_crit (p1[0], p1[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)) or np.isnan(ternary.stab_crit (p2[0], p2[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)):
+					# print(f"Nan points.")
+					continue
+
+				elif np.isinf(ternary.stab_crit (p1[0], p1[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)) or np.isinf(ternary.stab_crit (p2[0], p2[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)):
+					# print(f"Inf points.")
+					continue
+
+				elif ternary.stab_crit (p1[0], p1[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc) < 0 or ternary.stab_crit (p2[0], p2[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc) < 0:
+					# print(f"Unstable points.")
+					continue 
+
+				elif np.linalg.norm(p1[0:2]-p2[0:2]) < 1e-6:
+					# print(f"Too close.")
+					continue
+
+				else:
+					if np.sign(np.cross(central_axis, p1[0:2]-center[0:2])) == np.sign(np.cross(central_axis, p2[0:2]-center[0:2])):
+						# print(f"Same side.")
+						continue
+					elif np.sign(np.cross(central_axis, p1[0:2]-center[0:2])) >=0 and np.sign(np.cross(central_axis, p2[0:2] - center[0:2])) <= 0:
+						# print(f"Good!")
+						b_neg = np.vstack((b_neg, p2))
+						b_pos = np.vstack((b_pos, p1))
+					elif np.sign(np.cross(central_axis, p1[0:2]-center[0:2])) <=0 and np.sign(np.cross(central_axis, p2[0:2] - center[0:2])) >= 0:
+						# print(f"Good!")
+						b_neg = np.vstack((b_neg, p1))
+						b_pos = np.vstack((b_pos, p2))
+					else:
+						# print(f"Something else...")
+						continue
+					break
+
+	return b_neg, b_pos
+
+##########################################
+
+def populate_center(BINODALS, uidx, M=50):
+
+	nv_c = BINODALS["crit_info"][BINODALS["groupings"][uidx]["center"  ]["idx"]]["norm_vec"]
+	nv_p = BINODALS["crit_info"][BINODALS["groupings"][uidx]["positive"]["idx"]]["norm_vec"]
+	nv_n = BINODALS["crit_info"][BINODALS["groupings"][uidx]["negative"]["idx"]]["norm_vec"]
+
+	cp_c = P.crits[BINODALS["groupings"][uidx]["center"  ]["idx"]]
+	cp_p = P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]] 
+	cp_n = P.crits[BINODALS["groupings"][uidx]["negative"]["idx"]] 
+
+	Bneg     = BINODALS["groupings"][uidx]["negative"]["binodals"]
+	Bpos     = BINODALS["groupings"][uidx]["positive"]["binodals"]
+	Bc       = BINODALS["groupings"][uidx]["center"  ]["binodals"]
+
+
+	d_neg = distance_from_axis(Bneg[1][-1], cp_c, nv_c)
+	d_pos = distance_from_axis(Bpos[0][-1], cp_c, nv_c)
+	
+	iterx = 0
+	while d_neg > 0.0005 and d_pos > 0.0005:
+		
+		# treating the negative side 
+		to_insert_pos = np.linspace(Bneg[1][-1], Bpos[0][-1], M)
+		to_insert_neg = np.linspace(Bneg[0][-1], Bc[0][0],    M)
+
+		arm_neg, arm_pos = solve_central(to_insert_pos, to_insert_neg, cp_n, nv_n) 
+		# only keep points to the negative of the central axis 
+		adj_arm_pos = (cp_c[0:2]-arm_pos[:,0:2])/np.linalg.norm(cp_c[0:2]-arm_pos[:,0:2], axis=1).reshape(-1,1)
+		signs       = np.sign(np.cross(nv_c, adj_arm_pos))
+		arm_neg     = arm_neg[signs<=0]
+		arm_pos     = arm_pos[signs<=0]
+		BINODALS["groupings"][uidx]["negative"]["binodals"][0] = \
+			np.vstack((BINODALS["groupings"][uidx]["negative"]["binodals"][0], arm_neg))
+		BINODALS["groupings"][uidx]["negative"]["binodals"][1] = \
+			np.vstack((BINODALS["groupings"][uidx]["negative"]["binodals"][1], arm_pos))
+		BINODALS["groupings"][uidx]["negative"]["binodals"][0], BINODALS["groupings"][uidx]["negative"]["binodals"][1] = \
+			clean_and_sort(BINODALS["groupings"][uidx]["negative"]["binodals"][0], BINODALS["groupings"][uidx]["negative"]["binodals"][1], cp_n, nv_n) 
+
+		d_neg = distance_from_axis(BINODALS["groupings"][uidx]["negative"]["binodals"][1][-1], cp_c, nv_c)
+		
+		# moving on to the positive side 
+		to_insert_neg = np.linspace(Bpos[0][-1], Bneg[1][-1], M)
+		to_insert_pos = np.linspace(Bpos[1][-1], Bc[1][0],    M)
+
+		arm_neg, arm_pos = solve_central(to_insert_pos, to_insert_neg, cp_p, nv_p) 
+		# only keep points to the negative of the central axis 
+		adj_arm_neg = (cp_c[0:2]-arm_neg[:,0:2])/np.linalg.norm(cp_c[0:2]-arm_neg[:,0:2], axis=1).reshape(-1,1)
+		signs       = np.sign(np.cross(nv_c, adj_arm_neg))
+		arm_neg     = arm_neg[signs>=0]
+		arm_pos     = arm_pos[signs>=0]
+		BINODALS["groupings"][uidx]["positive"]["binodals"][0] = \
+			np.vstack((BINODALS["groupings"][uidx]["positive"]["binodals"][0], arm_neg))
+		BINODALS["groupings"][uidx]["positive"]["binodals"][1] = \
+			np.vstack((BINODALS["groupings"][uidx]["positive"]["binodals"][1], arm_pos))
+		BINODALS["groupings"][uidx]["positive"]["binodals"][0], BINODALS["groupings"][uidx]["positive"]["binodals"][1] = \
+			clean_and_sort(BINODALS["groupings"][uidx]["positive"]["binodals"][0], BINODALS["groupings"][uidx]["positive"]["binodals"][1], cp_p, nv_p) 
+
+		d_pos = distance_from_axis(BINODALS["groupings"][uidx]["positive"]["binodals"][1][-1], cp_c, nv_c)
+		iterx += 1
+		if iterx > 10:
+			print("Breaking out of the center populater...", flush=True)
+			break
+
+				
+		'''
+		elif probe == "positive":
+			
+			iterx = 0
+			while d_pos > 0.0005:
+				to_insert_neg = np.linspace(Bpos[0][-1], Bneg[1][-1], M)
+				to_insert_pos = np.linspace(Bpos[1][-1], Bc[1][0],    M)
+
+				arm_neg, arm_pos = solve_central(to_insert_pos, to_insert_neg, cp_p, nv_p) 
+				# only keep points to the negative of the central axis 
+				adj_arm_neg = (cp_c[0:2]-arm_neg[:,0:2])/np.linalg.norm(cp_c[0:2]-arm_neg[:,0:2], axis=1).reshape(-1,1)
+				signs       = np.sign(np.cross(nv_c, adj_arm_neg))
+				arm_neg     = arm_neg[signs>=0]
+				arm_pos     = arm_pos[signs>=0]
+				BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((BINODALS["groupings"][uidx][probe]["binodals"][0], arm_neg))
+				BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((BINODALS["groupings"][uidx][probe]["binodals"][1], arm_pos))
+				BINODALS["groupings"][uidx][probe]["binodals"][0], BINODALS["groupings"][uidx][probe]["binodals"][1] = \
+					clean_and_sort(BINODALS["groupings"][uidx][probe]["binodals"][0], BINODALS["groupings"][uidx][probe]["binodals"][1], cp_p, nv_p) 
+
+				d_pos = distance_from_axis(BINODALS["groupings"][uidx][probe]["binodals"][1][-1], cp_c, nv_c)
+				iterx += 1
+				if iterx > 10:
+					break
+				# break
+		'''
+
+	
+	return
+
+##########################################
 
 if __name__=="__main__":
 
@@ -386,40 +582,7 @@ if __name__=="__main__":
 	#=================================
 
 	print(f"Number of stable islands is {len(stable_islands)} and unstable islands is {len(unstable_islands)}...", flush=True)
-	
-	'''
-	f = open('nonagons.pkl', 'rb')
-	BINODALS = pickle.load(f)
-	f.close() 
-	uidx=0
 
-	# print(f'BINODALS[groupings][{uidx}][center][binodals][0] = {BINODALS["groupings"][uidx]["center"]["binodals"][0]}')
-	# print(f'BINODALS[groupings][{uidx}][center][binodals][1] = {BINODALS["groupings"][uidx]["center"]["binodals"][1]}')
-	# print(f"Critical points along binodal = \n{BINODALS['groupings'][0]['raw_crits'], BINODALS['groupings'][0]['raw_list']}")
-
-	c_cp = P.crits[BINODALS['groupings'][uidx]['center']  ['idx']]
-	n_cp = P.crits[BINODALS['groupings'][uidx]['negative']['idx']]
-	p_cp = P.crits[BINODALS['groupings'][uidx]['positive']['idx']]
-	print(f"Central critical point = {BINODALS['groupings'][uidx]['center']['idx'], c_cp}")
-	print(f"Negative critical point = {BINODALS['groupings'][uidx]['negative']['idx'], n_cp}")
-	print(f"Positive critical point = {BINODALS['groupings'][uidx]['positive']['idx'], p_cp}")
-	# find the triangles
-	# choose the center of the positive-negative binodals
-	c1 = BINODALS["groupings"][uidx]["positive"]["binodals"][0]
-	c2 = BINODALS["groupings"][uidx]["positive"]["binodals"][1]
-
-	c1, c2 = add_and_solve(c1, c2, P, p_cp, BINODALS["crit_info"][ BINODALS['groupings'][uidx]['positive']['idx'] ]["norm_vec"], 50)
-
-	ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
-	ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
-
-	ax.scatter(c_cp[0], c_cp[2], c_cp[1], c='red',s=0.5)
-	ax.scatter(p_cp[0], p_cp[2], p_cp[1], c='green', s=0.5)
-	ax.scatter(n_cp[0], n_cp[2], n_cp[1], c='yellow', s=0.5)
-
-	fig.savefig(args.img, dpi=1200, bbox_inches='tight')
-	exit()
-	'''
 	BINODALS = dict()
 	BINODALS["groupings"] = dict() 
 	BINODALS["crit_info"] = dict()
@@ -473,7 +636,7 @@ if __name__=="__main__":
 
 		# now that I have the critical points grouped and identified as positive, negative, center, I can start constructing binodals
 		print(f"keys = {list(BINODALS['groupings'].keys())}")
-		for uidx in [0]: # list(BINODALS["groupings"].keys()):
+		for uidx in [1]: # list(BINODALS["groupings"].keys()):
 			print(f"uidx = {uidx}", flush=True)
 			to_probe = ["positive", "negative"]
 			BINODALS["groupings"][uidx]["center"]["binodals"]    = [np.empty((0,3)), np.empty((0,3))] 
@@ -499,12 +662,12 @@ if __name__=="__main__":
 				print(f"Probe in {probe}...", flush=True)
 
 				# divide points per the normal now
-				central_crit   = P.crits[BINODALS["groupings"][uidx][probe]["idx"]]
-				normal_vector  = BINODALS["crit_info"][ BINODALS["groupings"][uidx][probe]["idx"] ]["norm_vec"]
-				adj_uphi       = (uphi[:,0:2]-central_crit[0:2])/np.linalg.norm(uphi[:,0:2]-central_crit[0:2], axis=1).reshape(-1,1)
-				clock          = np.sign(np.cross(normal_vector, adj_uphi))
+				crit_probe     = P.crits[BINODALS["groupings"][uidx][probe]["idx"]]
+				nv_probe       = BINODALS["crit_info"][ BINODALS["groupings"][uidx][probe]["idx"] ]["norm_vec"]
+				adj_uphi       = (uphi[:,0:2]-crit_probe[0:2])/np.linalg.norm(uphi[:,0:2]-crit_probe[0:2], axis=1).reshape(-1,1)
+				clock          = np.sign(np.cross(nv_probe, adj_uphi))
 				phi_positive   = uphi[clock>=0]
-				phi_negative   = uphi[clock<0] 
+				phi_negative   = uphi[clock<0 ] 
 
 				# ax.scatter(phi_positive[:,0], 1-phi_positive[:,0]-phi_positive[:,1], phi_positive[:,1], s=1, c='honeydew')
 				# ax.scatter(phi_negative[:,0], 1-phi_negative[:,0]-phi_negative[:,1], phi_negative[:,1], s=1, c='lavender')
@@ -515,22 +678,23 @@ if __name__=="__main__":
 				sol1, kept = ternary.remove_close_rows(sol1, 1e-6)
 				sol2       = sol2[kept]
 
-				pos_sol, neg_sol = clean_and_sort(sol1, sol2, central_crit, normal_vector)
+				neg_sol, pos_sol = clean_and_sort(sol1, sol2, crit_probe, nv_probe)
 
 				# sort by how close it is to the critical point
-				dists   = np.linalg.norm(pos_sol[:,0:2]-central_crit[0:2], axis=1)
-				pos_sol = pos_sol[np.argsort(dists)]
-				neg_sol = neg_sol[np.argsort(dists)]
+				# dists   = np.linalg.norm(pos_sol[:,0:2]-crit_probe[0:2], axis=1)
+				# pos_sol = pos_sol[np.argsort(dists)]
+				# neg_sol = neg_sol[np.argsort(dists)]
 				
 				if probe == "positive":
-					# in the process of refining, I will only keep points that are on the negative 
-					# of positive crit point, but strictly positive for the negative crit point
-					normal_vector = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["center"]["idx"] ]["norm_vec"]
+					# in the process of refining, I will only keep points that are on the negative side
+					# of positive crit point, but strictly positive for the negative crit point i.e. I will only
+					# keep points from from the negative solution that are positive wrt to the central critical point
+					nv_center     = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["center"]["idx"] ]["norm_vec"]
 					adj_neg_sol   = (neg_sol[:,0:2]-P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2])/np.linalg.norm((neg_sol[:,0:2]-P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2]), axis=1).reshape(-1,1)
-					clock         = np.sign(np.cross(normal_vector, adj_neg_sol))
+					clock         = np.sign(np.cross(nv_center, adj_neg_sol))
 					
-					# only keep the points that are positive wrt to the center critical point
-					to_keep_1       = clock>=0 
+					# only keep the points that are positive wrt to the central critical point
+					to_keep_1     = clock>=0 
 					BINODALS["groupings"][uidx][probe]["binodals"]       = [neg_sol[to_keep_1], pos_sol[to_keep_1]] 
 
 					# sort the binodals
@@ -538,30 +702,32 @@ if __name__=="__main__":
 					BINODALS["groupings"][uidx][probe]["binodals"][0] = BINODALS["groupings"][uidx][probe]["binodals"][0][np.argsort(dists)]
 					BINODALS["groupings"][uidx][probe]["binodals"][1] = BINODALS["groupings"][uidx][probe]["binodals"][1][np.argsort(dists)]
 
-					pos_sol, neg_sol = add_and_solve(BINODALS["groupings"][uidx][probe]["binodals"][0], BINODALS["groupings"][uidx][probe]["binodals"][1], P, central_crit, BINODALS["crit_info"][ BINODALS["groupings"][uidx][probe]["idx"] ]["norm_vec"], 50)
-					BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((central_crit, neg_sol))
-					BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((central_crit, pos_sol))
+					amped_neg_sol, amped_pos_sol = add_and_solve(BINODALS["groupings"][uidx][probe]["binodals"][0], BINODALS["groupings"][uidx][probe]["binodals"][1], P, P.crits[BINODALS["groupings"][uidx][probe]["idx"]], BINODALS["crit_info"][ BINODALS["groupings"][uidx][probe]["idx"] ]["norm_vec"], 50)
+					BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]], amped_neg_sol))
+					BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]], amped_pos_sol))
+					
 
 					# only keep points on the other side of the negative critical point
-					normal_vector = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["negative"]["idx"] ]["norm_vec"]
+					nv_negative   = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["negative"]["idx"] ]["norm_vec"]
 					adj_sol2      = (neg_sol[:,0:2] - P.crits[BINODALS["groupings"][uidx]["negative"]["idx"]][0:2])/np.linalg.norm((neg_sol[:,0:2] - P.crits[BINODALS["groupings"][uidx]["negative"]["idx"]][0:2]), axis=1).reshape(-1,1)
-					clock         = np.sign(np.cross(normal_vector, adj_sol2))
+					clock         = np.sign(np.cross(nv_negative, adj_sol2))
 					to_keep_2     = clock <= 0
 
 					BINODALS["groupings"][uidx]["center"]["binodals"][0] = np.vstack((BINODALS["groupings"][uidx]["center"]["binodals"][0], neg_sol[to_keep_2]))
 					BINODALS["groupings"][uidx]["center"]["binodals"][1] = np.vstack((BINODALS["groupings"][uidx]["center"]["binodals"][1], pos_sol[to_keep_2]))
 
-					# c1 = BINODALS["groupings"][uidx][probe]["binodals"][0]
-					# c2 = BINODALS["groupings"][uidx][probe]["binodals"][1]
-					# ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
-					# ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
+					# plotting
+					c1 = BINODALS["groupings"][uidx][probe]["binodals"][0]
+					c2 = BINODALS["groupings"][uidx][probe]["binodals"][1]
+					ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
+					ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
 				
 				elif probe == "negative":
 					# in the process of refining, I will only keep points that are on the negative 
 					# of positive crit point, but strictly positive for the negative crit point
-					normal_vector = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["center"]["idx"] ]["norm_vec"]
+					nv_center     = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["center"]["idx"] ]["norm_vec"]
 					adj_pos_sol   = (pos_sol[:,0:2]-P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2])/np.linalg.norm((pos_sol[:,0:2]-P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2]), axis=1).reshape(-1,1)
-					clock         = np.sign(np.cross(normal_vector, adj_pos_sol))
+					clock         = np.sign(np.cross(nv_center, adj_pos_sol))
 					
 					# only keep the points that are negative wrt to the center critical point
 					to_keep_1 = clock <= 0
@@ -571,22 +737,54 @@ if __name__=="__main__":
 					dists = np.linalg.norm(BINODALS["groupings"][uidx][probe]["binodals"][0][:,0:2]-P.crits[BINODALS["groupings"][uidx][probe]["idx"]][0:2], axis=1)
 					BINODALS["groupings"][uidx][probe]["binodals"][0] = BINODALS["groupings"][uidx][probe]["binodals"][0][np.argsort(dists)]
 					BINODALS["groupings"][uidx][probe]["binodals"][1] = BINODALS["groupings"][uidx][probe]["binodals"][1][np.argsort(dists)]
+					
+					
+					amped_neg_sol, amped_pos_sol = add_and_solve(BINODALS["groupings"][uidx][probe]["binodals"][0], BINODALS["groupings"][uidx][probe]["binodals"][1], P, P.crits[BINODALS["groupings"][uidx][probe]["idx"]], BINODALS["crit_info"][ BINODALS["groupings"][uidx][probe]["idx"] ]["norm_vec"], 50)
+					BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((P.crits[BINODALS["groupings"][uidx][probe]["idx"]], amped_neg_sol))
+					BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][uidx][probe]["idx"]], amped_pos_sol))
+					
 
 					# only keep points on the other side of the positive critical point
-					normal_vector = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["positive"]["idx"] ]["norm_vec"]
+					nv_positive   = BINODALS["crit_info"][ BINODALS["groupings"][uidx]["positive"]["idx"] ]["norm_vec"]
 					adj_sol1      = (pos_sol[:,0:2] - P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]][0:2])/np.linalg.norm((pos_sol[:,0:2] - P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]][0:2]), axis=1).reshape(-1,1)
-					clock         = np.sign(np.cross(normal_vector, adj_sol1))
+					clock         = np.sign(np.cross(nv_positive, adj_sol1))
 					to_keep_2     = clock >= 0
 					
 					BINODALS["groupings"][uidx]["center"]["binodals"][0] = np.vstack((BINODALS["groupings"][uidx]["center"]["binodals"][0], neg_sol[to_keep_2]))
 					BINODALS["groupings"][uidx]["center"]["binodals"][1] = np.vstack((BINODALS["groupings"][uidx]["center"]["binodals"][1], pos_sol[to_keep_2]))
 
-					# c1 = BINODALS["groupings"][uidx][probe]["binodals"][0]
-					# c2 = BINODALS["groupings"][uidx][probe]["binodals"][1]
-					#ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
-					# ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
+					c1 = BINODALS["groupings"][uidx][probe]["binodals"][0]
+					c2 = BINODALS["groupings"][uidx][probe]["binodals"][1]
+					ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
+					ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
 			
-			# compile the central binodals
+			# populate the centers...
+			populate_center(BINODALS, uidx, 50)
+
+			# now, make sure after populating the center, make sure there are no gaps
+			probe = "negative"
+			amped_neg_sol, amped_pos_sol = add_and_solve(BINODALS["groupings"][uidx][probe]["binodals"][0], BINODALS["groupings"][uidx][probe]["binodals"][1], P, P.crits[BINODALS["groupings"][uidx][probe]["idx"]], BINODALS["crit_info"][ BINODALS["groupings"][uidx][probe]["idx"] ]["norm_vec"], 50)
+			BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((P.crits[BINODALS["groupings"][uidx][probe]["idx"]], amped_neg_sol))
+			BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][uidx][probe]["idx"]], amped_pos_sol))
+
+			c_neg = BINODALS["groupings"][uidx][probe]["binodals"][0]
+			c_pos = BINODALS["groupings"][uidx][probe]["binodals"][1]
+
+			ax.scatter(c_neg[:,0], c_neg[:,2], c_neg[:,1], c='black', s=0.5)
+			ax.scatter(c_pos[:,0], c_pos[:,2], c_pos[:,1], c='white', s=0.5)
+
+			probe = "positive"
+			amped_neg_sol, amped_pos_sol = add_and_solve(BINODALS["groupings"][uidx][probe]["binodals"][0], BINODALS["groupings"][uidx][probe]["binodals"][1], P, P.crits[BINODALS["groupings"][uidx][probe]["idx"]], BINODALS["crit_info"][ BINODALS["groupings"][uidx][probe]["idx"] ]["norm_vec"], 50)
+			BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((P.crits[BINODALS["groupings"][uidx][probe]["idx"]], amped_neg_sol))
+			BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][uidx][probe]["idx"]], amped_pos_sol))
+
+			c_neg = BINODALS["groupings"][uidx][probe]["binodals"][0]
+			c_pos = BINODALS["groupings"][uidx][probe]["binodals"][1]
+
+			ax.scatter(c_neg[:,0], c_neg[:,2], c_neg[:,1], c='black', s=0.5)
+			ax.scatter(c_pos[:,0], c_pos[:,2], c_pos[:,1], c='white', s=0.5)
+			
+			# clean up the rest 
 			BINODALS["groupings"][uidx]["center"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][uidx]["center"]["binodals"][0], 1e-6)
 			BINODALS["groupings"][uidx]["center"]["binodals"][1]       = BINODALS["groupings"][uidx]["center"]["binodals"][1][keep]
 
@@ -594,31 +792,29 @@ if __name__=="__main__":
 			BINODALS["groupings"][uidx]["center"]["binodals"][0] = BINODALS["groupings"][uidx]["center"]["binodals"][0][np.argsort(dists)]
 			BINODALS["groupings"][uidx]["center"]["binodals"][1] = BINODALS["groupings"][uidx]["center"]["binodals"][1][np.argsort(dists)]
 
-			c1 = BINODALS["groupings"][uidx]["center"]["binodals"][0]
-			c2 = BINODALS["groupings"][uidx]["center"]["binodals"][1]
-			ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
-			ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
-			
-			pos_sol, neg_sol = add_and_solve(BINODALS["groupings"][uidx]["positive"]["binodals"][0], BINODALS["groupings"][uidx]["positive"]["binodals"][1], P, P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]], BINODALS["crit_info"][ BINODALS["groupings"][uidx]["positive"]["idx"] ]["norm_vec"], 50)
-			BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]], neg_sol))
-			BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][uidx]["positive"]["idx"]], pos_sol))
+			c_neg = BINODALS["groupings"][uidx]["center"]["binodals"][0]
+			c_pos = BINODALS["groupings"][uidx]["center"]["binodals"][1]
+			ax.scatter(c_neg[:,0], c_neg[:,2], c_neg[:,1], c='black', s=0.5)
+			ax.scatter(c_pos[:,0], c_pos[:,2], c_pos[:,1], c='white', s=0.5)
 
-			c1 = BINODALS["groupings"][uidx]["positive"]["binodals"][0]
-			c2 = BINODALS["groupings"][uidx]["positive"]["binodals"][1]
-			ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
-			ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
-			
-			pos_sol, neg_sol = add_and_solve(BINODALS["groupings"][uidx]["negative"]["binodals"][0], BINODALS["groupings"][uidx]["negative"]["binodals"][1], P, P.crits[BINODALS["groupings"][uidx]["negative"]["idx"]], BINODALS["crit_info"][ BINODALS["groupings"][uidx]["negative"]["idx"] ]["norm_vec"], 50)
-			BINODALS["groupings"][uidx][probe]["binodals"][0] = np.vstack((P.crits[BINODALS["groupings"][uidx]["negative"]["idx"]], neg_sol))
-			BINODALS["groupings"][uidx][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][uidx]["negative"]["idx"]], pos_sol))
+			probe = "negative"
+			c_neg = BINODALS["groupings"][uidx][probe]["binodals"][0]
+			c_pos = BINODALS["groupings"][uidx][probe]["binodals"][1]
 
-			c1 = BINODALS["groupings"][uidx]["negative"]["binodals"][0]
-			c2 = BINODALS["groupings"][uidx]["negative"]["binodals"][1]
-			ax.scatter(c1[:,0], 1-c1[:,0]-c1[:,1], c1[:,1], c='black', s=0.5)
-			ax.scatter(c2[:,0], 1-c2[:,0]-c2[:,1], c2[:,1], c='white', s=0.5)
+			ax.scatter(c_neg[:,0], c_neg[:,2], c_neg[:,1], c='black', s=0.5)
+			ax.scatter(c_pos[:,0], c_pos[:,2], c_pos[:,1], c='white', s=0.5)
+
+			probe = "positive"
+			c_neg = BINODALS["groupings"][uidx][probe]["binodals"][0]
+			c_pos = BINODALS["groupings"][uidx][probe]["binodals"][1]
+
+			ax.scatter(c_neg[:,0], c_neg[:,2], c_neg[:,1], c='black', s=0.5)
+			ax.scatter(c_pos[:,0], c_pos[:,2], c_pos[:,1], c='white', s=0.5)
+
 
 			# find the triangles
 			# choose the center of the positive-negative binodals
+			
 			t1 = (BINODALS["groupings"][uidx]["negative"]["binodals"][1][-1]+BINODALS["groupings"][uidx]["positive"]["binodals"][0][-1])/2
 
 			# choose the center of negative-center binodals
@@ -631,7 +827,7 @@ if __name__=="__main__":
 			ax.plot(t[:,0], 1-t[:,0]-t[:,1], t[:,1], c='green', lw=1)
 			
 
-	f = open("nonagons.pkl", 'wb')
+	f = open(args.fb, 'wb')
 	pickle.dump(BINODALS, f)
 	f.close()
 	

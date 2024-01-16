@@ -19,7 +19,6 @@ def add_rows_at_index (array, idx, M):
 
 	return array
 
-
 def remove_close_rows(array, threshold=1e-6):
 	kept_indices   = []
 	filtered_array = np.empty ((0,array.shape[1]))
@@ -37,7 +36,6 @@ def remove_close_rows(array, threshold=1e-6):
 				kept_indices.append(i)
 
 	return filtered_array, np.array(kept_indices)
-
 
 def crit_condition (vs, vc, vp, phi_p, phi_s, chi_sc, chi_ps, chi_pc):
 
@@ -86,7 +84,6 @@ def annex_islands_with_options(my_island, stable_points, options):
 				new_options = np.vstack((new_options,o+n))
 
 	return new_options, my_island
-
 
 def find_islands(mesh):
 	"""
@@ -145,7 +142,6 @@ def find_islands(mesh):
 		islands.append(my_island)
 
 	return islands
-
 
 def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s):
 

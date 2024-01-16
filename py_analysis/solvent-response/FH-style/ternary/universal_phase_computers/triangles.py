@@ -6,6 +6,7 @@ import matplotlib.cm as cm
 import matplotlib.colors as colors
 from matplotlib.path import Path
 from scipy.spatial import ConvexHull
+from scipy.spatial.distance import cdist
 from scipy.optimize import fsolve
 import argparse
 import time
@@ -263,6 +264,47 @@ def find_closest_line_segment(A, B, P):
 
 #########################################
 
+def identify_crits(binodals, uidx):
+
+	raw_crits = np.array(binodals["groupings"][uidx]["raw_crits"])
+
+	distances     = cdist(raw_crits, raw_crits)
+	# Set distances between the same index to NaN
+	np.fill_diagonal(distances, np.nan)
+
+	# Get indices of upper triangle (excluding diagonal)
+	upper_triangle_indices = np.triu_indices(raw_crits.shape[0], k=1)
+
+	# Get distances corresponding to upper triangle indices
+	distances = distances[upper_triangle_indices]
+
+	print(distances)
+
+	closeness = np.allclose(distances, distances[0], atol=1e-6)
+	print(closeness)
+
+
+	if closeness:
+		return "cyclic"
+	else:
+		return "triumvirate"
+
+#########################################
+def is_non_convex(points):
+    # Create a MultiPoint object from the given points
+    multi_point = MultiPoint(points)
+
+    try:
+        # Attempt to compute the Concave Hull
+        concave_hull = multi_point.convex_hull
+        return False  # Convex hull exists, indicating convexity
+    except Exception as e:
+        return True  # Concave hull computation failed, indicating non-convexity
+
+
+
+#########################################
+
 if __name__=="__main__":
 
 	start = time.time()
@@ -387,31 +429,44 @@ if __name__=="__main__":
 	# time to order the groupings
 	for uidx in list(BINODALS["groupings"].keys()):
 		if len(BINODALS["groupings"][uidx]["raw_list"]) == 1:
-			BINODALS["groupings"][uidx]["center"] = dict()
+			BINODALS["groupings"][uidx]["identity"]      = "unity"
+			BINODALS["groupings"][uidx]["center"]        = dict()
 			BINODALS["groupings"][uidx]["center"]["idx"] = BINODALS["groupings"][uidx]["raw_list"][0]
 
 		elif len(BINODALS["groupings"][uidx]["raw_list"]) == 3:
-			BINODALS["groupings"][uidx]["center"  ] = dict()
-			BINODALS["groupings"][uidx]["positive"] = dict()
-			BINODALS["groupings"][uidx]["negative"] = dict()
+			
+			identity = identify_crits(BINODALS, uidx)
+			BINODALS["groupings"][uidx]["identity"] = identity
 
-			# find the middle point
-			com = np.mean(BINODALS["groupings"][uidx]["raw_crits"], axis=0)
-			BINODALS["groupings"][uidx]["center"]["idx"] = BINODALS["groupings"][uidx]["raw_list"][np.argmin(np.linalg.norm(np.array(BINODALS["groupings"][uidx]["raw_crits"])[:,0:2]- com[0:2], axis=1))]
-			central_axis = BINODALS["crit_info"][BINODALS["groupings"][uidx]["center"]["idx"]]["norm_vec"]
+			if BINODALS["groupings"][uidx]["identity"] == "cyclical":
+				titles = ["alpha", "beta", "gamma"]
+				for ridx, raw_idx in BINODALS["groupings"][uidx]["raw_list"]:
+					BINODALS["groupings"][uidx][titles[ridx]] = dict()
+					BINODALS["groupings"][uidx][titles[ridx]]["idx"] = raw_idx 
 
-			for c in BINODALS["groupings"][uidx]["raw_list"]:
-				if c == BINODALS["groupings"][uidx]["center"]["idx"]:
-					continue 
-				else:
-					deviation = (P.crits[c][0:2] - P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2])/np.linalg.norm(P.crits[c][0:2] - P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2])
-					sign = np.sign(np.cross(BINODALS["crit_info"][ BINODALS["groupings"][uidx]["center"]["idx"] ]["norm_vec"][0:2], deviation[0:2]))
-					if sign > 0:
-						BINODALS["groupings"][uidx]["positive"]["idx"] = c
+			elif BINODALS["groupings"][uidx]["identity"] == "triumvirate":
+				BINODALS["groupings"][uidx]["center"  ] = dict()
+				BINODALS["groupings"][uidx]["positive"] = dict()
+				BINODALS["groupings"][uidx]["negative"] = dict()
+
+				# find the middle point
+				com = np.mean(BINODALS["groupings"][uidx]["raw_crits"], axis=0)
+				BINODALS["groupings"][uidx]["center"]["idx"] = BINODALS["groupings"][uidx]["raw_list"][np.argmin(np.linalg.norm(np.array(BINODALS["groupings"][uidx]["raw_crits"])[:,0:2]- com[0:2], axis=1))]
+				central_axis = BINODALS["crit_info"][BINODALS["groupings"][uidx]["center"]["idx"]]["norm_vec"]
+
+				for c in BINODALS["groupings"][uidx]["raw_list"]:
+					if c == BINODALS["groupings"][uidx]["center"]["idx"]:
+						continue 
 					else:
-						BINODALS["groupings"][uidx]["negative"]["idx"] = c
+						deviation = (P.crits[c][0:2] - P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2])/np.linalg.norm(P.crits[c][0:2] - P.crits[BINODALS["groupings"][uidx]["center"]["idx"]][0:2])
+						sign = np.sign(np.cross(BINODALS["crit_info"][ BINODALS["groupings"][uidx]["center"]["idx"] ]["norm_vec"][0:2], deviation[0:2]))
+						if sign > 0:
+							BINODALS["groupings"][uidx]["positive"]["idx"] = c
+						else:
+							BINODALS["groupings"][uidx]["negative"]["idx"] = c
 
 	# end of setup. Now to move into specifics. 
+	exit()
 
 	if len(stable_islands) == 1 and len(unstable_islands) == 3 and len(P.crits) == 3:
 		print(f"Tangent tracing ought to do the job.", flush=True)
@@ -422,14 +477,8 @@ if __name__=="__main__":
 					uidx = test_idx
 					break
 
-			tang_slope   = tangent.tangent2(P.vs, P.vc, P.vp, c[0], c[1], P.chi_pc, P.chi_ps, P.chi_sc, P.spinodal.root_up_s, P.spinodal.root_lo_s)
-			normal_slope = -1/tang_slope 
-			norm_vec     = np.array([1, normal_slope])/np.sqrt(1+normal_slope**2)
-			test_point   = c[0:2] + 0.01 * norm_vec
-			if ternary.stab_crit(test_point[0], test_point[1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc) < 0:
-				pass
-			else:
-				norm_vec = -norm_vec
+			norm_vec     = BINODALS["crit_info"][BINODALS["groupings"][uidx]["center"]["idx"]]["norm_vec"]
+
 			neg_sol, pos_sol = clean_and_sort(BINODALS[idx][0], BINODALS[idx][1], c, norm_vec)
 			BINODALS["groupings"][uidx]["center"]["binodals"][0] = neg_sol
 			BINODALS["groupings"][uidx]["center"]["binodals"][1] = pos_sol
@@ -452,8 +501,6 @@ if __name__=="__main__":
 			def find_split(P):
 				return find_closest_line_segment(BINODALS["hull_info"]["numerics"][0][:,0:2], BINODALS["hull_info"]["numerics"][1][:,0:2], P)
 			BINODALS["hull_info"]["splitter"].append(find_split)
-
-
 
 
 	elif len(stable_islands) == 2:

@@ -168,7 +168,7 @@ class sym_mu_ps:
 				continue
 			
 			elif np.linalg.norm(p1-p2) < 1e-3: 
-				print(f"Too close...")
+				# print(f"Too close...")
 				continue
 
 			else:
@@ -278,7 +278,7 @@ class sym_mu_ps:
 				eq3 = self.delta_mu_c(phi_[0], phi_[1], phi_[2], phi_p2[-1]+delta_pp2[-1])
 				return [eq1, eq2, eq3]
 
-			print(f"Guess provided: phi1 = ({phi_s1[-1]+delta_ps1, phi_p1[-1]+delta_pp1}), phi2 = {phi_s2[-1]+delta_ps2, phi_p2[-1]+delta_pp2[-1]}", flush=True)
+			# print(f"Guess provided: phi1 = ({phi_s1[-1]+delta_ps1, phi_p1[-1]+delta_pp1}), phi2 = {phi_s2[-1]+delta_ps2, phi_p2[-1]+delta_pp2[-1]}", flush=True)
 			root = fsolve(dmu, [phi_s1[-1]+delta_ps1, phi_p1[-1]+delta_pp1, phi_s2[-1]+delta_ps2], xtol=1e-30)
 
 			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
@@ -320,7 +320,7 @@ class sym_mu_ps:
 				# continue
 
 
-			print(f"Found root: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_p2[-1]+delta_pp2[-1]})...", flush=True)
+			# print(f"Found root: phi1 = ({root[0], root[1]}), phi2 = ({root[2], phi_p2[-1]+delta_pp2[-1]})...", flush=True)
 
 			phi_s1.append(root[0])
 			phi_p1.append(root[1])
@@ -460,7 +460,7 @@ class sym_mu_ps:
 		if len(phi_s1) == 1:
 			return np.array(phi_s1), np.array(phi_s2), np.array(phi_p1), np.array(phi_p2)
 
-		print(f"delta_ps2 = {delta_ps2}", flush=True)
+		# print(f"delta_ps2 = {delta_ps2}", flush=True)
 		condition = (phi_s1[-1] < 1e-12 or phi_p1[-1] < 1e-12 or 1-phi_s1[-1]-phi_p1[-1] < 1e-12)
 
 		iterr  = 0
@@ -528,7 +528,7 @@ class sym_mu_ps:
 				delta_ps2.append(delta_ps2[-1]/1.1)
 				continue
 			elif np.linalg.norm(p1-p2) < 1e-6: 
-				print(f"Too close: phi1 = ({root[0], root[1]}), phi2 = ({phi_s2[-1]+delta_ps2[-1], root[2]})...", flush=True)
+				# print(f"Too close: phi1 = ({root[0], root[1]}), phi2 = ({phi_s2[-1]+delta_ps2[-1], root[2]})...", flush=True)
 				delta_ps2.append(delta_ps2[-1]/1.1)
 				continue
 			# elif np.dot(d1/np.linalg.norm(d1), d1_/np.linalg.norm(d1_)) <= 0 or np.dot(d2/np.linalg.norm(d2), d2_/np.linalg.norm(d2_)) <= 0:
@@ -536,7 +536,7 @@ class sym_mu_ps:
 				# delta_pp2.append(delta_pp2[-1]/2)
 				# continue
 
-			print(f"Found root: phi1 = ({root[0], root[1]}), phi2 = ({phi_s2[-1]+delta_ps2[-1], root[2]})...", flush=True)
+			# print(f"Found root: phi1 = ({root[0], root[1]}), phi2 = ({phi_s2[-1]+delta_ps2[-1], root[2]})...", flush=True)
 
 			phi_s1.append(root[0])
 			phi_p1.append(root[1])
@@ -1317,7 +1317,6 @@ class sym_mu_sc:
 			if np.linalg.norm(delta_1 - delta_2) < 1e-3:
 				# print("Moving in very similar directions.", flush=True)
 				continue
-
 
 			def dmu(phi_):
 				eq1 = self.delta_mu_s(phi_[0], phi_[1], phi_s2[-1]+delta_ps2[-1], phi_[2])

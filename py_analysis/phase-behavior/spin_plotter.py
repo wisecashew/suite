@@ -14,8 +14,17 @@ from pathlib import Path
 
 
 parser = argparse.ArgumentParser (description="Plots phase diagrams.")
-parser.add_argument ("-pv", dest='pv', type=float, action='store', help='Value of pv while running calculation.')
-parser.add_argument ("--delta-ms", dest='dms', type=float, nargs='+', action='store', help='Delta_ms values to run a phase calculation.')
+parser.add_argument ("-colors", dest='colors', type=str, nargs='+',   action='store', help="Provide colors.", default=-1)
+parser.add_argument ("-pv",   dest='pv',       type=float, nargs='+', action='store', help="Provide PV.", default=-1)
+parser.add_argument ("-emma", dest="emma", type=float, nargs='+', action='store', help="Provide EMMA.", default=-1)
+parser.add_argument ("-emmn", dest="emmn", type=float, nargs='+', action='store', help="Provide EMMN.", default=-1)
+parser.add_argument ("-emsa", dest="emsa", type=float, nargs='+', action='store', help="Provide EMSA.", default=-1)
+parser.add_argument ("-emsn", dest="emsn", type=float, nargs='+', action='store', help="Provide EMSN.", default=0 )
+parser.add_argument ("-essa", dest="essa", type=float, nargs='+', action='store', help="Provide ESSA.", default=0 )
+parser.add_argument ("-essn", dest="essn", type=float, nargs='+', action='store', help="Provide ESSN.", default=0 )
+parser.add_argument ("-pwms", dest="pwms", type=float, nargs='+', action='store', help="Provide PW_MS.", default=0 )
+parser.add_argument ("-pwmm", dest="pwmm", type=float, nargs='+', action='store', help="Provide PW_MM.", default=0 )
+parser.add_argument ("-pwss", dest="pwss", type=float, nargs='+', action='store', help="Provide PW_SS.", default=0 )
 parser.add_argument ("--xlabels", dest='xlabels', action='store_true', help="Print xlabels.", default=False)
 parser.add_argument ("--ylabels", dest='ylabels', action='store_true', help="Print ylabels.", default=False)
 parser.add_argument ("--png-name", dest="pn", type=str, action='store', help="Name of image to be made.")
@@ -66,7 +75,7 @@ def good_transitions (arr):
             transition += 1
 
         positive = current_positive
-        
+
     if transition >= 2:
         return True
     else:
@@ -146,14 +155,17 @@ if __name__=="__main__":
         'weight': 'normal',
         'size': lsize}
 
-    param_list  = [-0.52, -0, -0.4, -0.4, -0.65, -0.65, args.pv, 0.25, 0.01, 0.01]
-    N           = 100
-    PhaseDiag   = Phase (param_list, N)
+    param_list = list()
+    for i in range(len(args.emsa)):
+        param = [args.emsa[i], args.emsn[i], args.emma[i], args.emmn[i], args.essa[i], args.essn[i], args.pv[i], args.pwms[i], args.pwmm[i], args.pwss[i]]
+        param_list.append(param)
+    # param_list  = [args.emsa, args.emsn, args.emma, args.emmn, args.essa, args.essn, args.pv, 0.25, 0.25, 0.25]
+    N           = 32
+    PhaseDiag   = Phase (param_list[0], N)
     T           = np.hstack((np.logspace (-3, np.log10(30), int(1e+7) ), np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
     T           = np.sort (T, kind="mergesort")
-
-
-    fig = plt.figure(figsize=(2.5,2.0), constrained_layout=True)
+    
+    fig = plt.figure(figsize=(3.5,2.0), constrained_layout=True)
     fig.tight_layout()
     ax  = plt.axes ()
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
@@ -162,26 +174,26 @@ if __name__=="__main__":
 
     # ranges = [np.arange(-4, 0.1, 0.1), [-0.523, 0], [-0.5237, -0.523, 0], [-1.3, -0.5237, -0.523, 0]]
 
-    EMSA_list = args.dms
 
-    for EMSA in EMSA_list:
 
-        param_list[0] = EMSA
-        PhaseDiag.reset_params (param_list)
+    for i in range(len(param_list)):
+
+
+        PhaseDiag.reset_params (param_list[i])
         PhaseDiag.print_params ()
-        rgba_color   = cmap ( norm(EMSA) )
+        rgba_color   = cmap ( norm(args.emsa[i]) )
 
         spinodal = PhaseDiag.spinodal (T)
         T1       = spinodal[2][spinodal[0] < 1]
         arm1     = spinodal[0][spinodal[0] < 1]
         T1       = T1   [arm1 > 0]
         arm1     = arm1 [arm1 > 0]
-        line = ax.plot  (arm1, T1, lw=1.5, markersize=0, c=rgba_color, solid_capstyle="round",label="_nolabel_")
+        line = ax.plot  (arm1, T1, lw=1.5, markersize=0, c=args.colors[i], solid_capstyle="round",label="_nolabel_")
         T1       = spinodal[2][spinodal[1] < 1]
         arm1     = spinodal[1][spinodal[1] < 1]
         T1       = T1   [arm1 > 0]
         arm1     = arm1 [arm1 > 0]
-        ax.plot  (arm1, T1, lw=1.5, markersize=0, color=rgba_color, solid_capstyle="round", label="_nolabel_")
+        ax.plot  (arm1, T1, lw=1.5, markersize=0, c=args.colors[i], solid_capstyle="round", label="_nolabel_")
         del T1
         del arm1
         del spinodal

@@ -20,6 +20,7 @@ import time
 import pickle 
 import copy
 import argparse 
+import os 
 
 parser = argparse.ArgumentParser(description="Locate the /c/ritical points on the /spin/odal diagram. This program will create one plot, and you can customize what you want on the plot.")
 parser.add_argument('--chisc',  metavar='chi_sc',  dest='chi_sc',  type=float,   action='store', help='enter A-C exchange parameter.' )
@@ -37,6 +38,7 @@ parser.add_argument('--no-rtw',              dest='nrtw',      action='store_tru
 parser.add_argument('--tang_norm',           dest='tang_norm', action='store_true',  default=False, help='draw normal and tangent at critical point.')
 parser.add_argument('--island-stable-pkl',          dest='spkl',       action='store', type=str,  help='File to store stable island information in.')
 parser.add_argument('--island-unstable-pkl',        dest='upkl',       action='store', type=str,  help='File to store unstable island information in.')
+parser.add_argument('--mesh-pkl',                   dest='mpkl',       action='store', type=str,  help='File to store the mesh in.', default=None)
 parser.add_argument('--img-name',                   dest='img',       action='store', type=str,  default="None", help='name of the image to be created (default: all of the inputs in the imagename).')
 args = parser.parse_args()
 
@@ -117,10 +119,21 @@ if __name__=="__main__":
 	###############################
 	# stuff to make the islands
 	###############################
-	phi_s = np.linspace(0.001, 0.999, args.sd)
-	phi_p = np.linspace(0.001, 0.999, args.sd)
-	
+	# phi_s = np.linspace(0.001, 0.999, args.sd)
+	# phi_p = np.linspace(0.001, 0.999, args.sd)
+	phi_s = np.hstack((np.logspace(-15, -3, 100), np.linspace(1e-3, 0.998, args.sd-200), 1-np.logspace(-3, -15, 100))) # np.logspace(np.log10(0.999), np.log10(1-(1e-15)), 100)))
+	phi_p = np.hstack((np.logspace(-15, -3, 100), np.linspace(1e-3, 0.998, args.sd-200), 1-np.logspace(-3, -15, 100))) # np.logspace(np.log10(0.999), np.log10(1-(1e-15)), 100)))
+
 	phi_s, phi_p = np.meshgrid(phi_s, phi_p)
+
+	if args.mpkl is None:
+		f = open(f"chips_{chi_ps}-chipc_{chi_pc}-chisc_{chi_sc}-vs_{vs}-vc_{vc}-vp_{vp}.mesh.pkl", 'wb')
+		pickle.dump([phi_s, phi_p], f)
+		f.close()
+	else:
+		f = open(args.mpkl, 'wb')
+		pickle.dump([phi_s, phi_p], f)
+		f.close()
 
 	vals_  = ternary.stab_crit (phi_s, phi_p, vs, vc, vp, chi_ps, chi_pc, chi_sc)
 	print(f"vals_.shape = {vals_.shape}", flush=True)
@@ -129,25 +142,26 @@ if __name__=="__main__":
 	vals_[vals_ < 0]                = 0
 	vals_[np.isnan(vals_)]          = 0
 	vals_[np.isinf(vals_)]          = 0
-	vals_[phi_s+phi_p >= 0.9999999] = 0
+	vals_[phi_s+phi_p >= 1]         = 0
 
 	start = time.time()
+	
 
 	islands = ternary.find_islands(vals_)
+	f = open(args.spkl, 'wb')
+	pickle.dump(islands, f)
+	f.close()
 
 	# print(f"islands = {islands}")
 	stop = time.time()
 	print(f"Time of computation = {stop-start} seconds.")
 	print(f"# of stable islands = {len(islands)}")
 
-
-	f = open(args.spkl, 'wb')
-	pickle.dump(islands, f)
-	f.close()
-
 	# repeat the process to get the number of unstable islands
-	phi_s = np.linspace(0.001, 0.999, args.sd)
-	phi_p = np.linspace(0.001, 0.999, args.sd)
+	# phi_s = np.linspace(0.001, 0.999, args.sd)
+	# phi_p = np.linspace(0.001, 0.999, args.sd)
+	phi_s = np.hstack((np.logspace(-15, -3, 100), np.linspace(1e-3, 0.998, args.sd-200), 1-np.logspace(-3, -15, 100))) # np.logspace(np.log10(0.999), np.log10(1-(1e-15)), 100)))
+	phi_p = np.hstack((np.logspace(-15, -3, 100), np.linspace(1e-3, 0.998, args.sd-200), 1-np.logspace(-3, -15, 100))) # np.logspace(np.log10(0.999), np.log10(1-(1e-15)), 100)))
 	
 	phi_s, phi_p = np.meshgrid(phi_s, phi_p)
 
@@ -156,24 +170,23 @@ if __name__=="__main__":
 	vals_[vals_ >=0]                 = 0
 	vals_[np.isnan(vals_)]           = 0
 	vals_[np.isinf(vals_)]           = 0
-	vals_[phi_s+phi_p >= 0.9999999]  = 0
+	vals_[phi_s+phi_p >= 1]          = 0
 	vals_[vals_ < 0]                 = 1
-
-	# ax.scatter(phi_s.flatten(), phi_p.flatten(), c=vals_.flatten(), cmap=cm.bwr_r)
-	# fig.savefig("test.png", dpi=1200)
-	# exit()
 
 	start = time.time()
 
 	islands = ternary.find_islands(vals_)
-
-	# print(f"islands = {islands}")
-	stop = time.time()
-	print(f"Time of computation = {stop-start} seconds.")
-	print(f"# of unstable islands = {len(islands)}")
 	f = open(args.upkl, 'wb')
 	pickle.dump(islands, f)
 	f.close()
+
+	if len(islands) == 0:
+		os.rename(args.spkl, args.spkl+"_TODEL")
+		os.rename(args.upkl, args.upkl+"_TODEL")
+
+	stop = time.time()
+	print(f"Time of computation = {stop-start} seconds.")
+	print(f"# of unstable islands = {len(islands)}")
 
 	###################################
 	# islands have been dumped out
@@ -187,21 +200,25 @@ if __name__=="__main__":
 	if len(vals) == 0:
 		print (f"There will be no critical points and no spinodal region.")
 
-	vmax = np.max (vals)
-	vmin = np.min (vals)
-	norm = colors.SymLogNorm(0.001, vmin=vmin, vmax=vmax)
-	cols = cm.bwr_r (norm (vals))
+	start_color = 'indianred'
+	end_color   = 'steelblue'
 
-	if np.sign (vmax) == np.sign (vmin):
-		if np.sign (vmax) >=0:
-			vmin = -vmax
-			print (f"There is no unstable region.", flush=True)
-		else:
-			vmax = -vmin
-			print ("There is mostly unstable region.", flush=True)
+	# Number of steps in the gradient
+	cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", [start_color, end_color])
+	vmax = +1
+	vmin = -1
+	norm = colors.Normalize(vmin=vmin, vmax=vmax)
+	vals[vals>=0] = 1
+	vals[vals<0]  = 0
+	cols = cmap (norm (vals))
 
-	else:
-		print ("there exist unstable regions.", flush=True)
+	if len(vals) == 0:
+		print (f"There will be no critical points and no spinodal region.", flush=True)
+
+	if (vals > 0).all():
+		print(f"There are no unstable regions.", flush=True)
+	elif (vals>=0).any() and (vals<0).any():
+		print(f"There are stable and unstable regions")
 
 	# get all the crit points
 	if args.crits:
@@ -212,7 +229,7 @@ if __name__=="__main__":
 
 		# get rid ofthe redundant ones
 		threshold  = 1e-6
-		crits      = ternary.remove_close_rows (crits, threshold)
+		crits, keep      = ternary.remove_close_rows (crits, threshold)
 
 		print (f"cleaned_crits = \n{crits}", flush=True)
 

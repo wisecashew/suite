@@ -29,10 +29,10 @@ parser.add_argument('-vc',                   metavar='vc',      dest='vc',      
 parser.add_argument('-vp',                   metavar='vp',      dest='vp',            type=float, action='store', help='specific volume of polymer.'  )
 parser.add_argument('--final-binodal',       metavar='FB',      dest='fb',            type=str,   action='store', help='name of pickle file to dump the BINODAL object in.')
 parser.add_argument('--search-density',      metavar='SD',      dest='sd',            type=int,   action='store', help='density of points sampled for stability plot (default: 500).',                          default=500 )
-parser.add_argument('--island-stable-pkl',   metavar='SPKL',    dest='spkl',          type=str,   action='store', help='extract information about the stable islands from the pickle file (default: None).',   default=None)
-parser.add_argument('--island-unstable-pkl', metavar='UPKL',    dest='upkl',          type=str,   action='store', help='extract information about the unstable islands from the pickle file (default: None).', default=None)
+parser.add_argument('--island-stable-pkl',   metavar='SPKL',    dest='spkl',          type=str,   action='store', help='extract information about the stable islands from the pickle file (default: None).',    default=None)
+parser.add_argument('--island-unstable-pkl', metavar='UPKL',    dest='upkl',          type=str,   action='store', help='extract information about the unstable islands from the pickle file (default: None).',  default=None)
+parser.add_argument('--mesh-pkl',            metavar='MPKL',    dest='mpkl',          type=str,   action='store', help='extract information about the mesh (default: None).',                                   default=None)
 parser.add_argument('--crit-pkl',            metavar='critpkl', dest='critpkl',       type=str,   action='store', help='location of serialized critical point (default: None).',                                default=None)
-parser.add_argument('--binodal-pkl',         metavar='bpkl',    dest='bpkl',          type=str,   action='store', help='enter name of file with all the information about the binodals (default: None).',       default=None)
 parser.add_argument('--plot-edges',     dest='pe',         action='store_true',  help='plot the edges of the spinodal.',     default=False)
 parser.add_argument('--plot-crits',     dest='pc',         action='store_true',  help='plot the critical points.'      ,     default=False)
 parser.add_argument('--plot-binodals',  dest='pb',         action='store_true',  help='plot the binodal points.'       ,     default=False)
@@ -52,10 +52,13 @@ warnings.formatwarning = custom_warning_format
 
 #########################################
 
-def transform_islands(islands):
+def transform_islands(islands, mesh):
 	hull_paths = []
 	for idx, island in enumerate(islands):
-		islands[idx] = np.array(np.vstack([0.001+(0.999-0.001)/args.sd*island[:,1], 0.001+(0.999-0.001)/args.sd*island[:,0]])).T 
+		phi_s = mesh[0][islands[idx][:,0], islands[idx][:,1]]
+		phi_p = mesh[1][islands[idx][:,0], islands[idx][:,1]]
+		islands[idx] = np.array([phi_s, phi_p]).T
+		# islands[idx] = np.array(np.vstack([0.001+(0.999-0.001)/args.sd*island[:,1], 0.001+(0.999-0.001)/args.sd*island[:,0]])).T 
 		hull = ConvexHull(islands[idx])
 		hull_paths.append(Path(islands[idx][hull.vertices]))
 
@@ -377,7 +380,7 @@ def add_and_solve(arm_neg, arm_pos, P, center, central_axis, M):
 			arm_neg, arm_pos = clean_and_sort(arm_neg, arm_pos, center, central_axis)
 
 		# find point with greatest gap
-		arm_neg, keep = ternary.remove_close_rows(arm_neg, 1e-12)
+		arm_neg, keep = ternary.remove_close_rows(arm_neg, 1e-15)
 		arm_pos       = arm_pos[keep]
 
 		dist_neg      = np.linalg.norm(np.diff(arm_neg, axis=0), axis=1)
@@ -558,11 +561,11 @@ def solve_between_islands(arm_neg, arm_pos, hull_neg, hull_pos):
 					continue
 
 				else:
-					if hull_neg.contains_point(p1[0:2]) and hull_pos.contains_point(p2[0:2]):
+					if hull_neg.contains_points(p1[0:2]) and hull_pos.contains_points(p2[0:2]):
 						# print(f"Good!")
 						b_neg = np.vstack((b_neg, p1))
 						b_pos = np.vstack((b_pos, p2))
-					if hull_neg.contains_point(p2[0:2]) and hull_pos.contains_point(p1[0:2]):
+					if hull_neg.contains_points(p2[0:2]) and hull_pos.contains_points(p1[0:2]):
 						# print(f"Good!")
 						b_neg = np.vstack((b_neg, p2))
 						b_pos = np.vstack((b_pos, p1))
@@ -650,7 +653,7 @@ def populate_between_islands(BINODALS, idx_tup, M=50):
 				arm_pos = np.vstack((arm_pos[max_dist_idx+1:], arm_pos[:max_dist_idx+1]))
 
 		# find point with greatest gap
-		arm_neg, keep = ternary.remove_close_rows(arm_neg, 1e-12)
+		arm_neg, keep = ternary.remove_close_rows(arm_neg, 1e-15)
 		arm_pos       = arm_pos[keep]
 
 		dist_neg      = np.linalg.norm(np.diff(arm_neg[:,0:2], axis=0), axis=1)
@@ -727,7 +730,8 @@ if __name__=="__main__":
 	print(f"Plotting the ternary diagram...", flush=True,end=' ')
 	P.spinodal.stability_plots(ax, tern_b, edges_b, crits_b)
 	print(f"done!", flush=True)
-
+	# fig.savefig("to_del.png", dpi=1200)
+	# exit()
 	# P.tangent_tracing(ax)
 	# print("Plotted out the tangent trace!", flush=True)
 	
@@ -738,6 +742,10 @@ if __name__=="__main__":
 
 	f = open(args.upkl, 'rb')
 	unstable_islands = pickle.load(f)
+	f.close()
+
+	f = open(args.mpkl, 'rb')
+	mesh = pickle.load(f)
 	f.close()
 
 	#=================================
@@ -760,21 +768,29 @@ if __name__=="__main__":
 	#=================================
 	# calculate the stable centers in your system
 	stable_centers   = []
-	hull_paths_s     = transform_islands(stable_islands)
+	hull_paths_s = transform_islands(stable_islands, mesh)
 
+	# cols = ["limegreen", "darkred", "steelblue", "lavender"]
 	for sidx, si in enumerate(stable_islands):
 		stable_centers.append(np.mean(si, axis=0))
-	stable_centers = np.array(stable_centers)
+		# ax.scatter(si[:,0],1-si[:,0]-si[:,1], si[:,1], c=cols[sidx])
+		# print(f"phi_s = {np.min(si[:,0])}, phi_p = {np.min(si[:,1])}, phi_c = {np.min(1-si[:,0]-si[:,1])}")
 
 	unstable_centers = []
-	hull_paths_u = transform_islands(unstable_islands)
+	hull_paths_u = transform_islands(unstable_islands, mesh)
 	
+	# cols = ["white", "black", "slategray"]
 	for uidx, ui in enumerate(unstable_islands):
 		unstable_centers.append(np.mean(ui, axis=0))
+		# ax.scatter(ui[:,0],1-ui[:,0]-ui[:,1], ui[:,1], c=cols[uidx], s=0.5)
+		# print(f"col = {cols[uidx]}")
+		# print(f"phi_s = {np.min(ui[:,0])}, phi_p = {np.min(ui[:,1])}, phi_c = {np.min(1-ui[:,0]-ui[:,1])}")
 	unstable_centers = np.array(unstable_centers)
 	
-	ax.scatter(stable_centers[:,0],   1-stable_centers[:,0]-stable_centers[:,1],       stable_centers[:,1], c='hotpink', s=2, zorder=200)
-	ax.scatter(unstable_centers[:,0], 1-unstable_centers[:,0]-unstable_centers[:,1], unstable_centers[:,1], c='orange' , s=2, zorder=200)
+	# fig.savefig("testing_mesh.png", dpi=1200, bbox_inches="tight")
+	# exit()
+	# ax.scatter(stable_centers[:,0],   1-stable_centers[:,0]-stable_centers[:,1],       stable_centers[:,1], c='hotpink', s=2, zorder=200)
+	# ax.scatter(unstable_centers[:,0], 1-unstable_centers[:,0]-unstable_centers[:,1], unstable_centers[:,1], c='orange' , s=2, zorder=200)
 
 	#=================================
 	def triangle_finder(phi_):
@@ -799,6 +815,7 @@ if __name__=="__main__":
 	BINODALS["hull_info"]["binodal" ]  = list()  
 
 	# compile together all the geometric information of the critical points
+	# theta = np.linspace(0, 2*np.pi, 1000)
 	for cidx, crit in enumerate(P.crits):
 		BINODALS["crit_info"][cidx] = dict()
 		BINODALS["crit_info"][cidx]["tang_slope"] = tangent.tangent2(P.vs, P.vc, P.vp, crit[0], crit[1], P.chi_pc, P.chi_ps, P.chi_sc, P.spinodal.root_up_s, P.spinodal.root_lo_s)
@@ -811,8 +828,30 @@ if __name__=="__main__":
 		else:
 			BINODALS["crit_info"][cidx]["norm_vec"]   = -norm_vec
 
-		uidx = np.argmin(np.linalg.norm(unstable_centers - crit[0:2], axis=1))
-		sidx = np.argmin(np.linalg.norm(stable_centers   - crit[0:2], axis=1))
+		print(f"crit = {crit}")
+		L = np.linspace(0,0.01,500) 
+		N = crit[0:2] - BINODALS["crit_info"][cidx]["norm_vec"][0:2]*L[:, np.newaxis]
+		# print(f"N = {N}")
+		# ax.scatter(N[:,0], 1-N[:,0]-N[:,1], N[:,1], c='pink', s=0.5)
+		for idx, hpu in enumerate(hull_paths_u):
+			# ax.scatter(unstable_islands[idx][:,0], 1-unstable_islands[idx][:,0]-unstable_islands[idx][:,1], unstable_islands[idx][:,1], c='white', s=0.5)
+			if (hpu.contains_points(N)).any():
+				uidx = idx 
+				break 
+		
+		N = crit[0:2] + BINODALS["crit_info"][cidx]["norm_vec"][0:2] *L[:, np.newaxis]
+		# ax.scatter(N[:,0], 1-N[:,0]-N[:,1], N[:,1], c='darkred', s=0.5)
+		# print(f"N = {N}")
+		for idx, hps in enumerate(hull_paths_s):
+			# ax.scatter(stable_islands[idx][:,0], 1-stable_islands[idx][:,0]-stable_islands[idx][:,1], stable_islands[idx][:,1], c='slategray', s=0.5)
+			if (hps.contains_points(N)).any():
+				sidx = idx
+				break
+		
+		print(f"uidx, sidx = {uidx, sidx}")
+		
+		# uidx = np.argmin(np.linalg.norm(unstable_centers - crit[0:2], axis=1))
+		# sidx = np.argmin(np.linalg.norm(stable_centers   - crit[0:2], axis=1))
 
 		if (uidx,sidx) in list(BINODALS["groupings"].keys()):
 			BINODALS["groupings"][(uidx, sidx)]["raw_list" ].append(cidx)
@@ -882,14 +921,23 @@ if __name__=="__main__":
 			neg_sol, pos_sol = clean_and_sort(neg_arm, pos_arm, center, norm_vec)
 			neg_sol = np.vstack((center[0:2], neg_sol))
 			pos_sol = np.vstack((center[0:2], pos_sol))
-			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0] = neg_sol
-			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1] = pos_sol
-			combined = np.vstack(BINODALS["groupings"][idx_tup]["alpha"]["binodals"])
-			BINODALS["hull_info"]["function"].append(Path(combined[ConvexHull(combined[:,0:2]).vertices])) 
-			BINODALS["hull_info"]["binodal"].append((BINODALS["groupings"][idx_tup]["alpha"]["binodals"], "two_phase"))
-			if args.pb:
-				ax.scatter(neg_sol[:,0], 1-neg_sol[:,0]-neg_sol[:,1], neg_sol[:,1], c='black', s=0.5)
-				ax.scatter(pos_sol[:,0], 1-pos_sol[:,0]-pos_sol[:,1], pos_sol[:,1], c='white', s=0.5)
+			mask_neg = (ternary.stab_crit(neg_sol[:,0], neg_sol[:,1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)>=0)
+			mask_pos = (ternary.stab_crit(pos_sol[:,0], pos_sol[:,1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)>=0)
+			neg_sol = neg_sol[mask_neg]
+			pos_sol = pos_sol[mask_pos]
+			print(f"neg_sol = {neg_sol[-10:,0], neg_sol[-10:,1], 1-neg_sol[-10:,0]-neg_sol[-10:,1]}")
+			print(f"pos_sol = {pos_sol[-10:,0], pos_sol[-10:,1], 1-pos_sol[-10:,0]-pos_sol[-10:,1]}")
+			if len(neg_sol) == 0 or len(pos_sol) == 0:
+				BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0] = np.empty((0,3))
+				BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1] = np.empty((0,3))
+				BINODALS["hull_info"]["function"].append(None)
+				BINODALS["hull_info"]["binodal"].append([[np.empty((0,3)), np.empty((0,3))]])	
+			else:
+				combined  = np.vstack((neg_sol, pos_sol))
+				hull      = ConvexHull(combined[:,0:2])
+				hull_path = Path(combined[:,0:2][hull.vertices])
+				BINODALS["hull_info"]["function"].append(hull_path) 
+				BINODALS["hull_info"]["binodal"].append([BINODALS["groupings"][idx_tup]["alpha"]["binodals"], "two_phase"])
 
 		elif BINODALS["groupings"][idx_tup]["identity"] == "dyad":
 			P.tangent_tracing_dyad(BINODALS, idx_tup)
@@ -897,7 +945,7 @@ if __name__=="__main__":
 			other_center = P.crits[BINODALS["groupings"][idx_tup]["raw_list"][0]]
 			center = P.crits[BINODALS["groupings"][idx_tup]["raw_list"][1]]
 			axis   = (P.crits[BINODALS["groupings"][idx_tup]["raw_list"][0]] - P.crits[BINODALS["groupings"][idx_tup]["raw_list"][1]])/np.linalg.norm(P.crits[BINODALS["groupings"][idx_tup]["raw_list"][0]]-P.crits[BINODALS["groupings"][idx_tup]["raw_list"][1]])
-			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-6)
+			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-15)
 			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1]       = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][keep]
 			middle   = (center+other_center)/2
 			mid_axis = (middle - center)[0:2]/np.linalg.norm((middle-center)[0:2])
@@ -912,19 +960,22 @@ if __name__=="__main__":
 			angles = np.arccos( np.sum(adj_neg_arm * mid_axis, axis=1) )
 			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][np.argsort(angles)]
 			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][np.argsort(angles)]
-			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-6)
+			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-15)
 			BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1]       = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][keep]
 
 			combined  = np.vstack(BINODALS["groupings"][idx_tup]["alpha"]["binodals"])
-			
-			hull      = ConvexHull(combined[:,0:2])
-			hull_path = Path(combined[:,0:2][hull.vertices])
-			BINODALS["hull_info"]["function"].append(hull_path) 
-			BINODALS["hull_info"]["binodal"].append((BINODALS["groupings"][idx_tup]["alpha"]["binodals"], "two_phase"))
-			B = BINODALS["groupings"][idx_tup]["alpha"]["binodals"]
-			if args.pb:
-				ax.scatter(B[0][:,0], 1-B[0][:,0]-B[0][:,1], B[0][:,1], s=0.5, c='black')
-				ax.scatter(B[1][:,0], 1-B[1][:,0]-B[1][:,1], B[1][:,1], s=0.5, c='white')
+			if (ternary.stab_crit(combined[:,0], combined[:,1], P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)<-1e-6).any():
+				BINODALS["hull_info"]["function"].append(None) 
+				BINODALS["hull_info"]["binodal"].append([np.empty((0,3)), np.empty((0,3))])
+			else:
+				hull      = ConvexHull(combined[:,0:2])
+				hull_path = Path(combined[:,0:2][hull.vertices])
+				BINODALS["hull_info"]["function"].append(hull_path) 
+				BINODALS["hull_info"]["binodal"].append([BINODALS["groupings"][idx_tup]["alpha"]["binodals"], "two_phase"])
+			# B = BINODALS["groupings"][idx_tup]["alpha"]["binodals"]
+			# if args.pb:
+			# 	ax.scatter(B[0][:,0], 1-B[0][:,0]-B[0][:,1], B[0][:,1], s=0.5, c='black')
+			# 	ax.scatter(B[1][:,0], 1-B[1][:,0]-B[1][:,1], B[1][:,1], s=0.5, c='white')
 
 		elif BINODALS["groupings"][idx_tup]["identity"] == "triumvirate":
 			print(f"Inside triumvirate", flush=True)
@@ -960,7 +1011,7 @@ if __name__=="__main__":
 				print(f"Hitting the big calcs...", flush=True)
 				results    = P.sym_mu_ps.perform_sweep(phi_positive, phi_negative)
 				sol1, sol2 = P.sym_mu_ps.binodal_finder_(results[0], results[1], hull_path)
-				sol1, kept = ternary.remove_close_rows(sol1, 1e-6)
+				sol1, kept = ternary.remove_close_rows(sol1, 1e-15)
 				sol2       = sol2[kept]
 
 				neg_sol, pos_sol = clean_and_sort(sol1, sol2, crit_probe, nv_probe)	
@@ -1042,10 +1093,10 @@ if __name__=="__main__":
 			BINODALS["groupings"][idx_tup][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][idx_tup][probe]["idx"]], amped_pos_sol))
 			
 
-			# combined = np.vstack(BINODALS["groupings"][idx_tup][probe]["binodals"])
-			# hull      = ConvexHull(combined[:,0:2])
-			# hull_path = Path(combined[:,0:2][hull.vertices])
-			BINODALS["hull_info"]["function"].append(None)
+			combined = np.vstack(BINODALS["groupings"][idx_tup][probe]["binodals"])
+			hull      = ConvexHull(combined[:,0:2])
+			hull_path = Path(combined[:,0:2][hull.vertices])
+			BINODALS["hull_info"]["function"].append(hull_path)
 			BINODALS["hull_info"]["binodal"].append([BINODALS["groupings"][idx_tup][probe]["binodals"], "two_phase"])
 
 			probe = "positive"
@@ -1055,24 +1106,24 @@ if __name__=="__main__":
 			BINODALS["groupings"][idx_tup][probe]["binodals"][1] = np.vstack((P.crits[BINODALS["groupings"][idx_tup][probe]["idx"]], amped_pos_sol))
 
 
-			# combined = np.vstack(BINODALS["groupings"][idx_tup][probe]["binodals"])
-			# hull      = ConvexHull(combined[:,0:2])
-			# hull_path = Path(combined[:,0:2][hull.vertices])
-			BINODALS["hull_info"]["function"].append(None) 
+			combined = np.vstack(BINODALS["groupings"][idx_tup][probe]["binodals"])
+			hull      = ConvexHull(combined[:,0:2])
+			hull_path = Path(combined[:,0:2][hull.vertices])
+			BINODALS["hull_info"]["function"].append(hull_path) 
 			BINODALS["hull_info"]["binodal"].append([BINODALS["groupings"][idx_tup][probe]["binodals"], "two_phase"])
 
 			# clean up the rest 
-			BINODALS["groupings"][idx_tup]["center"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["center"]["binodals"][0], 1e-6)
+			BINODALS["groupings"][idx_tup]["center"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["center"]["binodals"][0], 1e-15)
 			BINODALS["groupings"][idx_tup]["center"]["binodals"][1]       = BINODALS["groupings"][idx_tup]["center"]["binodals"][1][keep]
 
 			dists = np.linalg.norm(BINODALS["groupings"][idx_tup]["center"]["binodals"][0][:,0:2]-P.crits[BINODALS["groupings"][idx_tup]["center"]["idx"]][0:2], axis=1)
 			BINODALS["groupings"][idx_tup]["center"]["binodals"][0] = BINODALS["groupings"][idx_tup]["center"]["binodals"][0][np.argsort(dists)]
 			BINODALS["groupings"][idx_tup]["center"]["binodals"][1] = BINODALS["groupings"][idx_tup]["center"]["binodals"][1][np.argsort(dists)]
 
-			# combined = np.vstack(BINODALS["groupings"][idx_tup]["center"]["binodals"])
-			# hull      = ConvexHull(combined[:,0:2])
-			# hull_path = Path(combined[:,0:2][hull.vertices])
-			BINODALS["hull_info"]["function"].append(None) 
+			combined = np.vstack(BINODALS["groupings"][idx_tup]["center"]["binodals"])
+			hull      = ConvexHull(combined[:,0:2])
+			hull_path = Path(combined[:,0:2][hull.vertices])
+			BINODALS["hull_info"]["function"].append(hull_path) 
 			BINODALS["hull_info"]["binodal"].append([BINODALS["groupings"][idx_tup]["center"]["binodals"], "two_phase"])
 
 			B = BINODALS["groupings"][idx_tup]["center"]["binodals"]
@@ -1085,14 +1136,14 @@ if __name__=="__main__":
 			
 			roots = fsolve(triangle_finder, [t1[0], t1[1], t2[0], t2[1], t3[0], t3[1]])
 			
-			closeness = np.isclose(triangle_finder(root), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+			closeness = np.isclose(triangle_finder(roots), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 			
 			if closeness.all():
 				print("Worked!")
 			else: 
 				print("This ain't a triangle...", flush=True)
 
-			triangular_hull = np.array([[root[0], root[1]], [root[2], root[3]], [root[4], root[5]]])
+			triangular_hull = np.array([[roots[0], roots[1]], [roots[2], roots[3]], [roots[4], roots[5]]])
 
 			hull = ConvexHull(triangular_hull[:,0:2])
 			hull_path = Path(triangular_hull[:,0:2][hull.vertices])
@@ -1114,17 +1165,29 @@ if __name__=="__main__":
 				BINODALS["island_scans"][(i, j)] = dict()
 				BINODALS["island_scans"][(i, j)][i] = dict() 
 				BINODALS["island_scans"][(i, j)][j] = dict() 
-				BINODALS["island_scans"][(i, j)][i]["binodal"] = arm_1
-				BINODALS["island_scans"][(i, j)][j]["binodal"] = arm_2
+				arm_1, kept = ternary.remove_close_rows(arm_1, 1e-15)
+				if len(kept) > 3:
+					print(f"(i,j) = {(i,j)}")
+					print(f"kept = {kept}")
+					arm_2       = arm_2[kept]
+					BINODALS["island_scans"][(i, j)][i]["binodal"] = arm_1
+					BINODALS["island_scans"][(i, j)][j]["binodal"] = arm_2
+				else:
+					BINODALS["island_scans"][(i, j)][i]["binodal"] = np.empty((0,3))
+					BINODALS["island_scans"][(i, j)][j]["binodal"] = np.empty((0,3))
+					
+
 
 		keys = list(BINODALS["island_scans"].keys())
 		# sort the binodals
 		for key in keys:
 			print(f"key = {key}", flush=True)
+			print(f'arm1 = {BINODALS["island_scans"][key][key[0]]["binodal"].shape[0]}')
+			print(f'arm2 = {BINODALS["island_scans"][key][key[1]]["binodal"].shape[0]}') 
 			if BINODALS["island_scans"][key][key[0]]["binodal"].shape[0] != 0:
 
 				# clean out the binodals using remove close rows 
-				BINODALS["island_scans"][key][key[0]]["binodal"], kept = ternary.remove_close_rows(BINODALS["island_scans"][key][key[0]]["binodal"], 1e-6)
+				BINODALS["island_scans"][key][key[0]]["binodal"], kept = ternary.remove_close_rows(BINODALS["island_scans"][key][key[0]]["binodal"], 1e-15)
 				BINODALS["island_scans"][key][key[1]]["binodal"]       = BINODALS["island_scans"][key][key[1]]["binodal"][kept]
 
 				# time to sort the binodals
@@ -1254,16 +1317,27 @@ if __name__=="__main__":
 		
 		# go to each BINODAL and plug them into hull_info
 		for key in BINODALS["island_scans"]:
-			BINODALS["hull_info"]["function"].append(None)
+			print(f"key = {key}", flush=True)
 			BINODALS["hull_info"]["binodal"].append( [[BINODALS["island_scans"][key][key[0]]["binodal"], BINODALS["island_scans"][key][key[1]]["binodal"]], "two_phase"] )
+			if BINODALS["island_scans"][key][key[0]]["binodal"].shape[0] == 0 and BINODALS["island_scans"][key][key[1]]["binodal"].shape[0] == 0:
+				BINODALS["hull_info"]["function"].append(None)
+			else:	
+				combined = np.vstack(([BINODALS["island_scans"][key][key[0]]["binodal"], BINODALS["island_scans"][key][key[1]]["binodal"]]))
+				hull = ConvexHull(combined[:,0:2])
+				hull_path = Path(combined[:,0:2][hull.vertices])
+				BINODALS["hull_info"]["function"].append(hull_path)
+
+	# get the binodal on a file
+	f = open(args.fb, 'wb')
+	pickle.dump(BINODALS, f)
+	f.close()
 
 	# now, i need to go into each binodal, and delete off the points 
 	# whenever there is a tie-line/points inside the triangle 
 	for idx, H in enumerate(BINODALS["hull_info"]["binodal"]):
-		if H[-1] == "two_phase":
+		if H[-1] == "two_phase" and H[0][0].shape[0] !=0 and H[0][1].shape[1] != 0:
 			to_keep = list()
-
-			for i in range(len(H[0])):
+			for i in range(len(H[0][0])):
 				check = True
 				line = np.linspace(H[0][0][i][0:2], H[0][1][i][0:2], 1000)
 				for hull_path in BINODALS["hull_info"]["triangles"]:
@@ -1276,33 +1350,67 @@ if __name__=="__main__":
 					to_keep.append(i)
 			BINODALS["hull_info"]["binodal"][idx][0][0] = BINODALS["hull_info"]["binodal"][idx][0][0][to_keep]
 			BINODALS["hull_info"]["binodal"][idx][0][1] = BINODALS["hull_info"]["binodal"][idx][0][1][to_keep]
-			combined = np.vstack((BINODALS["hull_info"]["binodal"][idx][0][0], BINODALS["hull_info"]["binodal"][idx][0][1]))
-			hull = ConvexHull(combined[:,0:2])
+			combined  = np.vstack((BINODALS["hull_info"]["binodal"][idx][0][0], BINODALS["hull_info"]["binodal"][idx][0][1]))
+			hull      = ConvexHull(combined[:,0:2])
 			hull_path = Path(combined[:,0:2][hull.vertices])
 			BINODALS["hull_info"]["function"][idx] = hull_path
 
 		else:
 			continue
+	'''
+	# make sure there are no overlapping binodals
+	for idx in range(len(BINODALS["hull_info"]["binodal"])):
+		if BINODALS["hull_info"]["binodal"][idx][-1] == "three_phase" or (BINODALS["hull_info"]["binodal"][idx][0][0].shape[0] == 0 and BINODALS["hull_info"]["binodal"][idx][0][1].shape[0] == 0):
+			continue
+		to_keep = list()
+		for jdx in range(len(BINODALS["hull_info"]["binodal"][idx][0][0])):
+			check = True
+			line = np.linspace(BINODALS["hull_info"]["binodal"][idx][0][0][jdx][0:2], BINODALS["hull_info"]["binodal"][idx][0][1][jdx][0:2], 1000)
+			for kdx in range(idx+1, len(BINODALS["hull_info"]["function"])):
+				if BINODALS["hull_info"]["binodal"][kdx][-1] == "three_phase" or (BINODALS["hull_info"]["binodal"][kdx][0][0].shape[0] == 0 and BINODALS["hull_info"]["binodal"][kdx][0][1].shape[0] == 0):
+					continue
+				if (BINODALS["hull_info"]["function"][kdx].contains_points(line)).any():
+					check = False
+					break 
+				else:
+					continue
+			if check:
+				to_keep.append(jdx)
+		BINODALS["hull_info"]["binodal"][idx][0][0] = BINODALS["hull_info"]["binodal"][idx][0][0][to_keep]
+		BINODALS["hull_info"]["binodal"][idx][0][1] = BINODALS["hull_info"]["binodal"][idx][0][1][to_keep]
+		combined = np.vstack((BINODALS["hull_info"]["binodal"][idx][0][0], BINODALS["hull_info"]["binodal"][idx][0][1]))
+		hull = ConvexHull(combined[:,0:2])
+		hull_path = Path(combined[:,0:2][hull.vertices])
+		BINODALS["hull_info"]["function"][idx] = hull_path
+	'''
+
 
 	# I have all the binodals on me now. 
+	# get the binodal on a file
+	f = open(args.fb, 'wb')
+	pickle.dump(BINODALS, f)
+	f.close()
+
+	# print(f"Binodal obj = {BINODALS}")
+
 	# I will start creating the hulls now. 
 	# first, we hit the groups. 
 	if args.pb:
 		for idx, H in enumerate(BINODALS["hull_info"]["binodal"]):
-			if H[-1] == "two_phase":
+			print(f"arm1 = {H[0][0][-10:]}")
+			print(f"arm2 = {H[0][1][-10:]}")
+			if H[0][0].shape[0] == 0 and H[0][1].shape[0] == 0:
+				continue
+			elif H[-1] == "two_phase":
 				ax.scatter(H[0][0][:,0], 1-H[0][0][:,0]-H[0][0][:,1], H[0][0][:,1], s=0.5, c='black')
 				ax.scatter(H[0][1][:,0], 1-H[0][1][:,0]-H[0][1][:,1], H[0][1][:,1], s=0.5, c='white')
 			else:
 				ax.plot(np.hstack([H[0][:,0],H[0][0,0]]),\
 				np.hstack([1-H[0][:,0]-H[0][:,1], 1-H[0][0,0]-H[0][0,1]]), np.hstack([H[0][:,1], H[0][0,1]]), c='slategray', lw=1)
 
-	f = open(args.fb, 'wb')
-	pickle.dump(BINODALS, f)
-	f.close()
-
 
 	# create the image
-	print("Making image...")
+	print("Making image...", end=' ')
 	
 	if args.img != "None":
 		if (".png" in args.img[-4:]):

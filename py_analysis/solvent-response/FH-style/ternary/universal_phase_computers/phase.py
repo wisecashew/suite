@@ -26,7 +26,8 @@ class Phase:
 		print("Binodal run for ps along s2...")
 		phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_s2(self.crits[idx])
 
-		if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_p1[-1]<1e-9 or (1-phi_s1[-1]-phi_p1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting out the curve
 			# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
 			# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='pink', s=3)
@@ -41,7 +42,8 @@ class Phase:
 		print("Binodal run for ps along p2...")
 		phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_p2(self.crits[idx])
 
-		if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_p1[-1]<1e-9 or (1-phi_s1[-1]-phi_p1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting out the curve
 			# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
 			# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='pink', s=3)
@@ -57,7 +59,8 @@ class Phase:
 		print("Binodal run for pc along c2...")
 		phi_p1, phi_p2, phi_c1, phi_c2 = self.sym_mu_pc.binodal_run_in_c2(self.crits[idx])
 		
-		if (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_p1[-1]<1e-9 or phi_c1[-1]<1e-9 or (1-phi_c1[-1]-phi_p1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting 
 			# ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
 			# ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
@@ -73,7 +76,8 @@ class Phase:
 		print("Binodal run for pc along p2...")
 		phi_p1, phi_p2, phi_c1, phi_c2 = self.sym_mu_pc.binodal_run_in_p2(self.crits[idx])
 		
-		if (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_p1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_p1[-1]<1e-9 or phi_c1[-1]<1e-9 or (1-phi_c1[-1]-phi_p1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting 
 			# ax.scatter(1-phi_p1-phi_c1, phi_c1, phi_p1, c='gold', s=3)
 			# ax.scatter(1-phi_p2-phi_c2, phi_c2, phi_p2, c='lime', s=3)
@@ -86,7 +90,8 @@ class Phase:
 		print("Binodal run for sc along c2...")
 		phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_c2(self.crits[idx])
 		
-		if (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_c1[-1]<1e-9 or (1-phi_c1[-1]-phi_s1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting 
 			# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
 			# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
@@ -101,7 +106,8 @@ class Phase:
 		print("Binodal run for sc along s2...")
 		phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_s2(self.crits[idx])
 		
-		if (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_c1[-1]<1e-2 or (1-phi_c1[-1]-phi_s1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_c1[-1]<1e-9 or (1-phi_c1[-1]-phi_s1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting 
 			# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
 			# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
@@ -112,12 +118,13 @@ class Phase:
 			return 
 			
 
-	
+		'''
 		along_normal = True
 		print(f"Get the binodal curve...", flush=True, end=' ')
 		phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_s2(self.crits[idx], along_normal)
 
-		if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_p1[-1]<1e-9 or (1-phi_s1[-1]-phi_p1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting out the curve
 			# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
 			# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='lime', s=3)
@@ -130,7 +137,8 @@ class Phase:
 
 		phi_s1, phi_s2, phi_p1, phi_p2 = self.sym_mu_ps.binodal_run_in_p2(self.crits[idx], along_normal)
 
-		if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_p1[-1]<1e-9 or (1-phi_s1[-1]-phi_p1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting out the curve
 			# ax.scatter(phi_s1, 1-phi_s1-phi_p1, phi_p1, c='gold', s=3)
 			# ax.scatter(phi_s2, 1-phi_s2-phi_p2, phi_p2, c='lime', s=3)
@@ -144,7 +152,8 @@ class Phase:
 		print(f"Get the binodal curve...", flush=True, end=' ')
 		phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_s2(self.crits[idx], along_normal)
 
-		if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_p1[-1]<1e-9 or (1-phi_s1[-1]-phi_p1[-1]<1e-9)) and len(phi_s1) > 10:
 			# start plotting out the curve
 			# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
 			# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
@@ -156,7 +165,8 @@ class Phase:
 			
 		phi_s1, phi_s2, phi_c1, phi_c2 = self.sym_mu_sc.binodal_run_in_c2(self.crits[idx], along_normal)
 
-		if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist < 0.01)) and len(phi_s1) > 10:
+		# if (phi_s1[-1]<1e-2 or phi_p1[-1]<1e-2 or (1-phi_s1[-1]-phi_p1[-1]<1e-2) or (min_dist < 0.01)) and len(phi_s1) > 10:
+		if (phi_s1[-1]<1e-9 or phi_p1[-1]<1e-9 or (1-phi_s1[-1]-phi_p1[-1]<1e-9) or (min_dist < 0.01)) and len(phi_s1) > 10:
 			# start plotting out the curve
 			# ax.scatter(phi_s1, phi_c1, 1-phi_s1-phi_c1, c='gold', s=3)
 			# ax.scatter(phi_s2, phi_c2, 1-phi_s2-phi_c2, c='lime', s=3)
@@ -191,7 +201,8 @@ class Phase:
 			phi_2 = np.array([1-phi_p2-phi_c2, phi_p2]).T
 			BINODALS["groupings"][uidx]["alpha"]["binodals"] = [phi_1, phi_2]
 			return 
-			
+		'''
+		
 		BINODALS["groupings"][uidx]["alpha"]["binodals"] = [np.empty((0,3)), np.empty((0,3))]
 
 		return

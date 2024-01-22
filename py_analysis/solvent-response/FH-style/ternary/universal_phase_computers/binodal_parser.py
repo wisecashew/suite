@@ -28,7 +28,7 @@ parser.add_argument('-vs',                   metavar='vs',      dest='vs',      
 parser.add_argument('-vc',                   metavar='vc',      dest='vc',            type=float, action='store', help='specific volume of cosolvent.')
 parser.add_argument('-vp',                   metavar='vp',      dest='vp',            type=float, action='store', help='specific volume of polymer.'  )
 parser.add_argument('--final-binodal',       metavar='FB',      dest='fb',            type=str,   action='store', help='name of pickle file to dump the BINODAL object in.')
-parser.add_argument('--search-density',      metavar='SD',      dest='sd',            type=int,   action='store', help='density of points sampled for stability plot (default: 500).',                          default=500 )
+parser.add_argument('--database',            metavar='DB',      dest='db',            type=str,   action='store', help='name of database for this system.')
 parser.add_argument('--island-stable-pkl',   metavar='SPKL',    dest='spkl',          type=str,   action='store', help='extract information about the stable islands from the pickle file (default: None).',   default=None)
 parser.add_argument('--island-unstable-pkl', metavar='UPKL',    dest='upkl',          type=str,   action='store', help='extract information about the unstable islands from the pickle file (default: None).', default=None)
 parser.add_argument('--crit-pkl',            metavar='critpkl', dest='critpkl',       type=str,   action='store', help='location of serialized critical point (default: None).',                                default=None)
@@ -760,55 +760,31 @@ if __name__=="__main__":
 	p_s = p_s[to_keep]
 	p_p = p_p[to_keep]
 	phi = np.array([p_s, p_p]).T
-	#=================================
-	#=================================
-	# calculate the stable centers in your system
-	stable_centers   = []
-	hull_paths_s     = transform_islands(stable_islands)
 
-	for sidx, si in enumerate(stable_islands):
-		stable_centers.append(np.mean(si, axis=0))
-	stable_centers = np.array(stable_centers)
+	#=================================
+	#=================================
 
-	unstable_centers = []
-	hull_paths_u = transform_islands(unstable_islands)
-	
-	for uidx, ui in enumerate(unstable_islands):
-		unstable_centers.append(np.mean(ui, axis=0))
-	unstable_centers = np.array(unstable_centers)
-	
-	ax.scatter(stable_centers[:,0],   1-stable_centers[:,0]-stable_centers[:,1],       stable_centers[:,1], c='hotpink', s=2, zorder=200)
-	ax.scatter(unstable_centers[:,0], 1-unstable_centers[:,0]-unstable_centers[:,1], unstable_centers[:,1], c='orange' , s=2, zorder=200)
-	
-	#=================================
-	#=================================
-	def triangle_finder(phi_):
-		eq1 = P.sym_mu_ps.delta_mu_s(phi_[0], phi_[1], phi_[2], phi_[3])
-		eq2 = P.sym_mu_ps.delta_mu_s(phi_[0], phi_[1], phi_[4], phi_[5])
-		eq3 = P.sym_mu_ps.delta_mu_p(phi_[0], phi_[1], phi_[2], phi_[3])
-		eq4 = P.sym_mu_ps.delta_mu_p(phi_[0], phi_[1], phi_[4], phi_[5])
-		eq5 = P.sym_mu_ps.delta_mu_c(phi_[0], phi_[1], phi_[2], phi_[3])
-		eq6 = P.sym_mu_ps.delta_mu_c(phi_[0], phi_[1], phi_[4], phi_[5])
-		return [eq1, eq2, eq3, eq4, eq5, eq6]
-	#=================================
-	#=================================
 	f = open(args.fb, 'rb')
 	BINODALS = pickle.load(f)
 	f.close()
 
-	# I have all the binodals on me now. 
-	# I will start plotting hulls now. 
-	# first, we hit the groups. 
+	print(f'length of length of the binodal list is {len(BINODALS["hull_info"]["binodal"])}', flush=True)
+	print(f'length of length of the triangles is {len(BINODALS["hull_info"]["triangles"])}',  flush=True)
+	print(f'length of length of the function  is {len(BINODALS["hull_info"]["function"])}',   flush=True)
+	
+	f = open(args.db, 'w')
+	f.write(f" vs | vc | vp | chi_sc | chi_ps | chi_pc | phi_s | phi_p | phi_s1 | phi_p1 | phi_s2 | phi_p2 | phi_s3 | phi_p3\n")
 	for idx, H in enumerate(BINODALS["hull_info"]["binodal"]):
-		if H[1] == "two_phase":
-			ax.scatter(H[0][0][:,0], 1-H[0][0][:,0]-H[0][0][:,1], H[0][0][:,1], s=0.5, c='black')
-			ax.scatter(H[0][1][:,0], 1-H[0][1][:,0]-H[0][1][:,1], H[0][1][:,1], s=0.5, c='white')
-		else:
-			ax.plot(np.hstack([H[0][:,0],H[0][0,0]]),\
-			  np.hstack([1-H[0][:,0]-H[0][:,1], 1-H[0][0,0]-H[0][0,1]]), np.hstack([H[0][:,1], H[0][0,1]]), c='hotpink', lw=1)
-
-	f = open(args.fb, 'wb')
-	pickle.dump(BINODALS, f)
+		if H[0][0].shape[0] == 0 and H[0][1].shape[0] == 0:
+			continue
+		elif H[-1] == "two_phase":
+			for i in range(len(H[0][0])):
+				line = np.linspace(H[0][0][i], H[0][1][i], 100)
+				for p in line:
+					f.write(f" {vs} | {vc} | {vp} | {chi_sc} | {chi_ps} | {chi_pc} | {p[0]} | {p[1]} | {line[0][0]} | {line[0][1]} | {line[-1][0]} | {line[-1][1]} | - | -\n")
+		
+		elif H[-1] == "three_phase":
+			
 	f.close()
 
 	# create the image

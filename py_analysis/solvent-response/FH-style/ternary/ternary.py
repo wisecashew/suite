@@ -301,7 +301,6 @@ def stab_crit (p_s, p_p, vs, vc, vp, c_ps, c_pc, c_sc):
 def embelish(ax, tern_b):
 
 	if tern_b:
-
 		ax.set_tlabel ("$\\phi _{S}$") # ('Vol. frac. A')
 		ax.set_llabel ("$\\phi _{C}$") # ('Vol. frac. C')
 		ax.set_rlabel ("$\\phi _{P}$") # ('Vol. frac. B')

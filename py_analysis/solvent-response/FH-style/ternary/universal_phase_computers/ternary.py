@@ -98,50 +98,52 @@ def find_islands(mesh):
 	islands = []
 	# get the indices to loop over
 	stable_points = np.argwhere(mesh==1)
-	print(f"Length of stable_points = {len(stable_points)}", flush=True)
+	print(f"Length of points = {len(stable_points)}", flush=True)
 	print("==========================", flush=True)
 
-	loop   = True
-	spoint = stable_points[0]
+	if len(stable_points) == 0:
+		return [] 
+	else: 
+		loop   = True
+		spoint = stable_points[0]
+		print(f"starter point = {spoint}", flush=True)
+		print(f"stable_points[-1] = {stable_points[-1]}", flush=True)
 
-	print(f"starter point = {spoint}", flush=True)
-	print(f"stable_points[-1] = {stable_points[-1]}", flush=True)
 
+		while loop:
+			my_island = np.array([spoint], dtype=int)
+			options, my_island = annex_islands(my_island, stable_points, spoint)
+			while len(options)>0:
+				options, my_island = annex_islands_with_options(my_island, stable_points, options)
+				# print(f"my_island = {my_island[0:5],my_island[-5:]} with len(islands) = {len(islands)}", flush=True)
+			
+			to_del = []
+			for midx, isl in enumerate(my_island):
+				check = np.logical_and(isl[0]==stable_points[:,0], isl[1]==stable_points[:,1])
+				if check.any():
+					to_del.append(np.arange(len(stable_points))[check][0])
+				# for sidx, sp in enumerate(stable_points):
+				#	if isl[0] == sp[0] and isl[1] == sp[1]:
+				#		to_del.append(sidx)
+				#		continue 
+			stable_points = np.delete(stable_points, to_del, axis=0)
 
-	while loop:
-		my_island = np.array([spoint], dtype=int)
-		options, my_island = annex_islands(my_island, stable_points, spoint)
-		while len(options)>0:
-			options, my_island = annex_islands_with_options(my_island, stable_points, options)
-			# print(f"my_island = {my_island[0:5],my_island[-5:]} with len(islands) = {len(islands)}", flush=True)
-		
-		to_del = []
-		for midx, isl in enumerate(my_island):
-			check = np.logical_and(isl[0]==stable_points[:,0], isl[1]==stable_points[:,1])
-			if check.any():
-				to_del.append(np.arange(len(stable_points))[check][0])
-			# for sidx, sp in enumerate(stable_points):
-			#	if isl[0] == sp[0] and isl[1] == sp[1]:
-			#		to_del.append(sidx)
-			#		continue 
-		stable_points = np.delete(stable_points, to_del, axis=0)
+			# eliminate all points in islands from stable_points
+			# print(f"Cleaning up stable points...")
+			# mask = np.isin(stable_points, my_island).all(axis=1)
+			# stable_points = stable_points[~mask]
 
-		# eliminate all points in islands from stable_points
-		# print(f"Cleaning up stable points...")
-		# mask = np.isin(stable_points, my_island).all(axis=1)
-		# stable_points = stable_points[~mask]
+			print(f"================================")
+			print(f"stable_points = {len(stable_points)}...", flush=True)
+			print(f"================================")
 
-		print(f"================================")
-		print(f"stable_points = {len(stable_points)}...", flush=True)
-		print(f"================================")
+			if len(stable_points) > 0:
+				spoint = stable_points[0]
+			else:
+				loop = False
+			islands.append(my_island)
 
-		if len(stable_points) > 0:
-			spoint = stable_points[0]
-		else:
-			loop = False
-		islands.append(my_island)
-
-	return islands
+		return islands
 
 def find_crit_point (vs, vc, vp, chi_sc, chi_ps, chi_pc, root_up_p, root_up_s, root_lo_p, root_lo_s):
 

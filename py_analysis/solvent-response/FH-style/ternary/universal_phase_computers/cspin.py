@@ -119,32 +119,28 @@ if __name__=="__main__":
 	p_p  = p_p  [to_keep]
 
 	start_color = 'indianred'
-	end_color = 'steelblue'
+	end_color   = 'steelblue'
 
 	# Number of steps in the gradient
 	cmap = matplotlib.colors.LinearSegmentedColormap.from_list("", [start_color, end_color])
 
-	vals[vals>=0] = 1
-	vals[vals<0]  = -1
+	vals[vals>=0] =  1
+	vals[vals<0 ] = -1
 
 	if len(vals) == 0:
-		print (f"There will be no critical points and no spinodal region.")
+		print (f"There will be no critical points and no spinodal region.", flush=True)
 
-	vmax = np.max (vals)
-	vmin = np.min (vals)
-	norm = colors.SymLogNorm (0.001, vmin=vmin, vmax=vmax)
+	if (vals > 0).all():
+		print(f"There are no unstable regions.", flush=True)
+	elif (vals>=0).any() and (vals<0).any():
+		print(f"There are stable and unstable regions")
+
+	vmax = +1
+	vmin = -1
+	norm = colors.Normalize(vmin=vmin, vmax=vmax)
 	cols = cmap (norm (vals))
-
-	if np.sign (vmax) == np.sign (vmin):
-		if np.sign (vmax) >=0:
-			vmin = -vmax
-			print (f"There is no unstable region.")
-		else:
-			vmax = -vmin
-			print ("There is mostly unstable region.")
-
-	else:
-		print ("there exist unstable regions.")
+	# print(f"cols = {cols}", flush=True)
+	# print(f"vals = {vals}", flush=True)
 
 	# get all the crit points
 	if args.crits:

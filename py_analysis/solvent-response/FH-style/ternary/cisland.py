@@ -105,7 +105,7 @@ if __name__=="__main__":
 	root_lo_p      = lambda phi_p: denom_p(phi_p)*(prefac_p(phi_p)-np.sqrt(discriminant_p(phi_p)))
 
 
-	p_s_space = np.arange (0.001, 1-0.001, 0.001) # 0.001)
+	p_s_space = np.arange (0.001, 1-0.001, 0.001)
 	p_s = np.repeat (p_s_space, len(p_s_space))
 
 	p_p = np.zeros (p_s.shape)

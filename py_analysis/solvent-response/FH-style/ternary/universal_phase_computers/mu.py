@@ -242,12 +242,12 @@ class sym_mu_ps:
 
 		# for i in range(ncycles):
 		iterr  = 0 
-		# max_it = 1e+3
+		max_it = 1e+5
 
 		while not condition:
 			iterr += 1
 			if iterr > max_it:
-				# print("Completed iterations. Breaking out...", flush=True)
+				print("Completed iterations. Breaking out...", flush=True)
 				break
 			# preprocess...
 			# preprocessor = np.array(delta_pp2[-100:])
@@ -281,9 +281,9 @@ class sym_mu_ps:
 			# print(f"Guess provided: phi1 = ({phi_s1[-1]+delta_ps1, phi_p1[-1]+delta_pp1}), phi2 = {phi_s2[-1]+delta_ps2, phi_p2[-1]+delta_pp2[-1]}", flush=True)
 			root = fsolve(dmu, [phi_s1[-1]+delta_ps1, phi_p1[-1]+delta_pp1, phi_s2[-1]+delta_ps2], xtol=1e-30)
 
-			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
-				# print("Breaking out...")
-				break
+			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0 or root[0]+root[1]>1 or (root[2]+phi_p2[-1]+delta_pp2[-1]) > 1:
+				delta_pp2.append(delta_pp2[-1]/1.5)
+				continue
 
 			p1 = np.array([root[0], root[1]])
 			p2 = np.array([root[2], phi_p2[-1]+delta_pp2[-1]])
@@ -464,12 +464,12 @@ class sym_mu_ps:
 		condition = (phi_s1[-1] < 1e-12 or phi_p1[-1] < 1e-12 or 1-phi_s1[-1]-phi_p1[-1] < 1e-12)
 
 		iterr  = 0
-		# max_it = 1e+3
+		max_it = 1e+5
 
 		while not condition:
 			iterr += 1
 			if iterr > max_it:
-				# print("Completed iterations. Breaking out...", flush=True)
+				print("Completed iterations. Breaking out...", flush=True)
 				break
 
 			# print(f"@ i = {iterr}/{max_it}...", flush=True)
@@ -498,9 +498,9 @@ class sym_mu_ps:
 			# print(f"Guess provided: phi1 = ({phi_s1[-1]+delta_ps1, phi_p1[-1]+delta_pp1}), phi2 = {phi_s2[-1]+delta_ps2[-1], phi_p2[-1]+delta_pp2}", flush=True)
 			root = fsolve(dmu, [phi_s1[-1]+delta_ps1, phi_p1[-1]+delta_pp1, phi_p2[-1]+delta_pp2], xtol=1e-30)
 
-			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
-				# print("Breaking out...")
-				break
+			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0 or (root[0]+root[1]) > 1 or (root[2]+phi_s2[-1]+delta_ps2[-1])>1:
+				delta_ps2.append(delta_ps2[-1]/1.5)
+				continue
 
 			p1 = np.array([root[0], root[1]])
 			p2 = np.array([phi_s2[-1]+delta_ps2[-1], root[2]])
@@ -1115,9 +1115,9 @@ class sym_mu_sc:
 			# print(f"Guess provided: phi1 = ({phi_s1[-1]+delta_ps1, phi_c1[-1]+delta_pc1}), phi2 = {phi_s2[-1]+delta_ps2, phi_c2[-1]+delta_pc2[-1]}", flush=True)
 			root = fsolve(dmu, [phi_s1[-1]+delta_ps1, phi_c1[-1]+delta_pc1, phi_s2[-1]+delta_ps2], xtol=1e-30)
 
-			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
-				# print("Breaking out...")
-				break
+			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0 or root[0]+root[1]>1 or root[2]+phi_c2[-1]+delta_pc2[-1]>1:
+				delta_pc2.append(delta_pc2[-1]/1.1)
+				continue
 
 			p1 = np.array([root[0], root[1]])
 			p2 = np.array([root[2], phi_c2[-1]+delta_pc2[-1]])
@@ -1327,9 +1327,10 @@ class sym_mu_sc:
 			# print(f"Guess provided: phi1 = ({phi_s1[-1]+delta_ps1, phi_c1[-1]+delta_pc1}), phi2 = {phi_s2[-1]+delta_ps2[-1], phi_c2[-1]+delta_pc2}", flush=True)
 			root = fsolve(dmu, [phi_s1[-1]+delta_ps1, phi_c1[-1]+delta_pc1, phi_c2[-1]+delta_pc2], xtol=1e-30)
 
-			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
-				# print("Breaking out...")
-				break
+			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0 or root[0]+root[1]>1 or (root[2]+phi_s2[-1]+delta_ps2[-1])>1:
+				delta_ps2.append(delta_ps2[-1]/1.1)
+				continue
+				# break
 
 			p1 = np.array([root[0], root[1]])
 			p2 = np.array([phi_s2[-1]+delta_ps2[-1], root[2]])
@@ -1640,9 +1641,9 @@ class sym_mu_pc:
 			# print(f"Guess provided: phi1 = ({phi_p1[-1]+delta_pp1, phi_c1[-1]+delta_pc1}), phi2 = {phi_p2[-1]+delta_pp2, phi_c2[-1]+delta_pc2[-1]}", flush=True)
 			root = fsolve(dmu, [phi_p1[-1]+delta_pp1, phi_c1[-1]+delta_pc1, phi_p2[-1]+delta_pp2], xtol=1e-30)
 
-			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
-				# print("Breaking out...")
-				break
+			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0 or (root[0]+root[1])>1 or root[2]+phi_c2[-1]+delta_pc2[-1]>1:
+				delta_pc2.append(delta_pc2[-1]/1.1)
+				continue
 
 			p1 = np.array([root[0], root[1]])
 			p2 = np.array([root[2], phi_c2[-1]+delta_pc2[-1]])
@@ -1851,9 +1852,9 @@ class sym_mu_pc:
 			# print(f"Guess provided: phi1 = ({phi_p1[-1]+delta_pp1, phi_c1[-1]+delta_pc1}), phi2 = {phi_p2[-1]+delta_pp2[-1], phi_c2[-1]+delta_pc2}", flush=True)
 			root = fsolve(dmu, [phi_p1[-1]+delta_pp1, phi_c1[-1]+delta_pc1, phi_c2[-1]+delta_pc2], xtol=1e-30)
 
-			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0:
-				# print("Breaking out...")
-				break
+			if root[0] > 1 or root[0] < 0 or root[1] > 1 or root[1] < 0 or root[2] > 1 or root[2] < 0 or root[0]+root[1]>1 or root[2]+phi_p2[-1]+delta_pp2[-1]>1:
+				delta_pp2.append(delta_pp2[-1]/1.1)
+				continue
 
 			p1 = np.array([root[0], root[1]])
 			p2 = np.array([phi_p2[-1]+delta_pp2[-1], root[2]])

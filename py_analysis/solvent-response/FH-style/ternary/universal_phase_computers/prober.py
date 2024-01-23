@@ -161,7 +161,7 @@ if __name__=="__main__":
 	f = open(args.db, 'w')
 	f.write(f"vs | vc | vp | chi_sc | chi_ps | chi_pc | phi_s | phi_p | phi_s1 | phi_p1 | phi_s2 | phi_p2 | phi_s3 | phi_p3\n")
 	for sphi in stable_phi:
-		f.write(f"{P.vs} | {P.vc} | {P.vp} | {P.chi_sc} | {P.chi_ps} | {P.chi_pc} | {sphi[0]} | {sphi[1]} | {sphi[0]} | {sphi[1]} | - | - | - | -\n")
+		f.write(f"{P.vs} | {P.vc} | {P.vp} | {P.chi_sc} | {P.chi_ps} | {P.chi_pc} | {sphi[0]} | {sphi[1]} | {sphi[0]} | {sphi[1]} | 0 | 0 | 0 | 0\n")
 
 
 	for hull_info in BINODALS["hull_info"]["binodal"]:
@@ -175,7 +175,7 @@ if __name__=="__main__":
 					line = np.linspace(hull_info[0][0][i][0:2], hull_info[0][1][i][0:2],100)
 					ax.scatter(line[:,0], 1-line[:,0]-line[:,1], line[:,1], c='pink', s=0.5)
 					for p in line:
-						f.write(f"{P.vs} | {P.vc} | {P.vp} | {P.chi_sc} | {P.chi_ps} | {P.chi_pc} | {p[0]} | {p[1]} | {line[0][0]} | {line[0][1]} | {line[-1][0]} | {line[-1][1]} | - | -\n")
+						f.write(f"{P.vs} | {P.vc} | {P.vp} | {P.chi_sc} | {P.chi_ps} | {P.chi_pc} | {p[0]} | {p[1]} | {line[0][0]} | {line[0][1]} | {line[-1][0]} | {line[-1][1]} | 0 | 0\n")
 
 			elif len(hull_info) == 3:
 				ax.scatter(hull_info[0][:,0], 1-hull_info[0][:,0]-hull_info[0][:,1], hull_info[0][:,1], c='black', s=0.5)
@@ -184,7 +184,7 @@ if __name__=="__main__":
 					line = np.linspace(hull_info[0][i][0:2], hull_info[1][i][0:2],100)
 					ax.scatter(line[:,0], 1-line[:,0]-line[:,1], line[:,1], c='pink', s=0.5)
 					for p in line:
-						f.write(f"{P.vs} | {P.vc} | {P.vp} | {P.chi_sc} | {P.chi_ps} | {P.chi_pc} | {p[0]} | {p[1]} | {line[0][0]} | {line[0][1]} | {line[-1][0]} | {line[-1][1]} | - | -\n")
+						f.write(f"{P.vs} | {P.vc} | {P.vp} | {P.chi_sc} | {P.chi_ps} | {P.chi_pc} | {p[0]} | {p[1]} | {line[0][0]} | {line[0][1]} | {line[-1][0]} | {line[-1][1]} | 0 | 0\n")
 
 		elif hull_info[-1]=="three_phase":
 			# get points 

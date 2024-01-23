@@ -127,9 +127,9 @@ if __name__=="__main__":
 	phi_s, phi_p = np.meshgrid(phi_s, phi_p)
 
 	if args.mpkl is None:
-		f = open(f"chips_{chi_ps}-chipc_{chi_pc}-chisc_{chi_sc}-vs_{vs}-vc_{vc}-vp_{vp}.mesh.pkl", 'wb')
-		pickle.dump([phi_s, phi_p], f)
-		f.close()
+		pass
+	elif os.path.isfile(args.mpkl):
+		pass
 	else:
 		f = open(args.mpkl, 'wb')
 		pickle.dump([phi_s, phi_p], f)

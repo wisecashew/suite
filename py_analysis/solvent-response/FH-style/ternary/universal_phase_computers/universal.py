@@ -342,12 +342,12 @@ def add_and_solve(arm_neg, arm_pos, P, center, central_axis, M):
 	# print(f"Positive points are: {arm_pos[max_dist_pos], arm_pos[max_dist_pos+1]}")
 	iterx = 0
 
-	while dist_neg[max_dist_neg] > 0.0005 or dist_pos[max_dist_pos] > 0.0005:
+	while dist_neg[max_dist_neg] > 0.001 or dist_pos[max_dist_pos] > 0.001:
 
 		# print(f"Negative points are: {arm_neg[max_dist_neg], arm_neg[max_dist_neg+1]}")
 		# print(f"Positive points are: {arm_pos[max_dist_pos], arm_pos[max_dist_pos+1]}")
 
-		if dist_neg[max_dist_neg] > dist_pos[max_dist_pos] and dist_neg[max_dist_neg] > 0.0005:
+		if dist_neg[max_dist_neg] > dist_pos[max_dist_pos] and dist_neg[max_dist_neg] > 0.001:
 			# print("Filling in for negative distances...", flush=True)
 			new_arm_neg = add_rows(arm_neg, M, max_dist_neg)
 			new_arm_pos = add_rows(arm_pos, M, max_dist_neg) 
@@ -365,7 +365,7 @@ def add_and_solve(arm_neg, arm_pos, P, center, central_axis, M):
 			arm_neg, arm_pos = clean_and_sort(arm_neg, arm_pos, center, central_axis)
 
 
-		elif dist_pos[max_dist_pos] > dist_neg[max_dist_neg] and dist_neg[max_dist_neg] > 0.0005:
+		elif dist_pos[max_dist_pos] > dist_neg[max_dist_neg] and dist_neg[max_dist_neg] > 0.001:
 			# print("Filling in for positive distances...", flush=True)
 			new_arm_neg = add_rows(arm_neg, M, max_dist_pos)
 			new_arm_pos = add_rows(arm_pos, M, max_dist_pos)
@@ -391,7 +391,7 @@ def add_and_solve(arm_neg, arm_pos, P, center, central_axis, M):
 		print(f"iterx = {iterx}", flush=True)
 		print(f"maximum gap in dist_neg = {dist_neg[max_dist_neg]}, maximum gap in dist_pos = {dist_pos[max_dist_pos]}", flush=True)
 		iterx += 1
-		if iterx > 100:
+		if iterx > 5:
 			break
 
 	return arm_neg, arm_pos 
@@ -1407,7 +1407,6 @@ if __name__=="__main__":
 			else:
 				ax.plot(np.hstack([H[0][:,0],H[0][0,0]]),\
 				np.hstack([1-H[0][:,0]-H[0][:,1], 1-H[0][0,0]-H[0][0,1]]), np.hstack([H[0][:,1], H[0][0,1]]), c='slategray', lw=1)
-
 
 	# create the image
 	print("Making image...", end=' ')

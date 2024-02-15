@@ -11,3 +11,5 @@
 *.binodal
 *.mc
 *.dump
+*.db
+*.pkl

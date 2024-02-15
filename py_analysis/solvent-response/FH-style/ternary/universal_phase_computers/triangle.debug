@@ -1,0 +1,232 @@
+Setting up the Phase object... done!
+crits = [[0.3053026  0.31469858 0.37999883]
+ [0.37999883 0.31469858 0.3053026 ]
+ [0.37037037 0.25925926 0.37037037]]
+There is a RunTimeWarning taking place on line 335.
+There is a RunTimeWarning taking place on line 336.
+There is a RunTimeWarning taking place on line 335.
+Plotting the ternary diagram... there exist unstable regions.
+done!
+Extracting island information... done!
+Getting convex hulls... done!
+Defining the BINODALS object... done!
+Updating information about crits...
+crit = [0.3053026  0.31469858 0.37999883]
+uidx = 0, sidx = 2
+crit = [0.37999883 0.31469858 0.3053026 ]
+uidx = 0, sidx = 2
+crit = [0.37037037 0.25925926 0.37037037]
+uidx = 0, sidx = 2
+done!
+Order groupings of critical points... Performing a line check... done!
+done!
+Do a binodal search... done!
+Start searching islands (bin_tern-vs_1.0-vc_1.0-vp_1.0-chisc_2.7-chips_2.9-chipc_2.9)... Memory size of distances is 36.577439992 gigabytes.
+There is a RunTimeWarning taking place on line 2.
+There is a RunTimeWarning taking place on line 2.
+There is a RunTimeWarning taking place on line 175.
+There is a RunTimeWarning taking place on line 2.
+There is a RunTimeWarning taking place on line 175.
+There is a RunTimeWarning taking place on line 175.
+Memory size of distances is 2.43346492 gigabytes.
+Memory size of distances is 31.24492212 gigabytes.
+Memory size of distances is 1.74095492 gigabytes.
+Memory size of distances is 22.35331212 gigabytes.
+Memory size of distances is 1.4871462 gigabytes.
+There is a RunTimeWarning taking place on line 2.
+There is a RunTimeWarning taking place on line 2.
+There is a RunTimeWarning taking place on line 2.
+There is a RunTimeWarning taking place on line 335.
+There is a RunTimeWarning taking place on line 335.
+idx_tup = (0, 1)
+arm_neg = [[1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]
+ [1.06912760e-01 1.32193752e-15 8.93087240e-01]]
+arm_pos = [[8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]
+ [8.93087240e-01 1.32193885e-15 1.06912760e-01]]
+iterx = 0
+maximum gap in dist_neg = 0.0016206198926289601, maximum gap in dist_pos = 0.0026008034296196576
+iterx = 1
+maximum gap in dist_neg = 0.0015970383760493163, maximum gap in dist_pos = 0.002553367047355749
+iterx = 2
+maximum gap in dist_neg = 0.0015970383760493163, maximum gap in dist_pos = 0.002551383896011991
+iterx = 3
+maximum gap in dist_neg = 0.001569424775809383, maximum gap in dist_pos = 0.002510955701030872
+iterx = 4
+maximum gap in dist_neg = 0.001569424775809383, maximum gap in dist_pos = 0.00250251819151227
+iterx = 5
+maximum gap in dist_neg = 0.0015464843363537156, maximum gap in dist_pos = 0.002487582224045706
+Breaking out of the populater...
+idx_tup = (0, 2)
+arm_neg = [[0.18124888 0.15953093 0.6592202 ]
+ [0.18126108 0.1595322  0.65920672]
+ [0.1812855  0.15952752 0.65918699]
+ [0.18148081 0.15947184 0.65904735]
+ [0.18148081 0.15947184 0.65904735]
+ [0.18193242 0.15925442 0.65881317]
+ [0.18289305 0.15822403 0.65888292]
+ [0.18289305 0.15822403 0.65888292]
+ [0.18321769 0.15697622 0.65980609]
+ [0.18321769 0.15697622 0.65980609]]
+arm_pos = [[0.32851536 0.34098639 0.33049825]
+ [0.32978719 0.33842781 0.331785  ]
+ [0.33106245 0.33595069 0.33298686]
+ [0.33593104 0.32734832 0.33672065]
+ [0.33593104 0.32734832 0.33672065]
+ [0.34360747 0.31622274 0.34016979]
+ [0.36430725 0.29612859 0.33956416]
+ [0.36430725 0.29612859 0.33956416]
+ [0.39760828 0.27717339 0.32521833]
+ [0.39760828 0.27717339 0.32521833]]
+iterx = 0
+maximum gap in dist_neg = 0.0014087282616616127, maximum gap in dist_pos = 0.02884884745997206
+iterx = 1
+maximum gap in dist_neg = 0.0005012189666034426, maximum gap in dist_pos = 0.013516884557241923
+iterx = 2
+maximum gap in dist_neg = 0.0002030929433928608, maximum gap in dist_pos = 0.009884526388509025
+iterx = 3
+maximum gap in dist_neg = 0.00013455699221087466, maximum gap in dist_pos = 0.006223210413074821
+iterx = 4
+maximum gap in dist_neg = 6.942404660574199e-05, maximum gap in dist_pos = 0.002857249169282972
+iterx = 5
+maximum gap in dist_neg = 6.942404660574199e-05, maximum gap in dist_pos = 0.002786115169705884
+Breaking out of the populater...
+idx_tup = (0, 3)
+arm_neg = [[8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]
+ [8.55817844e-309 8.08217633e-002 9.19178237e-001]]
+arm_pos = [[7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]
+ [7.23707467e-309 9.19178237e-001 8.08217633e-002]]
+iterx = 0
+maximum gap in dist_neg = 0.004874277340478384, maximum gap in dist_pos = 0.00619325077581664
+iterx = 1
+maximum gap in dist_neg = 0.004874277340478384, maximum gap in dist_pos = 0.006155757361911683
+iterx = 2
+maximum gap in dist_neg = 0.004303911729424732, maximum gap in dist_pos = 0.005471767215555627
+iterx = 3
+maximum gap in dist_neg = 0.003984051596254817, maximum gap in dist_pos = 0.004805436698823292
+iterx = 4
+maximum gap in dist_neg = 0.003984051596254817, maximum gap in dist_pos = 0.004574504324287052
+iterx = 5
+maximum gap in dist_neg = 0.003984051596254817, maximum gap in dist_pos = 0.004444696575497797
+Breaking out of the populater...
+idx_tup = (1, 2)
+arm_neg = [[0.65988421 0.156904   0.18321179]
+ [0.65987711 0.15690829 0.1832146 ]
+ [0.65986291 0.1569215  0.1832156 ]
+ [0.65980609 0.15697622 0.18321769]
+ [0.65904735 0.15947184 0.18148081]
+ [0.65904735 0.15947184 0.18148081]
+ [0.65904735 0.15947184 0.18148081]
+ [0.70904735 0.0472808  0.24367185]]
+arm_pos = [[0.32014221 0.27311419 0.4067436 ]
+ [0.32093464 0.27372119 0.40534416]
+ [0.3225083  0.27494807 0.40254363]
+ [0.32521833 0.27717339 0.39760828]
+ [0.33672065 0.32734832 0.33593104]
+ [0.33672065 0.32734832 0.33593104]
+ [0.33672065 0.32734832 0.33593104]
+ [0.70681428 0.04744039 0.24574533]]
+iterx = 0
+maximum gap in dist_neg = 0.12014266189565577, maximum gap in dist_pos = 0.447709667691166
+iterx = 1
+maximum gap in dist_neg = 0.12014266189565577, maximum gap in dist_pos = 0.447709667691166
+iterx = 2
+maximum gap in dist_neg = 0.12014266189565577, maximum gap in dist_pos = 0.447709667691166
+iterx = 3
+maximum gap in dist_neg = 0.12014266189565577, maximum gap in dist_pos = 0.447709667691166
+iterx = 4
+maximum gap in dist_neg = 0.12014266189565577, maximum gap in dist_pos = 0.447709667691166
+iterx = 5
+maximum gap in dist_neg = 0.12014266189565577, maximum gap in dist_pos = 0.447709667691166
+Breaking out of the populater...
+idx_tup = (1, 3)
+arm_neg = [[9.19178005e-01 8.08218073e-02 1.87865681e-07]
+ [9.19178005e-01 8.08218074e-02 1.87874939e-07]
+ [9.19178005e-01 8.08218074e-02 1.87884195e-07]
+ [9.19178005e-01 8.08218074e-02 1.87893453e-07]
+ [9.19178005e-01 8.08218074e-02 1.87902710e-07]
+ [9.19178005e-01 8.08218074e-02 1.87911967e-07]
+ [9.19178005e-01 8.08218074e-02 1.87921223e-07]
+ [9.19178005e-01 8.08218074e-02 1.87930480e-07]
+ [9.19178005e-01 8.08218074e-02 1.87939737e-07]
+ [9.19178005e-01 8.08218074e-02 1.87948994e-07]]
+arm_pos = [[8.08218005e-02 9.19178041e-01 1.58865091e-07]
+ [8.08218005e-02 9.19178041e-01 1.58872919e-07]
+ [8.08218005e-02 9.19178041e-01 1.58880747e-07]
+ [8.08218005e-02 9.19178041e-01 1.58888575e-07]
+ [8.08218005e-02 9.19178041e-01 1.58896403e-07]
+ [8.08218005e-02 9.19178041e-01 1.58904231e-07]
+ [8.08218005e-02 9.19178041e-01 1.58912059e-07]
+ [8.08218005e-02 9.19178041e-01 1.58919887e-07]
+ [8.08218005e-02 9.19178041e-01 1.58927715e-07]
+ [8.08218005e-02 9.19178041e-01 1.58935543e-07]]
+iterx = 0
+maximum gap in dist_neg = 0.006536244030362141, maximum gap in dist_pos = 0.005474429655038543
+iterx = 1
+maximum gap in dist_neg = 0.006441319486872102, maximum gap in dist_pos = 0.00535999767046218
+iterx = 2
+maximum gap in dist_neg = 0.0051054362929778335, maximum gap in dist_pos = 0.00405925556804939
+iterx = 3
+maximum gap in dist_neg = 0.003851433395047299, maximum gap in dist_pos = 0.0030545697242974805
+iterx = 4
+maximum gap in dist_neg = 0.0038489381915770044, maximum gap in dist_pos = 0.0030545697242974805
+iterx = 5
+maximum gap in dist_neg = 0.003846497098483881, maximum gap in dist_pos = 0.0030545697242974805
+Breaking out of the populater...
+No common island, no intersections. Jump past...
+No intersection.
+No common island, no intersections. Jump past...
+No common island, no intersections. Jump past...
+No intersection.
+Dump binodals!
+root = [0.18158477 0.1594323  0.65898293 0.1594323  0.33783446 0.32433109]
+closeness = [ True  True  True  True  True  True]
+Worked!
+root = [0.16588145 0.13594054 0.69817801 0.13594054 0.11399094 0.77201813]
+closeness = [ True  True  True  True  True  True]
+Worked!
+Dump binodals!
+key = (0, 1)
+key = (0, 2)
+key = (0, 3)
+key = (1, 2)
+key = (1, 3)
+key = (2, 3)
+done!
+Dump binodals!
+Start clipping binodals... done!
+Dump binodals!
+Plot binodals... Making image for bin_tern-vs_1.0-vc_1.0-vp_1.0-chisc_2.7-chips_2.9-chipc_2.9... done!
+Made it for bin_tern-vs_1.0-vc_1.0-vp_1.0-chisc_2.7-chips_2.9-chipc_2.9... done!
+Time for computation is 555.5352654457092 seconds.

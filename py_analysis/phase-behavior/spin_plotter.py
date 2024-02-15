@@ -160,12 +160,12 @@ if __name__=="__main__":
         param = [args.emsa[i], args.emsn[i], args.emma[i], args.emmn[i], args.essa[i], args.essn[i], args.pv[i], args.pwms[i], args.pwmm[i], args.pwss[i]]
         param_list.append(param)
     # param_list  = [args.emsa, args.emsn, args.emma, args.emmn, args.essa, args.essn, args.pv, 0.25, 0.25, 0.25]
-    N           = 32
+    N           = 1000
     PhaseDiag   = Phase (param_list[0], N)
-    T           = np.hstack((np.logspace (-3, np.log10(30), int(1e+7) ), np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
+    T           = np.logspace (-3, np.log10(1000), int(1e+6) ) # np.hstack((np.logspace (-3, np.log10(30), int(1e+7) )  , np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
     T           = np.sort (T, kind="mergesort")
     
-    fig = plt.figure(figsize=(3.5,2.0), constrained_layout=True)
+    fig = plt.figure(figsize=(1.5,1.5), constrained_layout=True)
     fig.tight_layout()
     ax  = plt.axes ()
     ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
@@ -174,10 +174,7 @@ if __name__=="__main__":
 
     # ranges = [np.arange(-4, 0.1, 0.1), [-0.523, 0], [-0.5237, -0.523, 0], [-1.3, -0.5237, -0.523, 0]]
 
-
-
     for i in range(len(param_list)):
-
 
         PhaseDiag.reset_params (param_list[i])
         PhaseDiag.print_params ()
@@ -188,27 +185,29 @@ if __name__=="__main__":
         arm1     = spinodal[0][spinodal[0] < 1]
         T1       = T1   [arm1 > 0]
         arm1     = arm1 [arm1 > 0]
-        line = ax.plot  (arm1, T1, lw=1.5, markersize=0, c=args.colors[i], solid_capstyle="round",label="_nolabel_")
+        line     = ax.plot  (arm1, T1, lw=1.5, markersize=0, c=args.colors[i], solid_capstyle="round",label="_nolabel_")
         T1       = spinodal[2][spinodal[1] < 1]
         arm1     = spinodal[1][spinodal[1] < 1]
         T1       = T1   [arm1 > 0]
         arm1     = arm1 [arm1 > 0]
         ax.plot  (arm1, T1, lw=1.5, markersize=0, c=args.colors[i], solid_capstyle="round", label="_nolabel_")
+        print(arm1)
+        print(np.min(T1))
         del T1
         del arm1
         del spinodal
 
-    ax.set_yscale ("log")
-    ax.set_ylim (1e-3, 50)
+    # ax.set_yscale ("log")
+    # ax.set_ylim (0, 5)
     ax.set_xlim (0, 1)
 
-    ax.set_yticks ([0.001, 0.01, 0.1, 1.0, 10, 50])
+    # ax.set_yticks ([0.001, 0.01, 0.1, 1.0, 10, 50])
     ax.set_xticks ([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     if args.ylabels:
         ax.set_xticklabels([0.001, 0.01, 0.1, 1.0, 10, 50])
     else:
         pass
-    ax.set_yticklabels ([])
+    # ax.set_yticklabels ([250, 300, 350, 400, 450, 500, 550])
 
     if args.xlabels:
         ax.set_xticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontdict=fdict, font=fpath)

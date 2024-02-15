@@ -133,14 +133,12 @@ if __name__=="__main__":
 	if (vals > 0).all():
 		print(f"There are no unstable regions.", flush=True)
 	elif (vals>=0).any() and (vals<0).any():
-		print(f"There are stable and unstable regions")
+		print(f"There are stable and unstable regions.", flush=True)
 
 	vmax = +1
 	vmin = -1
 	norm = colors.Normalize(vmin=vmin, vmax=vmax)
 	cols = cmap (norm (vals))
-	# print(f"cols = {cols}", flush=True)
-	# print(f"vals = {vals}", flush=True)
 
 	# get all the crit points
 	if args.crits:
@@ -173,7 +171,7 @@ if __name__=="__main__":
 	# plot the grid on the axis
 	ax.grid()
 
-
+	# start creating the image
 	if args.img != "None":
 		if (".png" in args.img[-4:]):
 			img_name = args.img

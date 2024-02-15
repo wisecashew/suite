@@ -253,6 +253,7 @@ if __name__=="__main__":
 	# plot the grid on the axis
 	ax.grid()
 
+	'''
 	if args.img != "None":
 		if (".png" in args.img[-4:]):
 			img_name = args.img
@@ -265,7 +266,7 @@ if __name__=="__main__":
 		plt.savefig (f"signs_tern-vs_{vs}-vc_{vc}-vp_{vp}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
 	else:
 		plt.savefig (f"signs_reg-vs_{vs}-vc_{vc}-vp_{vp}-chisc_{chi_sc}-chips_{chi_ps}-chipc_{chi_pc}.png", dpi=1200)
-
+	'''
 	print ("Completed heat map computation.", flush=True)
 
 

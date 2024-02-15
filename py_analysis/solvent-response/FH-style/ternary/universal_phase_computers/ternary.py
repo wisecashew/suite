@@ -401,7 +401,7 @@ def plot(ax, tern_b, edges_b, crits_b, crits, chi_ps, chi_pc, chi_sc, p_s, p_p, 
 
 		if crits_b and not(crits is None):
 			ax.scatter(crits[:,0], 1-crits[:,0]-crits[:,1], crits[:,1], color='darkred', edgecolors='darkred',s=4, zorder=15)
-			ax.scatter(np.mean(crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits, axis=0)[1], color="limegreen", edgecolors="limegreen", s=8, zorder=15)
+			# ax.scatter(np.mean(crits, axis=0)[0], 1-np.mean(crits, axis=0)[0]-np.mean(crits, axis=0)[1], np.mean(crits, axis=0)[1], color="limegreen", edgecolors="limegreen", s=8, zorder=15)
 
 		else:
 			pass

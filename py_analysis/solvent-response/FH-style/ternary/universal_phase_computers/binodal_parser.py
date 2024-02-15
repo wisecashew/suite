@@ -17,6 +17,7 @@ import tangent
 import mpltern
 import pickle
 import phase
+import blibrary
 from shapely.geometry import LineString, MultiLineString, MultiPoint, Point
 
 import argparse
@@ -684,6 +685,17 @@ def get_shared_idx(t1, t2):
 
 ##########################################
 
+def triangle_finder(phi_, P):
+	eq1 = P.sym_mu_ps.delta_mu_s(phi_[0], phi_[1], phi_[2], phi_[3])
+	eq2 = P.sym_mu_ps.delta_mu_s(phi_[0], phi_[1], phi_[4], phi_[5])
+	eq3 = P.sym_mu_ps.delta_mu_p(phi_[0], phi_[1], phi_[2], phi_[3])
+	eq4 = P.sym_mu_ps.delta_mu_p(phi_[0], phi_[1], phi_[4], phi_[5])
+	eq5 = P.sym_mu_ps.delta_mu_c(phi_[0], phi_[1], phi_[2], phi_[3])
+	eq6 = P.sym_mu_ps.delta_mu_c(phi_[0], phi_[1], phi_[4], phi_[5])
+	return [eq1, eq2, eq3, eq4, eq5, eq6]
+
+##########################################
+
 if __name__=="__main__":
 
 	start = time.time()
@@ -732,18 +744,6 @@ if __name__=="__main__":
 	P.spinodal.stability_plots(ax, tern_b, edges_b, crits_b)
 	print(f"done!", flush=True)
 
-	# P.tangent_tracing(ax)
-	# print("Plotted out the tangent trace!", flush=True)
-	
-	# extract island information
-	f = open(args.spkl, 'rb')
-	stable_islands = pickle.load(f)
-	f.close()
-
-	f = open(args.upkl, 'rb')
-	unstable_islands = pickle.load(f)
-	f.close()
-
 	#=================================
 	# create all the volume fractions
 	p_s_space = np.arange(0.001, 1-0.001, 0.001)
@@ -754,7 +754,7 @@ if __name__=="__main__":
 		p_p[i*len(p_s_space):(i+1)*len(p_s_space)] = np.linspace (0.001, 1-p_s_space[i], len(p_s_space))
 	
 	# curate all the volume fractions
-	vals = ternary.stab_crit(p_s, p_p, P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)
+	vals    = ternary.stab_crit(p_s, p_p, P.vs, P.vc, P.vp, P.chi_ps, P.chi_pc, P.chi_sc)
 	to_keep = ~np.isnan(vals) & ~np.isinf(vals) & (vals > 0)
 
 	p_s = p_s[to_keep]
@@ -768,24 +768,215 @@ if __name__=="__main__":
 	BINODALS = pickle.load(f)
 	f.close()
 
-	print(f'length of length of the binodal list is {len(BINODALS["hull_info"]["binodal"])}', flush=True)
-	print(f'length of length of the triangles is {len(BINODALS["hull_info"]["triangles"])}',  flush=True)
-	print(f'length of length of the function  is {len(BINODALS["hull_info"]["function"])}',   flush=True)
+	'''
+	cols = ["black", "white", "grey", "pink", "limegreen", "gold"]
+	for i in range(len(BINODALS["stable_hulls"])):
+		for j in range(i+1, len(BINODALS["stable_hulls"])):
+			keep_i = BINODALS["stable_hulls"][i].contains_points(BINODALS["island_scans"][(i,j)][i]["binodal"][:,0:2])
+			keep_j = BINODALS["stable_hulls"][j].contains_points(BINODALS["island_scans"][(i,j)][j]["binodal"][:,0:2])
+			keep   = np.logical_and(keep_i, keep_j)
+			BINODALS["island_scans"][(i,j)][i]["binodal"] =  BINODALS["island_scans"][(i,j)][i]["binodal"][keep]
+			BINODALS["island_scans"][(i,j)][j]["binodal"] =  BINODALS["island_scans"][(i,j)][j]["binodal"][keep]
+	'''
+
+	for ikey, key in enumerate(BINODALS["hull_info"]["binodal"]):
+		B1 = key[0][0]
+		B2 = key[0][1]
+		ax.scatter(B1[:,0], 1-B1[:,0]-B1[:,1], B1[:,1], c="white", s=0.5, label="binodal")
+		ax.scatter(B2[:,0], 1-B2[:,0]-B2[:,1], B2[:,1], c="black", s=0.5, label="binodal")
+		print(len(B1))
+		for i in range(0, len(B1), 100):
+			ax.plot([B1[i,0],B2[i,0]], [1-B1[i,0]-B1[i,1],1-B2[i,0]-B2[i,1]], [B1[i,1], B2[i,1]], lw=0.25, ls='--', c="pink")
+	fig.savefig(args.img, dpi=1200, bbox_inches="tight")
 	
-	f = open(args.db, 'w')
-	f.write(f" vs | vc | vp | chi_sc | chi_ps | chi_pc | phi_s | phi_p | phi_s1 | phi_p1 | phi_s2 | phi_p2 | phi_s3 | phi_p3\n")
+	exit()
+	
+
+	'''
+	# process the intersections
+	keys = list(BINODALS["island_scans"].keys())
+	for i in range(len(keys)):
+		if not ("intersections" in list(BINODALS["island_scans"][keys[i]].keys())):
+			BINODALS["island_scans"][keys[i]]["intersections"] = dict()
+		for j in range(i+1, len(keys)):
+			if not ("intersections" in list(BINODALS["island_scans"][keys[j]].keys())):
+				BINODALS["island_scans"][keys[j]]["intersections"] = dict()
+			if keys[i][0] in keys[j]:
+				BINODALS["island_scans"][keys[i]]["intersections"][keys[j]] = dict()
+				BINODALS["island_scans"][keys[j]]["intersections"][keys[i]] = dict() 
+
+				idx_in_j = keys[j].index(keys[i][0])
+				L1 = LineString(BINODALS["island_scans"][keys[i]][keys[i][0]       ]["binodal"][:, 0:2])
+				L2 = LineString(BINODALS["island_scans"][keys[j]][keys[j][idx_in_j]]["binodal"][:, 0:2])
+
+				intersection = L1.intersection(L2)
+				if intersection.is_empty:
+					BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["boolean"]    = False
+					BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["boolean"]    = False
+					print(f"No intersection.", flush=True)
+				else:
+					try:
+						BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["boolean"]    = True
+						BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["boolean"]    = True
+						BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["poi"]        = np.array([intersection.x, intersection.y, 1-intersection.x-intersection.y])
+						BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["poi"]        = np.array([intersection.x, intersection.y, 1-intersection.x-intersection.y])
+					except AttributeError: 
+						print(f"Error in keys[i] = {keys[i]}, and keys[j] = {keys[j]}", flush=True)
+						BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["boolean"]    = False
+						BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["boolean"]    = False
+					# BINODALS["island_scans"][keys[i]][keys[i][0]]["intersections"][keys[j]] = np.array([intersection.x, intersection.y, 1-intersection.x-intersection.y])
+					# BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]             = np.array([intersection.x, intersection.y, 1-intersection.x-intersection.y])
+			elif keys[i][1] in keys[j]:
+				BINODALS["island_scans"][keys[i]]["intersections"][keys[j]] = dict()
+				BINODALS["island_scans"][keys[j]]["intersections"][keys[i]] = dict()
+
+				idx_in_j = keys[j].index(keys[i][1])
+				L1 = LineString(BINODALS["island_scans"][keys[i]][keys[i][1]       ]["binodal"][:, 0:2])
+				L2 = LineString(BINODALS["island_scans"][keys[j]][keys[j][idx_in_j]]["binodal"][:, 0:2])
+
+				intersection = L1.intersection(L2)
+				if intersection.is_empty:
+					BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["boolean"]    = False
+					BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["boolean"]    = False
+				else:
+					try:
+						BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["boolean"]    = True
+						BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["boolean"]    = True
+						BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["poi"]        = np.array([intersection.x, intersection.y, 1-intersection.x-intersection.y])
+						BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["poi"]        = np.array([intersection.x, intersection.y, 1-intersection.x-intersection.y])
+					except AttributeError:
+						print(f"Error in keys[i] = {keys[i]}, and keys[j] = {keys[j]}", flush=True)
+						BINODALS["island_scans"][keys[i]]["intersections"][keys[j]]["boolean"]    = False
+						BINODALS["island_scans"][keys[j]]["intersections"][keys[i]]["boolean"]    = False
+			else:
+				# no common island, no intersections 
+				print(f"No common island, no intersections. Jump past...", flush=True)
+				pass
+	
+	# now, let's clip the binodals.
+	keys = list(BINODALS["island_scans"])
+	triangle_set  = set()
+
+	# get the sets of points that make the triangles
+	for key in BINODALS["island_scans"]:
+		kcount = 0
+		triangle = [key]
+		for k2 in BINODALS["island_scans"][key]["intersections"]:
+			print(f"key = {key}, k2 = {k2}...", end=' ', flush=True)
+			print(f'First bool = {BINODALS["island_scans"][key]["intersections"][k2]["boolean"]}, second bool = {BINODALS["island_scans"][k2]["intersections"][key]["boolean"]}...', end=' ', flush=True)
+			if BINODALS["island_scans"][key]["intersections"][k2]["boolean"] and BINODALS["island_scans"][k2]["intersections"][key]["boolean"]:
+				print(f"Appending.")
+				triangle.append(k2)
+			else:
+				print(f"Not appending.")
+
+		if len(triangle) == 3:
+			print(f"triangle = {triangle}")
+			print(f"triangle[0] = {triangle[0]}, triangle[1] = {triangle[1]}, triangle[2] = {triangle[2]}")
+			if BINODALS["island_scans"][triangle[0]]["intersections"][triangle[1]]["boolean"] \
+				and BINODALS["island_scans"][triangle[0]]["intersections"][triangle[2]]["boolean"] \
+				and BINODALS["island_scans"][triangle[1]]["intersections"][triangle[2]]["boolean"]:
+				triangle.sort()
+				triangle = tuple(triangle)
+				triangle_set.add(triangle)
+			else:
+				pass
+
+
+	print(triangle_set)
+
+	# go to each triangle, and start finding the three points
+	triangular_hulls = []
+	for triangle_keys in triangle_set:
+		# get the three points 
+		triangle_points = list() 
+		for i in range(len(triangle_keys)):
+			for j in range(i+1, len(triangle_keys)):
+				triangle_points.append(BINODALS["island_scans"][triangle_keys[i]]["intersections"][triangle_keys[j]]["poi"][0:2])
+		
+		root = fsolve(triangle_finder, [triangle_points[0][0], triangle_points[0][1], triangle_points[1][0], triangle_points[1][1], triangle_points[2][0], triangle_points[2][1]], args=(P))
+
+		print(f"root = {root}", flush=True)
+		closeness = np.isclose(triangle_finder(root, P), [0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+		print(f"closeness = {closeness}", flush=True)
+		if closeness.all():
+			print("Worked!")
+		else: 
+			print("This ain't a triangle...", flush=True)
+
+		triangular_hull = np.array([[root[0], root[1]], [root[2], root[3]], [root[4], root[5]]])
+
+		hull      = ConvexHull(triangular_hull[:,0:2])
+		hull_path = Path(triangular_hull[:,0:2][hull.vertices])
+		triangular_hulls.append([triangular_hull, hull_path])
+		# BINODALS["hull_info"]["triangles"].append(hull_path)
+		# BINODALS["hull_info"]["function"].append(hull_path)
+		# BINODALS["hull_info"]["binodal"].append([triangular_hull, "three_phase"])
+
+	to_pop = []
+	for i in range(len(triangular_hulls)):
+		for j in range(len(triangular_hulls)):
+			if i == j:
+				continue 
+			if (triangular_hulls[i][1].contains_points(triangular_hulls[j][0])).any():
+				to_pop.append(j)
+
+	for i in range(len(triangular_hulls)):
+		if not(i in to_pop):
+			BINODALS["hull_info"]["triangles"].append(triangular_hulls[i][1])
+			BINODALS["hull_info"]["function"].append(triangular_hulls[i][1])
+			BINODALS["hull_info"]["binodal"].append([triangular_hulls[i][0], "three_phase"])
+
+	# go to each BINODAL and plug them into hull_info
+	for key in BINODALS["island_scans"]:
+		print(f"key = {key}", flush=True)
+		BINODALS["hull_info"]["binodal"].append( [[BINODALS["island_scans"][key][key[0]]["binodal"], BINODALS["island_scans"][key][key[1]]["binodal"]], "two_phase"] )
+		if BINODALS["island_scans"][key][key[0]]["binodal"].shape[0] == 0 and BINODALS["island_scans"][key][key[1]]["binodal"].shape[0] == 0:
+			BINODALS["hull_info"]["function"].append(None)
+		else:	
+			combined = np.vstack(([BINODALS["island_scans"][key][key[0]]["binodal"], BINODALS["island_scans"][key][key[1]]["binodal"]]))
+			hull = ConvexHull(combined[:,0:2])
+			hull_path = Path(combined[:,0:2][hull.vertices])
+			BINODALS["hull_info"]["function"].append(hull_path)
+
+	for idx, H in enumerate(BINODALS["hull_info"]["binodal"]):
+		if H[-1] == "two_phase" and H[0][0].shape[0] !=0 and H[0][1].shape[1] != 0:
+			to_keep = list()
+			for i in range(len(H[0][0])):
+				check = True
+				line = np.linspace(H[0][0][i][0:2], H[0][1][i][0:2], 1000)
+				for hull_path in BINODALS["hull_info"]["triangles"]:
+					if (hull_path.contains_points(line)).any():
+						check = False
+						break
+					else:
+						continue
+				if check:
+					to_keep.append(i)
+			BINODALS["hull_info"]["binodal"][idx][0][0] = BINODALS["hull_info"]["binodal"][idx][0][0][to_keep]
+			BINODALS["hull_info"]["binodal"][idx][0][1] = BINODALS["hull_info"]["binodal"][idx][0][1][to_keep]
+
+			if BINODALS["hull_info"]["binodal"][idx][0][0].shape[0] < 3 or BINODALS["hull_info"]["binodal"][idx][0][1].shape[0] < 3:
+				BINODALS["hull_info"]["function"][idx] = None
+			else:
+				combined  = np.vstack((BINODALS["hull_info"]["binodal"][idx][0][0], BINODALS["hull_info"]["binodal"][idx][0][1]))
+				hull      = ConvexHull(combined[:,0:2])
+				hull_path = Path(combined[:,0:2][hull.vertices])
+				BINODALS["hull_info"]["function"][idx] = hull_path
+
+		else:
+			continue
+
 	for idx, H in enumerate(BINODALS["hull_info"]["binodal"]):
 		if H[0][0].shape[0] == 0 and H[0][1].shape[0] == 0:
 			continue
 		elif H[-1] == "two_phase":
-			for i in range(len(H[0][0])):
-				line = np.linspace(H[0][0][i], H[0][1][i], 100)
-				for p in line:
-					f.write(f" {vs} | {vc} | {vp} | {chi_sc} | {chi_ps} | {chi_pc} | {p[0]} | {p[1]} | {line[0][0]} | {line[0][1]} | {line[-1][0]} | {line[-1][1]} | - | -\n")
-		
+			ax.scatter(H[0][0][:,0], 1-H[0][0][:,0]-H[0][0][:,1], H[0][0][:,1], s=0.5, c='black')
+			ax.scatter(H[0][1][:,0], 1-H[0][1][:,0]-H[0][1][:,1], H[0][1][:,1], s=0.5, c='white')
 		elif H[-1] == "three_phase":
-			
-	f.close()
+			ax.plot(np.hstack([H[0][:,0],H[0][0,0]]),\
+			np.hstack([1-H[0][:,0]-H[0][:,1], 1-H[0][0,0]-H[0][0,1]]), np.hstack([H[0][:,1], H[0][0,1]]), c='slategray', lw=1)
+
 
 	# create the image
 	print("Making image...")
@@ -799,10 +990,10 @@ if __name__=="__main__":
 			img_name = args.img
 		fig.savefig (img_name, dpi=1200, bbox_inches="tight")
 	else:
-		fig.savefig (f"bin_tern-vs_{P.vs}-vc_{P.vc}-vp_{P.vp}-chisc_{P.chi_sc}-chips_{P.chi_ps}-chipc_{P.chi_pc}.png", dpi=1200)
+		fig.savefig (f"probe-vs_{P.vs}-vc_{P.vc}-vp_{P.vp}-chisc_{P.chi_sc}-chips_{P.chi_ps}-chipc_{P.chi_pc}.png", dpi=1200)
 	
 	print(f"done!", flush=True)
-
+	'''
 	stop = time.time()
 	print(f"Time for computation is {stop-start} seconds.", flush=True)
 

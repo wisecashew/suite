@@ -634,6 +634,9 @@ class sym_mu_ps:
 				elif (not hull1.contains_point(p1[0:2])) or (not hull2.contains_point(p2[0:2])):
 					continue 
 
+				elif (hull1.contains_point(p1[0:2]) and hull1.contains_point(p2[0:2])) or (hull2.contains_point(p1[0:2]) and hull2.contains_point(p2[0:2])):
+					continue
+
 				else:
 					sol1 = np.vstack((sol1, p1))
 					sol2 = np.vstack((sol2, p2))			
@@ -665,6 +668,9 @@ class sym_mu_ps:
 
 				elif (not hull1.contains_point(p1[0:2])) or (not hull2.contains_point(p2[0:2])):
 					continue 
+
+				elif (hull1.contains_point(p1[0:2]) and hull1.contains_point(p2[0:2])) or (hull2.contains_point(p1[0:2]) and hull2.contains_point(p2[0:2])):
+					continue
 
 				else:
 					sol1 = np.vstack((sol1, p1))

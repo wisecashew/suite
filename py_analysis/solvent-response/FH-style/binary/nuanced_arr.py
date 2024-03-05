@@ -1,5 +1,6 @@
 import numpy as np 
 import pandas as pd
+import matplotlib
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from scipy.optimize import root
@@ -8,12 +9,22 @@ import argparse
 import warnings
 import linecache
 from scipy.optimize import curve_fit
+import time
 
 EPS=1e-4
 
 parser = argparse.ArgumentParser (description="Plots phase diagrams.")
-parser.add_argument ("--vm",    dest='vm',    type=float, action='store', help="Provide vm.", default=-1)
-parser.add_argument ("--vs",    dest='vs',    type=float, action='store', help="Provide vs.", default=-1)
+parser.add_argument ("--label", dest='label', type=str,   action='store', help="Prove the label for the diagram.")
+parser.add_argument ("--skips", dest='skip',  type=int,   action='store', help="Provide a skip.", default=1)
+parser.add_argument ("--draw-spin",        dest='draw_spin', action='store_true', help="Enter option to draw the spinodal.", default=False)
+parser.add_argument ("--draw-bin",         dest='draw_bin',  action='store_true', help="Enter option to draw the binodal.", default=False)
+parser.add_argument ("--draw-ticklabels",  dest='draw_tl',   action='store_true', help="Enter option to draw the ticklabels.", default=False)
+parser.add_argument ("--xlim",  dest='xlim',  type=float, nargs='+', action='store', help="Provide a limits for x-axis.", default=[0,1])
+parser.add_argument ("--ylim",  dest='ylim',  type=float, nargs='+', action='store', help="Provide a limits for y-axis.", default=[0,1])
+parser.add_argument ("--Tbot",  dest='Tbot',  type=float, nargs='+', action='store', help="Provide a temperature below which you will not search for a binodal.", default=None)
+parser.add_argument ("--Ttop",  dest='Ttop',  type=float, nargs='+', action='store', help="Provide a temperature above which you will not search for a binodal.", default=None)
+parser.add_argument ("--vm",    dest='vm',    type=float, nargs='+', action='store', help="Provide vm.", default=-1)
+parser.add_argument ("--vs",    dest='vs',    type=float, nargs='+', action='store', help="Provide vs.", default=-1)
 parser.add_argument ("--T",     dest='T',     type=float, nargs='+', action='store', help="Provide a temperature range to plot thing in.", default=[0.01, 1])
 parser.add_argument ("--Tcrit", dest='Tcrit', type=float, nargs='+', action='store', help="Provide temperatures for guesses for Tc.", default=[0.01, 1])
 parser.add_argument ("--pv",    dest='pv',    type=float, nargs='+', action='store', help="Provide PV.", default=-1)
@@ -26,8 +37,10 @@ parser.add_argument ("--essn",  dest="essn",  type=float, nargs='+', action='sto
 parser.add_argument ("--pwms",  dest="pwms",  type=float, nargs='+', action='store', help="Provide PW_MS.", default=0)
 parser.add_argument ("--pwmm",  dest="pwmm",  type=float, nargs='+', action='store', help="Provide PW_MM.", default=0)
 parser.add_argument ("--pwss",  dest="pwss",  type=float, nargs='+', action='store', help="Provide PW_SS.", default=0)
-parser.add_argument ("--csv",   dest='csv',   type=str,   action='store', help='Nameof csv file.')
+parser.add_argument ("--csv",   dest='csv',   type=str,   nargs='+', action='store', help='Name of csv files.')
+parser.add_argument ("--dump",  dest="dump",  type=str,   nargs='+', action='store', help="Names of dumpfile.", default=None)
 parser.add_argument ("--img",   dest="img",   type=str,   action='store', help="Name of image.", default="bintest.png")
+
 args = parser.parse_args() 
 
 def custom_warning_format(message, category, filename, lineno, line=None):
@@ -35,6 +48,24 @@ def custom_warning_format(message, category, filename, lineno, line=None):
     return ""# f"Probably a math sqrt error (line {lineno}).\n"
 
 warnings.formatwarning = custom_warning_format
+
+def remove_close_rows(array, threshold=1e-6):
+	kept_indices   = []
+	filtered_array = np.empty ((0,array.shape[0]))
+	for i, elem in enumerate(array):
+		if i == 0:
+			filtered_array = np.vstack((filtered_array, elem))
+			kept_indices.append(i)
+			continue
+		else:
+			sieve = (np.linalg.norm(filtered_array - elem, axis=1) < threshold).any()
+			if sieve:
+				continue
+			else:
+				filtered_array = np.vstack((filtered_array, elem))
+				kept_indices.append(i)
+
+	return filtered_array, np.array(kept_indices)
 
 def delete_close_elements(array):
 	"""
@@ -128,7 +159,6 @@ def my_spinodal(T, emma, emmn, essa, essn, emsa, emsn, pv, pwmm, pwss, pwms, vm)
 	p1 =  1/(4 * chi * vm) * ( -vm + 1 + 2 * chi * vm * 1 - np.sqrt(-8 * chi * vm * 1 ** 2 + (-vm + 1 + 2 * chi * vm * 1)**2))
 	return p1
 
-
 class Phase:
 
 	def __init__ (self, param_list, vm, vs):
@@ -168,7 +198,6 @@ class Phase:
 		( (fmma (self.EMMA, self.EMMN, self.PWMM, T) * self.EMMA + (1-fmma (self.EMMA, self.EMMN, self.PWMM, T) ) * self.EMMN) + \
 			(fssa (self.ESSA, self.ESSN, self.PWSS, T) * self.ESSA + (1-fssa (self.ESSA, self.ESSN, self.PWSS, T) ) * self.ESSN) ) )
 		+ (1-self.PV) * (self.EMSN - 1/2 * (self.EMMN + self.ESSN) ) ) / T
-
 		return c
 
 	def spinodal (self, T):
@@ -198,7 +227,7 @@ class Phase:
 		single_T = []
 			
 		if phi_ > 0 and phi__>0:
-			print(f"phi_ > 0 and phi__>0...")
+			print(f"phi_ > 0 and phi__>0...", flush=True)
 			self.phi_c = [phi_, phi__]
 			self.T_c   = []
 			chi_  = (self.vm + 2*(self.vm**(3/2))*(vs**0.5)/(self.vm-self.vs) + 3*self.vs - 2*self.vm*self.vs/(self.vm - self.vs) + 2 * (self.vm**0.5) * self.vs**(3/2)/(self.vm-self.vs) + 2 * self.vs**2/(self.vm-self.vs))/(2*self.vm*self.vs)
@@ -213,10 +242,10 @@ class Phase:
 			self.T_c   = np.array(self.T_c)
 					
 		elif phi_ > 0 and phi__ < 0:
-			print(f"phi_ > 0 and phi__<0...")
+			print(f"phi_ > 0 and phi__<0...", flush=True)
 			self.phi_c = np.array([phi_, phi_])
 			self.T_c   = []
-			chi_       = (self.vm + 2*(self.vm**(3/2))*(vs**0.5)/(self.vm-self.vs) + 3*self.vs - 2*self.vm*self.vs/(self.vm - self.vs) + 2 * (self.vm**0.5) * self.vs**(3/2)/(self.vm-self.vs) + 2 * self.vs**2/(self.vm-self.vs))/(2*self.vm*self.vs)
+			chi_       = (self.vm + 2*(self.vm**(3/2))*(self.vs**0.5)/(self.vm-self.vs) + 3*self.vs - 2*self.vm*self.vs/(self.vm - self.vs) + 2 * (self.vm**0.5) * self.vs**(3/2)/(self.vm-self.vs) + 2 * self.vs**2/(self.vm-self.vs))/(2*self.vm*self.vs)
 			self.chi_c = np.array([chi_, chi_])
 			root1      = fsolve(self.spin_condition, args.Tcrit[0], args=(phi_))
 			root2      = fsolve(self.spin_condition, args.Tcrit[1], args=(phi_))
@@ -227,7 +256,7 @@ class Phase:
 			self.T_c   = np.array(self.T_c)
 
 		elif phi_ < 0 and phi__ > 0:
-			print(f"phi_ < 0 and phi__ > 0...")
+			print(f"phi_ < 0 and phi__ > 0...", flush=True)
 			self.phi_c = np.array([phi__, phi__])
 			self.T_c   = []
 			chi__      = (self.vm - 2*(self.vm**(3/2))*(vs**0.5)/(self.vm-self.vs) + 3*self.vs - 2*self.vm*self.vs/(self.vm - self.vs) - 2 * (self.vm**0.5) * self.vs**(3/2)/(self.vm-self.vs) + 2 * self.vs**2/(self.vm-self.vs))/(2*self.vm*self.vs)
@@ -252,9 +281,15 @@ class Phase:
 				self.phi_c = self.phi_c[keep]
 				self.chi_c = self.chi_c[keep]
 			else:
-				pass
+				self.T_c   = []
+				self.phi_c = []
+				self.chi_c = []
+				
 		except:
-			print(f"No T_c")
+			print(f"No T_c.", flush=True)
+			self.T_c   = []
+			self.phi_c = []
+			self.chi_c = []
 
 		return
 
@@ -367,18 +402,17 @@ class Phase:
 		T_list    = [T_arm[T_idx-1], T_arm[T_idx]]
 		bin_arm_1 = [bin_arm_left [T_idx-1], bin_arm_left[T_idx]]
 		bin_arm_2 = [bin_arm_right[T_idx-1], bin_arm_right[T_idx]]
-		delta_T   = T_list[-1] - T_list[-2] 
-		iterx = 0
-		scale = False
+		delta_T   = (T_list[-1] - T_list[-2])/100
+		iterx     = 0
+		scale     = False
 
 		while iterx < 100000 and T_list[-1] < T_arm[T_idx+1] and delta_T > 1e-12:
-
 			if scale:
 				delta_T /= 1.1
 			else:
-				delta_T = T_list[-1] - T_list[-2] 
+				delta_T = (T_list[-1] - T_list[-2])/100
 			if iterx % 1000 == 0:
-				print(f"iterx: {iterx}, delta_T = {delta_T}")
+				print(f"iterx: {iterx}, delta_T = {delta_T}", flush=True)
 			delta_phi_p1, delta_phi_p2 = self.calc_perturbations(bin_arm_1, bin_arm_2, T_list, delta_T)
 
 			def delta_mu(phi):
@@ -396,6 +430,20 @@ class Phase:
 				scale = True
 			iterx += 1
 		
+		
+
+		T_arm = np.hstack((T_arm, T_list))
+		bin_arm_left  = np.hstack((bin_arm_left, bin_arm_1))
+		bin_arm_right = np.hstack((bin_arm_right, bin_arm_2))
+
+		Targsort = np.argsort(T_arm)
+		T_arm         = T_arm[Targsort]
+		bin_arm_left  = bin_arm_left[Targsort]
+		bin_arm_right = bin_arm_right[Targsort]
+
+		T_arm, keep = delete_close_elements(T_arm)
+		bin_arm_left  = bin_arm_left[keep]
+		bin_arm_right = bin_arm_right[keep]
 
 		return bin_arm_1, bin_arm_2, T_list
 
@@ -449,19 +497,20 @@ class Phase:
 
 		return arm_left, arm_right, arm_T
 
-	def grid_search_neo(self, T_arm, bin_arm_left, bin_arm_right):
+	def grid_search_ucst(self, T_arm, bin_arm_left, bin_arm_right, Tbot):
 		# get p boundaries at each temperature
 		arm_left  = []
 		arm_right = []
 		arm_T     = []
-		for idx, T in enumerate(T_arm[::100]):
-			if T < 320:
+		print(f"len(bin_arm_left) = {len(bin_arm_left)}, len(bin_arm_right) = {len(bin_arm_right)}, len(arm_T) = {len(T_arm)}.", flush=True)
+		for idx, T in enumerate(T_arm[::args.skip]):
+			if T < Tbot:
 				break
 			if idx % 1000 == 0:
-				print(f"idx = {idx}", flush=True)
+				print(f"idx = {idx}, T = {T}.", flush=True)
 			# print(f"left_arm = {bin_arm_left[idx]}, right_arm = {bin_arm_right[idx]}")
-			phi_left  = np.logspace(np.log10(bin_arm_left[idx]/1e+9), np.log10(bin_arm_left[idx]), 1000)
-			phi_right = np.logspace(np.log10(bin_arm_right[idx]), np.log10(1 - 1e-3), 10000)
+			phi_left  = np.logspace(np.log10(bin_arm_left[idx*args.skip]/1e+9), np.log10(bin_arm_left[idx*args.skip]), 1000)
+			phi_right = np.logspace(np.log10(bin_arm_right[idx*args.skip]), np.log10(1 - 1e-3), 10000)
 			mu_s_left, mu_s_right = self.mu_s(phi_left, T), self.mu_s(phi_right, T)
 			mu_p_left, mu_p_right = self.mu_p(phi_left, T), self.mu_p(phi_right, T)
 			mu_s_left_idx, mu_s_right_idx, min_mus_dist = find_closest_indices_vectorized(mu_s_left, mu_s_right)
@@ -473,112 +522,334 @@ class Phase:
 				eq2 = self.delta_mu_p(phi[0], phi[1], T)
 				return [eq1, eq2]
 			root = fsolve(delta_mu, [(s_phi_left+p_phi_left)/2, (s_phi_right+p_phi_right)/2], xtol=1e-6)
-			if root[0] <= bin_arm_left[idx] and root[1] >= bin_arm_right[idx]:
+			if root[0] <= bin_arm_left[idx*args.skip] and root[1] >= bin_arm_right[idx*args.skip]:
+				if (np.abs(delta_mu(root)) < 1e-6).all():
+					print(f"1. Found for T = {T}, phi_left = {root[0]}, phi_right = {root[1]}!", flush=True)
+					arm_left.append(root[0])
+					arm_right.append(root[1])
+					arm_T.append(T)
+				else:
+					continue
+			elif root[0] >= bin_arm_right[idx*args.skip] and root[1] <= bin_arm_left[idx*args.skip]:
+				if (np.abs(delta_mu(root)) < 1e-6).all():
+					print(f"2. Found for T = {T}, phi_left = {root[0]}, phi_right = {root[1]}!", flush=True)
+					arm_left.append (root[1])
+					arm_right.append(root[0])
+					arm_T.append(T)
+				else:
+					continue
+			else:
+				continue
+
+		return arm_left, arm_right, arm_T
+
+	def grid_search_lcst(self, T_arm, bin_arm_left, bin_arm_right, Ttop):
+		# get p boundaries at each temperature
+		arm_left  = []
+		arm_right = []
+		arm_T     = []
+		for idx, T in enumerate(T_arm[::args.skip]):
+			if T > Ttop:
+				break
+			if idx % 1000 == 0:
+				print(f"idx = {idx}", flush=True)
+			# print(f"left_arm = {bin_arm_left[idx]}, right_arm = {bin_arm_right[idx]}")
+			phi_left  = np.logspace(np.log10(bin_arm_left [idx*args.skip]/1e+9), np.log10(bin_arm_left[idx*args.skip]), 1000)
+			phi_right = np.logspace(np.log10(bin_arm_right[idx*args.skip]), np.log10(1 - 1e-3), 10000)
+			mu_s_left, mu_s_right = self.mu_s(phi_left, T), self.mu_s(phi_right, T)
+			mu_p_left, mu_p_right = self.mu_p(phi_left, T), self.mu_p(phi_right, T)
+			mu_s_left_idx, mu_s_right_idx, min_mus_dist = find_closest_indices_vectorized(mu_s_left, mu_s_right)
+			mu_p_left_idx, mu_p_right_idx, min_mup_dist = find_closest_indices_vectorized(mu_p_left, mu_p_right)
+			s_phi_left, s_phi_right = phi_left[mu_s_left_idx], phi_right[mu_s_right_idx]
+			p_phi_left, p_phi_right = phi_left[mu_p_left_idx], phi_right[mu_p_right_idx]
+			def delta_mu(phi):
+				eq1 = self.delta_mu_s(phi[0], phi[1], T)
+				eq2 = self.delta_mu_p(phi[0], phi[1], T)
+				return [eq1, eq2]
+			root = fsolve(delta_mu, [(s_phi_left+p_phi_left)/2, (s_phi_right+p_phi_right)/2], xtol=1e-6)
+			if root[0] <= bin_arm_left[idx*args.skip] and root[1] >= bin_arm_right[idx*args.skip]:
 				if (np.abs(delta_mu(root)) < 1e-6).all():
 					print(f"Found for T = {T}!")
 					arm_left.append(root[0])
 					arm_right.append(root[1])
 					arm_T.append(T)
 				else:
-					# print(f"No sol for T = {T}... min: dmus_dist = {min_mus_dist}, dmup_dist = {min_mup_dist} ")
-					# print(f"root = {root}")
-					# print(f"root fitness = {delta_mu(root)}", flush=True)
-					# print(f"Spin left = {bin_arm_left[idx]}, spin right = {bin_arm_right[idx]}")
-					# print(f"Left guess = {(s_phi_left+p_phi_left)/2}, right guess = {(s_phi_right+p_phi_right)/2}")
 					continue
-			elif root[0] >= bin_arm_right[idx] and root[1] <= bin_arm_left[idx]:
+			elif root[0] >= bin_arm_right[idx*args.skip] and root[1] <= bin_arm_left[idx*args.skip]:
 				if (np.abs(delta_mu(root)) < 1e-6).all():
 					print(f"Found for T = {T}!")
 					arm_left.append (root[1])
 					arm_right.append(root[0])
 					arm_T.append(T)
 				else:
-					# print(f"No sol for T = {T}... min: dmus_dist = {min_mus_dist}, dmup_dist = {min_mup_dist} ")
-					# print(f"root = {root}")
-					# print(f"root fitness = {delta_mu(root)}", flush=True)
-					# print(f"Spin left = {bin_arm_left[idx]}, spin right = {bin_arm_right[idx]}")
-					# print(f"Left guess = {(s_phi_left+p_phi_left)/2}, right guess = {(s_phi_right+p_phi_right)/2}")
 					continue
 			else:
-				# print(f"Spin left = {bin_arm_left[idx]}, spin right = {bin_arm_right[idx]}")
-				# print(f"root fitness = {delta_mu(root)}", flush=True)
-				# print(f"Wack roots... roots = {root}")
-				# print(f"No sol for T = {T}...")
-				# print(f"Spin left = {bin_arm_left[idx]}, spin right = {bin_arm_right[idx]}")
-				# print(f"Left guess = {(s_phi_left+p_phi_left)/2}, right guess = {(s_phi_right+p_phi_right)/2}")
 				continue
 
 		return arm_left, arm_right, arm_T
 
+	def grid_search_loop(self, T_arm, bin_arm_left, bin_arm_right):
+		# get p boundaries at each temperature
+		arm_left  = []
+		arm_right = []
+		arm_T     = []
+		for idx, T in enumerate(T_arm[::args.skip]):
+			if idx % 1000 == 0:
+				print(f"idx = {idx*args.skip}", flush=True)
+			# print(f"left_arm = {bin_arm_left[idx]}, right_arm = {bin_arm_right[idx]}")
+			phi_left  = np.logspace(np.log10(bin_arm_left[idx*args.skip]/1e+9), np.log10(bin_arm_left[idx*args.skip]), 1000)
+			phi_right = np.logspace(np.log10(bin_arm_right[idx*args.skip]), np.log10(1 - 1e-3), 10000)
+			mu_s_left, mu_s_right = self.mu_s(phi_left, T), self.mu_s(phi_right, T)
+			mu_p_left, mu_p_right = self.mu_p(phi_left, T), self.mu_p(phi_right, T)
+			mu_s_left_idx, mu_s_right_idx, min_mus_dist = find_closest_indices_vectorized(mu_s_left, mu_s_right)
+			mu_p_left_idx, mu_p_right_idx, min_mup_dist = find_closest_indices_vectorized(mu_p_left, mu_p_right)
+			s_phi_left, s_phi_right = phi_left[mu_s_left_idx], phi_right[mu_s_right_idx]
+			p_phi_left, p_phi_right = phi_left[mu_p_left_idx], phi_right[mu_p_right_idx]
+			def delta_mu(phi):
+				eq1 = self.delta_mu_s(phi[0], phi[1], T)
+				eq2 = self.delta_mu_p(phi[0], phi[1], T)
+				return [eq1, eq2]
+			root = fsolve(delta_mu, [(s_phi_left+p_phi_left)/2, (s_phi_right+p_phi_right)/2], xtol=1e-6)
+			if root[0] <= bin_arm_left[idx*args.skip] and root[1] >= bin_arm_right[idx*args.skip]:
+				if (np.abs(delta_mu(root)) < 1e-6).all():
+					print(f"Found for T = {T}!", flush=True)
+					arm_left.append(root[0])
+					arm_right.append(root[1])
+					arm_T.append(T)
+				else:
+					continue
+			elif root[0] >= bin_arm_right[idx*args.skip] and root[1] <= bin_arm_left[idx*args.skip]:
+				if (np.abs(delta_mu(root)) < 1e-6).all():
+					print(f"Found for T = {T}!", flush=True)
+					arm_left.append (root[1])
+					arm_right.append(root[0])
+					arm_T.append(T)
+				else:
+					continue
+			else:
+				continue
+
+		return arm_left, arm_right, arm_T
+
+	def grid_search_neck(self, T_arm, bin_arm_left, bin_arm_right):
+		# get p boundaries at each temperature
+		arm_left  = []
+		arm_right = []
+		arm_T     = []
+		for idx, T in enumerate(T_arm[::args.skip]):
+			if idx % 1000 == 0:
+				print(f"idx = {idx}, T = {T}.", flush=True)
+			phi_left  = np.logspace(np.log10(bin_arm_left[idx*args.skip]/1e+9), np.log10(bin_arm_left[idx*args.skip]), 1000)
+			phi_right = np.logspace(np.log10(bin_arm_right[idx*args.skip]), np.log10(1 - 1e-3), 10000)
+			mu_s_left, mu_s_right = self.mu_s(phi_left, T), self.mu_s(phi_right, T)
+			mu_p_left, mu_p_right = self.mu_p(phi_left, T), self.mu_p(phi_right, T)
+			mu_s_left_idx, mu_s_right_idx, min_mus_dist = find_closest_indices_vectorized(mu_s_left, mu_s_right)
+			mu_p_left_idx, mu_p_right_idx, min_mup_dist = find_closest_indices_vectorized(mu_p_left, mu_p_right)
+			s_phi_left, s_phi_right = phi_left[mu_s_left_idx], phi_right[mu_s_right_idx]
+			p_phi_left, p_phi_right = phi_left[mu_p_left_idx], phi_right[mu_p_right_idx]
+			def delta_mu(phi):
+				eq1 = self.delta_mu_s(phi[0], phi[1], T)
+				eq2 = self.delta_mu_p(phi[0], phi[1], T)
+				return [eq1, eq2]
+			root = fsolve(delta_mu, [(s_phi_left+p_phi_left)/2, (s_phi_right+p_phi_right)/2], xtol=1e-6)
+			if root[0] <= bin_arm_left[idx*args.skip] and root[1] >= bin_arm_right[idx*args.skip]:
+				if (np.abs(delta_mu(root)) < 1e-6).all():
+					print(f"Found for T = {T}!")
+					arm_left.append(root[0])
+					arm_right.append(root[1])
+					arm_T.append(T)
+				else:
+					continue
+			elif root[0] >= bin_arm_right[idx*args.skip] and root[1] <= bin_arm_left[idx*args.skip]:
+				if (np.abs(delta_mu(root)) < 1e-6).all():
+					print(f"Found for T = {T}!")
+					arm_left.append (root[1])
+					arm_right.append(root[0])
+					arm_T.append(T)
+				else:
+					continue
+			else:
+				continue
+		return arm_left, arm_right, arm_T
+
 if __name__=="__main__":
 
-	fig = plt.figure(num=0, figsize=(3,3))
+	if args.dump is None:
+		print(f"args.dump is None.", flush=True)
+		exit() 
+	elif len(args.dump) == len(args.csv):
+		pass
+	else:
+		print(f"Dump files and csv files don't match.", flush=True)
+		exit()
+
+	start = time.time()
+
+	fig = plt.figure(num=0, figsize=(4,3), )
 	ax  = plt.axes()
-	vm  = args.vm
-	vs  = args.vs
+	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
+	vm      = args.vm
+	vs      = args.vs
+	markers = ["^", "o", "s"]
 
-	
-	params = [args.emsa[0], args.emsn[0], args.emma[0], args.emmn[0], args.essa[0], args.essn[0], args.pv[0], args.pwms[0], args.pwmm[0], args.pwss[0]]
-
-	phase = Phase(params, vm, vs) 
-	phase.print_params()
-	phase.setup()
-	
-	phase.get_critical_info()
-
-	# phase.T_c = np.sort(phase.T_c)
-	
-	T = np.logspace (np.log10(args.T[0]), np.log10(args.T[1]), int(1e+6) ) # np.hstack((np.logspace (-3, np.log10(30), int(1e+7) )  , np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
-	T = np.sort (T, kind="mergesort")
-
-	arms = phase.spinodal(T)
-
-	# ax.scatter(phase.phi_c[:len(phase.T_c)], phase.T_c, c='darkred', s=1, zorder=10)
-	ax.scatter(arms[0], arms[2], s=0.5, c='coral', zorder=1)
-	ax.scatter(arms[1], arms[2], s=0.5, c='steelblue', zorder=1)
-
-	Tmin     = np.min(arms[2])
-	Tmin_idx = np.argmin(arms[2])
-	phimin   = arms[1][Tmin_idx]
-	phi_next = arms[1][np.argmin(np.abs(arms[1] - (phimin+0.1)))]
-	T_next   = arms[2][np.argmin(np.abs(arms[1] - (phimin+0.1)))]
-
-	print(f"dT/dphi = {(T_next-Tmin)/(phi_next-phimin)}, Tmin = {Tmin} phimin = {phimin}", flush=True)
-	
-	# print(f"Start looking for binodals...")
-	
-	try:
-		df = pd.read_csv(args.csv, sep=',', engine="python", names=["phi", "T"])
-		Texp_max = np.max(df["T"].values)
-		ax.scatter(df["phi"].values, df["T"].values, marker='^', s=5, c='gold', edgecolors='k')
-	except:
-		print(f"No csv file.")
-	
-	print(f"Length of Temperature vector = {len(arms[2])}, and some examples = {arms[2]}")
-	
-	
-	arms[0] = np.flip(arms[0])
-	arms[1] = np.flip(arms[1])
-	arms[2] = np.flip(arms[2])
-
-	arm_left, arm_right, T_list  = phase.grid_search_neo(arms[2], arms[0], arms[1])
-	ax.scatter(arm_left,  T_list, s=0.5, c='slategray', zorder=1)
-	ax.scatter(arm_right, T_list, s=0.5, c='black',     zorder=1)
-
-	print(T_list)
-	
-	try:
-		bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
-		ax.scatter(bin_arm_left,  T_list, s=0.5, c='lavender', zorder=1)
-		ax.scatter(bin_arm_right, T_list, s=0.5, c='pink',     zorder=1)
-	except:
-		print(f"Problem with binodal calcs. T_list = {T_list}")	
+	if args.label == "UCST":
+		colors = ["seagreen", "mediumseagreen", "springgreen"]
+		colors.reverse()
+	elif args.label == "LOOP":
+		colors = ["darkgoldenrod", "goldenrod", "gold"]
+		colors.reverse()
+	elif args.label == "NECK":
+		colors = ["firebrick", "red", "coral"]
+		colors.reverse()
 	
 
-	# ax.set_ylim(400, 600)
-	# ax.set_yticks(np.arange(420, 450, 10))
-	ax.set_ylim(args.T[0], args.T[1])
-	ax.set_xlim(0, 1)
+	for i in range(len(args.csv)):
+		try:
+			df = pd.read_csv(args.csv[i], sep=',', engine="python", names=["phi", "T"])
+			Texp_max = np.max(df["T"].values)
+			ax.scatter(df["phi"].values, df["T"].values, marker=markers[i%len(markers)], s=50, c=colors[i], edgecolors='k', label="experimental data", zorder=25)
+		except:
+			print(f"No csv file.")
+
+	for i in range(len(args.vm)):
+		params = [args.emsa[i], args.emsn[i], args.emma[i], args.emmn[i], args.essa[i], args.essn[i], args.pv[i], args.pwms[i], args.pwmm[i], args.pwss[i]]
+
+		print(f"vm[i] = {vm[i]}, vs[i] = {vs[i]}...", flush=True)
+		phase = Phase(params, vm[i], vs[i]) 
+		phase.print_params()
+		phase.setup()
+		phase.get_critical_info()
+
+		T = np.logspace (np.log10(args.T[0]), np.log10(args.T[1]), int(1e+6) ) # np.hstack((np.logspace (-3, np.log10(30), int(1e+7) )  , np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
+		T = np.sort (T, kind="mergesort")
+
+		arms = phase.spinodal(T)
+		# ax.scatter(phase.phi_c[:len(phase.T_c)], phase.T_c, c='darkred', s=1, zorder=10)
+
+		if args.draw_spin:
+			ax.plot(arms[0], arms[2], lw=0.5, c='slategray', zorder=1, label="spinodal")
+			ax.plot(arms[1], arms[2], lw=0.5, c='slategray', zorder=1, label="_nolabel_")
+		
+		print(f"Length of Temperature vector = {len(arms[2])}, and some examples = {arms[2]}")
+		if args.label == "UCST":
+			
+			if args.draw_bin:
+				arms[0] = np.flip(arms[0])
+				arms[1] = np.flip(arms[1])
+				arms[2] = np.flip(arms[2])
+				arm_left, arm_right, T_list  = phase.grid_search_ucst(arms[2], arms[0], arms[1], args.Tbot[i])
+				ax.plot(arm_left,  T_list, lw=2.0, c=colors[i], zorder=1, label="binodal")
+				ax.plot(arm_right, T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_")
+				'''
+				try:
+					bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
+					ax.plot(bin_arm_left,  T_list, lw=1.0, c=colors[i], zorder=1, label="_nolabel_")
+					ax.plot(bin_arm_right, T_list, lw=1.0, c=colors[i], zorder=1, label="_nolabel_")
+				except:
+					print(f"Problem with binodal calcs. T_list = {T_list}")	
+				'''
+					
+		elif args.label == "LCST":
+			if args.draw_bin:
+				arm_left, arm_right, T_list  = phase.grid_search_lcst(arms[2], arms[0], arms[1], args.Ttop[i])
+				arm_left  = np.hstack((arms[0][0], arm_left))
+				arm_right = np.hstack((arms[1][0], arm_right))
+				T_list    = np.hstack((arms[2][0], T_list))
+				ax.plot(arm_left,  T_list, lw=2.0, c=colors[i], zorder=1, label="binodal")
+				ax.plot(arm_right, T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_")
+				bin_arm_left = arm_left 
+				bin_arm_right = arm_right 
+				'''
+				try:
+					for i in range(10):
+						bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, bin_arm_left, bin_arm_right)
+						ax.plot(bin_arm_left,  T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+						ax.plot(bin_arm_right, T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+				except:
+					print(f"Problem with binodal calcs. T_list = {T_list}")	
+				'''
+					
+		elif args.label == "LOOP":
+			if args.draw_bin:
+				mask = np.logical_and(arms[2]>=args.Tbot[i], arms[2]<=args.Ttop[i])
+				arms[0] = arms[0][mask]
+				arms[1] = arms[1][mask]
+				arms[2] = arms[2][mask]
+				arm_left, arm_right, T_list  = phase.grid_search_loop(arms[2], arms[0], arms[1])
+				ax.plot(arm_left,  T_list, lw=2.0, c=colors[i], zorder=1, label="binodal")
+				ax.plot(arm_right, T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_")
+				'''
+				try:
+					bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
+					ax.plot(bin_arm_left,  T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+					ax.plot(bin_arm_right, T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+				except:
+					print(f"Problem with binodal calcs. T_list = {T_list}")	
+				'''
+
+		elif args.label == "NECK": 
+			if args.draw_bin: 
+				Tmid      = (args.Tbot[i] + args.Ttop[i])/2 
+				mask = arms[2] <= Tmid 
+				lower_T = np.flip(arms[2][mask]) 
+				lower_arm_left  = np.flip(arms[0][mask]) 
+				lower_arm_right = np.flip(arms[1][mask]) 
+
+				arm_left, arm_right, T_list  = phase.grid_search_neck(lower_T, lower_arm_left, lower_arm_right) 
+				ax.plot(arm_left,  T_list, lw=2.0, c=colors[i], zorder=1, label="binodal") 
+				ax.plot(arm_right, T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_") 
+				'''
+				try:
+					bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
+					ax.plot(bin_arm_left,  T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+					ax.plot(bin_arm_right, T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+				except:
+					print(f"Problem with binodal calcs. T_list = {T_list}")	
+				'''
+				mask = arms[2] >= Tmid 
+				upper_T = arms[2][mask]
+				upper_arm_left  = arms[0][mask]
+				upper_arm_right = arms[1][mask]
+
+				arm_left, arm_right, T_list  = phase.grid_search_neck(upper_T, upper_arm_left, upper_arm_right)
+				ax.plot(arm_left,  T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_")
+				ax.plot(arm_right, T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_")
+				'''
+				try:
+					bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
+					ax.plot(bin_arm_left,  T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+					ax.plot(bin_arm_right, T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
+				except:
+					print(f"Problem with binodal calcs. T_list = {T_list}")
+				'''
+
+		print(f"Dumping out binodals for {args.csv[i]}...", flush=True)
+		f = open(args.dump[i], 'w')
+		f.write("left | right | T\n")
+		for j in range(len(arm_left)):
+			f.write(f"{arm_left[j]} | {arm_right[j]} | {T_list[j]}\n")
+		f.close()
+
+
+	ax.set_ylim(args.ylim[0], args.ylim[1])
+	ax.set_xlim(args.xlim[0], args.xlim[1])
+	ax.set_yticks(np.linspace(args.ylim[0], args.ylim[1], 5))
+	ax.set_xticks(np.linspace(args.xlim[0], args.xlim[1], 5))
+	# ax.minorticks_on()
+	# Set the number of minor ticks
+	minor_ticks_between_major = 4
+	nticks = 5
+
+	# Set minor tick locators
+	ax.xaxis.set_minor_locator(plt.MultipleLocator((args.xlim[1] - args.xlim[0]) / (nticks - 1) / (minor_ticks_between_major + 1)))
+	ax.yaxis.set_minor_locator(plt.MultipleLocator((args.ylim[1] - args.ylim[0]) / (nticks - 1) / (minor_ticks_between_major + 1)))
+
+	if args.draw_tl:
+		pass
+	else:
+		ax.set_yticklabels([])
+		ax.set_xticklabels([])
 
 	fig.savefig(args.img, dpi=1200, bbox_inches="tight")
-	
+	stop = time.time()
+	print(f"Time for computation is {stop - start} seconds.", flush=True)

@@ -8,6 +8,7 @@ import argparse
 import warnings
 import linecache
 from scipy.optimize import curve_fit
+from scipy.optimize import differential_evolution
 
 EPS=1e-4
 
@@ -119,14 +120,31 @@ fmma  = lambda emma, emmn, pw, T: pw*np.exp (-1/T * emma, dtype=np.float64)/zmm(
 fmsa  = lambda emsa, emsn, pw, T: pw*np.exp (-1/T * emsa, dtype=np.float64)/zms(emsa, emsn, pw, T)
 fssa  = lambda essa, essn, pw, T: pw*np.exp (-1/T * essa, dtype=np.float64)/zss(essa, essn, pw, T)
 
-def my_spinodal(T, emma, emmn, essa, essn, emsa, emsn, pv, pwmm, pwss, pwms, vm):
-	chi = 24/T * (pv * ( (fmsa (emsa, emsn, pwms, T) * emsa + (1 - fmsa (emsa, emsn, pwms, T) ) * emsn) - 1/2 * \
-		( (fmma (emma, emmn, pwmm, T) * emma + (1-fmma (emma, emmn, pwmm, T) ) * emmn) + \
-			(fssa (essa, essn, pwss, T) * essa + (1-fssa (essa, essn, pwss, T) ) * essn) ) )
+df = pd.read_csv(args.csv, sep=',', engine="python", names=["phi", "T"])
+y_data = np.array([0.04874274661508704, 0.06885880077369438, 0.0998065764023211, 0.14854932301740817,0.15009671179883946,0.10058027079303677,0.07040618955512573,0.04874274661508704 ] )
+x_data = np.array([513.6925098554534, 517.9632063074902, 518.4756898817346, 519.5006570302235, 428.449408672799, 428.62023653088045, 429.13272010512486, 430.49934296977665])
+
+def my_spinodal(emma, emmn, essa, essn, emsa, emsn, pv, pwmm, pwss, pwms, vm):
+	chi = 24/y_data * (pv * ( (fmsa (emsa, emsn, pwms, y_data) * emsa + (1 - fmsa (emsa, emsn, pwms, y_data) ) * emsn) - 1/2 * \
+		( (fmma (emma, emmn, pwmm, y_data) * emma + (1-fmma (emma, emmn, pwmm, y_data) ) * emmn) + \
+			(fssa (essa, essn, pwss, y_data) * essa + (1-fssa (essa, essn, pwss, y_data) ) * essn) ) )
 		+ (1-pv) * (emsn - 1/2 * (emmn + essn) ) )
 	
 	p1 =  1/(4 * chi * vm) * ( -vm + 1 + 2 * chi * vm * 1 - np.sqrt(-8 * chi * vm * 1 ** 2 + (-vm + 1 + 2 * chi * vm * 1)**2))
+	mask = np.isnan(p1)
+	p1[mask] = 1e+8
+
 	return p1
+
+def obj(params):
+    # Compute the predicted curve using your function with the current parameters
+    p1 = my_spinodal(params[0], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], params[10])
+
+    # Compute the difference between predicted curve and actual data points
+    difference = p1 - x_data
+
+    # Return some measure of the difference, e.g., sum of squared differences
+    return np.sum(difference ** 2)
 
 
 class Phase:
@@ -240,22 +258,22 @@ class Phase:
 				self.T_c.append(root2[0])
 			self.T_c   = np.array(self.T_c)
 
-		try:
-			self.T_c, keep = delete_close_elements(self.T_c)
-			if len(self.T_c) == 2:
-				print("yo!")
-				self.phi_c = self.phi_c[keep]
-				self.chi_c = self.chi_c[keep]
-		
-			elif len(self.T_c) == 1:
-				single_T.append(self.T_c[0])
-				self.phi_c = self.phi_c[keep]
-				self.chi_c = self.chi_c[keep]
-			else:
-				pass
-		except:
-			print(f"No T_c")
+		self.T_c, keep = delete_close_elements(self.T_c)
+		if len(self.T_c) == 2:
+			print("yo!")
+		elif len(self.T_c) == 1:
+			single_T.append(self.T_c[0])
 
+		else:
+			pass
+
+		# print(self.T_c)
+		# print(self.chi_c)
+		self.T_c, keep = delete_close_elements(self.T_c)
+		if len(keep) != 0:
+			self.phi_c = self.phi_c[keep]
+			self.chi_c = self.chi_c[keep]
+		
 		return
 
 	def setup(self):
@@ -449,13 +467,13 @@ class Phase:
 
 		return arm_left, arm_right, arm_T
 
-	def grid_search_neo(self, T_arm, bin_arm_left, bin_arm_right):
+	def grid_search_neo(self, T_arm, bin_arm_left, bin_arm_right, Tmax):
 		# get p boundaries at each temperature
 		arm_left  = []
 		arm_right = []
 		arm_T     = []
-		for idx, T in enumerate(T_arm[::100]):
-			if T < 320:
+		for idx, T in enumerate(T_arm[::1000]):
+			if T > Tmax:
 				break
 			if idx % 1000 == 0:
 				print(f"idx = {idx}", flush=True)
@@ -512,73 +530,14 @@ class Phase:
 
 if __name__=="__main__":
 
-	fig = plt.figure(num=0, figsize=(3,3))
-	ax  = plt.axes()
-	vm  = args.vm
-	vs  = args.vs
+	bounds = [(-1000,0 ), (-1000,0 ), (-1000,0 ), (-1000,0 ), (-1000,0 ), (-1000,0 ), (0,1), (0,1), (0,1), (0,1), (1, 1000)]
 
-	
-	params = [args.emsa[0], args.emsn[0], args.emma[0], args.emmn[0], args.essa[0], args.essn[0], args.pv[0], args.pwms[0], args.pwmm[0], args.pwss[0]]
+	result = differential_evolution(obj, bounds)
+	optimized_params = result.x
+	print(f"emma = {optimized_params[0]}, emmn = {optimized_params[1]}, essa = {optimized_params[2]}, \
+	   essn = {optimized_params[3]}, emsa = {optimized_params[4]}, emsn = {optimized_params[5]}, \
+		pv = {optimized_params[6]}, pwmm = {optimized_params[7]}, pwss = {optimized_params[8]}, \
+			pwms = {optimized_params[9]}, vm = {optimized_params[10]}")
 
-	phase = Phase(params, vm, vs) 
-	phase.print_params()
-	phase.setup()
-	
-	phase.get_critical_info()
-
-	# phase.T_c = np.sort(phase.T_c)
-	
-	T = np.logspace (np.log10(args.T[0]), np.log10(args.T[1]), int(1e+6) ) # np.hstack((np.logspace (-3, np.log10(30), int(1e+7) )  , np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
-	T = np.sort (T, kind="mergesort")
-
-	arms = phase.spinodal(T)
-
-	# ax.scatter(phase.phi_c[:len(phase.T_c)], phase.T_c, c='darkred', s=1, zorder=10)
-	ax.scatter(arms[0], arms[2], s=0.5, c='coral', zorder=1)
-	ax.scatter(arms[1], arms[2], s=0.5, c='steelblue', zorder=1)
-
-	Tmin     = np.min(arms[2])
-	Tmin_idx = np.argmin(arms[2])
-	phimin   = arms[1][Tmin_idx]
-	phi_next = arms[1][np.argmin(np.abs(arms[1] - (phimin+0.1)))]
-	T_next   = arms[2][np.argmin(np.abs(arms[1] - (phimin+0.1)))]
-
-	print(f"dT/dphi = {(T_next-Tmin)/(phi_next-phimin)}, Tmin = {Tmin} phimin = {phimin}", flush=True)
-	
-	# print(f"Start looking for binodals...")
-	
-	try:
-		df = pd.read_csv(args.csv, sep=',', engine="python", names=["phi", "T"])
-		Texp_max = np.max(df["T"].values)
-		ax.scatter(df["phi"].values, df["T"].values, marker='^', s=5, c='gold', edgecolors='k')
-	except:
-		print(f"No csv file.")
-	
-	print(f"Length of Temperature vector = {len(arms[2])}, and some examples = {arms[2]}")
-	
-	
-	arms[0] = np.flip(arms[0])
-	arms[1] = np.flip(arms[1])
-	arms[2] = np.flip(arms[2])
-
-	arm_left, arm_right, T_list  = phase.grid_search_neo(arms[2], arms[0], arms[1])
-	ax.scatter(arm_left,  T_list, s=0.5, c='slategray', zorder=1)
-	ax.scatter(arm_right, T_list, s=0.5, c='black',     zorder=1)
-
-	print(T_list)
-	
-	try:
-		bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
-		ax.scatter(bin_arm_left,  T_list, s=0.5, c='lavender', zorder=1)
-		ax.scatter(bin_arm_right, T_list, s=0.5, c='pink',     zorder=1)
-	except:
-		print(f"Problem with binodal calcs. T_list = {T_list}")	
-	
-
-	# ax.set_ylim(400, 600)
-	# ax.set_yticks(np.arange(420, 450, 10))
-	ax.set_ylim(args.T[0], args.T[1])
-	ax.set_xlim(0, 1)
-
-	fig.savefig(args.img, dpi=1200, bbox_inches="tight")
-	
+	final_curve = my_spinodal(*optimized_params)
+	print(final_curve)

@@ -784,9 +784,11 @@ if __name__=="__main__":
 		B2 = key[0][1]
 		ax.scatter(B1[:,0], 1-B1[:,0]-B1[:,1], B1[:,1], c="white", s=0.5, label="binodal")
 		ax.scatter(B2[:,0], 1-B2[:,0]-B2[:,1], B2[:,1], c="black", s=0.5, label="binodal")
+		B1, keep = ternary.remove_close_rows(B1, 1e-2)
+		B2       = B2[keep]
 		print(len(B1))
-		for i in range(0, len(B1), 100):
-			ax.plot([B1[i,0],B2[i,0]], [1-B1[i,0]-B1[i,1],1-B2[i,0]-B2[i,1]], [B1[i,1], B2[i,1]], lw=0.25, ls='--', c="pink")
+		for i in range(0, len(B1)):
+			ax.plot([B1[i,0],B2[i,0]], [1-B1[i,0]-B1[i,1],1-B2[i,0]-B2[i,1]], [B1[i,1], B2[i,1]], lw=1.25, ls='--', c="pink")
 	fig.savefig(args.img, dpi=1200, bbox_inches="tight")
 	
 	exit()

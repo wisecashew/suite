@@ -1,0 +1,11 @@
+PIB-diisobutyl ketone (6m): vs=1, p=0, emsa=0, emsn=0, essa=0, essn=0, pwms=0, pwmm=0, pwss=0, emma=emmn=-14.2, vm=4325
+PIB-diisobutyl ketone (285k): EMSA = 0.0, EMSN = 0.0, EMMA = -14.2, EMMN = -14.2, ESSA = 0.0, ESSN = 0.0, PV = 0.0, PWMS = 0.0, PWMM = 0.0, PWSS = 0.0, vs = 1.0, vm = 1000.0
+PIB-diisobutyl ketone (227k): EMSA = 0.0, EMSN = 0.0, EMMA = -14.0, EMMN = -14.3, ESSA = 0.0, ESSN = 0.0, PV = 0.0, PWMS = 0.0, PWMM = 0.0, PWSS = 0.0, vs = 1.0, vm = 150.0
+PS-ethylacetate (100k): EMSA = -1002.0, EMSN = -100.0, EMMA = -1700.0, EMMN = -1000.0, ESSA = -300.0, ESSN = -200.0, PV = 1.0, PWMS = 0.35, PWMM = 0.25, PWSS = 0.4, vs = 1.0, vm = 170.0
+PS-ethylacetate (223k): EMSA = -999.0, EMSN = -100.0, EMMA = -1701.0, EMMN = -1000.0, ESSA = -300.0, ESSN = -200.0, PV = 1.0, PWMS = 0.35, PWMM = 0.25, PWSS = 0.4, vs = 1.0, vm = 300.0
+PS-ethylacetate (600k): EMSA = -1000.0, EMSN = -100.0, EMMA = -1800.0, EMMN = -1000.0, ESSA = -200.0, ESSN = -100.0, PV = 1.0, PWMS = 0.35, PWMM = 0.25, PWSS = 0.4, vs = 1.0, vm = 380.0
+PEG-water: EMSA = -515.0, EMSN = -131.5, EMMA = -607.0, EMMN = -170.0, ESSA = -145.0, ESSN = -50.0, PV = 1.0, PWMS = 0.15, PWMM = 0.355, PWSS = 0.3, vs = 1.0, vm = 60.0
+Nicotine-water: EMSA = -257.0, EMSN = -101.8, EMMA = -343.0, EMMN = -246.7, ESSA = 0.0, ESSN = 0.0, PV = 1.0, PWMS = 0.15, PWMM = 0.35, PWSS = 0.0, vs = 1.0, vm = 500.0
+PS-tertbutyl (100k): EMSA = -2400.0, EMSN = -240.0, EMMA = -4132.0, EMMN = -600.0, ESSA = -768.0, ESSN = -480.0, PV = 1.0, PWMS = 0.35, PWMM = 0.28, PWSS = 0.4, vs = 1.0, vm = 170.0
+PS-tertbutyl (223k): EMSA = -2412.0, EMSN = -240.0, EMMA = -4160.0, EMMN = -610.0, ESSA = -768.0, ESSN = -480.0, PV = 1.0, PWMS = 0.35, PWMM = 0.28, PWSS = 0.4, vs = 1.0, vm = 500.0
+PS-tertbutyl (600k): EMSA = -2412.0, EMSN = -240.0, EMMA = -4163.0, EMMN = -610.0, ESSA = -768.0, ESSN = -480.0, PV = 1.0, PWMS = 0.35, PWMM = 0.28, PWSS = 0.4, vs = 1.0, vm = 800.0

@@ -134,22 +134,23 @@ if __name__=="__main__":
     binodal_list = []
     meshpkl_list = []
 
-    for i in range(ncycles+1):
-        vs_list.append(vs[i*nproc:(i+1)*nproc])
-        vp_list.append(vp[i*nproc:(i+1)*nproc])
-        vc_list.append(vc[i*nproc:(i+1)*nproc])
-        chips_list.append(chips[i*nproc:(i+1)*nproc])
-        chipc_list.append(chipc[i*nproc:(i+1)*nproc])
-        chisc_list.append(chisc[i*nproc:(i+1)*nproc])
-        spkl_list.append(spkl[i*nproc:(i+1)*nproc])
-        upkl_list.append(upkl[i*nproc:(i+1)*nproc])
-        critpkl_list.append(critpkl[i*nproc:(i+1)*nproc])
-        binodal_list.append(binodal_pkl[i*nproc:(i+1)*nproc])
-        meshpkl_list.append([meshpkl]*len(chisc[i*nproc:(i+1)*nproc]))
+    # for i in range(ncycles+1):
+    for i in range(nproc):
+        vs_list.append(vs[i*ncycles:(i+1)*ncycles])
+        vp_list.append(vp[i*ncycles:(i+1)*ncycles])
+        vc_list.append(vc[i*ncycles:(i+1)*ncycles])
+        chips_list.append(chips[i*ncycles:(i+1)*ncycles])
+        chipc_list.append(chipc[i*ncycles:(i+1)*ncycles])
+        chisc_list.append(chisc[i*ncycles:(i+1)*ncycles])
+        spkl_list.append(spkl[i*ncycles:(i+1)*ncycles])
+        upkl_list.append(upkl[i*ncycles:(i+1)*ncycles])
+        critpkl_list.append(critpkl[i*ncycles:(i+1)*ncycles])
+        binodal_list.append(binodal_pkl[i*ncycles:(i+1)*ncycles])
+        meshpkl_list.append([meshpkl]*len(chisc[i*ncycles:(i+1)*ncycles]))
 
     #print(f"vs_list = {vs_list[0]}")
     # print(f"chisc_list = {chisc_list[0]}")
-    
+    print(f"vs_list = {vs_list}", flush=True)
     pool = multiprocessing.Pool(processes=nproc)
     pool.starmap(blibrary.execute_parallel, zip(vs_list, vp_list, vc_list, chisc_list, chips_list, chipc_list, critpkl_list, spkl_list, upkl_list, meshpkl_list, binodal_list))
     print(f"Pool has been closed. This pool had {nproc} threads.", flush=True)

@@ -1015,6 +1015,10 @@ def dyad_search(BINODALS, P, idx_tup):
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][np.argsort(angles)]
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][np.argsort(angles)]
 
+	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0])
+	if len(keep) != 0:
+		BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1]       = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][keep]
+
 	# ======================
 	# likely the most expensive part of the dyad search
 	neg_arm, pos_arm = add_and_solve(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1], P, center, mid_axis, 50)

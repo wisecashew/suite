@@ -1,4 +1,5 @@
 #!/bin/awk -f
+
 BEGIN {atoms=0; Onum=10; Hnum=11;}
 
 /^Atoms/ {atoms=1}

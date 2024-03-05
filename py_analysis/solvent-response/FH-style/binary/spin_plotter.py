@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
@@ -25,6 +26,7 @@ parser.add_argument ("-essn", dest="essn", type=float, nargs='+', action='store'
 parser.add_argument ("-pwms", dest="pwms", type=float, nargs='+', action='store', help="Provide PW_MS.", default=0 )
 parser.add_argument ("-pwmm", dest="pwmm", type=float, nargs='+', action='store', help="Provide PW_MM.", default=0 )
 parser.add_argument ("-pwss", dest="pwss", type=float, nargs='+', action='store', help="Provide PW_SS.", default=0 )
+parser.add_argument ("--csv-file", dest="csv", type=str, action='store', help="Enter name of csv file.")
 parser.add_argument ("--xlabels", dest='xlabels', action='store_true', help="Print xlabels.", default=False)
 parser.add_argument ("--ylabels", dest='ylabels', action='store_true', help="Print ylabels.", default=False)
 parser.add_argument ("--png-name", dest="pn", type=str, action='store', help="Name of image to be made.")
@@ -165,6 +167,10 @@ if __name__=="__main__":
     T           = np.logspace (-3, np.log10(1000), int(1e+6) ) # np.hstack((np.logspace (-3, np.log10(30), int(1e+7) )  , np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
     T           = np.sort (T, kind="mergesort")
 
+    PhaseDiag.print_params()
+    print(PhaseDiag.chi(100))
+
+
     fig = plt.figure(figsize=(2.5,2.5), constrained_layout=True)
     fig.tight_layout()
     ax  = plt.axes ()
@@ -200,6 +206,12 @@ if __name__=="__main__":
     # ax.set_yscale ("log")
     ax.set_ylim (400, 450)
     ax.set_xlim (-0.01, 0.5)
+
+    try:
+        df = pd.read_csv(args.csv, sep=',', engine='python', names=["phi", "temp"])
+        ax.scatter(df["phi"].values, df["temp"], s=1, marker='^', edgecolors='k')
+    except:
+        print(f"No csv file.", flush=True)
 
     ax.set_xticks ([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     if args.ylabels:

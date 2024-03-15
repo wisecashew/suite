@@ -136,10 +136,10 @@ print(f"Using {device} device.", flush=True)
 if args.label == "with_splits":
 
 	# define the chemical potential loss
-	def mu_test(X, ttensor):
-		phi_s = ttensor[:,0] # torch.clamp(ttensor[:,0], min=0.001, max=0.999)
-		phi_p = ttensor[:,1] # torch.clamp(ttensor[:,1], min=0.001, max=0.999)
-		phi_c = 1-phi_s-phi_p # torch.clamp(1-ttensor[:,0]-ttensor[:,1], min=0.001, max=0.999)
+	def mu_compute(X, ttensor):
+		phi_s = ttensor[:,0] 
+		phi_p = ttensor[:,1] 
+		phi_c = 1-phi_s-phi_p 
 
 		mu_s = torch.log(phi_s) + 1 - phi_s - X[:,0]/X[:,2] * phi_p - \
 			X[:,0]/X[:,1] * (phi_c) + X[:,0] * (phi_p**2 * X[:,4] + \
@@ -155,63 +155,56 @@ if args.label == "with_splits":
 			phi_p**2 * X[:,5] + phi_s * phi_p * \
 			(X[:,3] + X[:,5] - X[:,4]))
 		
+		# if you are going nan, there is nothing you can do 
 		mu_s = torch.nan_to_num(mu_s, nan=0.0, posinf=0.0, neginf=0.0)
 		mu_p = torch.nan_to_num(mu_p, nan=0.0, posinf=0.0, neginf=0.0)
 		mu_c = torch.nan_to_num(mu_c, nan=0.0, posinf=0.0, neginf=0.0)
 
 		return mu_s, mu_p, mu_c
 
-	# define the loss function
-	def mu_loss_fn(X, true_labels, pred_labels, pred_composition):
-		mu_loss = torch.tensor(0.0, device=device)
+	# define the chemical potential loss function
+	def mu_loss_fn(X, pred_labels, pred_composition):
 
-		_, argmax_true_labels  = torch.max(true_labels, dim=1)
+		# get the labels
 		_, argmax_pred_labels  = torch.max(pred_labels, dim=1)
 
-		mask_true_pred = (argmax_true_labels == argmax_pred_labels).unsqueeze(1)
-		mask_for_1 = (argmax_true_labels == 1).unsqueeze(1)
+		# mask_true_pred = (argmax_true_labels == argmax_pred_labels).unsqueeze(1)
+		mask_for_one_phase    = (argmax_pred_labels == 0).unsqueeze(1).float()
+		mask_for_two_phases   = (argmax_pred_labels == 1).unsqueeze(1).float()
 
-		# print(f"true_label = {true_labels}, pred_label = {pred_labels}")
-		# print(f"pred_composition = {pred_composition}")
-		if torch.logical_and(mask_for_1, mask_true_pred).any():
-			mask_for_1     = mask_for_1.float()
-			mask_true_pred = mask_true_pred.float()
-			mask_combined  = mask_for_1 * mask_true_pred
+		# if you predict just the one phase, you have to make sure there is no chemical 
+		# potential loss
 
-			# print(f"mask_combined = {mask_combined}")
+		# if you predict two phases, you have to check if the two phases have the same
+		# chemical potential 
 
-			# Clone pred_composition before modifying it
-			pred_composition_1 = pred_composition[:, 0:2].clone()
-			pred_composition_2 = pred_composition[:, 2:4].clone()
+		pred_composition_phase_one   = pred_composition[:, 0:2].clone()
+		pred_composition_phase_two   = pred_composition[:, 3:5].clone()
+		pred_composition_phase_three = pred_composition[:, 6:8].clone()
 
-			pred_composition_1 *= mask_combined
-			pred_composition_2 *= mask_combined
+		# compute chemical potentials 
+		mu_s1, mu_p1, mu_c1 = mu_compute(X, pred_composition_phase_one)
+		mu_s2, mu_p2, mu_c2 = mu_compute(X, pred_composition_phase_two)
+		mu_s3, mu_p3, mu_c3 = mu_compute(X, pred_composition_phase_three)
 
-			pred_composition_1 += 0.3 * (1 - mask_combined)
-			pred_composition_2 += 0.3 * (1 - mask_combined)
+		# calculate the differences in chemical potential between first phase and second phase 
+		delta_mu_first_second = ((mu_s1 - mu_s2)**2 + (mu_p1 - mu_p2)**2 + (mu_c1 - mu_c2)**2)
+		delta_mu_first_third  = ((mu_s1 - mu_s3)**2 + (mu_p1 - mu_p3)**2 + (mu_c1 - mu_c3)**2)
+		delta_mu_second_third = ((mu_s2 - mu_s3)**2 + (mu_p2 - mu_p3)**2 + (mu_c2 - mu_c3)**2)
 
-			# print(f"pred_composition_1 = {pred_composition_1}")
-			# print(f"pred_composition_2 = {pred_composition_2}")
+		# if you have only one phase, ignore all the computation
+		delta_mu_first_second *= (1-mask_for_one_phase)
+		delta_mu_first_third  *= (1-mask_for_one_phase)
+		delta_mu_second_third *= (1-mask_for_one_phase)
 
-			mu_s1, mu_p1, mu_c1 = mu_test(X, pred_composition_1)
-			mu_s2, mu_p2, mu_c2 = mu_test(X, pred_composition_2)
+		#if you have two phases, only count the delta_mu between the first and second phase 
+		delta_mu_first_third  *= (1-mask_for_two_phases)
+		delta_mu_second_third *= (1-mask_for_two_phases)
 
-			mu_diff = torch.mean(((mu_s1 - mu_s2) ** 2 + (mu_p1 - mu_p2) ** 2 + (mu_c1 - mu_c2) ** 2) * mask_for_1)
-			mu_loss += mu_diff
-
-		mask_for_2 = (argmax_true_labels == 2).unsqueeze(1)
-		if mask_for_2.any():
-			mask_for_2 = mask_for_2.float()
-			mu_s1, mu_p1, mu_c1 = mu_test(X, pred_composition[:, 0:2])
-			mu_s2, mu_p2, mu_c2 = mu_test(X, pred_composition[:, 2:4])
-			mu_s3, mu_p3, mu_c3 = mu_test(X, pred_composition[:, 4:6])
-
-			mu_diff = torch.mean(((mu_s1 - mu_s2) ** 2 + (mu_p1 - mu_p2) ** 2 + (mu_c1 - mu_c2) ** 2 +
-									(mu_s2 - mu_s3) ** 2 + (mu_s1 - mu_s3) ** 2 + (mu_p1 - mu_p3) ** 2 +
-									(mu_p2 - mu_p3) ** 2 + (mu_c1 - mu_c3) ** 2 + (mu_c2 - mu_c3) ** 2) * mask_for_2)
-			mu_loss += mu_diff
-
-		return mu_loss
+		# get every delta_mu together and compute the mean 
+		delta_mu_total = torch.mean(delta_mu_first_second + delta_mu_first_third + delta_mu_second_third)
+		
+		return delta_mu_total
 
 	# define the unity loss
 	def unity_loss_fn(pred_composition):
@@ -296,29 +289,33 @@ if args.label == "with_splits":
 			x          = x.to(device)
 
 			# predict labels and composition
-			pred_label = self.classifier(x)
-			pred_comp  = self.splitter(x)
+			pred_label   = self.classifier(x)
+			pred_comp    = self.splitter(x)
 
 			# get the arguments
 			_, argmax_label = torch.max(pred_label, 1)
 
-			# start getting masks
-			mask_for_0 = (argmax_label==0).unsqueeze(1) 
-			if mask_for_0.any():
-				mask_for_0             = 1 - mask_for_0.float()
-				pred_comp_clone        = pred_comp.clone() # create a clone of pred_comps
-				pred_comp_clone[:,2:] *= mask_for_0
-				pred_comp              = pred_comp_clone
-			
-			mask_for_1 = (argmax_label==1).unsqueeze(1)
-			if mask_for_1.any():
-				mask_for_1             = 1 - mask_for_1.float()
-				pred_comp_clone        = pred_comp.clone()
-				pred_comp_clone[:,4:] *= mask_for_1
-				pred_comp              = pred_comp_clone
-						
-			return pred_label, pred_comp
+			# start getting masks 
+			mask_for_one_phase  = (argmax_label == 0).unsqueeze(1).float()
+			mask_for_two_phases = (argmax_label == 1).unsqueeze(1).float()
 
+			# i do not need to make a mask_for_three_phases because 
+			# when three phases have been predicted, there is no reason to "zero-out" anything
+
+			# create a clone
+			pred_comp_clone = pred_comp.clone()
+
+			# for all those compositions where the only one phase is predicted, everything from column index 3 needs to be zero'd out
+			pred_comp_clone[:, 3:] *= (1 - mask_for_one_phase)
+
+			# if you only have one phase, the number in column index 2 (weight of the phase) has to be 1
+			pred_comp_clone[:, 2]   = torch.where(mask_for_one_phase == 1, torch.tensor(1.0).to(device), pred_comp_clone[:, 2])
+
+			# if you have two phases, then everything from column index 6 needs to be zero'd out 
+			pred_comp_clone[:, 6:] *= (1 - mask_for_two_phases)
+
+			return pred_label, pred_comp
+			
 	# define the training loop 
 	def train(dataloader, model, optimizer):
 		# rev up the model to being training
@@ -811,10 +808,10 @@ elif args.label == "with_weights_sep":
 elif args.label == "with_weights_comb":
 	
 	# define the chemical potential loss
-	def mu_test(X, ttensor):
-		phi_s = ttensor[:,0] # torch.clamp(ttensor[:,0], min=0.001, max=0.999)
-		phi_p = ttensor[:,1] # torch.clamp(ttensor[:,1], min=0.001, max=0.999)
-		phi_c = 1-phi_s-phi_p # torch.clamp(1-ttensor[:,0]-ttensor[:,1], min=0.001, max=0.999)
+	def mu_compute(X, ttensor):
+		phi_s = ttensor[:,0] 
+		phi_p = ttensor[:,1] 
+		phi_c = 1-phi_s-phi_p 
 
 		mu_s = torch.log(phi_s) + 1 - phi_s - X[:,0]/X[:,2] * phi_p - \
 			X[:,0]/X[:,1] * (phi_c) + X[:,0] * (phi_p**2 * X[:,4] + \
@@ -836,57 +833,49 @@ elif args.label == "with_weights_comb":
 
 		return mu_s, mu_p, mu_c
 
-	# define the loss function
-	def mu_loss_fn(X, true_labels, pred_labels, pred_composition):
-		mu_loss = torch.tensor(0.0, device=device)
+	# define the chemical potential loss function
+	def mu_loss_fn(X, pred_labels, pred_composition):
 
-		_, argmax_true_labels  = torch.max(true_labels, dim=1)
+		# get the labels
 		_, argmax_pred_labels  = torch.max(pred_labels, dim=1)
 
-		mask_true_pred = (argmax_true_labels == argmax_pred_labels).unsqueeze(1)
-		mask_for_1     = (argmax_true_labels == 1).unsqueeze(1)
+		# mask_true_pred = (argmax_true_labels == argmax_pred_labels).unsqueeze(1)
+		mask_for_one_phase    = (argmax_pred_labels == 0).unsqueeze(1).float()
+		mask_for_two_phases   = (argmax_pred_labels == 1).unsqueeze(1).float()
 
-		# print(f"true_label = {true_labels}, pred_label = {pred_labels}")
-		# print(f"pred_composition = {pred_composition}")
-		if torch.logical_and(mask_for_1, mask_true_pred).any():
-			mask_for_1     = mask_for_1.float()
-			mask_true_pred = mask_true_pred.float()
-			mask_combined  = mask_for_1 * mask_true_pred
+		# if you predict just the one phase, you have to make sure there is no chemical 
+		# potential loss
 
-			# print(f"mask_combined = {mask_combined}")
+		# if you predict two phases, you have to check if the two phases have the same
+		# chemical potential 
 
-			# Clone pred_composition before modifying it
-			pred_composition_1 = pred_composition[:, 0:2].clone()
-			pred_composition_2 = pred_composition[:, 3:5].clone()
+		pred_composition_phase_one   = pred_composition[:, 0:2].clone()
+		pred_composition_phase_two   = pred_composition[:, 3:5].clone()
+		pred_composition_phase_three = pred_composition[:, 6:8].clone()
 
-			pred_composition_1 *= mask_combined
-			pred_composition_2 *= mask_combined
+		# compute chemical potentials 
+		mu_s1, mu_p1, mu_c1 = mu_compute(X, pred_composition_phase_one)
+		mu_s2, mu_p2, mu_c2 = mu_compute(X, pred_composition_phase_two)
+		mu_s3, mu_p3, mu_c3 = mu_compute(X, pred_composition_phase_three)
 
-			pred_composition_1 += 0.3 * (1 - mask_combined)
-			pred_composition_2 += 0.3 * (1 - mask_combined)
+		# calculate the differences in chemical potential between first phase and second phase 
+		delta_mu_first_second = ((mu_s1 - mu_s2)**2 + (mu_p1 - mu_p2)**2 + (mu_c1 - mu_c2)**2)
+		delta_mu_first_third  = ((mu_s1 - mu_s3)**2 + (mu_p1 - mu_p3)**2 + (mu_c1 - mu_c3)**2)
+		delta_mu_second_third = ((mu_s2 - mu_s3)**2 + (mu_p2 - mu_p3)**2 + (mu_c2 - mu_c3)**2)
 
-			# print(f"pred_composition_1 = {pred_composition_1}")
-			# print(f"pred_composition_2 = {pred_composition_2}")
+		# if you have only one phase, ignore all the computation
+		delta_mu_first_second *= (1-mask_for_one_phase)
+		delta_mu_first_third  *= (1-mask_for_one_phase)
+		delta_mu_second_third *= (1-mask_for_one_phase)
 
-			mu_s1, mu_p1, mu_c1 = mu_test(X, pred_composition_1)
-			mu_s2, mu_p2, mu_c2 = mu_test(X, pred_composition_2)
+		#if you have two phases, only count the delta_mu between the first and second phase 
+		delta_mu_first_third  *= (1-mask_for_two_phases)
+		delta_mu_second_third *= (1-mask_for_two_phases)
 
-			mu_diff = torch.mean(((mu_s1 - mu_s2) ** 2 + (mu_p1 - mu_p2) ** 2 + (mu_c1 - mu_c2) ** 2) * mask_for_1)
-			mu_loss += mu_diff
-
-		mask_for_2 = (argmax_true_labels == 2).unsqueeze(1)
-		if mask_for_2.any():
-			mask_for_2 = mask_for_2.float()
-			mu_s1, mu_p1, mu_c1 = mu_test(X, pred_composition[:, 0:2])
-			mu_s2, mu_p2, mu_c2 = mu_test(X, pred_composition[:, 3:5])
-			mu_s3, mu_p3, mu_c3 = mu_test(X, pred_composition[:, 6:8])
-
-			mu_diff = torch.mean(((mu_s1 - mu_s2) ** 2 + (mu_p1 - mu_p2) ** 2 + (mu_c1 - mu_c2) ** 2 +
-									(mu_s2 - mu_s3) ** 2 + (mu_s1 - mu_s3) ** 2 + (mu_p1 - mu_p3) ** 2 +
-									(mu_p2 - mu_p3) ** 2 + (mu_c1 - mu_c3) ** 2 + (mu_c2 - mu_c3) ** 2) * mask_for_2)
-			mu_loss += mu_diff
-
-		return mu_loss
+		# get every delta_mu together and compute the mean 
+		delta_mu_total = torch.mean(delta_mu_first_second + delta_mu_first_third + delta_mu_second_third)
+		
+		return delta_mu_total
 
 	# define the unity loss
 	def unity_loss_fn(pred_composition):
@@ -971,22 +960,25 @@ elif args.label == "with_weights_comb":
 			# get the arguments
 			_, argmax_label = torch.max(pred_label, 1)
 
-			# start getting masks
-			mask_for_0 = (argmax_label==0).unsqueeze(1) 
-			if mask_for_0.any():
-				mask_for_0                = 1 - mask_for_0.float()
-				pred_comp_clone           = pred_comp.clone() # create a clone of pred_comps
-				pred_comp_clone[:,3:]    *= mask_for_0
-				pred_comp_clone[:,2]      = 1
-				pred_comp                 = pred_comp_clone
-			
-			mask_for_1 = (argmax_label==1).unsqueeze(1)
-			if mask_for_1.any():
-				mask_for_1                = 1 - mask_for_1.float()
-				pred_comp_clone           = pred_comp.clone()
-				pred_comp_clone[:,6:]    *= mask_for_1
-				pred_comp                 = pred_comp_clone
-						
+			# start getting masks 
+			mask_for_one_phase  = (argmax_label == 0).unsqueeze(1).float()
+			mask_for_two_phases = (argmax_label == 1).unsqueeze(1).float()
+
+			# i do not need to make a mask_for_three_phases because 
+			# when three phases have been predicted, there is no reason to "zero-out" anything
+
+			# create a clone
+			pred_comp_clone = pred_comp.clone()
+
+			# for all those compositions where the only one phase is predicted, everything from column index 3 needs to be zero'd out
+			pred_comp_clone[:, 3:] *= (1 - mask_for_one_phase)
+
+			# if you only have one phase, the number in column index 2 (weight of the phase) has to be 1
+			pred_comp_clone[:, 2]   = torch.where(mask_for_one_phase == 1, torch.tensor(1.0).to(device), pred_comp_clone[:, 2])
+
+			# if you have two phases, then everything from column index 6 needs to be zero'd out 
+			pred_comp_clone[:, 6:] *= (1 - mask_for_two_phases)
+
 			return pred_label, pred_comp
 
 	# get the weights

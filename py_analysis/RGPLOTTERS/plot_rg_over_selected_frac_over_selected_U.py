@@ -29,15 +29,16 @@ shebang for homemachine: #!/usr/bin/env python3
 '''
 
 import argparse
-parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration plot given a degree of polymerization over a range of temperatures and potential energy surfaces.")
+parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration plot given a degree of polymerization over a range of fraction and potential energy surfaces.")
 parser.add_argument('-dop',           metavar='DOP',   dest='dop',            type=int,      action='store', help='enter a degree of polymerization.')
 parser.add_argument('-s',             metavar='S',     type=int,              dest='s',      action='store', help='start parsing after this move number (not index or line number in file).', default=100)
 parser.add_argument('--yllim',        metavar='yllim', type=float,           dest='yllim',   action='store', help='enter lower ylimit.', default=0)
 parser.add_argument('--yulim',        metavar='yulim', type=float,           dest='yulim',   action='store', help='enter upper ylimit.', default=10)
 parser.add_argument('--frac',         metavar='frac', dest='frac',           action='store', nargs='+',      type=float, help='Enter fractions you want probed.')
 parser.add_argument('--U',            metavar='U',    dest='U',              action='store', nargs='+',      type=str,   help='Enter U you want probed.')
-parser.add_argument('-nproc',         metavar='N',    type=int,              dest='nproc',   action='store', help='Request these many proccesses.')
-parser.add_argument('--coords',       dest='c',       metavar='coords.txt',  action='store', type=str,       help='Name of energy dump file to parse information.', default='coords.txt')
+parser.add_argument('--dumpfile',     metavar='dump', type=str,              dest='dump',    action='store', help='Dump radius of gyration to this file.')
+parser.add_argument('--nproc',        metavar='N',    type=int,              dest='nproc',   action='store', help='Request these many proccesses.')
+parser.add_argument('--coords',       dest='c',       metavar='coords',      action='store', type=str,       help='Name of energy dump file to parse information.', default='coords.txt')
 parser.add_argument('--show-legends', dest='sl',      action='store_true',   help='Name of energy dump file to parse information.', default=False)
 parser.add_argument('--show-yticks',  dest='syticks', action='store_true',   help='Show y ticks on plot.', default=False)
 parser.add_argument('--colors',  dest='colors', action='store', type=str,  help='Color of plot.', default=False)
@@ -159,10 +160,15 @@ if __name__ == "__main__":
 	print ("rg_max = ", rg_max)
 	i=0
 
+	f = open(args.dump, 'w')
+	f.write(f"U | frac | Rg\n")
 	for idx,U in enumerate(U_list):
 		ax.errorbar ( frac_list, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
-		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=cols, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10) 
+		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=cols, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10)
 		i += 1
+		for i in range(len(frac_list)):
+			f.write(f"{U} | {frac_list[i]} | {PLOT_DICT[U][0][i]} | {PLOT_DICT[U][1][i]}\n")
+	f.close()
 
 	##############################
 	# plt.rcParams['text.usetex'] = True

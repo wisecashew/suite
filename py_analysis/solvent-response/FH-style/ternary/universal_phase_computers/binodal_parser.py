@@ -780,15 +780,36 @@ if __name__=="__main__":
 	'''
 
 	for ikey, key in enumerate(BINODALS["hull_info"]["binodal"]):
-		B1 = key[0][0]
-		B2 = key[0][1]
-		ax.scatter(B1[:,0], 1-B1[:,0]-B1[:,1], B1[:,1], c="white", s=0.5, label="binodal")
-		ax.scatter(B2[:,0], 1-B2[:,0]-B2[:,1], B2[:,1], c="black", s=0.5, label="binodal")
-		B1, keep = ternary.remove_close_rows(B1, 1e-6)
-		B2       = B2[keep]
-		print(len(B1))
-		for i in range(0, len(B1)):
-			ax.plot([B1[i,0],B2[i,0]], [1-B1[i,0]-B1[i,1],1-B2[i,0]-B2[i,1]], [B1[i,1], B2[i,1]], lw=1.25, ls='--', c="pink")
+		# print(key)
+		if key[-1]=="two_phase":
+			B1 = key[0][0]
+			B2 = key[0][1]
+			if len(B1) == 0:
+				continue
+			B1, keep = ternary.remove_close_rows(B1, 1e-6)
+			B2       = B2[keep]
+
+			# c1  = P.crits[0]
+			# c2  = P.crits[1]
+			# mid = (c1+c2)/2
+			# mid_axis    = (mid - c1)[0:2]/np.linalg.norm((mid-c1)[0:2])
+			# adj_neg_arm = (B1[:,0:2]-mid[0:2])/np.linalg.norm(B1[:,0:2]-mid[0:2], axis=1)[:,np.newaxis]
+			# angles      = np.arccos(np.sum(adj_neg_arm * mid_axis, axis=1))
+			# B1  = B1[np.argsort(angles)]
+			# B2  = B2[np.argsort(angles)]
+
+			ax.plot(B1[:,0], 1-B1[:,0]-B1[:,1], B1[:,1], c="white", lw=1, label="binodal", zorder=10)
+			ax.plot(B2[:,0], 1-B2[:,0]-B2[:,1], B2[:,1], c="black", lw=1, label="binodal", zorder=10)
+
+			# ax.scatter(B1[:,0], 1-B1[:,0]-B1[:,1], B1[:,1], c="white", s=1, label="binodal", zorder=10)
+			# ax.scatter(B2[:,0], 1-B2[:,0]-B2[:,1], B2[:,1], c="black", s=1, label="binodal", zorder=10)
+
+			for i in range(0, len(B1)):
+				ax.plot([B1[i,0],B2[i,0]], [1-B1[i,0]-B1[i,1],1-B2[i,0]-B2[i,1]], [B1[i,1], B2[i,1]], lw=1, ls='--', c="pink", zorder=5)
+
+		else:
+			B = key[0]
+			ax.plot(np.hstack((B[:,0],B[0,0])), np.hstack((1-B[:,0]-B[:,1],1-B[0,0]-B[0,1])), np.hstack((B[:,1],B[0,1])), lw=1, c="black", zorder=10)
 	fig.savefig(args.img, dpi=1200, bbox_inches="tight")
 	
 	exit()

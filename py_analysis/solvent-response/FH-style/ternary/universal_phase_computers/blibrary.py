@@ -1002,15 +1002,15 @@ def dyad_search(BINODALS, P, idx_tup):
 	P.tangent_tracing_dyad(BINODALS, idx_tup)
 	
 	other_center = P.crits[BINODALS["groupings"][idx_tup]["raw_list"][0]]
-	center = P.crits[BINODALS["groupings"][idx_tup]["raw_list"][1]]
+	center       = P.crits[BINODALS["groupings"][idx_tup]["raw_list"][1]]
 	
-	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-15)
+	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-6)
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1]       = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][keep]
 
-	middle   = (center+other_center)/2
-	mid_axis = (middle - center)[0:2]/np.linalg.norm((middle-center)[0:2])
-	adj_neg_arm = (BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2])/np.linalg.norm(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2]).reshape(-1,1)
-	angles = np.arccos( np.sum(adj_neg_arm * mid_axis, axis=1) )
+	middle      = (center+other_center)/2
+	mid_axis    = (middle - center)[0:2]/np.linalg.norm((middle-center)[0:2])
+	adj_neg_arm = (BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2])/np.linalg.norm(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2], axis=1)[:, np.newaxis]
+	angles      = np.arccos(np.sum(adj_neg_arm * mid_axis, axis=1))
 
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][np.argsort(angles)]
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][np.argsort(angles)]
@@ -1026,12 +1026,12 @@ def dyad_search(BINODALS, P, idx_tup):
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0] = np.vstack((BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], neg_arm))
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1] = np.vstack((BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1], pos_arm))
 
-	adj_neg_arm = (BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2])/np.linalg.norm(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2]).reshape(-1,1)
+	adj_neg_arm = (BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2])/np.linalg.norm(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][:,0:2]-middle[0:2], axis=1)[:, np.newaxis]
 	angles = np.arccos( np.sum(adj_neg_arm * mid_axis, axis=1) )
 
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0][np.argsort(angles)]
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1] = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][np.argsort(angles)]
-	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-15)
+	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], keep = ternary.remove_close_rows(BINODALS["groupings"][idx_tup]["alpha"]["binodals"][0], 1e-6)
 	BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1]       = BINODALS["groupings"][idx_tup]["alpha"]["binodals"][1][keep]
 
 	combined  = np.vstack(BINODALS["groupings"][idx_tup]["alpha"]["binodals"])

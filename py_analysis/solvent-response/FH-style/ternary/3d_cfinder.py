@@ -92,7 +92,17 @@ if __name__=="__main__":
 	y = unstab[1].reshape(-1)
 	z = unstab[2].reshape(-1)
 
+	print(f"Plotted the points...", flush=True)
 	ax.scatter (unstab[0].reshape(-1), unstab[1].reshape(-1), unstab[2].reshape(-1), marker='o', c=c_unstab, edgecolors='k', antialiased=True, depthshade=False)
+
+	x_mesh = np.linspace(-20, 20, 100)
+	y_mesh = np.linspace(-20, 20, 100)
+	X_mesh, Y_mesh = np.meshgrid(x, y)
+
+	print(f"Making the planes...", flush=True)
+	z_vals = [-10, -7, -4, 0]
+	for z_v in z_vals:
+		ax.plot_surface(X_mesh, Y_mesh, np.ones_like(X_mesh) * z_v, color='darkblue', alpha=0.025, shade=False, antialiased=False)
 
 	ax.set_xlim (-15, 0)
 	ax.set_ylim (-15, 0)
@@ -134,9 +144,9 @@ if __name__=="__main__":
 
 	if args.img != "None":
 		if "." in args.img:
-			plt.savefig (args.img+".png", dpi=1200)
+			plt.savefig (args.img+".svg", dpi=1200)
 		else:
-			plt.savefig (args.img, dpi=1200)
+			plt.savefig (args.img+".svg", dpi=1200)
 	else:
 		plt.savefig (f"3d_mapping.png", dpi=1200)
 

@@ -163,36 +163,6 @@ if __name__ == "__main__":
                    linestyle='--', linewidth=1, c=rgba_color, label='_nolegend_', markersize=8/1.3, zorder=11, clip_on=False )
 		i += 1
 
-	"""
-    if excl_vol_bool:
-        print ("Entering Uexcl...", flush=True)
-        temperatures_excl = aux.dir2float ( os.listdir( "Uexcl" +"/DOP_"+str(dop) ) )
-        edge = aux.edge_length (dop) 
-        rg_mean = []
-        rg_std  = [] 
-        for T in temperatures_excl:
-            rg_list = [] 
-            filename = args.pte+"/"+coords_files + "_1.mc"
-            master_dict = aux.get_pdict ( filename, 0, dop, edge, edge, edge ) 
-            for key in master_dict:
-                coord_arr = aux.unfuck_polymer ( master_dict[key][0], edge, edge, edge ) 
-                r_com     = np.mean ( coord_arr, axis=0 ) 
-                offset    = coord_arr - r_com
-                rg_list.append ( np.sqrt ( np.sum ( np.square (offset)/dop ) ) ) 
-
-            rg_mean.append ( np.mean (rg_list) ) 
-            rg_std.append  ( np.std  (rg_list) ) 
-
-        ax.errorbar ( temperatures, np.ones(len(temperatures))*rg_mean[0]/(rg_max), yerr=0, linestyle='-',  linewidth=3 )
-        MASTER_DICT["U"].extend(["Uexcl"]*len(temperatures))
-        MASTER_DICT["T"].extend(list(temperatures))
-        MASTER_DICT["Rg_mean"].extend ([rg_mean[0]/rg_max]*len(temperatures))
-        MASTER_DICT["Rg_err" ].extend ([0]*len(temperatures))
-        # ax.legend (["Athermal solvent"], loc='upper right', bbox_to_anchor=(1.1, 1.3), fontsize=15)
-	"""
-	########################################
-	# df = pd.DataFrame.from_dict (MASTER_DICT, orient='columns')
-	# df.to_csv("ENTROPY-RG-DATABASE.csv", sep='|', index=False)
 	ax.set_xscale ('log')
 	yticks = np.arange (1,8,1)
 	ax.set_yticks (yticks)

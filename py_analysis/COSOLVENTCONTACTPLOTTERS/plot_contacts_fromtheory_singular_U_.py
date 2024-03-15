@@ -28,7 +28,7 @@ parser = argparse.ArgumentParser(description="Go into lattice dump and get conta
 parser.add_argument('--real'  , dest='real', action='store', type=str, help='enter the address of the real contacts.')
 parser.add_argument('--Hmix'  , dest='Hmix', action='store', type=str, nargs='+', help="enter the enthalpic conditions.")
 parser.add_argument('--suffix', dest='s', action='store', type=str, help='enter suffix to images.')
-parser.add_argument('--color', dest='color', action='store', type=str, help='enter color of plot.')
+parser.add_argument('--color', dest='color', action='store', type=str, nargs='+', help='enter color of plot.')
 parser.add_argument('--show-ylabels', dest='show_ylabels', action='store_true', default=False, help='enter suffix to images.')
 args = parser.parse_args() 
 
@@ -68,18 +68,19 @@ if __name__=="__main__":
 	M       = 32
 	Hmix    = args.Hmix
 	cols    = args.color # color_map("coral", "darkred", len(Hmix))
-	fig     = plt.figure(figsize=(2.5,2.5), constrained_layout=True)
+	fig     = plt.figure(figsize=(1.8,1.8), constrained_layout=True)
 	ax      = plt.axes()
 
 	keys    = ["M1-M1", "M1-S", "S1-S2", "M1-S1", "M1-S2", "M1-S1-A", "M1-S1-N", "S1-S2-A"]
 	titles  = ["Monomer-monomer contacts", "Solvent-cosolvent contacts", "Monomer-solvent contacts", "Monomer-cosolvent contacts", "Solvent-solvent contacts", "cosolvent-cosolvent contacts"]
 
-	ylims   = [(30,180), (400,800), (0, 3.5e+5), (0, 800), (0, 800), (0, 800), (0, 800), (0,3.5e+5)]
+	ylims   = [(0,0.25), (0,1), (0,0.5), (0,1), (0,1), (0,1), (0,1), (0,0.5)]
 	ypads   = [3, 1, 1, 1, 1, 3]
-	yticks  = [np.linspace(30, 180, 6), np.linspace(400,800,5), np.linspace(0,4e+5, 5), np.linspace(0, 800, 5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0,800,5), np.linspace(0, 4e+5,5)]
+	yticks  = [np.linspace(0, 0.25, 6), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6), np.linspace(0, 0.5, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6)]
+	norms   = [M*z, M*z, (M+2)**3*z, M*z, M*z, M*z, M*z, (M+2)**3*z]
 
 	df_real = pd.read_csv (args.real, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
-	x_real  = df_real ["x"]
+	x_real  = df_real["x"]
 
 	colormap = cm.get_cmap ("coolwarm")
 	for k in range( len(keys) ):
@@ -104,13 +105,15 @@ if __name__=="__main__":
 
 		for idx, hmix in enumerate(Hmix):
 			df_subset = df_real [df_real ["H"] == hmix]
-			print (df_subset)
+			# print (df_subset)
 			idx = idx % len(cols)
-			if keys == "M1-S1" or keys == "M1-S2":
-				p_diff = (df_subset [keys[k]].values - 0)
+			if keys[k] == "M1-M1" or keys[k] == "M1-M1-A":
+				p_diff = (df_subset [keys[k]].values - M)/norms[k]
+				print(p_diff)
 			else:
-				p_diff = (df_subset [keys[k]].values - 0)
-			ax.plot (df_subset["x"].values, p_diff, marker='o', c=cols, linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10)
+				p_diff = (df_subset [keys[k]].values - 0)/norms[k]
+			
+			ax.plot (df_subset["x"].values, p_diff, marker='o', c=cols[idx], linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10, ls='--')
 
 		plt.savefig ("contact-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
 		ax.cla()

@@ -39,22 +39,22 @@ if __name__=="__main__":
 	chisc_emph = []
 	for num, file in enumerate(l_binodals):
 
-		# get the parameters
-		chips = float((re.search("chips_(-?\d+(?:\.\d+)?)", file)).group(1))
-		chipc = float((re.search("chipc_(-?\d+(?:\.\d+)?)", file)).group(1))
-		chisc = float((re.search("chisc_(-?\d+(?:\.\d+)?)", file)).group(1))
-		vs    = float((re.search("vs_(-?\d+(?:\.\d+)?)", file)).group(1))
-		vc    = float((re.search("vc_(-?\d+(?:\.\d+)?)", file)).group(1))
-		vp    = float((re.search("vp_(-?\d+(?:\.\d+)?)", file)).group(1))
-
-		if chips < -1: 
-			chips_emph.append(file)
-		
-		elif chipc < -1:
-			chipc_emph.append(file)
-
-		elif chisc < -1:
-			chisc_emph.append(file)
+		if re.findall("mod", file):
+			# get the parameters
+			chips = float((re.search("chips_(-?\d+(?:\.\d+)?)", file)).group(1))
+			chipc = float((re.search("chipc_(-?\d+(?:\.\d+)?)", file)).group(1))
+			chisc = float((re.search("chisc_(-?\d+(?:\.\d+)?)", file)).group(1))
+			vs    = float((re.search("vs_(-?\d+(?:\.\d+)?)", file)).group(1))
+			vc    = float((re.search("vc_(-?\d+(?:\.\d+)?)", file)).group(1))
+			vp    = float((re.search("vp_(-?\d+(?:\.\d+)?)", file)).group(1))
+			if chips < -1:
+				chips_emph.append(file)
+			elif chipc < -1:
+				chipc_emph.append(file)
+			elif chisc < -1:
+				chisc_emph.append(file)
+		else:
+			continue
 
 	# choose 100 binodals form each section
 	n = 100

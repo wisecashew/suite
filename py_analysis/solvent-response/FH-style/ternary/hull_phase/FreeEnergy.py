@@ -11,7 +11,7 @@ import time
 
 vol_threshold   = 1e-9
 conc_threshold  = 1e-9
-n_mesh          = 501
+# n_mesh          = 1001
 n_species       = 3
 max_free_energy = 100.0
 cap_free_energy = max_free_energy - 10.0
@@ -36,6 +36,7 @@ def remove_close_rows(array, threshold=1e-6):
 
 class FreeEnergy:
     def __init__(self, inputs):
+        self.n_mesh   = inputs["n_mesh"]
         self.chi_sc   = inputs["chi_sc"]
         self.chi_ps   = inputs["chi_ps"]
         self.chi_pc   = inputs["chi_pc"]
@@ -267,7 +268,7 @@ class FreeEnergy:
     
     # generate the mesh 
     def generate_hulls(self):
-        phi_list = np.linspace(0, 1, n_mesh)
+        phi_list = np.linspace(0, 1, self.n_mesh)
         phi_s_mesh, phi_p_mesh = np.meshgrid(phi_list, phi_list, indexing="ij")
         phi_s_mesh = phi_s_mesh.flatten()
         phi_p_mesh = phi_p_mesh.flatten()

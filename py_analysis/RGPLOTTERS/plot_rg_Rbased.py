@@ -50,19 +50,18 @@ args = parser.parse_args()
 divnorm = matplotlib.colors.SymLogNorm ( 0.001, vmin=-0.2, vmax=0.1 ) # this is for entropy 
 
 def get_starting_ind ( U, T, num, dop, dumpfile):
-    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
-    df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
-    L = len(df["energy"])
-    return int(df["time_step"].values[L-2000])
-
+	filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
+	df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+	L = len(df["energy"])
+	return int(df["time_step"].values[L-2000])
 
 def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
-    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num)+".mc" 
-    edge = aux.edge_length (dop)
-    master_dict = aux.get_pdict (filename, starting_index, dop, edge, edge, edge)
-    rg = aux.get_Rg(master_dict, edge, edge, edge) 
-    return rg 
+	filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num)+".mc" 
+	edge = aux.edge_length (dop)
+	master_dict = aux.get_pdict (filename, starting_index, dop, edge, edge, edge)
+	rg = aux.get_Rg(master_dict, edge, edge, edge) 
+	return rg 
 
 if __name__ == "__main__":    
 

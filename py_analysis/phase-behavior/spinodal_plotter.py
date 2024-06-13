@@ -158,7 +158,7 @@ if __name__=="__main__":
     energy_param_list  = [args.emsa, args.emsn, args.emma, args.emmn, args.essa, args.essn, args.pv, args.pw, args.pw, args.pw]
     N                  = args.dop
     PhaseDiag          = Phase (energy_param_list, N)
-    T                  = np.hstack((np.logspace (-3, np.log10(30), int(1e+7) ), np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
+    T                  = np.hstack((np.logspace (-3, np.log10(100), int(1e+7) ), np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
     T                  = np.sort (T, kind="mergesort")
 
 

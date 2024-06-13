@@ -5,6 +5,8 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt 
 from matplotlib.ticker import MaxNLocator
 import argparse 
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+
 
 parser = argparse.ArgumentParser(description='Reads a trajectory and generates a movie of all the selected frames in the trajectory.')
 parser.add_argument('-x', dest='x', action='store', type=int, help='Length of cell along the x axis.')
@@ -31,6 +33,38 @@ if (args.w != 0 and args.w !=1 ):
 ################################
 ### functions 
 ################################
+
+def plot_cube(ax, center, edge_length=1):
+
+	# Create a list of vertices for a cube
+	r = edge_length / 2
+	vertices = np.array([
+		[1, 1, 1],
+		[1, 1, -1],
+		[1, -1, -1],
+		[1, -1, 1],
+		[-1, 1, 1],
+		[-1, 1, -1],
+		[-1, -1, -1],
+		[-1, -1, 1]
+	]) * r
+
+	vertices += center
+
+	faces = [
+		[vertices[0], vertices[1], vertices[2], vertices[3]],
+		[vertices[4], vertices[5], vertices[6], vertices[7]],
+		[vertices[0], vertices[1], vertices[5], vertices[4]],
+		[vertices[2], vertices[3], vertices[7], vertices[6]],
+		[vertices[1], vertices[2], vertices[6], vertices[5]],
+		[vertices[4], vertices[7], vertices[3], vertices[0]]
+	]
+
+	poly3d = Poly3DCollection(faces, facecolors='steelblue', linewidths=1, edgecolors='k', alpha=.25)
+	ax.add_collection3d(poly3d)
+
+	return
+
 
 def extract_loc_from_string (a_string):
     loc = [int(word) for word in a_string.split() if word.isdigit() ] 
@@ -59,26 +93,30 @@ def modified_modulo(divident, divisor):
 
 
 def get_ne_list (unfucked_polymer, x, y, z):
-    
-    ne_list = [] 
-    for loc in unfucked_polymer: 
-        for drtn in directions: 
-            ne = np.asarray (loc) + np.asarray (drtn) 
-            ne[0] = ne[0]%x 
-            ne[1] = ne[0]%y 
-            ne[2] = ne[2]%z 
-            ne_list.append(ne) 
 
-    # make sure list is unique 
-    unique_ne_list = [ ] 
+	ne_list = [] 
+	for loc in unfucked_polymer: 
+		for drtn in directions: 
+			ne = np.asarray (loc) + np.asarray (drtn) 
+			ne[0] = ne[0]%x 
+			ne[1] = ne[0]%y 
+			ne[2] = ne[2]%z 
+			ne_list.append(ne) 
 
-    for ne_ in ne_list:
-        if unique_ne_list.count(ne_) > 0:
-            continue
-        else:
-            unique_ne_list.append(ne) 
+	# make sure list is unique 
+	unique_ne_list = [ ] 
 
-    return unique_ne_list 
+	for ne_ in ne_list:
+		if len(unique_ne_list) == 0:
+			unique_ne_list.append(ne)
+		else:
+			_var = (np.linalg.norm((np.array(unique_ne_list) - ne_), axis=1) < 1e-4).any()
+			if _var:
+				continue
+			else:
+				unique_ne_list.append(ne) 
+
+	return unique_ne_list 
 
 
 
@@ -169,11 +207,10 @@ xmax, ymax, zmax = -10000, -10000, -10000
 step_to_extract = args.p
 
 for key in master_dict[step_to_extract]:
-    # print(key)
     deg_poly = np.shape( master_dict[step_to_extract][key] )[0]
-    x_coords = [] 
+    x_coords = []
     y_coords = []
-    z_coords = [] 
+    z_coords = []
     unfucked_polymer = unfuck_polymer( master_dict[step_to_extract][key], args.x, args.y, args.z )
     for i in range(deg_poly):
         
@@ -196,15 +233,14 @@ for key in master_dict[step_to_extract]:
         zmax = np.max(z_coords)
         
     ax.plot(x_coords, y_coords, z_coords, c='C1')
-    ax.scatter(x_coords, y_coords, z_coords, marker='o', c='g', edgecolors='k' )
-
+    for i in range(len(x_coords)):
+        center = np.array([x_coords[i], y_coords[i], z_coords[i]])
+        plot_cube(ax, center)
 
 # get the solvation shell... 
-ne_list = get_ne_list ( unfucked_polymer, args.x, args.y, args.z )
-solvation_shell = get_solvation_shell ( ne_list, unfucked_polymer )
-
-ax.scatter ( solvation_shell[:][0], solvation_shell[:][1], solvation_shell[:][2], marker='o', c='g', alpha=0.5 )
-
+# ne_list = get_ne_list ( unfucked_polymer, args.x, args.y, args.z )
+# solvation_shell = get_solvation_shell ( ne_list, unfucked_polymer )
+# ax.scatter ( solvation_shell[:][0], solvation_shell[:][1], solvation_shell[:][2], marker='o', c='g', alpha=0.5 )
 
 ax.set_xlabel("X")
 ax.set_ylabel("Y")

@@ -16,6 +16,7 @@ from pathlib import Path
 
 parser = argparse.ArgumentParser (description="Plots phase diagrams.")
 parser.add_argument ("-colors", dest='colors', type=str, nargs='+',   action='store', help="Provide colors.", default=-1)
+parser.add_argument ("-N",    dest='N',        type=float, nargs='+', action='store', help="Provide N.", default=-1)
 parser.add_argument ("-pv",   dest='pv',       type=float, nargs='+', action='store', help="Provide PV.", default=-1)
 parser.add_argument ("-emma", dest="emma", type=float, nargs='+', action='store', help="Provide EMMA.", default=-1)
 parser.add_argument ("-emmn", dest="emmn", type=float, nargs='+', action='store', help="Provide EMMN.", default=-1)
@@ -162,7 +163,7 @@ if __name__=="__main__":
         param = [args.emsa[i], args.emsn[i], args.emma[i], args.emmn[i], args.essa[i], args.essn[i], args.pv[i], args.pwms[i], args.pwmm[i], args.pwss[i]]
         param_list.append(param)
     # param_list  = [args.emsa, args.emsn, args.emma, args.emmn, args.essa, args.essn, args.pv, 0.25, 0.25, 0.25]
-    N           = 1000
+    N           = args.N[0]
     PhaseDiag   = Phase (param_list[0], N)
     T           = np.logspace (-3, np.log10(1000), int(1e+6) ) # np.hstack((np.logspace (-3, np.log10(30), int(1e+7) )  , np.linspace (0.05,0.15, int(1e+6)), np.linspace (0.1, 1.0, int(1e+6) ) ) )
     T           = np.sort (T, kind="mergesort")
@@ -192,20 +193,22 @@ if __name__=="__main__":
         T1       = T1   [arm1 > 0]
         arm1     = arm1 [arm1 > 0]
         line     = ax.plot  (arm1, T1, lw=1.5, markersize=0, c=args.colors[i], solid_capstyle="round",label="_nolabel_")
+        print(f"phi = {arm1}")
+        print(f"T = {T1}")
         T1       = spinodal[2][spinodal[1] < 1]
         arm1     = spinodal[1][spinodal[1] < 1]
         T1       = T1   [arm1 > 0]
         arm1     = arm1 [arm1 > 0]
         ax.plot  (arm1, T1, lw=1.5, markersize=0, c=args.colors[i], solid_capstyle="round", label="_nolabel_")
-        print(arm1)
-        print(np.min(T1))
+        print(f"phi = {arm1}")
+        print(f"T = {T1}")
         del T1
         del arm1
         del spinodal
 
     # ax.set_yscale ("log")
-    ax.set_ylim (400, 450)
-    ax.set_xlim (-0.01, 0.5)
+    # ax.set_ylim (400, 450)
+    # ax.set_xlim (-0.01, 0.5)
 
     try:
         df = pd.read_csv(args.csv, sep=',', engine='python', names=["phi", "temp"])
@@ -215,15 +218,13 @@ if __name__=="__main__":
 
     ax.set_xticks ([0, 0.2, 0.4, 0.6, 0.8, 1.0])
     if args.ylabels:
-        ax.set_xticklabels([0.001, 0.01, 0.1, 1.0, 10, 50])
+        ax.set_yticklabels([0.001, 0.01, 0.1, 1.0, 10, 50])
     else:
         pass
-    # ax.set_yticklabels ([250, 300, 350, 400, 450, 500, 550])
 
     if args.xlabels:
         ax.set_xticklabels([0, 0.2, 0.4, 0.6, 0.8, 1.0], fontdict=fdict, font=fpath)
     else:
-        ax.set_xticklabels([])
         pass
 
     fig.savefig (args.pn, dpi=1200, bbox_inches="tight")

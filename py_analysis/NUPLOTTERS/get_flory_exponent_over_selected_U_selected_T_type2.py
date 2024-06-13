@@ -50,11 +50,16 @@ divnorm = matplotlib.colors.LogNorm (vmin=-0.01, vmax=100)
 cmap = cm.coolwarm
 
 def get_starting_ind ( U, T, num, dop, dumpfile):
-    filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
-    df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
-    L = len(df["energy"])
+	filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
+	df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+	L = len(df["energy"])
 
-    return int(df["time_step"].values[L-2000])
+	try:
+		pass
+		df["time_step"].values[L-2000]
+	except:
+		print(f"Problem with T ={T}", flush=True)
+	return int(df["time_step"].values[L-2000])
 
 
 def get_avg_amounts (U, T, num, dop, coords_file, starting_index, d1, d2):
@@ -91,87 +96,87 @@ def get_avg_flory (U, T, num, dop, coords_file, starting_index, d1, d2):
 
 if __name__ == "__main__":
 
-    start = time.time()
-    ##################################
+	start = time.time()
+##################################
 
-    U_list = args.U
-    DB_DICT = {}
-    DB_DICT["U"]  = []
-    DB_DICT["T"]  = []
-    DB_DICT["nu_mean" ] = []
-    DB_DICT["nu_err"] = []
-    y_dict     = {}
-    r2_dict    = {}
-    ntraj_dict = {}
-    dop            = args.dop
-    coords_files   = args.c
-    nproc          = args.nproc
-    starting_index = 0
-    
-    fig = plt.figure( figsize=(8,6) )
-    ax  = plt.axes()
-    ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-    ax.tick_params(axis='x', labelsize=16)
-    ax.tick_params(axis='y', labelsize=16)
-    i = 0
+	U_list = args.U
+	DB_DICT = {}
+	DB_DICT["U"]  = []
+	DB_DICT["T"]  = []
+	DB_DICT["nu_mean" ] = []
+	DB_DICT["nu_err"] = []
+	y_dict     = {}
+	r2_dict    = {}
+	ntraj_dict = {}
+	dop            = args.dop
+	coords_files   = args.c
+	nproc          = args.nproc
+	starting_index = 0
 
-    # instantiating pool
-    pool1 = multiprocessing.Pool(processes=nproc)
-    pool_list = [pool1]
-    print ("U_list = ",U_list)
-    xx = 0
-    for U in U_list:
-        fig = plt.figure(num=xx, figsize=(8,6) )
-        ax  = plt.axes() 
-        ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-        ax.tick_params(axis='x', labelsize=16)
-        ax.tick_params(axis='y', labelsize=16)
-        xx += 1
-        print ( "Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
-        temperatures = args.T # aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
+	fig = plt.figure( figsize=(8,6) )
+	ax  = plt.axes()
+	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
+	ax.tick_params(axis='x', labelsize=16)
+	ax.tick_params(axis='y', labelsize=16)
+	i = 0
 
-        # get num_list for each temperature
-        master_temp_list = []
-        master_num_list  = []
-        flory_mean       = []
-        flory_err        = []
-        ntraj_dict.clear()
-        for T in temperatures:
-            num_list = list(np.unique(aux.dir2nsim(os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T)))))
-            master_num_list.extend ( num_list )
-            master_temp_list.extend ( [T]*len( num_list ) )
-            ntraj_dict[T] = len ( num_list )
-            y_dict [T] = []
+# instantiating pool
+	pool1 = multiprocessing.Pool(processes=nproc)
+	pool_list = [pool1]
+	print ("U_list = ",U_list)
+	xx = 0
+	for U in U_list:
+		fig = plt.figure(num=xx, figsize=(8,6) )
+		ax  = plt.axes() 
+		ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
+		ax.tick_params(axis='x', labelsize=16)
+		ax.tick_params(axis='y', labelsize=16)
+		xx += 1
+		print ( "Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
+		temperatures = args.T # aux.dir2float ( os.listdir( str(U) +"/DOP_"+str(dop) ) )
 
-        # start multiprocessing... keeping in mind that each node only has 96 cores
-        # start splitting up master_num_list and master_temp_list
-        idx_range = len (master_num_list)//nproc + 1
+		# get num_list for each temperature
+		master_temp_list = []
+		master_num_list  = []
+		flory_mean       = []
+		flory_err        = []
+		ntraj_dict.clear()
+		for T in temperatures:
+			num_list = list(np.unique(aux.dir2nsim(os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T)))))
+			master_num_list.extend ( num_list )
+			master_temp_list.extend ( [T]*len( num_list ) )
+			ntraj_dict[T] = len ( num_list )
+			y_dict [T] = []
 
-        for uidx in range(idx_range):
-            if uidx == idx_range-1:
-                results = pool_list[ 0 ] .starmap ( get_avg_flory, zip( itertools.repeat(U), master_temp_list[uidx*nproc:], master_num_list[uidx*nproc:], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
-            else:
-                results = pool_list[ 0 ] .starmap ( get_avg_flory, zip( itertools.repeat(U), master_temp_list[uidx*nproc:(uidx+1)*nproc], master_num_list[uidx*nproc:(uidx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
-                
-            print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )
-            for k in range(len(master_temp_list[uidx*nproc:(uidx+1)*nproc])):
-                y_dict[master_temp_list[uidx*nproc+k]].append ( results[k] )
+		# start multiprocessing... keeping in mind that each node only has 96 cores
+		# start splitting up master_num_list and master_temp_list
+		idx_range = len (master_num_list)//nproc + 1
 
-
-        for T in np.unique (master_temp_list):
-            DB_DICT["U"].append (U)
-            DB_DICT["T"].append (T)
-            DB_DICT["nu_mean"].append (np.mean (y_dict[T]) )
-            DB_DICT["nu_err" ].append (np.std  (y_dict[T]) / np.sqrt( len( y_dict[T] ) ) )
+		for uidx in range(idx_range):
+			if uidx == idx_range-1:
+				results = pool_list[ 0 ] .starmap ( get_avg_flory, zip( itertools.repeat(U), master_temp_list[uidx*nproc:], master_num_list[uidx*nproc:], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
+			else:
+				results = pool_list[ 0 ] .starmap ( get_avg_flory, zip( itertools.repeat(U), master_temp_list[uidx*nproc:(uidx+1)*nproc], master_num_list[uidx*nproc:(uidx+1)*nproc], itertools.repeat(dop), itertools.repeat(coords_files), itertools.repeat(starting_index), itertools.repeat(args.d1), itertools.repeat(args.d2) ) )
+				
+			print ("Pool has been closed. This pool has {} threads.".format (len(results) ), flush=True )
+			for k in range(len(master_temp_list[uidx*nproc:(uidx+1)*nproc])):
+				y_dict[master_temp_list[uidx*nproc+k]].append ( results[k] )
 
 
-    pool1.close()
-    pool1.join()
+		for T in np.unique (master_temp_list):
+			DB_DICT["U"].append (U)
+			DB_DICT["T"].append (T)
+			DB_DICT["nu_mean"].append (np.mean (y_dict[T]) )
+			DB_DICT["nu_err" ].append (np.std  (y_dict[T]) / np.sqrt( len( y_dict[T] ) ) )
 
-    i=0
-    df = pd.DataFrame.from_dict (DB_DICT)
-    df.to_csv ("FLORY-EXPONENTS-"+str(args.d1)+"-"+str(args.d2)+"_set_"+str(args.set)+"_type2.mc", sep='|', index=False)
 
-    stop = time.time()
+	pool1.close()
+	pool1.join()
 
-    print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)
+	i=0
+	df = pd.DataFrame.from_dict (DB_DICT)
+	df.to_csv ("FLORY-EXPONENTS-"+str(args.d1)+"-"+str(args.d2)+"_set_"+str(args.set)+"_type2.mc", sep='|', index=False)
+
+	stop = time.time()
+
+	print ("Run time for N = " + str(args.dop) + " is {:.2f} seconds.".format(stop-start), flush=True)

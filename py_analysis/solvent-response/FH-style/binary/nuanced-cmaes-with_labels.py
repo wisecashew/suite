@@ -14,7 +14,6 @@ import cma
 
 EPS    = 1e-4
 parser = argparse.ArgumentParser (description="Plots phase diagrams.")
-parser.add_argument ("--label",  dest='label', type=str,   action='store', help="Prove the label for the diagram.")
 parser.add_argument ("--T",      dest='T',     type=float, nargs='+', action='store', help="Provide a temperature range to plot thing in.", default=None)
 parser.add_argument ("--T-loop", dest='Tloop', type=float, action='store', help="Provide a temperature to bisect a loop.", default=None)
 parser.add_argument ("--T-UCST", dest='Tucst', type=float, action='store', help="Provide a temperature above which to hunt for a binodal.", default=None)
@@ -35,14 +34,16 @@ parser.add_argument ("--essa",   dest="essa",  type=float, action='store', help=
 parser.add_argument ("--essn",   dest="essn",  type=float, action='store', help="Provide ESSN.", default=0)
 parser.add_argument ("--csv",    dest='csv',   type=str,   action='store', help='Name of csv file.')
 parser.add_argument ("--img",    dest="img",   type=str,   action='store', help="Name of image.", default="bintest.png")
-# parser.add_argument ("--label", dest='label', type=str,   action='store', help="Prove the label for the diagram.")
-# parser.add_argument ("--Tbot",  dest='Tbot',  type=float, action='store', help="Provide a temperature below which you will not search for a binodal.", default=None)
-# parser.add_argument ("--Ttop",  dest='Ttop',  type=float, action='store', help="Provide a temperature above which you will not search for a binodal.", default=None)
-# parser.add_argument ("--draw-spin", dest='draw_spin', action='store_true', help="Enter option to draw the spinodal.", default=False)
-# parser.add_argument ("--draw-bin",  dest='draw_bin', action='store_true', help="Enter option to draw the binodal.", default=False)
-# parser.add_argument ("--pwmm",  dest="pwmm",  type=float, action='store', help="Provide PW_MM.", default=0)
-# parser.add_argument ("--pwss",  dest="pwss",  type=float, action='store', help="Provide PW_SS.", default=0)
-# parser.add_argument ("--pwms",  dest="pwms",  type=float, action='store', help="Provide PW_MS.", default=0)
+parser.add_argument ("--label",  dest='label', type=str,   action='store', help="Prove the label for the diagram.")
+parser.add_argument ("--Tbot",   dest='Tbot',  type=float, action='store', help="Provide a temperature below which you will not search for a binodal.", default=None)
+parser.add_argument ("--Ttop",   dest='Ttop',  type=float, action='store', help="Provide a temperature above which you will not search for a binodal.", default=None)
+parser.add_argument ("--draw-spin", dest='draw_spin', action='store_true', help="Enter option to draw the spinodal.", default=False)
+parser.add_argument ("--draw-bin",  dest='draw_bin', action='store_true', help="Enter option to draw the binodal.", default=False)
+parser.add_argument ("--pwmm",  dest="pwmm",  type=float, action='store', help="Provide PW_MM.", default=0)
+parser.add_argument ("--pwss",  dest="pwss",  type=float, action='store', help="Provide PW_SS.", default=0)
+parser.add_argument ("--pwms",  dest="pwms",  type=float, action='store', help="Provide PW_MS.", default=0)
+parser.add_argument ("--L1",  dest="L1",  type=float, action='store', help="Provide L1 regularization.", default=0.001)
+parser.add_argument ("--L2",  dest="L2",  type=float, action='store', help="Provide L2 regularization.", default=0.001)
 args = parser.parse_args() 
 
 def custom_warning_format(message, category, filename, lineno, line=None):
@@ -243,6 +244,10 @@ def loss_weights(experimental):
 
 if __name__=="__main__":
 
+	# get the L1 and L2 hyperparameters
+	L1 = args.L1 
+	L2 = args.Ls
+
 	if args.label == "UCST":
 		if args.Tucst is None:
 			print(f"Label provided is \"UCST\" but no option for --T-UCST is provided. Exiting...", flush=True)
@@ -266,17 +271,6 @@ if __name__=="__main__":
 	fig = plt.figure(num=0, figsize=(3,3))
 	ax  = plt.axes()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
-
-	# params[0] = PV
-	# params[1] = EMSA
-	# params[2] = EMSN
-	# params[3] = EMMA
-	# params[4] = EMMN
-	# params[5] = ESSA
-	# params[6] = ESSN
-	# params[7] = PW
-	# params[8] = VM
-	# params[9] = VS
 
 	# get the experimental data points
 	df           = pd.read_csv(args.csv, sep=',', engine="python", names=["phi", "T"])
@@ -806,6 +800,7 @@ if __name__=="__main__":
 
 	# get the params 
 	params = [args.pv, args.emsa, args.emsn, args.emma, args.emmn, args.essa, args.essn, args.pw, args.vm, args.vs]
+	
 
 	# plot the initial spinodal
 	plot_info = ["spinodal (initial)", "crimson", "crimson", 'o']

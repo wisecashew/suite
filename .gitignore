@@ -1,4 +1,6 @@
 *.png
+*.zip
+*.pickle
 *.binodal
 *.h5
 *.skelfile
@@ -13,3 +15,4 @@
 *.dump
 *.db
 *.pkl
+*.svg

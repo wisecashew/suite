@@ -261,16 +261,25 @@ if __name__=="__main__":
 
 		rgba_color = color_dict[args.R]
 		if args.logplus:
-			print(np.log(1+PLOT_DICT[U][0]))
+			# print(np.log(1+PLOT_DICT[U][0]))
 			ax.errorbar ( temperatures, np.log10(1+PLOT_DICT[U][0]), yerr=np.log10(1+PLOT_DICT[U][1]), linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
 			ax.plot     ( temperatures, np.log10(1+PLOT_DICT[U][0]), linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=args.ms, clip_on=args.clipon, zorder=10)
 
 		else:
-			print(f"args.shift+PLOT_DICT[U][0] = {args.shift+PLOT_DICT[U][0]}", flush=True)
-			ax.errorbar ( temperatures[:loc], args.shift+PLOT_DICT[U][0][:loc], yerr=PLOT_DICT[U][1][:loc], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
-			ax.plot     ( temperatures[:loc], args.shift+PLOT_DICT[U][0][:loc], linestyle='--', marker='s',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=args.ms, clip_on=args.clipon, zorder=10)
-			ax.errorbar ( temperatures[loc:], args.shift+PLOT_DICT[U][0][loc:], yerr=PLOT_DICT[U][1][loc:], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
-			ax.plot     ( temperatures[loc:], args.shift+PLOT_DICT[U][0][loc:], linestyle='--', marker='^',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=args.ms, clip_on=args.clipon, zorder=10)
+			if fluc_style == "combined":
+				print(f"args.shift+PLOT_DICT[U][0] = {args.shift+PLOT_DICT[U][0]}", flush=True)
+				ax.errorbar ( temperatures[:loc], args.shift+PLOT_DICT[U][0][:loc], yerr=PLOT_DICT[U][1][:loc], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
+				ax.plot     ( temperatures[:loc], args.shift+PLOT_DICT[U][0][:loc], linestyle='--', marker='s',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=args.ms, clip_on=args.clipon, zorder=10)
+				ax.errorbar ( temperatures[loc:], args.shift+PLOT_DICT[U][0][loc:], yerr=PLOT_DICT[U][1][loc:], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
+				ax.plot     ( temperatures[loc:], args.shift+PLOT_DICT[U][0][loc:], linestyle='--', marker='^',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=args.ms, clip_on=args.clipon, zorder=10)
+
+			else:
+				print(f"args.shift+PLOT_DICT[U][0] = {args.shift+PLOT_DICT[U][0]}", flush=True)
+				ax.errorbar ( temperatures[:loc], args.shift+PLOT_DICT[U][0][:loc], yerr=PLOT_DICT[U][1][:loc], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
+				ax.plot     ( temperatures[:loc], args.shift+PLOT_DICT[U][0][:loc], linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=args.ms, clip_on=args.clipon, zorder=10)
+				ax.errorbar ( temperatures[loc:], args.shift+PLOT_DICT[U][0][loc:], yerr=PLOT_DICT[U][1][loc:], linewidth=1, fmt='none', capsize=2, color='k', label="_nolabel_")
+				ax.plot     ( temperatures[loc:], args.shift+PLOT_DICT[U][0][loc:], linestyle='--', marker='o',  markeredgecolor='k', linewidth=1, color=rgba_color, label="_nolabel_", markersize=args.ms, clip_on=args.clipon, zorder=10)
+
 
 	# plot the background
 	color1 = np.array([131, 159, 192]) / 255.0  # #839FC0 in RGB

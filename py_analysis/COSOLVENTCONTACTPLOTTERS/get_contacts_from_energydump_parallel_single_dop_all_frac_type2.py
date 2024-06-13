@@ -97,8 +97,7 @@ if __name__=="__main__":
 	start = time.time()
 	U_list = aux.dir2U (os.listdir("."))
 	dop = args.dop
-	enthalpies = [1.0]
-	enthalpies.sort()
+	enthalpies = args.H
 
 	i = 0
 	nproc = args.nproc

@@ -163,8 +163,6 @@ def get_energy_form_4 (topology):
 	return np.array([mm_1, mm_2, b])
 
 
-
-
 def get_energy_target (topology):
 	f = open (topology, 'r')
 	Emm_a   = "Emm_a"
@@ -620,8 +618,8 @@ def get_Rh(master_dict, xlen, ylen, zlen):
 # this will allow easy access to these coordinates. 
 
 def get_pdict (filename, starting_step, dop, x, y, z):
-    
-    st_b_str = "Dumping coordinates at step" 
+    # print(f"fname = {filename}, starting step = {starting_step}")
+    st_b_str     = "Dumping coordinates at step" 
     pmer_num_str = "Dumping coordinates of Polymer"
     start_str = "START"
     end_str_1 = "END" 
@@ -647,6 +645,7 @@ def get_pdict (filename, starting_step, dop, x, y, z):
             step_num = int ( ( extract_loc_from_string ( line.replace('.', ' ') ) )[0] )
             
             if ( step_num == starting_step ) or starting_bool :
+                # print(f"About to start...")
                 starting_bool = True
             else: 
                 continue 

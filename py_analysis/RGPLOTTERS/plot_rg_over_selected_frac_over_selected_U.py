@@ -41,7 +41,7 @@ parser.add_argument('--nproc',        metavar='N',    type=int,              des
 parser.add_argument('--coords',       dest='c',       metavar='coords',      action='store', type=str,       help='Name of energy dump file to parse information.', default='coords.txt')
 parser.add_argument('--show-legends', dest='sl',      action='store_true',   help='Name of energy dump file to parse information.', default=False)
 parser.add_argument('--show-yticks',  dest='syticks', action='store_true',   help='Show y ticks on plot.', default=False)
-parser.add_argument('--colors',  dest='colors', action='store', type=str,  help='Color of plot.', default=False)
+parser.add_argument('--colors',  dest='colors', action='store', nargs='+', type=str,  help='Color of plot.', default=False)
 parser.add_argument('--png-name',     dest='pn',      metavar='imagename',   action='store', type=str,       help='Name of image file', default='rg_plot')
 args = parser.parse_args() 
 
@@ -164,7 +164,7 @@ if __name__ == "__main__":
 	f.write(f"U | frac | Rg\n")
 	for idx,U in enumerate(U_list):
 		ax.errorbar ( frac_list, PLOT_DICT[U][0]/rg_max, yerr= PLOT_DICT[U][1]/rg_max, linewidth=1, capsize=2, color='k', fmt='none', label='_nolegend_')
-		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=cols, linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10)
+		ax.plot     ( frac_list, PLOT_DICT[U][0]/rg_max, marker='o', markeredgecolor='k', linestyle='-', c=cols[idx], linewidth=1, markersize=8/1.3, label=f'{U}', clip_on=False, zorder=10)
 		i += 1
 		for i in range(len(frac_list)):
 			f.write(f"{U} | {frac_list[i]} | {PLOT_DICT[U][0][i]} | {PLOT_DICT[U][1][i]}\n")

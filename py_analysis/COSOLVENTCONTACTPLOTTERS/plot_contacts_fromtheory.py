@@ -26,7 +26,8 @@ sys.stdout.flush()
 
 parser = argparse.ArgumentParser(description="Go into lattice dump and get contacts.")
 parser.add_argument('--real'  , dest='real', action='store', type=str, help='enter the address of the real contacts.')
-parser.add_argument('--Hmix'  , dest='Hmix', action='store', type=str, nargs='+', help="enter the enthalpic conditions.")
+parser.add_argument('--colors', dest='cols', action='store', nargs='+', type=str, help='Enter the colors you want.')
+parser.add_argument('--U'  , dest='U', action='store', type=str, nargs='+', help="enter the enthalpic conditions.")
 parser.add_argument('--suffix', dest='s', action='store', type=str, help='enter suffix to images.')
 parser.add_argument('--show-ylabels', dest='show_ylabels', action='store_true', default=False, help='enter suffix to images.')
 args = parser.parse_args() 
@@ -65,8 +66,8 @@ if __name__=="__main__":
 	# cols = ["rosybrown", "lightcoral", "indianred", "brown"]
 	z       = 26
 	M       = 32
-	Hmix    = args.Hmix
-	cols    = color_map("coral", "darkred", len(Hmix))
+	Hmix    = args.U
+	cols    = args.cols # color_map("coral", "darkred", len(Hmix))
 	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(2.5,2.5))
 
 	keys    = ["M1-M1", "M1-S", "S1-S2", "M1-S1", "M1-S2", "M1-S1-A", "M1-S1-N"]
@@ -91,7 +92,7 @@ if __name__=="__main__":
 			ax[0][0].set_yticklabels([])
 		ax[0][0].set_xlim (0.0, 1.0)
 		ax[0][0].set_xticks (np.arange(0,1.2,0.2))
-		ax[0][0].set_xticklabels ([]) # ax[0][0].get_xticks(), weight='bold')
+		# ax[0][0].set_xticklabels ([]) # ax[0][0].get_xticks(), weight='bold')
 		ax[0][0].minorticks_on()
 		if k == 0 or k > 1:
 			pass 

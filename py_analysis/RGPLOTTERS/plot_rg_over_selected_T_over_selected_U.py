@@ -44,7 +44,7 @@ def get_starting_ind ( U, T, num, dop, dumpfile):
     filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
     df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
     L = len(df["energy"])
-    return int(df["time_step"].values[L-2000])
+    return int(df["time_step"].values[L-args.s])
 
 
 def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):

@@ -56,33 +56,33 @@ if __name__=="__main__":
 	cnorm = colors.TwoSlopeNorm (vcenter=0.5, vmin=0.3, vmax=0.8)
 	y = np.array([0,1])
 
-	df = pd.read_csv (args.db, sep='|', engine='python', skiprows=1, names=["U", "T", "nu_mean", "nu_err"])
-	df = df.loc[df["U"] == args.R]
-	temperatures = df["T"].values
-	print (df)
+	try:
+		df = pd.read_csv (args.db, sep='|', engine='python', skiprows=1, names=["U", "T", "nu_mean", "nu_err"])
+		df = df.loc[df["U"] == args.R]
+		temperatures = df["T"].values
 
-	x_old = temperatures
-	y_old = df["nu_mean"].values/2
+		x_old = temperatures
+		y_old = df["nu_mean"].values/2
 
-	x_pred = np.logspace (-2, 2, 10000)
-	y_pred = np.interp (x_pred, x_old, y_old)
+		x_pred = np.logspace (-2, 2, 10000)
+		y_pred = np.interp (x_pred, x_old, y_old)
 
-	col_dict = dict()
+		col_dict = dict()
 
-	for i in range (len(x_pred)):
-		col_dict[ x_pred[i] ] = y_pred[i]
+		for i in range (len(x_pred)):
+			col_dict[ x_pred[i] ] = y_pred[i]
 
-	X, Y = np.meshgrid (x_pred, y)
-	Z = np.zeros ((2, len(x_pred)))
+		X, Y = np.meshgrid (x_pred, y)
+		Z = np.zeros ((2, len(x_pred)))
 
-	for i in range (len(x_pred)):
-		for j in range (2):
-			Z[j, i]= col_dict [x_pred[i]]
+		for i in range (len(x_pred)):
+			for j in range (2):
+				Z[j, i]= col_dict [x_pred[i]]
 
-	ax.pcolormesh (X, Y, Z, cmap=cmap, norm=cnorm, shading="auto")
-
-        # plotted the background
-
+		ax.pcolormesh (X, Y, Z, cmap=cmap, norm=cnorm, shading="auto")
+		# plotted the background
+	except:
+		pass
 
 	start = time.time()
 

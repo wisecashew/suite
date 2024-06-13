@@ -25,7 +25,7 @@ if __name__=="__main__":
 	markers = ["^", "o", "s"]
 	alpha   = [1.0, 0.5, 0.5]
 
-	T_range = [0.1]
+	T_range = [10.0]
 	print(f"Range of T: {T_range}.", flush=True)
 	for T in T_range:
 		
@@ -33,7 +33,7 @@ if __name__=="__main__":
 		chi_mc = (z-2)/(kb*T) * (emc - 1/2 * emm)
 		chi_sc = (z-2)/(kb*T) * (esc) 
 
-		xcb = [0.01, 0.03, 0.05, 0.07, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
+		xcb = [0.01, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.99]
 		Nmm_list   = []
 		Ns_list    = []
 		Nc_list    = []
@@ -45,24 +45,26 @@ if __name__=="__main__":
 		scale=7751700.2611331325
 
 		rv = beta(a, b, loc=loc, scale=scale)
-
+		coeffs = [ 7.45932641e-06, -1.09693434e-02,  5.77531041e+00, -8.28790305e+02]
+		print(f"mean = {rv.mean()}")
 		print(f"@T = {T}...", flush=True)
 		for xc_bulk in xcb:
 
-			mu_s   = (kb * T) * (mp.log(1 - xc_bulk)     + chi_sc * (xc_bulk)**2)
-			mu_c   = (kb * T) * (mp.log(xc_bulk)         + chi_sc * (1-xc_bulk) ** 2)
+			mu_s   = (kb * T) * (mp.log(1 - xc_bulk) + chi_sc * (xc_bulk) ** 2)   if xc_bulk > 0 else 0
+			mu_c   = (kb * T) * (mp.log(xc_bulk)     + chi_sc * (1-xc_bulk) ** 2) if xc_bulk > 0 else 0
 
 			print(f"\t@xc in bulk = {xc_bulk}...", end=' ', flush=True) 
-			Nsolv         = lambda Nmm: 770 - 2 * (Nmm - (Nm - 1))
+			Nms_tot       = lambda Nmm: 770 - 2 * (Nmm - (Nm - 1))
 			p_chain       = lambda Nmm: rv.pdf(Nmm)
-			omega_mix     = lambda Nmm, Ns: mp.factorial(Nsolv(Nmm))/(mp.factorial(Ns) * mp.factorial(Nsolv(Nmm)-Ns))
-			chem_pot      = lambda Nmm, Ns: Ns * mu_s + (Nsolv(Nmm) - Ns) * mu_c
-			energy        = lambda Nmm, Ns: emm * (Nmm) + ems * Ns + emc * (Nsolv(Nmm) - Ns)
+			Nstot_count   = lambda Nmm: coeffs[0] * Nms_tot(Nmm) ** 3 + coeffs[1] * Nms_tot(Nmm) ** 2 + coeffs[2] * Nms_tot(Nmm) + coeffs[3]
+			omega_mix     = lambda Nmm, Ns: mp.factorial(Nstot_count(Nmm))/(mp.factorial(Ns) * mp.factorial(Nstot_count(Nmm)-Ns))
+			chem_pot      = lambda Nmm, Ns: Ns * mu_s + (Nstot_count(Nmm) - Ns) * mu_c
+			energy        = lambda Nmm, Ns: emm * (Nmm) + ems * Nms_tot(Nmm) * Ns/Nstot_count(Nmm) + emc * Nms_tot(Nmm) * (1 - Ns/Nstot_count(Nmm))
 			boltzmann     = lambda Nmm, Ns: p_chain(Nmm) * omega_mix(Nmm, Ns) * mp.exp(-1/(kb * T) * (energy(Nmm, Ns) - chem_pot(Nmm, Ns)))
 
 			Z = 0
 			for Nmm in range(31, 208):
-				for Ns in range(0, int(Nsolv(Nmm))):
+				for Ns in range(0, int(Nstot_count(Nmm))):
 					Z += boltzmann(Nmm, Ns)
 
 			print(f"\tZ = {Z}", flush=True)
@@ -73,11 +75,11 @@ if __name__=="__main__":
 			ave_solvtot = 0
 
 			for Nmm in range(31, 208):
-				for Ns in range(0, int(Nsolv(Nmm))):
+				for Ns in range(0, int(Nstot_count(Nmm))):
 					ave_Nmm     += Nmm * boltzmann(Nmm, Ns)/Z
 					ave_Ns      += Ns  * boltzmann(Nmm, Ns)/Z
-					ave_Nc      += (Nsolv(Nmm) - Ns) * boltzmann(Nmm, Ns)/Z
-					ave_solvtot += Nsolv(Nmm)        * boltzmann(Nmm, Ns)/Z
+					ave_Nc      += (Nstot_count(Nmm) - Ns) * boltzmann(Nmm, Ns)/Z
+					ave_solvtot += Nstot_count(Nmm) * boltzmann(Nmm, Ns)/Z
 
 			Nmm_list.append(ave_Nmm)
 			Ns_list.append(ave_Ns)
@@ -109,7 +111,7 @@ if __name__=="__main__":
 	ax[1][0].set_xlim(0,1)
 	ax[1][0].set_ylim(0,800)
 	ax[1][1].set_xlim(0,1)
-	ax[1][1].set_ylim(400,800)
+	ax[1][1].set_ylim(300,800)
 
 	stop = time.time()
 	print(f"Time for computation is {stop-start} seconds.")

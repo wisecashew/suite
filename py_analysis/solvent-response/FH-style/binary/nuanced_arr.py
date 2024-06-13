@@ -1,6 +1,7 @@
 import numpy as np 
 import pandas as pd
 import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from scipy.optimize import fsolve
 from scipy.optimize import root
@@ -639,14 +640,19 @@ class Phase:
 		for idx, T in enumerate(T_arm[::args.skip]):
 			if idx % 1000 == 0:
 				print(f"idx = {idx}, T = {T}.", flush=True)
+			
 			phi_left  = np.logspace(np.log10(bin_arm_left[idx*args.skip]/1e+9), np.log10(bin_arm_left[idx*args.skip]), 1000)
 			phi_right = np.logspace(np.log10(bin_arm_right[idx*args.skip]), np.log10(1 - 1e-3), 10000)
+
 			mu_s_left, mu_s_right = self.mu_s(phi_left, T), self.mu_s(phi_right, T)
 			mu_p_left, mu_p_right = self.mu_p(phi_left, T), self.mu_p(phi_right, T)
+
 			mu_s_left_idx, mu_s_right_idx, min_mus_dist = find_closest_indices_vectorized(mu_s_left, mu_s_right)
 			mu_p_left_idx, mu_p_right_idx, min_mup_dist = find_closest_indices_vectorized(mu_p_left, mu_p_right)
+
 			s_phi_left, s_phi_right = phi_left[mu_s_left_idx], phi_right[mu_s_right_idx]
 			p_phi_left, p_phi_right = phi_left[mu_p_left_idx], phi_right[mu_p_right_idx]
+
 			def delta_mu(phi):
 				eq1 = self.delta_mu_s(phi[0], phi[1], T)
 				eq2 = self.delta_mu_p(phi[0], phi[1], T)
@@ -685,7 +691,7 @@ if __name__=="__main__":
 
 	start = time.time()
 
-	fig = plt.figure(num=0, figsize=(4,3), )
+	fig = plt.figure(num=0, figsize=(3,3))
 	ax  = plt.axes()
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	vm      = args.vm
@@ -724,7 +730,6 @@ if __name__=="__main__":
 		T = np.sort (T, kind="mergesort")
 
 		arms = phase.spinodal(T)
-		# ax.scatter(phase.phi_c[:len(phase.T_c)], phase.T_c, c='darkred', s=1, zorder=10)
 
 		if args.draw_spin:
 			ax.plot(arms[0], arms[2], lw=0.5, c='slategray', zorder=1, label="spinodal")
@@ -798,14 +803,14 @@ if __name__=="__main__":
 				arm_left, arm_right, T_list  = phase.grid_search_neck(lower_T, lower_arm_left, lower_arm_right) 
 				ax.plot(arm_left,  T_list, lw=2.0, c=colors[i], zorder=1, label="binodal") 
 				ax.plot(arm_right, T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_") 
-				'''
+				
 				try:
 					bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
 					ax.plot(bin_arm_left,  T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
 					ax.plot(bin_arm_right, T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
 				except:
 					print(f"Problem with binodal calcs. T_list = {T_list}")	
-				'''
+				
 				mask = arms[2] >= Tmid 
 				upper_T = arms[2][mask]
 				upper_arm_left  = arms[0][mask]
@@ -814,14 +819,14 @@ if __name__=="__main__":
 				arm_left, arm_right, T_list  = phase.grid_search_neck(upper_T, upper_arm_left, upper_arm_right)
 				ax.plot(arm_left,  T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_")
 				ax.plot(arm_right, T_list, lw=2.0, c=colors[i], zorder=1, label="_nolabel_")
-				'''
+				
 				try:
 					bin_arm_left, bin_arm_right, T_list = phase.get_binodal(T_list, arm_left, arm_right)
 					ax.plot(bin_arm_left,  T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
 					ax.plot(bin_arm_right, T_list, lw=1.0, c='black', zorder=1, label="_nolabel_")
 				except:
 					print(f"Problem with binodal calcs. T_list = {T_list}")
-				'''
+				
 
 		print(f"Dumping out binodals for {args.csv[i]}...", flush=True)
 		f = open(args.dump[i], 'w')
@@ -835,14 +840,14 @@ if __name__=="__main__":
 	ax.set_xlim(args.xlim[0], args.xlim[1])
 	ax.set_yticks(np.linspace(args.ylim[0], args.ylim[1], 5))
 	ax.set_xticks(np.linspace(args.xlim[0], args.xlim[1], 5))
-	# ax.minorticks_on()
+	ax.minorticks_on()
 	# Set the number of minor ticks
-	minor_ticks_between_major = 4
-	nticks = 5
+	# minor_ticks_between_major = 4
+	# nticks = 5
 
 	# Set minor tick locators
-	ax.xaxis.set_minor_locator(plt.MultipleLocator((args.xlim[1] - args.xlim[0]) / (nticks - 1) / (minor_ticks_between_major + 1)))
-	ax.yaxis.set_minor_locator(plt.MultipleLocator((args.ylim[1] - args.ylim[0]) / (nticks - 1) / (minor_ticks_between_major + 1)))
+	# ax.xaxis.set_minor_locator(plt.MultipleLocator((args.xlim[1] - args.xlim[0]) / (nticks - 1) / (minor_ticks_between_major + 1)))
+	# ax.yaxis.set_minor_locator(plt.MultipleLocator((args.ylim[1] - args.ylim[0]) / (nticks - 1) / (minor_ticks_between_major + 1)))
 
 	if args.draw_tl:
 		pass

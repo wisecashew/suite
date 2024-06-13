@@ -66,15 +66,15 @@ inline std::string& trim(std::string& s, const char* t = ws)
 
 
 std::vector<std::string> split (const std::string &s, char delim) {
-    std::vector<std::string> result;
-    std::stringstream ss (s);
-    std::string item;
+	std::vector<std::string> result;
+	std::stringstream ss (s);
+	std::string item;
 
-    while (getline (ss, item, delim)) {
-        result.push_back (item);
-    }
+	while (getline (ss, item, delim)) {
+		result.push_back (item);
+	}
 
-    return result;
+	return result;
 }
 
 
@@ -478,7 +478,6 @@ std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2)
 	for (int i{0}; i < static_cast<int>(s); i++){
 		v3.at(i) = (*v1).at(i) -  (*v2).at(i);
 	}
-
 	return v3; 
 }
 
@@ -495,13 +494,10 @@ std::array <int,3> subtract_arrays(std::array <int,3>* a1, std::array <int,3>* a
 
 std::array <int,8> subtract_arrays(std::array <int,8>* a1, std::array <int,8>* a2){
 	std::array<int, 8> a3; 
-
 	for (int i{0}; i<8; ++i){
 		a3[i] = (*a1)[i] - (*a2)[i]; 
 	}
-
 	return a3;
-
 }
 
 std::array <double,8> subtract_arrays(std::array <double,8>* a1, std::array <double,8>* a2){
@@ -2876,16 +2872,16 @@ double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Pa
     // auto start = std::chrono::high_resolution_clock::now();
 
     for (Polymer& pmer: (*Polymers)) {
-        for (Particle*& p: pmer.chain){
-            ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list 
+		for (Particle*& p: pmer.chain){
+            ne_list = obtain_ne_list(p->coords, x, y, z); // get neighbor list
             for ( std::array <int,3>& loc: ne_list) {
             	PairInteractionForRevampedEnergyCalc (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
         	}
         }
-    }
+	}
     
-    for ( Particle*& p: *Cosolvent ){
-    	// std::cout << "Entered cosolvent loop. " << std::endl;
+	for ( Particle*& p: *Cosolvent ){
+		// std::cout << "Entered cosolvent loop. " << std::endl;
 		ne_list = obtain_ne_list ( p->coords, x, y, z );
 		for ( std::array <int,3>& loc: ne_list ){
 			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
@@ -2893,9 +2889,9 @@ double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Pa
 			}
 			ParticlePairEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
 		}
-    }
+	}
 
-    return Energy; 
+	return Energy; 
 }
 
 
@@ -3216,39 +3212,66 @@ void dumpMoveStatistics (std::array <int,9>* attempts, std::array <int,9>* accep
 // dumping orientations of solvent around monomer segments
 
 void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int step, std::string filename, int x, int y, int z ) {
-    // std::cout<< "just inside dumpO..."<<std::endl; 
-    std::ofstream dump_file (filename, std::ios::app); 
-    // std::cout << "step = " << step << ".\n";
-    dump_file << "START for Step " << step << ".\n";
-    std::vector <int> solvent_indices; 
-    // std::pair <char, int> properties (' ' , -1); 
-    for ( Polymer& pmer: (*Polymers) ) {
-        for ( Particle*& p: pmer.chain ) {
-            
-            dump_file << p->orientation << " | ";
-            std::array <std::array<int,3>, 26> ne_list = obtain_ne_list (p->coords, x, y, z) ;
-            
-            for ( std::array <int,3>& ne: ne_list) {
-                
-                // std::cout << "Reported~\n"; 
-                
-                if ( (*LATTICE)[ lattice_index(ne, y, z) ]->ptype[0] == 's' && std::find( solvent_indices.begin(), solvent_indices.end(), lattice_index(ne, y, z)) == solvent_indices.end()  ){
-                    dump_file << ((*LATTICE)[ lattice_index(ne, y, z) ])->orientation << " | ";  
-                } 
-            }
-            dump_file << "\n"; 
-        } 
-    }
-    
-    dump_file << "END. \n";
-    return;
+	// std::cout<< "just inside dumpO..."<<std::endl; 
+	std::ofstream dump_file (filename, std::ios::app); 
+	// std::cout << "step = " << step << ".\n";
+	dump_file << "START for Step " << step << ".\n";
+	std::vector <int> solvent_indices; 
+	// std::pair <char, int> properties (' ' , -1); 
+	for ( Polymer& pmer: (*Polymers) ) {
+		for ( Particle*& p: pmer.chain ) {
+			
+			dump_file << p->orientation << " | ";
+			std::array <std::array<int,3>, 26> ne_list = obtain_ne_list (p->coords, x, y, z) ;
+			
+			for ( std::array <int,3>& ne: ne_list) {
+				
+				// std::cout << "Reported~\n"; 
+				
+				if ( (*LATTICE)[ lattice_index(ne, y, z) ]->ptype[0] == 's' && std::find( solvent_indices.begin(), solvent_indices.end(), lattice_index(ne, y, z)) == solvent_indices.end()  ){
+					dump_file << ((*LATTICE)[ lattice_index(ne, y, z) ])->orientation << " | ";  
+				} 
+			}
+			dump_file << "\n"; 
+		} 
+	}
+
+	dump_file << "END. \n";
+	return;
+
+}
+
+void dumpSolvation( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int step, std::string filename, int x, int y, int z ) {
+	std::ofstream dump_file (filename, std::ios::app); 
+	std::set <int> solvent_indices  ;
+	std::set <int> cosolvent_indices;
+	
+	for ( Polymer& pmer: (*Polymers) ) {
+		for ( Particle*& p: pmer.chain ) {
+			std::array <std::array<int,3>, 26> ne_list = obtain_ne_list (p->coords, x, y, z);
+			for ( std::array <int,3>& ne: ne_list) {
+				if ((*LATTICE)[lattice_index(ne, y, z)]->ptype[1] == '1' && (*LATTICE)[lattice_index(ne, y, z)]->ptype[0]=='s'){
+					solvent_indices.insert(lattice_index(ne, y, z));
+				}
+				else if ((*LATTICE)[lattice_index(ne, y, z)]->ptype[1] == '2' && (*LATTICE)[lattice_index(ne, y, z)]->ptype[0]=='s'){
+					cosolvent_indices.insert(lattice_index(ne, y, z));
+				}
+			}
+		}
+	}
+
+	int total_solvent_particles   {static_cast<int>(solvent_indices.size())};
+	int total_cosolvent_particles {static_cast<int>(cosolvent_indices.size())};
+	dump_file << total_solvent_particles + total_cosolvent_particles << " | " << total_solvent_particles << " | " << total_cosolvent_particles << " | " << step << "\n";
+
+	return;
 
 }
 
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-//             End of dumpOrientation 
+//             End of dumpSolvation 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
@@ -3309,18 +3332,18 @@ void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <
 	double temperature, int index, int x, int y, int z) {
 
 	
-    // get the neighborlist of particle at index 1 
-    std::cout << "*E[0] = " << (*E)[0] << std::endl;
-    std::array <int,3> loc_0 = (*Polymers)[index].chain[0]->coords; 
-    std::array <int,3> loc_1 = (*Polymers)[index].chain[1]->coords;
+	// get the neighborlist of particle at index 1 
+	std::cout << "*E[0] = " << (*E)[0] << std::endl;
+	std::array <int,3> loc_0 = (*Polymers)[index].chain[0]->coords; 
+	std::array <int,3> loc_1 = (*Polymers)[index].chain[1]->coords;
 
-    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
+	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 
-    std::array <double,8> cs             = {0, 0, 0, 0, 0, 0, 0, 0};  
-    std::array <double,8> cm             = {0, 0, 0, 0, 0, 0, 0, 0}; 
-    std::array <double,8> cs_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
-    std::array <double,8> cm_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
-    std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> cs             = {0, 0, 0, 0, 0, 0, 0, 0};  
+	std::array <double,8> cm             = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> cs_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> cm_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
 	std::array <double,8> c_contacts     = {0, 0, 0, 0, 0, 0, 0, 0};
 
 	int choice = rng_uniform(0, 25); 
@@ -3410,18 +3433,17 @@ void TailRotation_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Partic
 	std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
-	
-    // get the neighborlist of particle at index 1 
-    std::array <int,3> loc_0 = (*Polymers)[index].chain[0]->coords; 
-    std::array <int,3> loc_1 = (*Polymers)[index].chain[1]->coords;
+	// get the neighborlist of particle at index 1 
+	std::array <int,3> loc_0 = (*Polymers)[index].chain[0]->coords; 
+	std::array <int,3> loc_1 = (*Polymers)[index].chain[1]->coords;
 
-    std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
+	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list(loc_1, x, y, z); 
 
-    std::array <double,8> cs             = {0, 0, 0, 0, 0, 0, 0, 0};  
-    std::array <double,8> cm             = {0, 0, 0, 0, 0, 0, 0, 0}; 
-    std::array <double,8> cs_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
-    std::array <double,8> cm_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
-    std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> cs             = {0, 0, 0, 0, 0, 0, 0, 0};  
+	std::array <double,8> cm             = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> cs_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> cm_n           = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
 
 	int choice = rng_uniform(0, 25); 
 

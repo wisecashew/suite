@@ -205,6 +205,8 @@ ne_list = get_ne_list ( unfucked_polymer, args.x, args.y, args.z )
 solvation_shell = get_solvation_shell ( ne_list, unfucked_polymer )
 solvation_shell = np.vstack ( {tuple(row) for row in solvation_shell})
 
+print(f"Number of solvents in shell = {len(solvation_shell)}.")
+
 ss_x = [] 
 ss_y = [] 
 ss_z = [] 

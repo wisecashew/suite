@@ -5,8 +5,9 @@
 
 class ParticleSets{
 public:
-	std::vector <Polymer>   Polymers;
 	std::vector <Particle*> Lattice;
+	std::vector <Polymer*>  Polymers;
+	std::vector <Particle*> Solvent;
 	std::vector <Particle*> Cosolvent;
 
 	// constructor

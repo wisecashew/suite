@@ -1,20 +1,17 @@
 #include "Simulation.h"
 
-// obtained all necessary libraries
-// start obtaining inputs...
-
 int main (int argc, char** argv) {
 
 	// INSTANTIATE USER INPUT VARIABLES 
-	int opt;          // storage variable to hold options from getopt() [line 36] 
-    int lfreq   {-1}; // lattice frequency dump 
-	int dfreq   {-1}; // frequency at which coordinates will be dumped out 
-	int max_iter{-1}; // number of iteration to perform
-	bool v = false;   // boolean for verbosity of output  (default: not verbose)
-	bool r = false;   // boolean for restarts (default: no restarts) 
-	bool S = false;   // boolean for biased solvation shell 
-	bool A = false;   // boolean for aligned lattice 
-	bool s = false;   // boolean for solvation 
+	int opt;           // storage variable to hold options from getopt() [line 36] 
+	int lfreq    {-1}; // lattice frequency dump 
+	int dfreq    {-1}; // frequency at which coordinates will be dumped out 
+	int max_iter {-1}; // number of iteration to perform
+	bool verbosity_bool           = false; // boolean for verbosity of output  (default: not verbose)
+	bool restart_bool             = false; // boolean for restarts (default: no restarts) 
+	bool solvation_align_bool     = false; // boolean for biased solvation shell 
+	bool align_lattice_bool       = false; // boolean for aligned lattice 
+	bool cosolvent_solvation_bool = false; // boolean for solvation 
 	std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 	std::string topology           {"__blank__"}; // name of file with topology of system 
 	std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -23,89 +20,116 @@ int main (int argc, char** argv) {
 	std::string stats_file         {"__blank__"}; // name of file with move statisitics 
 	std::string lattice_file_write {"__blank__"}; // name of file where lattice will be dumped to 
 	std::string lattice_file_read  {"__blank__"}; // name of file from which lattice will be read 
+	std::string SSfile             {"__blank__"}; // name of file to which solvaiton shell will be written
+
+	// define the long options
+	static struct option long_options[] = {
+		{"frequency-of-sim-dump",     required_argument, 0, 'f'},
+		{"frequency-of-lattice-dump", required_argument, 0, 'l'},
+		{"total-moves",               required_argument, 0, 'M'},
+		{"topology",                  required_argument, 0, 't'},
+		{"coords",                    required_argument, 0, 'o'},
+		{"initial-coords",            required_argument, 0, 'p'},
+		{"energetics",                required_argument, 0, 'u'},
+		{"move-statistics",           required_argument, 0, 's'},
+		{"orientation",               required_argument, 0, 'e'},
+		{"latice-dump",               required_argument, 0, 'L'},
+		{"read-lattice",              required_argument, 0, 'R'},
+		{"solvation-dump",            required_argument, 0, 'H'},
+		{"help",                   no_argument, 0, 'h'},
+		{"verbose",                no_argument, 0, 'v'},
+		{"restart",                no_argument, 0, 'r'},
+		{"align-solvation",        no_argument, 0, 'S'},
+		{"align-lattice",          no_argument, 0, 'A'},
+		{"solvate-with-cosolvent", no_argument, 0, 'y'},
+		{"low-temperature",        no_argument, 0, 'T'},
+		{0, 0, 0, 0}  // End of options
+	};
 
 	// loop to obtain inputs and assign them to the appropriate variables 
-	while ( (opt = getopt(argc, argv, ":l:s:L:R:f:M:o:u:p:t:e:vhSAyr")) != -1 )
-	{
-	    switch (opt) 
-	    {
+	int option_index = 0;
+	while ( (opt = getopt_long(argc, argv, ":l:s:L:R:f:H:M:o:u:p:t:e:vhSAyrT", long_options, &option_index)) != -1 ) {
+		switch (opt) {
+		
 		case 'f':
-			dfreq = atoi(optarg); 
+			dfreq = atoi(optarg); //check
 			break;
 
-        case 'l':
-            lfreq = atoi(optarg); 
-            break;
+		case 'l':
+			lfreq = atoi(optarg); // check
+			break;
 
 		case 'M':
-			max_iter = atoi(optarg); 
+			max_iter = atoi(optarg); // check
 			break; 
 
 		case 'h':
 			std::cout << 
 			"\n" << 
-			"Welcome to my [M]onte [C]arlo [Latt]ice [E]ngine [McLattE] (v1.0.0) for polymers and solvents on a cubic lattice (Z=26). \n" << 
-			"Last updated: Aug 4, 2023, 03:01 PM. \n" << 
+			"Welcome to flogotts (FLOry-huGgins-pOTTs) v1.2.0 for molecular simulations on a cubic lattice (z=26)! \n" << 
+			"Last updated: Jun 26, 2024, 11:01 PM. \n" << 
 			"Author: satyend@princeton.edu \n" <<
 			"\n" << 
 			"----------------------------------------------------------------------------------------------------------------------------------\n" << 
 			"These are all the inputs the engine accepts for a single run, as of right now: \n\n" <<
-			"help                                     [-h]           (NO ARG REQUIRED)              Prints out this message. \n"<<
-			"verbose flag                             [-v]           (NO ARG REQUIRED)              Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
-			"restart flag                             [-r]           (NO ARG REQUIRED)              Restarts simulation from final spot of a previous simulation. \n"<<
-			"solvation bias flag                      [-y]           (NO ARG REQUIRED)              Solvated cosolvent right around polymer. \n"<<
-			"solvation shell orientation bias flag    [-S]           (NO ARG REQUIRED)              All particles around polymer have orientation 0. \n"<<
-            "lattice orientation bias flag            [-A]           (NO ARG REQUIRED)              All particles in lattice have orientation 0. \n"<<
-			"Dump frequency                           [-f]           (INTEGER ARGUMENT REQUIRED)    Frequency at which coordinates should be dumped out. \n"<<                
-            "Dump frequency of entire lattice         [-l]           (INTEGER ARGUMENT REQUIRED)    Frequency at which lattice should be dumped out. \n"<<                
-			"Number of maximum moves                  [-M]           (INTEGER ARGUMENT REQUIRED)    Number of MC moves to be run on the system. \n" <<
-			"Polymer coordinates                      [-p]           (STRING ARGUMENT REQUIRED)     Name of input file with coordinates of polymer.\n" <<
-			"Energy and geometry                      [-t]           (STRING ARGUMENT REQUIRED)     Name of input file with energetic interactions and geometric bounds.\n" <<
-			"Energy of grid                           [-u]           (STRING ARGUMENT REQUIRED)     Name of output file with energy of system at each step in a file.\n"<<
-			"Lattice file to write to                 [-L]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to write out current simulation.\n" <<
-			"Lattice file to read from                [-R]           (STRING ARGUMENT REQUIRED)     Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
-			"Orientation file                         [-e]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain orientation of ALL particles in system.\n" << 
-			"Move statistics file                     [-s]           (STRING ARGUMENT REQUIRED)     Name of output file with move statistics. \n" <<
-			"Name of output file                      [-o]           (STRING ARGUMENT REQUIRED)     Name of output file which will contain coordinates of polymer.\n\n";  
+			"help                                     [-h, --help]                      (NO ARG)                             Prints out this message. \n"<<
+			"verbose flag                             [-v, --verbose]                   (NO ARG)       (NOT REQUIRED)        Prints out a lot of information in console. MEANT FOR DEBUGGING PURPOSES. \n"<<
+			"restart flag                             [-r, --restart]                   (NO ARG)       (NOT REQUIRED)        Restarts simulation from final spot of a previous simulation. \n"<<
+			"solvation bias flag                      [-y, --solvate-with-cosolvent]    (NO ARG)       (NOT REQUIRED)        Solvated cosolvent right around polymer. \n"<<
+			"solvation shell orientation bias flag    [-S, --align-solvation]           (NO ARG)       (NOT REQUIRED)        All particles around polymer have orientation 0. \n"<<
+			"lattice orientation bias flag            [-A, --align-lattice]             (NO ARG)       (NOT REQUIRED)        All particles in lattice have orientation 0. \n"<<
+			// "Low temperature simulation               [-T, --low-temperature]           (NO ARG)       (NOT REQUIRED)        Simulation will have moves geared for low temperature simulations. \n" <<
+			"Dump frequency                           [-f, --frequency-of-sim-dump]     (INTEGER ARG)  (REQUIRED)            Frequency at which coordinates should be dumped out. \n"<<
+			"Number of maximum moves                  [-M, --total-moves]               (INTEGER ARG)  (REQUIRED)            Number of MC moves to be run on the system. \n" <<
+			"Dump frequency of entire lattice         [-l, --frequency-of-lattice-dump] (INTEGER ARG)  (NOT REQUIRED)        Frequency at which lattice should be dumped out. \n"<<
+			"Polymer coordinates                      [-p, --initial-coords]            (STRING ARG)   (REQUIRED)            Name of input file with coordinates of polymer.\n" <<
+			"Energy and geometry                      [-t, --topology]                  (STRING ARG)   (REQUIRED)            Name of input file with energetic interactions and geometric bounds.\n" <<
+			"Energy of grid                           [-u, --energetics]                (STRING ARG)   (REQUIRED)            Name of output file with energy of system at each step in a file.\n"<<
+			"Name of output file                      [-o, --coords]                    (STRING ARG)   (REQUIRED)            Name of output file which will contain coordinates of polymer.\n"<<
+			"Lattice file to write to                 [-L, --lattice-dump]              (STRING ARG)   (NOT REQUIRED)        Trajectory file of a previous simulation which can be used to write out current simulation.\n" <<
+			"Lattice file to read from                [-R, --read-lattice]              (STRING ARG)   (NOT REQUIRED)        Trajectory file of a previous simulation which can be used to start current simulation.\n" <<
+			"Orientation file                         [-e, --orientation]               (STRING ARG)   (NOT REQUIRED)        Name of output file which will contain orientation of ALL particles in system.\n" << 
+			"Move statistics file                     [-s, --move-statistics]           (STRING ARG)   (NOT REQUIRED)        Name of output file with move statistics. \n" <<
+			"Solvation shell file                     [-H, --solvation-dump]            (STRING ARG)   (NOT REQUIRED)        Name of output file where solvation shell is written out. \n\n";
 			exit(EXIT_SUCCESS);
 			break;
 
 
 		case 'p':
-			positions = optarg;
-			break;    
+			positions = optarg; // check
+			break;
 
 		case 'S':
-			S = true;
+			solvation_align_bool = true; // check
 			break;
 
 		case 'A':
-			A = true;
+			align_lattice_bool = true; // check
 			break;
 
 		case 'y': 
-			s = true;
+			cosolvent_solvation_bool = true; // check
 			break;
 
 		case 't':
-			topology = optarg; 
+			topology = optarg; // check
 			break;
 
 		case 'o':
-			dfile = optarg;
+			dfile = optarg; // check
 			break;
 
 		case 'u':
-			efile = optarg;
+			efile = optarg; // check
 			break;
 
 		case 's':
-			stats_file = optarg;
+			stats_file = optarg; // check
 			break;
 
 		case 'r':
 			std::cout << "Simulation will be restarted from the end of previous simulation.\n" ;
-			r = true;
+			restart_bool = true; // check
 			break;
 
 		case '?':
@@ -115,80 +139,97 @@ int main (int argc, char** argv) {
 
 		case 'v':
 			std::cout << "Output to console will be verbose. " << std::endl;
-			v = true;
+			verbosity_bool = true; // check
 			break;
 
 		case 'e':
-			mfile=optarg;
+			mfile = optarg; // check
 			break; 
 
 		case ':':
 			std::cout << "ERROR: Missing arg for " << static_cast <char> (optopt) << "." << std::endl;
-			exit(EXIT_FAILURE);           
+			exit(EXIT_FAILURE);
 			break; 
 
 		case 'L': 
 			// std::cout << "Name of file to write lattice down at end of simulation." << std::endl;
-			lattice_file_write=optarg; 
+			lattice_file_write=optarg; // check
 			break;
 
 		case 'R':
-			// std::cout << "Name of file to read lattice to restart simulation." << std::endl;
-			lattice_file_read=optarg; 
+			lattice_file_read=optarg; // check
 			std::cout << "Name of file to write lattice down at end of simulation is " << lattice_file_read <<  "." << std::endl;
-			break;                
+			break;
 
+		case 'H': 
+			SSfile=optarg; // check
+			break;
+
+		default:
+			std::cout << "A bad option has been provided. Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
 		}
+
 	}
+	
+	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+	auto start = std::chrono::high_resolution_clock::now();
 
-    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-    // Parse inputs... 
-    // This command will take all of the above inputs and make sure they are valid. 
-    auto start = std::chrono::high_resolution_clock::now(); 
-    input_parser(dfreq, lfreq, max_iter, r, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read); 
+	// Parse inputs... 
+	// This command will take all of the above inputs and make sure they are valid. 
+	input_parser(dfreq, lfreq, max_iter, restart_bool, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read, lattice_file_write, SSfile); 
 
-    Simulation mySim(max_iter, dfreq, lfreq, r, s, v, A, S, positions, topology,
-        dfile, efile, mfile, stats_file, lattice_file_write, lattice_file_read);
+	// this is the ultimate simulation object
+	// constructing the Simulation object
+	Simulation mySim(max_iter, // total moves to perform
+	dfreq,                     // total frequency of dumping out statistics 
+	lfreq,                     // total frequency of lattice dumps
+	restart_bool,              // boolean for restart
+	cosolvent_solvation_bool,  // boolean to make sure where the cosolvent isbeing planted
+	verbosity_bool,            // boolean to check for verbose output
+	align_lattice_bool,        // boolean to check if you want the entire lattice to be aligned
+	solvation_align_bool,      // boolean to check if you only want the solvation shell to be aligned
+	positions,                 // file holding all positions
+	topology,                  // file holding energetic parameters and simulation cell conditions
+	dfile,                     // file holding polymer coordinates 
+	efile,                     // file holding energy and other simulation conditions
+	mfile,                     // file holding all orientations
+	stats_file,                // file holding statistics regarding move selection
+	lattice_file_write,        // file where the lattice is dumped 
+	lattice_file_read,         // file where lattice is read from for restart
+	SSfile);                   // file where solvation shell information is dumped
+	// end of object instantiation
 
-    std::pair  <std::string, std::string> mm_pair    = std::make_pair ("m1", "m1");
-    std::pair  <std::string, std::string> ms1_pair   = std::make_pair ("m1", "s1");
-    std::pair  <std::string, std::string> ms2_pair   = std::make_pair ("m1", "s2");
-    std::pair  <std::string, std::string> s1s2_pair  = std::make_pair ("s1", "s2");
+	// right now, i have only instantiated certain files and certain pathways. 
+	mySim.extract_topology_from_file();       // I have the geometry and energies.
+	mySim.set_up_system();                    // now that i have all the info, i can set up the simulation lattice
+	mySim.set_up_local_dump();                // sets up the dump function
+	mySim.set_up_energy_calculator();         // sets up the energy function
+	mySim.set_up_run();                       // sets up the run function
+	mySim.initialize_pairwise_function_map(); // initialize the pairwise function
+	mySim.initialize_neighbor_function_map(); // initialize the neighbor function
+	mySim.accelerate_calculate_energy();      // get the energy of the system
+	mySim.dump_local();                       // dump out the conditions at step number 0
 
-    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-    // OPENING TILES
+	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+	// OPENING TILES
+	mySim.opening_tiles();
 
-    std::cout << std::endl;
-    std::cout << "Preparing for take-off...\n\n" ; 
-    std::cout << "Chemical information: " << std::endl;
-    std::cout << "Number of polymers in system = " << mySim.Npoly << ".\n\n";
-    std::cout << "Geometric information about simulation cell: " << std::endl;
-    std::cout << "x = " << mySim.x <<", y = " << mySim.y << ", z = "<< mySim.z << "." << std::endl << std::endl;
-    std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
-    std::cout << "Temperature = " << mySim.T << "." << std::endl; 
-    std::cout << "Fraction of Solvent II = " << mySim.frac << "." << std::endl;
-    std::cout << "Monomer-Monomer energetics: "    << std::get<0>(mySim.InteractionMap[mm_pair])  << ", Emm_a = "  << mySim.E[0] <<", Emm_n = "  << mySim.E[1] << ".\nMonomer-Solvent I energetics: "    << std::get<0>(mySim.InteractionMap[ms1_pair]) << ", Ems1_a = "  << mySim.E[2] << ", Ems1_n = "  << mySim.E[3] <<".\n";
-    std::cout << "Monomer-Solvent II energetics: " << std::get<0>(mySim.InteractionMap[ms2_pair]) << ", Ems2_a = " << mySim.E[4] <<", Ems2_n = " << mySim.E[5] << ".\nSolvent I-Solvent II energetics: " << std::get<0>(mySim.InteractionMap[s1s2_pair])<< ", Es1s2_a = " << mySim.E[6] << ", Es1s2_n = " << mySim.E[7] <<".\n";  
-    std::cout << "Energy of system is " << mySim.sysEnergy << ".\n" << std::endl;
-    std::cout << "Off to a good start. \n\n";
-    std::cout << "--------------------------------------------------------------------\n" << std::endl;
-    
-    auto stop     = std::chrono::high_resolution_clock::now(); 
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
+	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
-    std::cout << "Time required for set up is " << duration.count() << " microseconds." << std::endl;
+	// run the simulation!
+	mySim.run();
 
-    //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-    if (!mySim.r){
-        mySim.dump_energy(0);
-        mySim.dump_solvation_shell_orientations(0);
-        mySim.dump_polymers(0);
-        mySim.dump_lattice(0);
-    }
+	// final dumps of lattice and move statistics
+	// mySim.dump_lattice();
+	mySim.dump_statistics(); 
 
-    std::cout << "Initiation complete. We are ready to go. The engine will output information every " << mySim.dfreq << " configuration(s)." << std::endl; 
-    std::cout << "Number of iteration to perform: " << mySim.max_iter << "." << std::endl;
+	auto stop     = std::chrono::high_resolution_clock::now(); 
+	auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
-    return 0;
+	std::cout << "Time required for set up is " << duration.count() << " microseconds." << std::endl;
+	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+
+	return 0;
 
 }

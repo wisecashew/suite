@@ -26,10 +26,10 @@
 
 
 void Polymer::print_chain(){
-    for (Particle*& p: this->chain){
-        p->print_coords(); 
-    }
-    return; 
+	for (Particle*& p: this->chain){
+		p->print_coords(); 
+	}
+	return; 
 }
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -54,11 +54,11 @@ void Polymer::print_chain(){
 
 
 void Polymer::print_orientation(){
-    for (Particle*& p:this->chain){
-        std::cout << p->orientation << " | ";
-    }
-    std::cout << std::endl;
-    return;
+	for (Particle*& p:this->chain){
+		std::cout << p->orientation << " | ";
+	}
+	std::cout << std::endl;
+	return;
 }
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -88,25 +88,25 @@ void Polymer::print_orientation(){
 
 void Polymer::chain_to_connectivity_map(){
 
-    const int chainLength = this->chain.size(); 
+	const int chainLength = this->chain.size(); 
 
-    for (int i{0}; i<chainLength; ++i){
-        if (i==0){
-            
-            this->ConnectivityMap[this->chain.at(i)] = { (this->chain.at(i+1)),  };
+	for (int i{0}; i<chainLength; ++i){
+		if (i==0){
+			
+			this->ConnectivityMap[this->chain.at(i)] = { (this->chain.at(i+1)),  };
 
-        }
-        else if (i==(chainLength-1)){
+		}
+		else if (i==(chainLength-1)){
 
-            this->ConnectivityMap[this->chain.at(i)] = { (this->chain.at(i-1)), }; 
-        }
-        else {
-            this->ConnectivityMap[this->chain.at(i)] = { (this->chain.at(i-1)), (this->chain.at(i+1)) };
-        }
+			this->ConnectivityMap[this->chain.at(i)] = { (this->chain.at(i-1)), }; 
+		}
+		else {
+			this->ConnectivityMap[this->chain.at(i)] = { (this->chain.at(i-1)), (this->chain.at(i+1)) };
+		}
 
-    }
+	}
 
-    return; 
+	return; 
 }
 
 

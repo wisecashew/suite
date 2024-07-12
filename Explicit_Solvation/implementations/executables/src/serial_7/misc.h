@@ -8,6 +8,7 @@
 #include <string>
 #include <array>
 #include <utility>
+#include <functional>
 #include <array>
 #include <random>
 #include <chrono>
@@ -20,13 +21,12 @@
 #include <iterator>
 #include <unordered_set>
 #include <algorithm>
+#include <filesystem>
 #include <getopt.h> 
 #include <stdlib.h> 
 
 
 // this is a bunch of miscellaneous functions I use 
-
-
 // check if the new location added to random walk has been visited before 
 bool check_avoidance             (std::vector <int> to_check, std::vector<std::vector <int>> loc_list); 
 
@@ -45,6 +45,7 @@ void sarw_pbc                    (std::vector<std::vector<int>>* loc_list, int d
 
 // run an acceptance criterion for two polymers 
 bool acceptance(int dE, double kT); 
+bool metropolis_acceptance(double E1, double E2, double kT);
 
 // sending a string to a file
 void StringToFile(std::string filename, std::string to_send);
@@ -72,6 +73,7 @@ std::vector <std::vector <int>>      obtain_ne_list (std::vector <int>   loc, in
 std::array  <std::array <int,3>, 26> obtain_ne_list (std::array  <int,3> loc, int x_len, int y_len, int z_len);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+void create_linked_list ( std::vector<std::array<int,3>> v1, std::vector<std::array<int,3>> v2, std::vector <std::array<int,3>> link, std::vector <std::vector <std::array<int,3>>>* master_linked_list, int beginning);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // random number generation 
@@ -119,27 +121,28 @@ double              take_dot_product        (std::array <double,3> o1, std::arra
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
-void input_parser (int dfreq, int lfreq, int max_iter, bool r, std::string positions, 
-    std::string topology, std::string dfile, std::string efile, std::string mfile, 
-    std::string stats_file, std::string lattice_file_read); 
+void input_parser (int dfreq, 
+	int lfreq, 
+	int max_iter, 
+	bool r, 
+	std::string positions, 
+	std::string topology, 
+	std::string dfile, 
+	std::string efile, 
+	std::string mfile, 
+	std::string stats_file, 
+	std::string lattice_file_read,
+	std::string lattice_file_write,
+	std::string ssfile); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
+void filter_coords(const std::string& filename, int cutoffStep);
+void filter_csv(const std::string& filename, int cutoffStep);
+void filter_orientations(const std::string& filename, int cutoffStep);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // print methods  
 // print out a vector 
-
-
-
-template <typename T>
-void print (T vec, std::string end="\n"){
-
-    for (int i{0}; i < static_cast<int>(vec.size()); ++i){
-        std::cout << vec[i] << " | "; 
-    }
-    std::cout << end; 
-    return;
-}
 
 
 void print (std::vector <int> v, std::string c="\n"); 
@@ -164,11 +167,26 @@ void print ( std::array <std::array<int,3>,6> aa );
 void print ( std::vector <std::array<int,3>> aa );
 void print ( std::vector <std::vector <std::array<int,3>>> V);
 
+template <typename T>
+void print (T vec, std::string end="\n"){
+
+	for (int i{0}; i < static_cast<int>(vec.size()); ++i){
+		std::cout << vec[i] << " | "; 
+	}
+	std::cout << end; 
+	return;
+}
 
 template <typename T>
 void reset(T &x){
     x = T();
 }
+
+void resetting_containers(std::array<double,8>* cs1_i, std::array<double,8>*cs1_f,
+std::array<double,8>* cs2_i, std::array<double,8>*cs2_f,
+std::array<double,8>* cpair_i, std::array<double,8>* cpair_f,
+double* Es1_i, double* Es1_f, double* Es2_i, double* Es2_f,
+double* Epair_i, double* Epair_f);
 
 
 #endif 

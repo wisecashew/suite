@@ -7,16 +7,25 @@ Helpful definitions which are employed often in the context of the z=6 lattice I
 =============================================================================================
 */ 
 
+bool metropolis_acceptance(double E1, double E2, double kT){
+
+	double dE = E2-E1; 
+	double prob = std::exp(-1/kT*dE); 
+	double r = rng_uniform(0.0, 1.0); 
+
+	return (r<prob);
+}
+
 std::vector<std::string> split (const std::string &s, char delim) {
-    std::vector<std::string> result;
-    std::stringstream ss (s);
-    std::string item;
+	std::vector<std::string> result;
+	std::stringstream ss (s);
+	std::string item;
 
-    while (getline (ss, item, delim)) {
-        result.push_back (item);
-    }
+	while (getline (ss, item, delim)) {
+		result.push_back (item);
+	}
 
-    return result;
+	return result;
 }
 
 
@@ -316,6 +325,7 @@ void print ( std::vector <std::vector <std::array<int,3>>> V){
 	}
 	return;
 }
+
 
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -819,7 +829,7 @@ int heads_or_tails(int m_index, int deg_poly){
 void input_parser(int dfreq, int lfreq, int max_iter, bool r, \
 	std::string positions, std::string topology, std::string dfile, \
 	std::string efile, std::string mfile, std::string stats_file, \
-	std::string lattice_file_read){
+	std::string lattice_file_read, std::string lattice_file_write, std::string ssfile){
 
 	
 	if (!r) {
@@ -830,12 +840,19 @@ void input_parser(int dfreq, int lfreq, int max_iter, bool r, \
 		}
 	
 		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
-			mfile == "__blank__" || stats_file == "__blank__" ){
-			std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
-			<< efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << "." << std::endl;
+			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_write == "__blank__" ){
+			std::cerr << "polymer coords file is " << positions <<
+			",\ntopology is " << topology <<
+			",\npolymer coordinate dump file is " << dfile << 
+			",\nenergy dump file is " << efile << 
+			",\norientation file is " << mfile << 
+			",\nmove statistics file is " << stats_file << 
+			",\nlattice dump file is " << lattice_file_write << 
+			",\nsolvation dump file is " << ssfile << "." << std::endl;
+
 			std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
 			"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
-			"for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+			"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
 			exit (EXIT_FAILURE);    
 		}
 		
@@ -845,11 +862,20 @@ void input_parser(int dfreq, int lfreq, int max_iter, bool r, \
 		std::ofstream orientation_dump_file (mfile); 
 		std::ofstream statistics_dump_file (stats_file); 
 
+		polymer_dump_file.close();
+		energy_dump_file.close();
+		orientation_dump_file.close();
+		statistics_dump_file.close();
+
 		if ( lattice_file_read != "__blank__" ){
-			std::cerr << "Restart has not been requested. Do not provide a restart file to read. Exiting..." << std::endl;
+			std::cerr << "Restart has not been requested. Do not provide a lattice file to read. Exiting..." << std::endl;
 			exit (EXIT_FAILURE);
 		} 
-		
+
+		if ( ssfile != "__blank__"){
+			std::ofstream solvation_dump_file(ssfile);
+			solvation_dump_file.close();
+		}
 
 	}
 
@@ -862,17 +888,214 @@ void input_parser(int dfreq, int lfreq, int max_iter, bool r, \
 
 		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
 			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
-			std::cerr << "polymer coords file is " << positions <<",\ntopology is " << topology <<",\npolymer coordinate dump file is " << dfile << ",\nenergy dump file is " \
-		<< efile << ",\norientation file is " << mfile << ",\nmove statistics file is " << stats_file << ", " << \
-		"\nlattice file to read is " << lattice_file_read << "." << std::endl;
-		std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\n" << 
-		"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
-		"for option s (name of move stats file) and/or\n for option u (name of energy dump file) was provided. Exiting..." << std::endl;
-		exit (EXIT_FAILURE);    
+			std::cerr << "polymer coords file is " << positions <<
+			",\ntopology is " << topology <<
+			",\npolymer coordinate dump file is " << dfile << 
+			",\nenergy dump file is " << efile << 
+			",\norientation file is " << mfile << 
+			",\nmove statistics file is " << stats_file << 
+			",\nlattice file to read is " << lattice_file_read << 
+			",\nsolvation dump file is " << ssfile << "." << std::endl;
+			std::cerr << 
+			"ERROR: No value for option p (polymer coordinate file) and/or\n" << 
+			"for option t (energy and geometry file) and/or\n" << 
+			"for option o (name of output dump file) and/or\n" << 
+			"for option e (name of orientation file) and/or\n" <<
+			"for option s (name of move stats file) and/or\n" << 
+			"for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+	}
+	return;
+}
+
+
+void filter_coords(const std::string& filename, int cutoff_step) {
+
+	std::ifstream input_file(filename);
+
+	if ( !(input_file.good()) ){
+		// create the file;
+		std::ofstream file(filename);
+		file.close();
+	}
+
+	else {
+
+		if (!input_file.is_open()) {
+			std::cerr << "Error opening file for reading: " << filename << std::endl;
+			std::cerr << "Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
 		}
 
+		std::string line; 
+		std::vector<std::string> contents;
+		while (std::getline(input_file, line)){
+			contents.push_back(line);
+		}
+		input_file.close();
+
+		std::ofstream output_file(filename);
+
+		if (!output_file.is_open()) {
+			std::cerr << "Error opening file for writing: " << filename << std::endl;
+			std::cerr << "Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		std::regex pattern("^Dumping coordinates at step (\\d+)");
+		std::smatch matches;
+		int step_number {-1};
+
+		for (std::string& single_line: contents){
+			if (std::regex_search(single_line, matches, pattern)) {
+				step_number = std::stoi(matches[1].str());
+				if (step_number > cutoff_step){
+					break;
+				}
+				else {
+					output_file << single_line << std::endl;	
+				}
+			}
+			else {
+				output_file << single_line << std::endl;
+			}
+		}
+		output_file.close();
+	}
+	return;
+}
+
+void filter_csv(const std::string& filename, int cutoff_step) {
+
+	std::ifstream input_file(filename);
+
+	if (!(input_file.good())){
+		// create the file;
+		std::ofstream file(filename);
+		file.close();
+	}
+
+	else {
+		if (!input_file.is_open()) {
+			std::cerr << "Error opening file for reading: " << filename << std::endl;
+			std::cerr << "Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		std::string line; 
+		std::vector<std::string> contents;
+		while (std::getline(input_file, line)){
+			contents.push_back(line);
+		}
+		input_file.close();
+
+		std::ofstream output_file(filename);
+
+		if (!output_file.is_open()) {
+			std::cerr << "Error opening file for writing: " << filename << std::endl;
+			std::cerr << "Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		std::regex pattern("(\\d+)(?![^|]*\\|)");
+		std::smatch matches;
+		int step_number {-1};
+
+		for (std::string& single_line: contents){
+			// std::cout << "line = " << single_line << std::endl;
+			if (std::regex_search(single_line, matches, pattern)) {
+				step_number = std::stoi(matches[0]);
+				// std::cout << "step_number = " << step_number << std::endl;
+				if (step_number > cutoff_step){
+					break;
+				}
+				else {
+					output_file << single_line << std::endl;
+				}
+			}
+			else {
+				output_file << single_line << std::endl;
+			}
+		}
+		output_file.close();
+	}
+	return;
+}
+
+void filter_orientations(const std::string& filename, int cutoff_step) {
+
+	std::ifstream input_file(filename);
+
+	if (! (input_file.good())){
+		std::ofstream file (filename);
+		file.close();
+	}
+
+	else {
+		if (!input_file.is_open()) {
+			std::cerr << "Error opening file for reading: " << filename << std::endl;
+			std::cerr << "Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		std::string line; 
+		std::vector<std::string> contents;
+		while (std::getline(input_file, line)){
+			contents.push_back(line);
+		}
+		input_file.close();
+
+		std::ofstream output_file(filename);
+
+		if (!output_file.is_open()) {
+			std::cerr << "Error opening file for writing: " << filename << std::endl;
+			std::cerr << "Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+		}
+
+		std::regex pattern("^START for Step (\\d+)");
+		std::smatch matches;
+		int step_number {-1};
+
+		for (std::string& single_line: contents){
+			if (std::regex_search(single_line, matches, pattern)) {
+				step_number = std::stoi(matches[1].str());
+				if (step_number > cutoff_step){
+					break;
+				}
+				else {
+					output_file << single_line << std::endl;
+				}
+			}
+			else {
+				output_file << single_line << std::endl;
+			}
+		}
+		output_file.close();
 	}
 	return;
 
 }
 
+void resetting_containers(std::array<double,8>* cs1_i, std::array<double,8>*cs1_f, 
+std::array<double,8>* cs2_i, std::array<double,8>*cs2_f,
+std::array<double,8>* cpair_i, std::array<double,8>* cpair_f, 
+double* Es1_i, double* Es1_f, double* Es2_i, double* Es2_f,
+double* Epair_i, double* Epair_f){
+
+	(*cs1_i).fill(0);
+	(*cs1_f).fill(0);
+	(*cs2_i).fill(0);
+	(*cs2_f).fill(0);
+	(*cpair_i).fill(0);
+	(*cpair_f).fill(0);
+	Es1_i = 0;
+	Es1_f = 0;
+	Es2_i = 0;
+	Es2_f = 0;
+	Epair_i = 0;
+	Epair_f = 0;
+	return;
+
+}

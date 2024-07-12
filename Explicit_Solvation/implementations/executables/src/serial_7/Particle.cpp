@@ -27,21 +27,6 @@ void Particle::print_coords(){
     return; 
 }
 
-
-void print ( std::vector <Particle*>* LATTICE ){
-
-	for ( Particle*& p: (*LATTICE) ){
-		print( p->coords );
-	}
-}
-
-void print(std::vector <Particle> pvec){
-	for (Particle p: pvec){
-		p.print_coords();
-		// std::cout << p.ptype << std::endl;
-	}
-}
-
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 //             End of printCoords. 

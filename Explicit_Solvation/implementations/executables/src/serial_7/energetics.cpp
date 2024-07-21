@@ -45,7 +45,7 @@ void interaction_p_m1_m1(Simulation* sim, Particle* p1, Particle* p2, std::array
 	bool condition      = (dot_product > 0.54); 
 	int  c_idx          = 1 - condition;
 	(*contacts)[c_idx] += 0.5; 
-	(*energy)          += (sim->energy_surface[0]) * condition + (sim->energy_surface[1]) * !condition;
+	(*energy)          += 0.5 * ((sim->energy_surface[0]) * condition + (sim->energy_surface[1]) * !condition);
 	return; 
 }
 
@@ -80,12 +80,12 @@ void interaction_a_m1_m1(Simulation* sim, Particle* p1, Particle* p2, std::array
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude    = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1      = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2      = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1      = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2      = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool   condition    = (theta_1 + theta_2) > M_PI/2;
-	int    c_idx        = 1 - condition;
+	int    c_idx        = 0 + condition;
 	(*contacts)[c_idx] += 0.5;
-	(*energy)          += (sim->energy_surface[0]) * condition + (sim->energy_surface[1]) * !condition;
+	(*energy)          += 0.5 * ((sim->energy_surface[0]) * !condition + (sim->energy_surface[1]) * condition);
 	return; 
 }
 
@@ -93,12 +93,12 @@ void interaction_a_m1_s1(Simulation* sim, Particle* p1, Particle* p2, std::array
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude    = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1      = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2      = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1      = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2      = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool condition      = (theta_1 + theta_2) > M_PI/2; 
-	int c_idx           = 3 - condition;
+	int c_idx           = 2 + condition;
 	(*contacts)[c_idx] += 1;
-	*energy            += (sim->energy_surface[2]) * condition + (sim->energy_surface[3]) * !condition;
+	*energy            += (sim->energy_surface[2]) * !condition + (sim->energy_surface[3]) * condition;
 	return; 
 }
 
@@ -106,12 +106,12 @@ void interaction_a_m1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude    = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1      = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2      = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1      = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2      = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool condition      = (theta_1 + theta_2) > M_PI/2; 
-	int  c_idx          = 5 - condition;
+	int  c_idx          = 4 + condition;
 	(*contacts)[c_idx] += 1;
-	(*energy)          += (sim->energy_surface[4]) * condition + (sim->energy_surface[5]) * !condition;
+	(*energy)          += (sim->energy_surface[4]) * !condition + (sim->energy_surface[5]) * condition;
 	return; 
 }
 
@@ -119,12 +119,13 @@ void interaction_a_s1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude    = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1      = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2      = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1      = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2      = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool condition      = (theta_1 + theta_2) > M_PI/2; 
-	int c_idx           = 7 - condition;
+	int c_idx           = 6 + condition;
+	// std::cout << "\t@ p1 = "; print(p1->coords, ", "); std::cout << "p2 = "; print(p2->coords, ", "); std::cout << "Alignment: " << !condition << "." << std::endl;
 	(*contacts)[c_idx] += 1;
-	(*energy)          += (sim->energy_surface[6]) * condition + (sim->energy_surface[7]) * !condition;
+	(*energy)          += (sim->energy_surface[6]) * !condition + (sim->energy_surface[7]) * condition;
 	return; 
 }
 
@@ -265,7 +266,7 @@ void neighbor_p_m1_m1(Simulation* sim, Particle* p1, Particle* p2, std::array<do
 	bool condition     = (dot_product > 0.54); 
 	int  c_idx         = 1 - condition;
 	(*contacts)[c_idx] += 1;
-	*energy_incr += (sim->energy_surface[0]) * condition + (sim->energy_surface[1]) * !condition;
+	*energy_incr       += (sim->energy_surface[0]) * condition + (sim->energy_surface[1]) * !condition;
 	return; 
 }
 
@@ -297,15 +298,16 @@ void neighbor_p_s1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array<do
 }
 
 void neighbor_a_m1_m1(Simulation* sim, Particle* p1, Particle* p2, std::array<double,8>* contacts, double* energy_incr) {
+	// std::cout << "\t(neighbor): Particles @ "; print(p1->coords, ", "); print(p2->coords);
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1   = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );// std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2   = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );// std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool condition   = (theta_1 + theta_2) > M_PI/2;
-	int       c_idx  = 1 - condition;
+	int       c_idx  = 0 + condition;
 	(*contacts)[c_idx] += 1;
-	*energy_incr       += (sim->energy_surface[0]) * condition + (sim->energy_surface[1]) * !condition;
+	*energy_incr       += (sim->energy_surface[0]) * !(condition) + (sim->energy_surface[1]) * condition;
 	return; 
 }
 
@@ -313,12 +315,12 @@ void neighbor_a_m1_s1(Simulation* sim, Particle* p1, Particle* p2, std::array<do
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1   = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2   = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool condition   = (theta_1 + theta_2) > M_PI/2; 
-	int  c_idx       = 3 - condition;
+	int  c_idx       = 2 + condition;
 	(*contacts)[c_idx] += 1;
-	*energy_incr       += (sim->energy_surface[2]) * condition + (sim->energy_surface[3]) * !condition;
+	*energy_incr       += (sim->energy_surface[2]) * !condition + (sim->energy_surface[3]) * condition;
 	return; 
 }
 
@@ -326,12 +328,12 @@ void neighbor_a_m1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array<do
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1   = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2   = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool condition   = (theta_1 + theta_2) > M_PI/2; 
-	int  c_idx       = 5 - condition;
+	int  c_idx       = 4 + condition;
 	(*contacts)[c_idx] += 1;
-	*energy_incr       += (sim->energy_surface[4]) * condition + (sim->energy_surface[5]) * !condition;
+	*energy_incr       += (sim->energy_surface[4]) * !condition + (sim->energy_surface[5]) * condition;
 	return; 
 }
 
@@ -339,12 +341,12 @@ void neighbor_a_s1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array<do
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
 	double magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-	double theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-	double theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+	double theta_1   = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+	double theta_2   = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool condition   = (theta_1 + theta_2) > M_PI/2; 
-	int  c_idx       = 7 - condition;
+	int  c_idx       = 6 + condition;
 	(*contacts)[c_idx] += 1;
-	*energy_incr       += (sim->energy_surface[6]) * condition + (sim->energy_surface[7]) * !condition;
+	*energy_incr       += (sim->energy_surface[6]) * !condition + (sim->energy_surface[7]) * condition;
 	return; 
 }
 
@@ -380,7 +382,7 @@ void Simulation::initialize_neighbor_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[ms1_pair]) == "isotropic"){
-		std::cout << "m1-s1 is isotropic" << std::endl;
+		// std::cout << "m1-s1 is isotropic" << std::endl;
 		this->NeighborFunctionMap[ms1_pair] = &neighbor_i_m1_s1;
 		this->NeighborFunctionMap[s1m_pair] = &neighbor_i_m1_s1;
 	}
@@ -398,7 +400,7 @@ void Simulation::initialize_neighbor_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[ms2_pair]) == "isotropic"){
-		std::cout << "m1-s2 is isotropic" << std::endl;
+		// std::cout << "m1-s2 is isotropic" << std::endl;
 		this->NeighborFunctionMap[ms2_pair] = &neighbor_i_m1_s2;
 		this->NeighborFunctionMap[s2m_pair] = &neighbor_i_m1_s2;
 	}
@@ -416,7 +418,7 @@ void Simulation::initialize_neighbor_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[s1s2_pair]) == "isotropic"){
-		std::cout << "s1-s2 is isotropic" << std::endl;
+		// std::cout << "s1-s2 is isotropic" << std::endl;
 		this->NeighborFunctionMap[s1s2_pair] = &neighbor_i_s1_s2;
 		this->NeighborFunctionMap[s2s1_pair] = &neighbor_i_s1_s2;
 	}
@@ -445,7 +447,6 @@ void Simulation::selected_pair_interaction(Particle* p1, Particle* p2, std::arra
 	// check if given particles are neighbors
 	if (std:: find (adrns.begin(), adrns.end(), connvec) != adrns.end()){
 		std::pair <std::string, std::string> particle_pair = std::make_pair (p1->ptype, p2->ptype); 
-		// std::cout <<"pair = (" << p1->ptype << ", " << p2->ptype << ")." << std::endl;
 		auto it = this->NeighborFunctionMap.find(particle_pair);
 		if (it != this->NeighborFunctionMap.end()) {
 			// Function pointer found, call the function
@@ -502,7 +503,9 @@ void Simulation::accelerate_calculate_energy_cosolvent(){
 			if (this->Lattice[lattice_index(loc, this->y, this->z)]->ptype == "m1" || this->Lattice[lattice_index(loc, this->y, this->z)]->ptype == "s2"){
 				continue; 
 			}
-			this->accelerate_pair_interaction(p, this->Lattice[lattice_index(loc, this->y, this->z)], &this->contacts, &energy);
+			else {
+				this->accelerate_pair_interaction(p, this->Lattice[lattice_index(loc, this->y, this->z)], &this->contacts, &energy);
+			}
 		}
 	}
 

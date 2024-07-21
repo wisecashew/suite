@@ -405,6 +405,8 @@ void Simulation::set_up_for_restart(){
 	this->set_up_lattice_for_restart();
 	this->set_up_polymers_for_restart();
 	this->set_up_files_for_restart();
+	this->enhanced_flipper.setup(1, 5);
+	this->enhanced_swing.setup(1, 5);
 	return;
 }
 
@@ -456,6 +458,8 @@ void Simulation::set_up_from_scratch(){
 	}
 	
 	this->check_structures();
+	this->enhanced_flipper.setup(1, 5);
+	this->enhanced_swing.setup(1, 5);
 	return;
 }
 

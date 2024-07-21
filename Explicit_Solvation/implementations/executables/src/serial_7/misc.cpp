@@ -1078,24 +1078,9 @@ void filter_orientations(const std::string& filename, int cutoff_step) {
 
 }
 
-void resetting_containers(std::array<double,8>* cs1_i, std::array<double,8>*cs1_f, 
-std::array<double,8>* cs2_i, std::array<double,8>*cs2_f,
-std::array<double,8>* cpair_i, std::array<double,8>* cpair_f, 
-double* Es1_i, double* Es1_f, double* Es2_i, double* Es2_f,
-double* Epair_i, double* Epair_f){
-
-	(*cs1_i).fill(0);
-	(*cs1_f).fill(0);
-	(*cs2_i).fill(0);
-	(*cs2_f).fill(0);
-	(*cpair_i).fill(0);
-	(*cpair_f).fill(0);
-	Es1_i = 0;
-	Es1_f = 0;
-	Es2_i = 0;
-	Es2_f = 0;
-	Epair_i = 0;
-	Epair_f = 0;
-	return;
-
+double branchless_acos(double input) {
+    // Calculate acos and handle precision issues for inputs close to -1 and 1
+    return (std::fabs(input + 1.0) < 0.0001) ? M_PI :
+           (std::fabs(input - 1.0) < 0.0001) ? 0.0 :
+           std::acos(input);
 }

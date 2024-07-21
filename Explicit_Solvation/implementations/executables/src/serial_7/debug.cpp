@@ -11,6 +11,8 @@ void Simulation::debug_calculate_energy(double* db_energy, std::array<double,8>*
 	*db_contacts = {0,0,0,0,0,0,0,0}; 
 	std::array <std::array <int,3>, 26> ne_list; 
 
+	// more debug shit
+	// int idx = 0;
 	// run energy computations for every monomer bead 
 	// std::cout << "Running a debugging energy calculation..." << std::endl;
 	for (Polymer& pmer: this->Polymers) {
@@ -18,17 +20,16 @@ void Simulation::debug_calculate_energy(double* db_energy, std::array<double,8>*
 			ne_list = obtain_ne_list(p->coords, this->x, this->y, this->z);
 			for (std::array <int,3>& loc: ne_list) {
 				this->debug_pair_interaction(p, this->Lattice[lattice_index(loc, this->y, this->z)], db_contacts, db_energy);
-				// std::cout << "\t\t@neighboring particle, coords = "; print(loc, ", "); std::cout << "ptype = " << this->Lattice[lattice_index(loc, this->y, this->z)]->ptype << ", energy = " << *db_energy << std::endl;
 			}
 		}
 	}
 
 	for (Particle*& p: this->Cosolvent){
-		// std::cout << "Inside cosolvent loop vector..." << std::endl;
 		ne_list = obtain_ne_list (p->coords, this->x, this->y, this->z);
 		for (std::array <int,3>& loc: ne_list){
 			if (this->Lattice[lattice_index(loc, this->y, this->z)]->ptype == "m1" || 
-			this->Lattice[lattice_index(loc, this->y, this->z)]->ptype == "s2"){
+			this->Lattice[lattice_index(loc, this->y, this->z)]->ptype == "s2" || p->ptype != "s2"){
+				// std::cout << "This better not be anything other than s2: " << p->ptype << std::endl;
 				continue;
 			}
 			this->debug_pair_interaction(p, this->Lattice[lattice_index(loc, this->y, this->z)], db_contacts, db_energy);
@@ -91,14 +92,20 @@ void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<d
 		connvec = subtract_arrays ( &(p2->coords), &(p1->coords) );
 		modified_direction (&connvec, x, y, z); 
 		magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-		theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-		theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+		theta_1   = branchless_acos(take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+		theta_2   = branchless_acos(take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 
-		if ( theta_1 + theta_2 > M_PI/2 ){
+		// std::cout << "theta_1 = " << theta_1 << ", theta_2 = " << theta_2 << std::endl;
+		if ( (theta_1 + theta_2) > M_PI/2 ){
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ) {
-				// std::cout << "misaligned antiparallel m1-m1..." << std::endl;
+				// std::cout << "Misaligned." << std::endl;
 				(*db_contacts) [std::get<4>((this->InteractionMap)[particle_pair])] += 0.5; 
 				*db_energy += std::get<2>((this->InteractionMap)[particle_pair])*0.5; 
+			}
+			else if ((particle_pair.first == "s1" && particle_pair.second == "s2") || (particle_pair.first == "s2" && particle_pair.second == "s1")){
+				// std::cout << "\t@ p1 = "; print(p1->coords, ", "); std::cout << "p2 = "; print(p2->coords, ", "); std::cout << "Misaligned." << std::endl;
+				(*db_contacts)[std::get<4>((this->InteractionMap)[particle_pair])] += 1; 
+				*db_energy += std::get<2>((this->InteractionMap)[particle_pair]); 				
 			}
 			else {
 				(*db_contacts) [std::get<4>((this->InteractionMap)[particle_pair])] += 1; 	
@@ -107,12 +114,17 @@ void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<d
 		}
 		else {
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ){
-				// std::cout << "aligned antiparallel m1-m1..." << std::endl;
+				// std::cout << "Aligned." << std::endl;
 				(*db_contacts) [std::get<3>((this->InteractionMap)[particle_pair])] += 0.5; 
 				*db_energy += std::get<1>((this->InteractionMap)[particle_pair])*0.5; 
 			}
+			else if ((particle_pair.first == "s1" && particle_pair.second == "s2") || (particle_pair.first == "s2" && particle_pair.second == "s1")){
+				// std::cout << "\t@ p1 = "; print(p1->coords, ", "); std::cout << "p2 = "; print(p2->coords, ", "); std::cout << "Aligned." << std::endl;
+				(*db_contacts)[std::get<3>((this->InteractionMap)[particle_pair])] += 1; 
+				*db_energy += std::get<1>((this->InteractionMap)[particle_pair]); 				
+			}
 			else {
-				(*db_contacts) [std::get<3>((this->InteractionMap)[particle_pair])] += 1; 
+				(*db_contacts)[std::get<3>((this->InteractionMap)[particle_pair])] += 1; 
 				*db_energy += std::get<1>((this->InteractionMap)[particle_pair]); 
 			}
 		}
@@ -120,65 +132,6 @@ void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<d
 	}
 
 	return;
-}
-
-void Simulation::debug_isolated_pair_particle_interaction(Particle* p1, Particle* p2, std::array<double,8>* db_contacts, double* db_energy){
-
-	std::array<int,3>     connvec = subtract_arrays(&(p2->coords), &(p1->coords));
-	modified_direction  (&connvec, this->x, this->y, this->z);
-
-	if (std::find(adrns.begin(), adrns.end(), connvec) == adrns.end()) {
-		*db_energy = 0;
-		return;
-	}
-
-	int    c_idx     = -1;
-	double pE        = 0;
-	double dot_prod  = 0;
-	double magnitude = 0;
-	double theta_1   = 0;
-	double theta_2   = 0;
-	std::pair <std::string, std::string> particle_pair = std::make_pair (p1->ptype, p2->ptype);
-
-	switch (std::get<0>( (this->InteractionMap)[particle_pair])[0] ) {
-		case 'i':
-			pE     = std::get<1>((this->InteractionMap)[particle_pair]); 
-			c_idx  = std::get<3>((this->InteractionMap)[particle_pair]);
-		break;
-
-		case 'p':
-			dot_prod  = take_dot_product (p1->orientation, p2->orientation); 
-			if (dot_prod > 0.54) {
-				pE    = std::get<1>((this->InteractionMap)[particle_pair]);
-				c_idx = std::get<3>((this->InteractionMap)[particle_pair]);
-			}
-			else {
-				pE    = std::get<2>((this->InteractionMap)[particle_pair]);
-				c_idx = std::get<4>((this->InteractionMap)[particle_pair]);	
-			}
-		break;
-
-		case 'a':
-			magnitude = std::sqrt ( connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2] );
-			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
-			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
-
-			if (theta_1 + theta_2 > M_PI/2) {
-				pE = std::get<2>((this->InteractionMap)[particle_pair]);
-				c_idx = std::get<4>((this->InteractionMap)[particle_pair]);  
-			}
-			else {
-				pE = std::get<1>((this->InteractionMap)[particle_pair]);
-				c_idx = std::get<3>((this->InteractionMap)[particle_pair]); 
-			}
-		break; 
-	}
-
-	(*db_contacts)[c_idx] += 1;
-	*db_energy             = pE;
-
-	return;
-
 }
 
 void Simulation::debug_checks_energy_contacts(double E_final, std::array<double,8> final_contacts){
@@ -190,6 +143,8 @@ void Simulation::debug_checks_energy_contacts(double E_final, std::array<double,
 	this->debug_calculate_energy(&E_debug, &debug_contacts); 
 	if (E_debug != E_final){
 		std::cout << "E_real = " << E_debug << ", E_final = " << E_final << "." << std::endl;
+		std::cout << "real_contacts = "; print(debug_contacts); 
+		std::cout << "final_contacts = "; print(final_contacts);
 		exit(EXIT_FAILURE);
 	} 
 	else {
@@ -209,122 +164,97 @@ void Simulation::debug_checks_energy_contacts(double E_final, std::array<double,
 
 /////////////////////////////////////////////////////////////////
 
-void Simulation::debug_monomer_orientation_sampler_forwards(EnhancedOrientationFlipper* eof, std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int polymer_idx, int monomer_idx){
+void Simulation::debug_orientation_sampler_forwards(std::array<double,8>* contacts_sys, double E_sys, int iterator_idx, int lat_idx){
 
-	int monomer_lattice_idx = lattice_index(this->Polymers[polymer_idx].chain[monomer_idx]->coords, this->y, this->z);
-	eof->initial_orientations[iteration_idx] = (this->Polymers)[polymer_idx].chain[monomer_idx]->orientation;
-	this->neighbor_energetics(monomer_lattice_idx, &(eof->initial_contacts), &(eof->initial_E));
+	this->enhanced_flipper.initial_orientations[iterator_idx] = this->Lattice[lat_idx]->orientation;
+	this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.initial_contacts), &(this->enhanced_flipper.initial_E));
 
-	for (int j{0}; j < eof->ntest; ++j){
-		this->Polymers[polymer_idx].chain[ monomer_idx ]->orientation = rng_uniform (0, 25); 
-		eof->orientations[j]   = this->Polymers[polymer_idx].chain[monomer_idx]->orientation;
-		this->neighbor_energetics(monomer_lattice_idx, &(eof->perturbed_contacts), &(eof->perturbed_E));
-		eof->energies[j]        = E_sys - eof->initial_E + eof->perturbed_E;
-		eof->contacts_store[j]  = subtract_arrays(*contacts_sys, eof->initial_contacts);
-		eof->contacts_store[j]  = add_arrays     (eof->contacts_store[j], eof->perturbed_contacts);
-		eof->perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
-		eof->perturbed_E        = 0;
-		this->debug_checks_energy_contacts(eof->energies[j], eof->contacts_store[j]);
+	for (int j{0}; j<this->enhanced_flipper.ntest; ++j){
+		(this->Lattice)[lat_idx]->orientation = rng_uniform(0, 25);
+		this->enhanced_flipper.orientations[j] = this->Lattice[lat_idx]->orientation;
+		this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
+		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
+		this->enhanced_flipper.contacts_store[j]  = subtract_arrays(contacts_sys, &(this->enhanced_flipper.initial_contacts));
+		this->enhanced_flipper.contacts_store[j]  = add_arrays     (&(this->enhanced_flipper.contacts_store[j]), &(this->enhanced_flipper.perturbed_contacts));
+		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.perturbed_E        = 0;
+		std::cout << "Forward sampler (" << j << ")" << std::endl;
+		this->debug_checks_energy_contacts(this->enhanced_flipper.energies[j], this->enhanced_flipper.contacts_store[j]);
 	}
 
 	return;
 
 }
 
-void Simulation::debug_choose_monomer_state_forward(EnhancedOrientationFlipper* eof, int iterator_idx, int polymer_idx, int monomer_idx){
+void Simulation::debug_orientation_sampler_backwards_0(std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx){
+
+	this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.initial_contacts), &(this->enhanced_flipper.initial_E));
+
+	this->Lattice[lat_idx]->orientation = this->enhanced_flipper.initial_orientations[iteration_idx];
+	this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
+	this->enhanced_flipper.energies[0] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
+	this->enhanced_flipper.contacts_store[0]  = subtract_arrays(*contacts_sys, this->enhanced_flipper.initial_contacts);
+	this->enhanced_flipper.contacts_store[0]  = add_arrays     (this->enhanced_flipper.contacts_store[0], this->enhanced_flipper.perturbed_contacts);
+	std::cout << "Inside fourth set of flip test..." << std::endl;
+	this->debug_checks_energy_contacts(this->enhanced_flipper.energies[0], this->enhanced_flipper.contacts_store[0]);
+
+	this->enhanced_flipper.perturbed_contacts = {0,0,0,0,0,0,0,0};
+	this->enhanced_flipper.perturbed_E        = 0;
+
+	return;
+
+}
+
+void Simulation::debug_orientation_sampler_backwards(std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx){
+
+	this->debug_orientation_sampler_backwards_0(contacts_sys, E_sys, iteration_idx, lat_idx);
+
+	std::cout << "Inside fifth set of flip test." << std::endl;
+	for (int j{1}; j<this->enhanced_flipper.ntest; ++j){
+		this->Lattice[lat_idx]->orientation = rng_uniform (0, 25); 
+		this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
+		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
+		this->enhanced_flipper.contacts_store [j]  = subtract_arrays (*contacts_sys, this->enhanced_flipper.initial_contacts);
+		this->enhanced_flipper.contacts_store [j]  = add_arrays      (this->enhanced_flipper.contacts_store[j], this->enhanced_flipper.perturbed_contacts);
+		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.perturbed_E        = 0;
+		this->debug_checks_energy_contacts(this->enhanced_flipper.energies[j], this->enhanced_flipper.contacts_store[j]);
+	}
+
+	return;
+
+}
+
+void Simulation::debug_choose_state_forward(int iterator_idx, int lat_idx){
 
 	// get the total boltzmann sum
-	for ( int k{0}; k < eof->ntest; ++k ){
-		eof->boltzmann[k] = std::exp (-1/this->T*(eof->energies[k] - eof->Emin));
-		eof->rboltzmann  += eof->boltzmann [k]; 
+	for ( int k{0}; k < this->enhanced_flipper.ntest; ++k ){
+		this->enhanced_flipper.boltzmann[k] = std::exp (-1/this->T*(this->enhanced_flipper.energies[k] - this->enhanced_flipper.Emin));
+		this->enhanced_flipper.rboltzmann  += this->enhanced_flipper.boltzmann [k]; 
 	}
 
 	// get the rng to sample the right orientation
-	eof->sampler_rng   = rng_uniform (0.0, 1.0);
+	this->enhanced_flipper.sampler_rng   = rng_uniform (0.0, 1.0);
 
 	// get the appropriate state
 	for ( int j{0}; j<5; ++j){
-		eof->sampler_rsum += eof->boltzmann[j]/eof->rboltzmann;
-		if (eof->sampler_rng < eof->sampler_rsum){
-			eof->sampler_idx = j; 
+		this->enhanced_flipper.sampler_rsum += this->enhanced_flipper.boltzmann[j]/this->enhanced_flipper.rboltzmann;
+		if (this->enhanced_flipper.sampler_rng < this->enhanced_flipper.sampler_rsum){
+			this->enhanced_flipper.sampler_idx = j; 
 			break; 
 		}
 	}
 
 	// make the jump to the new state 
-	std::cout << "orientation to pick = "; print(eof->orientations);
-	eof->final_orientations[iterator_idx]                       = eof->orientations[eof->sampler_idx];
-	this->Polymers[polymer_idx].chain[monomer_idx]->orientation = eof->orientations[eof->sampler_idx];
-	eof->prob_o_to_n *= eof->boltzmann[eof->sampler_idx]/eof->rboltzmann;
+	std::cout << "orientation to pick = "; print(this->enhanced_flipper.orientations);
+	this->enhanced_flipper.final_orientations[iterator_idx]                       = this->enhanced_flipper.orientations[this->enhanced_flipper.sampler_idx];
+	this->Lattice[lat_idx]->orientation = this->enhanced_flipper.orientations[this->enhanced_flipper.sampler_idx];
+	this->enhanced_flipper.prob_o_to_n *= this->enhanced_flipper.boltzmann[this->enhanced_flipper.sampler_idx]/this->enhanced_flipper.rboltzmann;
 
 	return;
-}
-
-void Simulation::debug_monomer_orientation_sampler_backwards_0(EnhancedOrientationFlipper* eof, std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int polymer_idx, int monomer_idx){
-
-	int m_lattice_idx = lattice_index((this->Polymers)[polymer_idx].chain[monomer_idx]->coords, this->y, this->z);
-	this->neighbor_energetics(m_lattice_idx, &(eof->initial_contacts), &(eof->initial_E));
-
-	(this->Polymers)[polymer_idx].chain[monomer_idx]->orientation = eof->initial_orientations[iteration_idx];
-	this->neighbor_energetics(m_lattice_idx, &(eof->perturbed_contacts), &(eof->perturbed_E));
-	eof->energies[0] = E_sys - eof->initial_E + eof->perturbed_E;
-	eof->contacts_store[0]  = subtract_arrays(*contacts_sys, eof->initial_contacts);
-	eof->contacts_store[0]  = add_arrays     (eof->contacts_store[0], eof->perturbed_contacts);
-	std::cout << "Inside fourth set of flip test..." << std::endl;
-	this->debug_checks_energy_contacts(eof->energies[0], eof->contacts_store[0]);
-
-	eof->perturbed_contacts = {0,0,0,0,0,0,0,0};
-	eof->perturbed_E        = 0;
-
-	return;
-
-}
-
-void Simulation::debug_monomer_orientation_sampler_backwards(EnhancedOrientationFlipper* eof, std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int polymer_idx, int monomer_idx){
-
-	this->debug_orientation_sampler_backwards_0(eof, contacts_sys, E_sys, iteration_idx, polymer_idx, monomer_idx);
-
-	int m_lattice_idx = lattice_index((this->Polymers)[polymer_idx].chain[monomer_idx]->coords, this->y, this->z);
-	std::cout << "Inside fifth set of flip test." << std::endl;
-	for (int j{1}; j<eof->ntest; ++j){
-		this->Polymers[polymer_idx].chain[monomer_idx]->orientation = rng_uniform (0, 25); 
-		this->neighbor_energetics(m_lattice_idx, &(eof->perturbed_contacts), &(eof->perturbed_E));
-		eof->energies[j] = E_sys - eof->initial_E + eof->perturbed_E; //  Ei + Epert;
-		eof->contacts_store [j]  = subtract_arrays (*contacts_sys, eof->initial_contacts);
-		eof->contacts_store [j]  = add_arrays      (eof->contacts_store[j], eof->perturbed_contacts);
-		eof->perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
-		eof->perturbed_E        = 0;
-		this->debug_checks_energy_contacts(eof->energies[j], eof->contacts_store[j]);
-	}
-
-	return;
-
 }
 
 //////////////////////////////////////////////////////////////////
-
-void Simulation:: debug_orientation_sampler_forwards(EnhancedOrientationFlipper* eof, std::array<double,8>* contacts_sys, double E_sys, int iterator_idx, int lat_idx){
-
-	eof->initial_orientations[iterator_idx] = this->Lattice[lat_idx]->orientation;
-	this->neighbor_energetics(lat_idx, eof->initial_contacts, eof->initial_E);
-
-	for (int j{0}; j<eof->ntest; ++j){
-		(this->Lattice)[lat_idx]->orientation = rng_uniform(0, 25);
-		eof->orientations[j] = this->Lattice[lat_idx]->orientation;
-		this->neighbor_energetics(lat_idx, eof->perturbed_contacts, this->perturbed_E);
-		eof->energies[j] = E_sys - eof->initial_E + eof->perturbed_E;
-		eof->contacts_store[j]  = subtract_arrays(contacts_sys, &(eof->initial_contacts));
-		eof->contacts_store[j]  = add_arrays     (&(eof->contacts_store[j]), &(eof->perturbed_contacts));
-		eof->perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
-		eof->perturbed_E        = 0;
-		this->debug_checks_energy_contacts(eof->energies[j], eof->contacts_store[j]);
-	}
-
-	return;
-
-}
-
-
 
 //////////////////////////////////////////////////////////////////
 
@@ -334,7 +264,7 @@ void Simulation::debug_tail_rotation(int p_idx){
 	std::array<int,3> loc_0 = this->Polymers[p_idx].chain[0]->coords;
 	std::array<int,3> loc_1 = this->Polymers[p_idx].chain[1]->coords;
 
-	// define some container for energy
+	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
 	std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -344,21 +274,28 @@ void Simulation::debug_tail_rotation(int p_idx){
 	// get the choice for a neighbor
 	int choice = rng_uniform(0, 25);
 
-	// instantiate some containers -- 
-	// this object implicitly saves us a lot of lines of code of just instantiating variables
-	Container container;
+	// instantiate the pointer
+	Particle* tmp_par_ptr {nullptr};
+
+	// instantiate the switch indices
+	int lat_idx_1 = lattice_index(ne_list[choice], this->y, this->z);
+	int lat_idx_2 = lattice_index(loc_0,           this->y, this->z);
+
+	// reset the container
+	this->rotation_container.reset();
 
 	if ( this->Lattice[lattice_index (ne_list[choice], this->y, this->z)]->ptype[0] == 's' ){
 
-		this->particle_swap_with_monomer_update(&container, loc_0, p_idx, 0, lattice_index(ne_list[choice], this->y, this->z));
+		this->perturb_particle_swap_with_update(tmp_par_ptr, lat_idx_1, lat_idx_2);
 		this->check_structures();
+		std::cout << "Post-swing structure:" << std::endl;
 		this->Polymers[p_idx].print_chain();
 
-		final_E = this->sysEnergy - (container.E1_initial + container.E2_initial - container.Epair_initial); 
-		final_E = final_E + (container.E1_final   + container.E2_final  - container.Epair_final);
-		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (container.c1_initial, container.c2_initial)), add_arrays (container.c1_final, container.c2_final));
-		final_contacts = add_arrays(final_contacts, container.cpair_initial);
-		final_contacts = subtract_arrays(final_contacts, container.cpair_final);
+		final_E = this->sysEnergy - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial);
+		final_E = final_E + (this->rotation_container.E1_final   + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
+		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
+		final_contacts = add_arrays(final_contacts, this->rotation_container.cpair_initial);
+		final_contacts = subtract_arrays(final_contacts, this->rotation_container.cpair_final);
 
 		// run the debugger
 		std::cout << "Running the debugger..." << std::endl; 
@@ -366,13 +303,15 @@ void Simulation::debug_tail_rotation(int p_idx){
 		std::cout << "Ran the debugger!" << std::endl;
 
 		if (metropolis_acceptance(this->sysEnergy, final_E, this->T)){
+			std::cout << "Accepted!" << std::endl;
 			this->sysEnergy = final_E;
 			this->contacts  = final_contacts;
 			this->IMP_BOOL  = true;
 		}
 		else {
 			// revert the polymer 
-			this->particle_swap_with_monomer(ne_list[choice], p_idx, 0, lattice_index(loc_0, this->y, this->z));
+			std::cout << "Reverting..." << std::endl;
+			this->perturb_particle_swap(tmp_par_ptr, lat_idx_1, lat_idx_2);
 			this->IMP_BOOL = false;
 			this->check_structures();
 			this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
@@ -381,6 +320,7 @@ void Simulation::debug_tail_rotation(int p_idx){
 		this->Polymers[p_idx].print_chain();
 	}
 	else {
+		std::cout << "No rotation." << std::endl;
 		this->IMP_BOOL = false; 
 	}
 
@@ -396,6 +336,7 @@ void Simulation::debug_head_rotation(int p_idx){
 	std::array<int,3> loc_0 = this->Polymers[p_idx].chain[deg_poly-1]->coords;
 	std::array<int,3> loc_1 = this->Polymers[p_idx].chain[deg_poly-2]->coords;
 
+	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
 	std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
 
@@ -405,21 +346,28 @@ void Simulation::debug_head_rotation(int p_idx){
 	// get the choice for a neighbor
 	int choice = rng_uniform(0, 25);
 
-	// instantiate some containers
-	Container container;
+	// instantiate the pointer
+	Particle* tmp_par_ptr {nullptr};
+
+	// instantiate the switch indices
+	int lat_idx_1 = lattice_index(ne_list[choice], this->y, this->z);
+	int lat_idx_2 = lattice_index(loc_0,           this->y, this->z);
+
+	// reset the container containers
+	this->rotation_container.reset();
 
 	if ( this->Lattice[lattice_index (ne_list[choice], this->y, this->z)]->ptype[0] == 's' ){
 
-		this->particle_swap_with_monomer_update(&container, loc_0, p_idx, deg_poly-1, lattice_index(ne_list[choice], this->y, this->z));
+		this->perturb_particle_swap_with_update(tmp_par_ptr, lat_idx_1, lat_idx_2);
 		this->check_structures();
 		this->Polymers[p_idx].print_chain();
 		
 		// doing the quick manipulations to get the final energy and contacts
-		final_E = this->sysEnergy - (container.E1_initial + container.E2_initial - container.Epair_initial); 
-		final_E = final_E + (container.E1_final   + container.E2_final  - container.Epair_final);
-		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (container.c1_initial, container.c2_initial)), add_arrays (container.c1_final, container.c2_final));
-		final_contacts = add_arrays(final_contacts, container.cpair_initial);
-		final_contacts = subtract_arrays(final_contacts, container.cpair_final);
+		final_E = this->sysEnergy - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial);
+		final_E = final_E + (this->rotation_container.E1_final   + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
+		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
+		final_contacts = add_arrays(final_contacts, this->rotation_container.cpair_initial);
+		final_contacts = subtract_arrays(final_contacts, this->rotation_container.cpair_final);
 
 		// run the debugger
 		std::cout << "Running the debugger..." << std::endl; 
@@ -433,7 +381,7 @@ void Simulation::debug_head_rotation(int p_idx){
 		}
 		else {
 			// revert the polymer 
-			this->particle_swap_with_monomer(ne_list[choice], p_idx, deg_poly-1, lattice_index(loc_0, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lat_idx_1, lat_idx_2);
 			this->IMP_BOOL = false;
 			this->check_structures();
 			this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
@@ -574,6 +522,10 @@ void Simulation::debug_reptation_backward(int p_idx){
 	return;
 }
 
+//////////////////////////////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////
+
 void Simulation::debug_polymer_orientation_flip(int p_idx){
 
 	// instantiate some useful variables
@@ -589,14 +541,17 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 	int ntest    = 5;
 	int nflip    = (deg_poly==1) ? 1 : rng_uniform (1, deg_poly-1);
 
-	EnhancedOrientationFlipper enhanced_flipper(nflip, ntest); 
+	// set up the flipper object! 
+	this->enhanced_flipper.reset(nflip, ntest); 
 
+	// define some holders 
 	double               E_sys        = this->sysEnergy;
 	std::array<double,8> contacts_sys = this->contacts;
 
-	double               E_post        = 0; // the energy of the system after final perturbation
+	// some more holders
+	double               E_post        = 0;                 // the energy of the system after final perturbation
+	double               rng_acc       = 0;                 // rng for acceptance at the very end
 	std::array<double,8> contacts_post = {0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
-	double               rng_acc       = 0; // rng for acceptance at the very end
 
 	// relevant indices variable store
 	int m_lattice_idx = 0; 
@@ -605,27 +560,28 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 	for ( int i{0}; i < nflip; ++i ){
 
 		// sample different orientations and get the boltzmann factors 
-		this->debug_orientation_sampler_forwards(&enhanced_flipper, &contacts_sys, E_sys, i, p_idx, polymer_indices[i]);
+		m_lattice_idx = lattice_index(this->Polymers[p_idx].chain[polymer_indices[i]]->coords, this->y, this->z);
+		this->debug_orientation_sampler_forwards(&contacts_sys, E_sys, i, m_lattice_idx);
 
 		// get the energy minima
-		enhanced_flipper.Emin = *std::min_element(enhanced_flipper.energies.begin(), enhanced_flipper.energies.end());
+		this->enhanced_flipper.Emin = *std::min_element(this->enhanced_flipper.energies.begin(), this->enhanced_flipper.energies.end());
 
 		// go to the new state 
-		this->debug_choose_state_forward(&enhanced_flipper, i, p_idx, polymer_indices[i]);
+		this->debug_choose_state_forward(i, m_lattice_idx);
 
 		// set the system energy at the final point
-		E_sys        = enhanced_flipper.energies[enhanced_flipper.sampler_idx];
-		contacts_sys = enhanced_flipper.contacts_store[enhanced_flipper.sampler_idx];
+		E_sys        = this->enhanced_flipper.energies[enhanced_flipper.sampler_idx];
+		contacts_sys = this->enhanced_flipper.contacts_store[enhanced_flipper.sampler_idx];
 
 		// run the check
 		std::cout << "Second flip test..." << std::endl;
 		this->debug_checks_energy_contacts(E_sys, contacts_sys);
 
 		// reset
-		enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
-		enhanced_flipper.initial_E        = 0;
-		enhanced_flipper.rboltzmann       = 0;
-		enhanced_flipper.sampler_rsum     = 0;
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.initial_E        = 0;
+		this->enhanced_flipper.rboltzmann       = 0;
+		this->enhanced_flipper.sampler_rsum     = 0;
 
 	}
 
@@ -633,38 +589,39 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 	contacts_post = contacts_sys;
 
 	this->debug_checks_energy_contacts(E_sys, contacts_sys);
-	enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
-	enhanced_flipper.perturbed_E        = 0;
+	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+	this->enhanced_flipper.perturbed_E        = 0;
 
 
 	for ( int i{0}; i < nflip; ++i ){
 
 		// sample different orientations and get the boltzmann factors for the backward flux
-		this->debug_orientation_sampler_backwards(&enhanced_flipper, &contacts_sys, E_sys, i, p_idx, polymer_indices[i]);
+		m_lattice_idx = lattice_index(this->Polymers[p_idx].chain[polymer_indices[i]]->coords, this->y, this->z);
+		this->debug_orientation_sampler_backwards(&contacts_sys, E_sys, i, m_lattice_idx);
 
 		// get the minimum energy
-		enhanced_flipper.Emin = *std::min_element(enhanced_flipper.energies.begin(), enhanced_flipper.energies.end());
+		this->enhanced_flipper.Emin = *std::min_element(this->enhanced_flipper.energies.begin(), this->enhanced_flipper.energies.end());
 
 		// get the backwards probability flux
 		for (int k{0}; k < ntest; ++k){
-			enhanced_flipper.boltzmann [k] = std::exp (-1/this->T*(enhanced_flipper.energies[k] - enhanced_flipper.Emin));
-			enhanced_flipper.rboltzmann   += enhanced_flipper.boltzmann[k];
+			this->enhanced_flipper.boltzmann [k] = std::exp (-1/this->T*(this->enhanced_flipper.energies[k] - this->enhanced_flipper.Emin));
+			this->enhanced_flipper.rboltzmann   += this->enhanced_flipper.boltzmann[k];
 		}
-		enhanced_flipper.prob_n_to_o      *= enhanced_flipper.boltzmann[0]/enhanced_flipper.rboltzmann;
+		this->enhanced_flipper.prob_n_to_o      *= this->enhanced_flipper.boltzmann[0]/this->enhanced_flipper.rboltzmann;
 
 		// make the jump to the old state 
-		this->Polymers[p_idx].chain[polymer_indices[i]]->orientation = enhanced_flipper.initial_orientations[i];
+		this->Polymers[p_idx].chain[polymer_indices[i]]->orientation = this->enhanced_flipper.initial_orientations[i];
 
 		// set the energetics and contacts right
-		E_sys        = enhanced_flipper.energies[0];
-		contacts_sys = enhanced_flipper.contacts_store[0];
+		E_sys        = this->enhanced_flipper.energies[0];
+		contacts_sys = this->enhanced_flipper.contacts_store[0];
 		std::cout << "Sixth flip test..." << std::endl;
 		this->debug_checks_energy_contacts(E_sys, contacts_sys);
 
 		// reset
-		enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0};
-		enhanced_flipper.initial_E        = 0;
-		enhanced_flipper.rboltzmann       = 0;
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0};
+		this->enhanced_flipper.initial_E        = 0;
+		this->enhanced_flipper.rboltzmann       = 0;
 
 	}
 
@@ -675,10 +632,10 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 	rng_acc = rng_uniform(0.0, 1.0);
 
 	// run the criterion
-	if ( rng_acc < std::exp (-1/this->T * (E_post - this->sysEnergy ) * enhanced_flipper.prob_n_to_o/enhanced_flipper.prob_o_to_n)){
-		std::cout << "Orientation to be assigned = "; print(enhanced_flipper.final_orientations);
+	if ( rng_acc < std::exp (-1/this->T * (E_post - this->sysEnergy ) * this->enhanced_flipper.prob_n_to_o/this->enhanced_flipper.prob_o_to_n)){
+		std::cout << "Orientation to be assigned = "; print(this->enhanced_flipper.final_orientations);
 		for (int j{0}; j < nflip; ++j){
-			(this->Polymers)[p_idx].chain[polymer_indices[j]]->orientation = enhanced_flipper.final_orientations[j];
+			(this->Polymers)[p_idx].chain[polymer_indices[j]]->orientation = this->enhanced_flipper.final_orientations[j];
 		}
 		this->sysEnergy = E_post;
 		this->contacts  = contacts_post;
@@ -710,8 +667,10 @@ void Simulation::debug_solvation_shell_flip(){
 	int ntest = 5;
 	int nflip = rng_uniform(1, static_cast<int>(solvation_shell_indices.size()/2 ) );     // number of sites to be flipped 
 
-	EnhancedOrientationFlipper enhanced_flipper (nflip, ntest);
+	// set up the flipper object
+	this->enhanced_flipper.reset(nflip, ntest);
 
+	// define some holders 
 	double               E_sys        = this->sysEnergy;
 	std::array<double,8> contacts_sys = this->contacts;
 
@@ -722,129 +681,87 @@ void Simulation::debug_solvation_shell_flip(){
 	for (int i{0}; i < nflip; ++i){
 
 		// sample different orientations and get the boltzmann factors 
-		this->debug_orientation_sampler_forwards(&enhanced_flipper, &contacts_sys, E_sys, i, solvation_shell_indices[i]);
+		this->debug_orientation_sampler_forwards(&contacts_sys, E_sys, i, solvation_shell_indices[i]);
 
-		/*
-		// get the flip index 
-		rboltzmann = 0; 
-		old_ori.push_back((this->Lattice)[solvation_shell_indices[i]]->orientation);
+		// get the energy minima
+		this->enhanced_flipper.Emin = *std::min_element (this->enhanced_flipper.energies.begin(), this->enhanced_flipper.energies.end() );
 
-		// find the neighboring interaction energies 
-		this->neighbor_energetics(solvation_shell_indices[i], &contacts_i, &Ei); 
-		std::cout << "Inside first debug test..." << std::endl;
-		for (int j{0}; j < ntest; ++j){
-			(this->Lattice)[solvation_shell_indices[i]]->orientation = rng_uniform (0, 25);
-			orientations [j]    = (this->Lattice)[solvation_shell_indices[i]]->orientation;
-			this->neighbor_energetics(solvation_shell_indices[i], &contacts_pert, &Epert);
-			energies [j]        = Esys - Ei + Epert;
-			contacts_store [j]  = subtract_arrays(&contacts_sys,      &contacts_i);
-			contacts_store [j]  = add_arrays     (&contacts_store[j], &contacts_pert);
-			contacts_pert       = {0, 0, 0, 0, 0, 0, 0, 0};
-			Epert               = 0;
-			this->debug_checks_energy_contacts(energies[j], contacts_store[j]);
-		}
-		*/
-		// std::cout << "Energies are "; print(energies);
-		enhanced_flipper.Emin = *std::min_element ( enhanced_flipper.energies.begin(), enhanced_flipper.energies.end() );
+		// go to the new state
+		this->debug_choose_state_forward(i, solvation_shell_indices[i]);
 
-		for (int k{0}; k < ntest; ++k){
-			enhanced_flipper.boltzmann[k] = std::exp (-1/this->T*(enhanced_flipper.energies[k] - enhanced_flipper.Emin));
-			enhanced_flipper.rboltzmann  += enhanced_flipper.boltzmann[k];
-		}
+		// set the system energy at the final point
+		E_sys         = this->enhanced_flipper.energies[enhanced_flipper.sampler_idx];
+		contacts_sys  = this->enhanced_flipper.contacts_store[this->enhanced_flipper.sampler_idx];
 
-		rng     = rng_uniform (0.0, 1.0);
-		rsum    = 0;
-		e_idx   = 0;
-
-		for (int j{0}; j < ntest; ++j){
-			rsum += boltzmann[j]/rboltzmann; 
-			if (rng < rsum){
-				e_idx = j; 
-				break; 
-			}
-		}
-
-		// make the jump to the new state 
-		std::cout << "orientation to pick = "; print(orientations);
-		new_ori.push_back (orientations[e_idx]);
-		this->Lattice[solvation_shell_indices[i]]->orientation = orientations[e_idx];
-		prob_o_to_n *= boltzmann[e_idx]/rboltzmann;
-		Esys         = energies[e_idx];
-		contacts_sys = contacts_store[e_idx];
-		std::cout << "Second flip test..." << std::endl;
-		this->debug_checks_energy_contacts(energies[e_idx], contacts_store[e_idx]);
+		// run the check
+		this->debug_checks_energy_contacts(E_sys, contacts_sys);
 
 		// reset
-		contacts_i = {0, 0, 0, 0, 0, 0, 0, 0};
-		Ei         = 0;
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.initial_E        = 0;
+		this->enhanced_flipper.rboltzmann       = 0;
+		this->enhanced_flipper.sampler_rsum     = 0;
+
 	}
 
-	frontflow_energy   = energies[e_idx];
-	frontflow_contacts = contacts_store[e_idx];
-	std::cout << "Third flip test..." << std::endl;
-	contacts_i    = {0, 0, 0, 0, 0, 0, 0, 0};
-	contacts_pert = {0, 0, 0, 0, 0, 0, 0, 0};
-	Ei            = 0;
-	Epert         = 0;
+	E_post = E_sys;
+	contacts_post = contacts_sys;
+
+	this->debug_checks_energy_contacts(E_sys, contacts_sys);
+	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+	this->enhanced_flipper.perturbed_E        = 0;
+
 
 	for (int i{0}; i<nflip; ++i){
 
-		rboltzmann = 0;
-		this->neighbor_energetics(solvation_shell_indices[i], &contacts_i, &Ei);
+		// sample different orientations and get the boltzmann factors for the backward flux
+		this->debug_orientation_sampler_backwards(&contacts_sys, E_sys, i, solvation_shell_indices[i]);
 
-		// first iteration
-		this->Lattice[solvation_shell_indices[i]]->orientation = old_ori[i];
-		this->neighbor_energetics(solvation_shell_indices[i], &contacts_pert, &Epert);
-		energies[0] = Esys - Ei + Epert;
-		contacts_store[0] = subtract_arrays(&contacts_sys, &contacts_i);
-		contacts_store[0] = add_arrays(&contacts_store[0], &contacts_pert);
-
-		std::cout << "Inside fourth set of flip test..." << std::endl;
-		this->debug_checks_energy_contacts(energies[0], contacts_store[0]);
-
-		contacts_pert = {0, 0, 0, 0, 0, 0, 0, 0};
-		Epert         = 0;
-		std::cout << "Inside fifth set of flip test..." << std::endl;
-
-		for (int j{1}; j <ntest; ++j){
-			this->Lattice[solvation_shell_indices[i]]->orientation = rng_uniform(0, 25);
-			this->neighbor_energetics(solvation_shell_indices[i], &contacts_pert, &Epert);
-			energies[j] = Esys - Ei + Epert;
-			contacts_store[j] = subtract_arrays(&contacts_sys, &contacts_i);
-			contacts_store[j] = add_arrays(&contacts_store[j], &contacts_pert);
-			contacts_pert     = {0,0,0,0,0,0,0,0};
-			Epert             = 0;
-			this->debug_checks_energy_contacts(energies[j], contacts_store[j]);
+		// get the minimum energy
+		this->enhanced_flipper.Emin = *std::min_element(this->enhanced_flipper.energies.begin(), this->enhanced_flipper.energies.end());
+		
+		// get the backwards probability flux
+		for (int k{0}; k < ntest; ++k){
+			this->enhanced_flipper.boltzmann [k] = std::exp (-1/this->T*(this->enhanced_flipper.energies[k] - this->enhanced_flipper.Emin));
+			this->enhanced_flipper.rboltzmann   += this->enhanced_flipper.boltzmann[k];
 		}
+		this->enhanced_flipper.prob_n_to_o      *= this->enhanced_flipper.boltzmann[0]/this->enhanced_flipper.rboltzmann;
 
-		Emin = *std::min_element(energies.begin(), energies.end()); 
+		// make the jump to the old state 
+		this->Lattice[solvation_shell_indices[i]]->orientation = this->enhanced_flipper.initial_orientations[i];
 
-		for (int k{0}; k<ntest; ++k){
-			boltzmann[k] = std::exp(-1/this->T*(energies[k]-Emin));
-			rboltzmann  += boltzmann[k]; 
-		}
-
-		prob_n_to_o += boltzmann[0]/rboltzmann; 
-		this->Lattice[solvation_shell_indices[i]]->orientation = old_ori[i]; 
-		Esys         = energies[0];
-		contacts_sys = contacts_store[0];
+		// set the energetics and contacts right
+		E_sys        = this->enhanced_flipper.energies[0];
+		contacts_sys = this->enhanced_flipper.contacts_store[0];
 		std::cout << "Sixth flip test..." << std::endl;
-		contacts_i   = {0, 0, 0, 0, 0, 0, 0, 0};
-		Ei           = 0;
+		this->debug_checks_energy_contacts(E_sys, contacts_sys);
+
+		// reset
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0};
+		this->enhanced_flipper.initial_E        = 0;
+		this->enhanced_flipper.rboltzmann       = 0;
 
 	}
-	this->debug_checks_energy_contacts(energies[j], contacts_store[j]);
+
+	this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
+	if (this->sysEnergy != E_sys || this->contacts != contacts_sys){
+		std::cerr << "Something's off." << std::endl;
+		std::cout << "this->sysEnergy = " << this->sysEnergy << ", E_sys = " << E_sys << "." << std::endl;
+		std::cout << "this->contacts  = "; print(this->contacts, ", ");
+		std::cout << "contacts_sys = "; print(contacts_sys);
+		exit(EXIT_FAILURE);
+	}
 
 	rng_acc = rng_uniform(0.0, 1.0);
-	if ( rng_acc < std::exp (-1/this->T * (frontflow_energy - this->sysEnergy)) * prob_n_to_o/prob_o_to_n){
+	if ( rng_acc < std::exp (-1/this->T * (E_post - this->sysEnergy)) * this->enhanced_flipper.prob_n_to_o/this->enhanced_flipper.prob_o_to_n){
 
 		// if accepted, return to the new orientations 
 		for (int j{0}; j < nflip; ++j){
-			this->Lattice[solvation_shell_indices[j]]->orientation = new_ori[j]; 
+			this->Lattice[solvation_shell_indices[j]]->orientation = this->enhanced_flipper.final_orientations[j]; 
 		}
 
-		this->sysEnergy = frontflow_energy;
-		this->contacts  = frontflow_contacts;
+		this->sysEnergy = E_post;
+		this->contacts  = contacts_post;
 		this->IMP_BOOL  = true;
 
 	}
@@ -860,21 +777,27 @@ void Simulation::debug_solvation_shell_flip(){
 
 void Simulation::debug_lattice_flip(){
 
+	// number of particles to flip
 	int nflips = rng_uniform(1, static_cast<int>(this->x * this->y * this->z / 8));
 	std::array <double,8> contacts = this->contacts; 
 
-	std::vector <int> orientations; 
+	// set up the orientations
+	std::vector <int> orientations (nflips, 0); 
 
+	// set up the contacts store
 	std::array <double,8> cs_i = {0, 0, 0, 0, 0, 0, 0, 0};
 	std::array <double,8> cs_f = {0, 0, 0, 0, 0, 0, 0, 0};
 
+	// set up the energies
 	double Es_i = 0;
 	double Es_f = 0;
 	double Ef   = this->sysEnergy; 
 
+	// set up the samples
 	std::vector<int> samples(this->x * this->y * this->z - 1); 
 	std::iota(samples.begin(), samples.end(), 0);
 
+	// randomize
 	std::random_device rd;
 	std::mt19937 g(rd()); 
 	std::shuffle(samples.begin(), samples.end(), g); 
@@ -912,56 +835,24 @@ void Simulation::debug_lattice_flip(){
 	return;
 }
 
+// this method entails a series of exchanges
 void Simulation::debug_solvent_exchange_from_shell(){
 
-	std::set   <int>                   solvation_shell_set;
-	std::array <std::array<int,3>, 26> ne_list, ne_list_  ;
-
-	// get the first solvation shell
-	for (Polymer& pmer: this->Polymers){
-		for (Particle*& p: pmer.chain) {
-			ne_list = obtain_ne_list (p->coords, this->x, this->y, this->z);
-			for ( std::array <int,3>& loc: ne_list ){
-				if ( (this->Lattice) [ lattice_index (loc, y, z) ]->ptype[0] == 's' ) {
-					solvation_shell_set.insert (lattice_index (loc, y, z));
-					ne_list_ = obtain_ne_list (loc, this->x, this->y, this->z);
-					for ( std::array <int,3>& loc_: ne_list_){
-						if ( (this->Lattice)[ lattice_index (loc_, y, z) ]->ptype[0] == 's' ){
-							solvation_shell_set.insert ( lattice_index (loc_, y, z) );
-						}
-					}
-				}
-			}
-		}
-	}
-
-	std::vector <int> solvation_shell_indices (solvation_shell_set.begin(), solvation_shell_set.end());
+	std::set    <int> solvation_shell_set = this->get_solvation_shell();
+	std::vector <int> solvation_shell_indices(solvation_shell_set.begin(), solvation_shell_set.end());
 
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle ( solvation_shell_indices.begin(), solvation_shell_indices.end(), std::default_random_engine(seed));
 
-	Container container;
-	/*
-	std::array <double,8> cs1_i              = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs2_i              = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_i            = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs1_f              = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs2_f              = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_f            = {0,0,0,0,0,0,0,0};
-	*/
-	std::array <double,8> frontflow_contacts = {0,0,0,0,0,0,0,0};
+	// reset the container
+	this->rotation_container.reset();
 
-	/*
-	double Es1_i            = 0;
-	double Es1_f            = 0;
-	double Es2_i            = 0;
-	double Es2_f            = 0;
-	double Epair_i          = 0;
-	double Epair_f          = 0;
-	*/
-	double frontflow_energy = 0;
-	double rng_acc          = 0;
+	// set up some holders
+	double post_energy = 0;
+	double rng_acc     = 0;
+	std::array <double,8> post_contacts = {0,0,0,0,0,0,0,0};
 
+	// define the holder to facilitate the swap
 	Particle* tmp_par_ptr {nullptr};
 
 	int exc_idx = 0; 
@@ -976,77 +867,57 @@ void Simulation::debug_solvent_exchange_from_shell(){
 		
 		else {
 
-			this->particle_swap_with_update(&container, tmp_par_ptr, solvation_shell_indices[n], exc_idx);
-
-			/*
-			this->neighbor_energetics(solvation_shell_indices[n], &cs1_i, &Es1_i);
-			this->neighbor_energetics(exc_idx, &cs2_i, &Es2_i);
-			this->selected_pair_interaction(this->Lattice[solvation_shell_indices[n]], this->Lattice[exc_idx], &cpair_i, &Epair_i); 
-
-			tmp_par_ptr = (this->Lattice)[ solvation_shell_indices[n]];
-			
-			(this->Lattice)[(solvation_shell_indices)[n]] = (this->Lattice)[exc_idx];
-			(this->Lattice)[(solvation_shell_indices)[n]]->coords = location ((solvation_shell_indices)[n], this->x, this->y, this->z);
-
-			(this->Lattice)[exc_idx] = tmp_par_ptr;
-			(this->Lattice)[exc_idx]->coords = location (exc_idx, this->x, this->y, this->z);
-
-			// flip the particle newly added to the solvation shell
-			this->neighbor_energetics (solvation_shell_indices[n], &cs1_f, &Es1_f);
-			this->neighbor_energetics (exc_idx, &cs2_f, &Es2_f); 
-			this->selected_pair_interaction(this->Lattice[solvation_shell_indices[n]], this->Lattice[exc_idx], &cpair_f, &Epair_f); 
-			*/
+			this->perturb_particle_swap_with_update(tmp_par_ptr, solvation_shell_indices[n], exc_idx);
 
 			// update energy and contacts
-			frontflow_energy   = this->sysEnergy  - (container.E1_initial + container.E2_initial - container.Epair_initial); 
-			frontflow_energy   = frontflow_energy + (container.E1_final   + container.E2_final  - container.Epair_final);
-			frontflow_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (container.c1_initial, container.c2_initial)), add_arrays (container.c1_final, container.c2_final));
-			frontflow_contacts = add_arrays(frontflow_contacts, container.cpair_initial);
-			frontflow_contacts = subtract_arrays(frontflow_contacts, container.cpair_final);
+			post_energy   = this->sysEnergy  - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial); 
+			post_energy   = post_energy + (this->rotation_container.E1_final + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
+			post_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
+			post_contacts = add_arrays(post_contacts, this->rotation_container.cpair_initial);
+			post_contacts = subtract_arrays(post_contacts, this->rotation_container.cpair_final);
 			
-			this->debug_checks_energy_contacts(frontflow_energy, frontflow_contacts);
+			this->debug_checks_energy_contacts(post_energy, post_contacts);
 
 			rng_acc = rng_uniform (0.0, 1.0);
 
-			if (rng_acc < std::exp (-1/this->T * (frontflow_energy - this->sysEnergy))){
-				this->sysEnergy = frontflow_energy;
-				this->contacts  = frontflow_contacts;
+			if (rng_acc < std::exp (-1/this->T * (post_energy - this->sysEnergy))){
+				this->sysEnergy = post_energy;
+				this->contacts  = post_contacts;
 				this->IMP_BOOL  = true; 
 			}
 			else {
-				this->particle_swap(tmp_par_ptr, solvation_shell_indices[n], exc_idx);
-				/*
-				tmp_par_ptr = (this->Lattice)[solvation_shell_indices[n]];
-				(this->Lattice)[solvation_shell_indices [n]]         = (this->Lattice)[exc_idx]; 
-				(this->Lattice)[solvation_shell_indices [n]]->coords = location (solvation_shell_indices[n], this->x, this->y, this->z);
-
-				(this->Lattice)[exc_idx]         = tmp_par_ptr;
-				(this->Lattice)[exc_idx]->coords = location (exc_idx, this->x, this->y, this->z);
-				*/
-				this->IMP_BOOL = false; 
+				this->perturb_particle_swap(tmp_par_ptr, solvation_shell_indices[n], exc_idx);
+				this->IMP_BOOL = false;
 			}
 
+			// run the debugger
 			this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
 
 			// resetting 
-			container.reset();
-
+			this->rotation_container.reset();
 		}
-
 	}
 	return;
 }
 
 void Simulation::debug_solvent_exchange(){
 
+	// these are the indices on the lattice for the particles to swap
 	int idx1 = -1;
 	int idx2 = -1; 
-	int nswitches = 50; 
-	double frontflow_energy = 0;
-	double rng_acc          = 0;
-	std::array <double,8> frontflow_contacts = this->contacts;
 
-	Container container;
+	// this is the number of particles to switch up
+	int nswitches = 50; 
+
+	// reset the container
+	this->rotation_container.reset();
+
+	// these are the variables 
+	double post_energy = 0;
+	double rng_acc          = 0;
+	std::array <double,8> post_contacts = this->contacts;
+
+	// set up the pointer to facilitate the swap
 	Particle* tmp_par_ptr {nullptr};
 
 	for (int j{0}; j<nswitches; ++j){
@@ -1058,52 +929,302 @@ void Simulation::debug_solvent_exchange(){
 			continue; 
 		}
 		else {
-			this->particle_swap_with_update(&container, tmp_par_ptr, idx1, idx2);
-			/*
-			this->neighbor_energetics(idx1, &cs1_i, &Es1_i);
-			this->neighbor_energetics(idx2, &cs2_i, &Es2_i);
-			this->selected_pair_interaction((this->Lattice)[idx1], (this->Lattice)[idx2], &cpair_i, &Epair_i); 
-
-			tmp_par_ptr = (this->Lattice)[idx1];
+			this->perturb_particle_swap_with_update(tmp_par_ptr, idx1, idx2);
 			
-			(this->Lattice)[idx1] = (this->Lattice)[idx2];
-			(this->Lattice)[idx1]->coords = location (idx1, this->x, this->y, this->z);
+			post_energy   = this->sysEnergy  - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial); 
+			post_energy   = post_energy + (this->rotation_container.E1_final   + this->rotation_container.E2_final   - this->rotation_container.Epair_final);
+			post_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
+			post_contacts = add_arrays(post_contacts, this->rotation_container.cpair_initial);
+			post_contacts = subtract_arrays(post_contacts, this->rotation_container.cpair_final);
 
-			(this->Lattice)[idx2] = tmp_par_ptr;
-			(this->Lattice)[idx2]->coords = location(idx2, this->x, this->y, this->z);
-
-			// flip the particle newly added to the solvation shell
-			this->neighbor_energetics (idx1, &cs1_f, &Es1_f);
-			this->neighbor_energetics (idx2, &cs2_f, &Es2_f); 
-			this->selected_pair_interaction(this->Lattice[idx1], this->Lattice[idx2], &cpair_f, &Epair_f); 
-			*/ 
-			frontflow_energy   = this->sysEnergy - (container.E1_initial + container.E2_initial - container.Epair_initial); 
-			frontflow_energy   = frontflow_energy + (container.E1_final   + container.E2_final  - container.Epair_final);
-			frontflow_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (container.c1_initial, container.c2_initial)), add_arrays (container.c1_final, container.c2_final));
-			frontflow_contacts = add_arrays(frontflow_contacts, container.cpair_initial);
-			frontflow_contacts = subtract_arrays(frontflow_contacts, container.cpair_final);
-
-			this->debug_checks_energy_contacts(frontflow_energy, frontflow_contacts);
+			this->debug_checks_energy_contacts(post_energy, post_contacts);
 
 			rng_acc = rng_uniform (0.0, 1.0); 
-			if (rng_acc < std::exp (-1/this->T * (frontflow_energy - this->sysEnergy))){
-				this->sysEnergy = frontflow_energy;
-				this->contacts  = frontflow_contacts;
+			if (rng_acc < std::exp (-1/this->T * (post_energy - this->sysEnergy))){
+				this->sysEnergy = post_energy;
+				this->contacts  = post_contacts;
 		
 			}
 			else {
-				this->particle_swap(tmp_par_ptr, idx1, idx2);
-				/*
-				tmp_par_ptr = (this->Lattice)[idx1];
-				(this->Lattice)[idx1]         = (this->Lattice)[idx2]; 
-				(this->Lattice)[idx1]->coords = location(idx1, this->x, this->y, this->z);
+				this->perturb_particle_swap(tmp_par_ptr, idx1, idx2);
+			}
+			this->rotation_container.reset();
+		}
 
-				(this->Lattice)[idx2]         = tmp_par_ptr;
-				(this->Lattice)[idx2]->coords = location (idx2, this->x, this->y, this->z);
-				*/
+	}
+
+	return;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+void Simulation::debug_regrowth(int p_idx){
+
+	// set up some containers 
+	int deg_poly        = this->Polymers[p_idx].deg_poly; 
+	int m_idx           = rng_uniform(1, deg_poly-2);
+	int growth          = -1;
+	double forw_energy  =  0;
+	double rng_acc      =  0;
+	std::array <double,8> forw_contacts = {0,0,0,0,0,0,0,0};
+
+	// get that reset going
+	this->enhanced_swing.reset(deg_poly);
+
+	if (deg_poly%2 == 0){
+		growth = (0.5 >= (m_idx+1)/static_cast<double>(deg_poly)) ? 0 : 1;
+	}
+	else {
+		if ( 0.5 == (m_idx+1)/static_cast<double>(deg_poly+1) ){
+			growth = rng_uniform (0, 1);
+		}
+		else {
+			growth = (0.5 > (m_idx+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
+		}
+	}
+
+	if (growth){
+
+		std::cout << "Performing head regrowth..." << std::endl;
+		for (int i{m_idx+1}; i<deg_poly; ++i){
+			this->enhanced_swing.initial_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
+		}
+
+		std::cout << "\tPerforming the forward pass..." << std::endl;
+		this->debug_forward_head_regrowth();
+
+		std::cout << "\tPerforming the forward pass check..." << std::endl;
+		this->Polymers[p_idx].print_chain();
+		this->debug_checks_energy_contacts(this->enhanced_swing.current_energy, this->enhanced_swing.current_contacts);
+		this->check_structures();
+		std::cout << "done!" << std::endl;
+
+		for (int i{m_idx+1}; i<deg_poly; ++i){
+			this->enhanced_swing.final_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
+		}
+
+		if (this->enhanced_swing.initial_locations == this->enhanced_swing.final_locations){
+			// do nothing
+			;
+		}
+
+		else if (!(this->IMP_BOOL)){
+			this->debug_accept_after_head_regrowth();
+			this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
+			this->check_structures();
+		}
+
+		else {
+			forw_energy   = this->enhanced_swing.current_energy;
+			forw_contacts = this->enhanced_swing.current_contacts;
+			std::cout << "\tPerforming the backward pass..." << std::endl;
+			this->debug_backward_head_regrowth();
+
+			rng_acc = rng_uniform(0.0, 1.0);
+			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o / this->enhanced_swing.prob_o_to_n){
+				this->debug_accept_after_head_regrowth();
+				this->sysEnergy = forw_energy; 
+				this->contacts = forw_contacts;
+				this->IMP_BOOL = true;
+			}
+			else {
+				this->IMP_BOOL = false;
+			}
+		}
+	}
+
+	else {
+		std::cout << "\tPerforming forward tail regrowth..." << std::endl;
+		for (int i{0}; i<m_idx; ++i){
+			this->enhanced_swing.initial_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
+		}
+
+		this->debug_forward_tail_regrowth();
+		this->debug_checks_energy_contacts(this->enhanced_swing.current_energy, this->enhanced_swing.current_contacts);
+		this->check_structures();
+
+		for (int i{0}; i<m_idx; ++i){
+			this->enhanced_swing.final_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
+		}
+
+		if (this->enhanced_swing.initial_locations == this->enhanced_swing.final_locations){
+			// do nothing
+			;
+		}
+
+		else if (!(this->IMP_BOOL)){
+			this->debug_accept_after_tail_regrowth();
+		}
+
+		else {
+			forw_energy   = this->enhanced_swing.current_energy;
+			forw_contacts = this->enhanced_swing.current_contacts;
+			std::cout << "\tPerforming backward tail regrowth..." << std::endl;
+			debug_backward_tail_regrowth();
+
+			rng_acc = rng_uniform(0.0, 1.0);
+			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o/this->enhanced_swing.prob_o_to_n) {
+				this->debug_accept_after_tail_regrowth();
+				this->sysEnergy = forw_energy;
+				this->contacts  = forw_contacts;
 			}
 
-			container.reset();
+			else {
+				this->IMP_BOOL = false;
+			}
+		}
+		this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
+		this->check_structures();
+	}
+	
+
+	return;
+
+}
+
+//#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
+
+	if (m_idx == this->Polymers[p_idx].deg_poly-1){
+		this->IMP_BOOL = true;
+	}
+
+	else { 
+
+		// reset the running boltzmann sum
+		this->enhanced_swing.rboltzmann = 0;
+
+		// reset locally
+		this->enhanced_swing.reset_local();
+
+		// set up some contact counters
+		std::array <int,3>                loc_m   = this->Polymers[p_idx].chain[m_idx+1]->coords;
+		std::array <std::array<int,3>,26> ne_list = obtain_ne_list(this->Polymers[p_idx].chain[m_idx]->coords, this->x, this->y, this->z);
+		
+		// set up the shuffle
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+		std::shuffle(ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
+
+		// set up some variables
+		int block_counter =  0;
+		int idx_counter   =  0;
+		int self_swap_idx = -1;
+
+		while(idx_counter < this->enhanced_swing.ntest){
+
+			if (ne_list[idx_counter] == loc_m){
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy;
+				this->enhanced_swing.contacts_store[idx_counter] = this->enhanced_swing.current_contacts;
+				block_counter                                   += 1;
+			}
+			else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
+				for (int u{0}; u < this->Polymers[p_idx].deg_poly; ++u){
+					if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
+						self_swap_idx = u; 
+						break;
+					}
+				}
+
+				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
+				if (self_swap_idx <= m_idx){
+					this->enhanced_swing.energies[idx_counter]       = 1e+8;
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+					block_counter                                   += 1;
+				}
+				else{
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+					// swap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+					// set up the final energies
+					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+					this->Polymers[p_idx].print_chain();
+					this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+					// revert back to original structure, reswap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// reset some local variables
+					this->enhanced_swing.reset_local();
+
+				}
+			}
+			else {
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+				// swap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+				// set up the final energies
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+				this->Polymers[p_idx].print_chain();
+				this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+				// revert back to original structure, reswap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// reset some local variables
+				this->enhanced_swing.reset_local();
+
+			}
+			idx_counter += 1;
+		}
+
+		if (block_counter == this->enhanced_swing.ntest){
+			this->IMP_BOOL = false;
+		}
+		else {
+			this->enhanced_swing.Emin = *std::min_element(this->enhanced_swing.energies.begin(), this->enhanced_swing.energies.end());
+			for (int i{0}; i<this->enhanced_swing.ntest; ++i){
+				this->enhanced_swing.boltzmann[i] = std::exp(-1/this->T * (this->enhanced_swing.energies[i]-this->enhanced_swing.Emin));
+				this->enhanced_swing.rboltzmann += this->enhanced_swing.boltzmann[i];
+			}
+			this->enhanced_swing.sampler_rsum = 0;
+			this->enhanced_swing.sampler_rng  = rng_uniform(0.0, 1.0);
+			for (int j{0}; j<this->enhanced_swing.ntest; ++j){
+				this->enhanced_swing.sampler_rsum += this->enhanced_swing.boltzmann[j]/this->enhanced_swing.rboltzmann;
+				if (this->enhanced_swing.sampler_rng < this->enhanced_swing.sampler_rsum){
+					this->enhanced_swing.sampler_idx = j;
+					break;
+				}
+			}
+			this->enhanced_swing.prob_o_to_n     *= this->enhanced_swing.boltzmann[this->enhanced_swing.sampler_idx]/this->enhanced_swing.rboltzmann;
+			this->enhanced_swing.current_energy   = this->enhanced_swing.energies[this->enhanced_swing.sampler_idx];
+			this->enhanced_swing.current_contacts = this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx];
+
+			// do the swap to get to the new configuration
+			this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[this->enhanced_swing.sampler_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->Polymers[p_idx].print_chain();
+			this->debug_checks_energy_contacts(this->enhanced_swing.energies[this->enhanced_swing.sampler_idx], this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx]);
+			this->debug_forward_head_regrowth(p_idx, m_idx+1);
 
 		}
 
@@ -1112,6 +1233,549 @@ void Simulation::debug_solvent_exchange(){
 	return;
 }
 
+//#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void Simulation::debug_accept_after_head_regrowth(){
+
+	// define some stuff
+	int L{0}; 
+
+	// get the linked list going
+	std::vector<std::vector<std::array<int,3>>> master_linked_list;
+	std::vector<std::array<int,3>> link;
+
+	// get the linked list 
+	create_linked_list(this->enhanced_swing.initial_locations, this->enhanced_swing.final_locations, link, &master_linked_list, 1);
+
+	// set up some particle pointers 
+	Particle* tmp_par_1 {nullptr};
+	Particle* tmp_par_2 {nullptr};
+
+	for (std::vector<std::array<int,3>>& linked_list: master_linked_list){
+		L = static_cast<int>(linked_list.size()); 
+		if (this->Lattice[lattice_index(linked_list[L-1], this->y, this->z)]->ptype[0] =='s'){
+			tmp_par_1 = this->Lattice[lattice_index(linked_list.back(), this->y, this->z)];
+			// go backward
+			for (int i{0}; i<L; i=i+2){
+				this->Lattice[lattice_index(linked_list[L-2-i], this->y, this->z)]->coords = linked_list[L-1-i];
+				this->Lattice[lattice_index(linked_list[L-1-i], this->y, this->z)] = this->Lattice[lattice_index(linked_list[L-2-i], this->y, this->z)];
+			}
+			tmp_par_1->coords = linked_list[0];
+			this->Lattice[lattice_index(linked_list[0], this->y, this->z)] = tmp_par_1;
+		}
+		else {
+			for (int i{0}; i<L; i=i+2){
+
+				if (i==0){
+					tmp_par_1 = this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)];
+					this->Lattice[lattice_index(linked_list[i],   this->y, this->z)]->coords = linked_list[i+1];
+					this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)] = this->Lattice[lattice_index(linked_list[i], this->y, this->z)];
+				}
+				else {
+					tmp_par_1->coords = linked_list[i+1];
+					tmp_par_2 = this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)];
+					this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)] = tmp_par_1;
+					tmp_par_1 = tmp_par_2;
+				}
+			}
+		}
+	}
+
+	return;
+
+}
+
+//#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursion_depth){
+
+	if (m_idx == this->Polymers[p_idx].deg_poly - 1){
+		this->IMP_BOOL = true;
+	}
+	else{
+		// reset the running boltzmann sum
+		this->enhanced_swing.rboltzmann = 0;
+
+		// reset locally
+		this->enhanced_swing.reset_local();
+
+		// set up some contact counters
+		std::array <int,3>                loc_m   = this->Polymers[p_idx].chain[m_idx+1]->coords;
+		std::array <std::array<int,3>,26> ne_list = obtain_ne_list(this->Polymers[p_idx].chain[m_idx]->coords, this->x, this->y, this->z);
+		
+		// set up the shuffle
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+		std::shuffle(ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
+
+		// get the old position
+		int ne_idx = std::find (ne_list.begin(), ne_list.end(), this->enhanced_swing.initial_locations[recursion_depth]) - ne_list.begin();
+		std::array <int,3> tmp = ne_list[0]; 
+		ne_list[0]             = ne_list[ne_idx];
+		ne_list[ne_idx]        = tmp; 
+
+		// set up some variables
+		int idx_counter   =  0;
+		int self_swap_idx = -1;
+
+		while(idx_counter < this->enhanced_swing.ntest){
+			if (ne_list[idx_counter] == loc_m){
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy;
+				this->enhanced_swing.contacts_store[idx_counter] = this->enhanced_swing.current_contacts;
+			}
+			else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
+				for (int u{0}; u < this->Polymers[p_idx].deg_poly; ++u){
+					if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
+						self_swap_idx = u; 
+						break;
+					}
+				}
+
+				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
+				if (self_swap_idx <= m_idx){
+					this->enhanced_swing.energies[idx_counter]       = 1e+8;
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+				}
+				else{
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+					// swap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+					// set up the final energies
+					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+					this->Polymers[p_idx].print_chain();
+					this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+					// revert back to original structure, reswap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// reset some local variables
+					this->enhanced_swing.reset_local();
+
+				}
+			}
+			else {
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+				// swap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+				// set up the final energies
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+				this->Polymers[p_idx].print_chain();
+				this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+				// revert back to original structure, reswap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// reset some local variables
+				this->enhanced_swing.reset_local();
+
+			}
+			idx_counter += 1;
+		}
+		this->enhanced_swing.Emin = *std::min_element(this->enhanced_swing.energies.begin(), this->enhanced_swing.energies.end());
+		for (int i{0}; i<this->enhanced_swing.ntest; ++i){
+			this->enhanced_swing.boltzmann[i] = std::exp(-1/this->T * (this->enhanced_swing.energies[i]-this->enhanced_swing.Emin));
+			this->enhanced_swing.rboltzmann += this->enhanced_swing.boltzmann[i];
+		}
+
+		this->enhanced_swing.sampler_idx      = 0;
+		this->enhanced_swing.prob_o_to_n     *= this->enhanced_swing.boltzmann[this->enhanced_swing.sampler_idx]/this->enhanced_swing.rboltzmann;
+		this->enhanced_swing.current_energy   = this->enhanced_swing.energies[this->enhanced_swing.sampler_idx];
+		this->enhanced_swing.current_contacts = this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx];
+
+		// do the swap to get to the new configuration
+		this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[this->enhanced_swing.sampler_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+		this->Polymers[p_idx].print_chain();
+		this->debug_checks_energy_contacts(this->enhanced_swing.energies[this->enhanced_swing.sampler_idx], this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx]);
+		this->debug_forward_head_regrowth(p_idx, m_idx+1, recursion_depth+1);
+
+	}
+	return;
+}
+
+//#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+//#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
+
+	if (m_idx == 0){
+		this->IMP_BOOL = true;
+	}
+
+	else { 
+
+		// reset the running boltzmann sum
+		this->enhanced_swing.rboltzmann = 0;
+
+		// reset locally
+		this->enhanced_swing.reset_local();
+
+		// set up some contact counters
+		std::array <int,3>                loc_m   = this->Polymers[p_idx].chain[m_idx-1]->coords;
+		std::array <std::array<int,3>,26> ne_list = obtain_ne_list(this->Polymers[p_idx].chain[m_idx]->coords, this->x, this->y, this->z);
+		
+		// set up the shuffle
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+		std::shuffle(ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
+
+		// set up some variables
+		int block_counter =  0;
+		int idx_counter   =  0;
+		int self_swap_idx = -1;
+
+		while(idx_counter < this->enhanced_swing.ntest){
+
+			if (ne_list[idx_counter] == loc_m){
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy;
+				this->enhanced_swing.contacts_store[idx_counter] = this->enhanced_swing.current_contacts;
+				block_counter                                   += 1;
+			}
+			else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
+				for (int u{0}; u < this->Polymers[p_idx].deg_poly; ++u){
+					if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
+						self_swap_idx = u; 
+						break;
+					}
+				}
+
+				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
+				if (self_swap_idx <= m_idx){
+					this->enhanced_swing.energies[idx_counter]       = 1e+8;
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+					block_counter                                   += 1;
+				}
+				else{
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+					// swap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+					// set up the final energies
+					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+					this->Polymers[p_idx].print_chain();
+					this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+					// revert back to original structure, reswap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// reset some local variables
+					this->enhanced_swing.reset_local();
+
+				}
+			}
+			else {
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+				// swap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+				// set up the final energies
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+				this->Polymers[p_idx].print_chain();
+				this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+				// revert back to original structure, reswap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// reset some local variables
+				this->enhanced_swing.reset_local();
+
+			}
+			idx_counter += 1;
+		}
+
+		if (block_counter == this->enhanced_swing.ntest){
+			this->IMP_BOOL = false;
+		}
+		else {
+			this->enhanced_swing.Emin = *std::min_element(this->enhanced_swing.energies.begin(), this->enhanced_swing.energies.end());
+			for (int i{0}; i<this->enhanced_swing.ntest; ++i){
+				this->enhanced_swing.boltzmann[i] = std::exp(-1/this->T * (this->enhanced_swing.energies[i]-this->enhanced_swing.Emin));
+				this->enhanced_swing.rboltzmann += this->enhanced_swing.boltzmann[i];
+			}
+			this->enhanced_swing.sampler_rsum = 0;
+			this->enhanced_swing.sampler_rng  = rng_uniform(0.0, 1.0);
+			for (int j{0}; j<this->enhanced_swing.ntest; ++j){
+				this->enhanced_swing.sampler_rsum += this->enhanced_swing.boltzmann[j]/this->enhanced_swing.rboltzmann;
+				if (this->enhanced_swing.sampler_rng < this->enhanced_swing.sampler_rsum){
+					this->enhanced_swing.sampler_idx = j;
+					break;
+				}
+			}
+			this->enhanced_swing.prob_o_to_n     *= this->enhanced_swing.boltzmann[this->enhanced_swing.sampler_idx]/this->enhanced_swing.rboltzmann;
+			this->enhanced_swing.current_energy   = this->enhanced_swing.energies[this->enhanced_swing.sampler_idx];
+			this->enhanced_swing.current_contacts = this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx];
+
+			// do the swap to get to the new configuration
+			this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[this->enhanced_swing.sampler_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->Polymers[p_idx].print_chain();
+			this->debug_checks_energy_contacts(this->enhanced_swing.energies[this->enhanced_swing.sampler_idx], this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx]);
+			this->debug_forward_head_regrowth(p_idx, m_idx-1);
+
+		}
+
+	}
+
+	return;
+}
+
+//#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void Simulation::debug_accept_after_tail_regrowth(){
+
+	// set up some vectors
+	std::vector< std::vector<std::array<int,3>>> master_linked_list;
+	std::vector <std::array<int,3>> link; 
+
+	create_linked_list (this->enhanced_swing.initial_locations, this->enhanced_swing.final_locations, link, &master_linked_list, 1);
+
+	int L {0}; // to store length of linked_list 
+
+	Particle* tmp_par_ptr_1 {nullptr}; // to help with swaps of pointers
+	Particle* tmp_par_ptr_2 {nullptr}; // this guy as well 
+
+	for ( std::vector <std::array<int,3>>& linked_list: master_linked_list ) {
+
+		L = static_cast<int> (linked_list.size()) ;
+
+		if ( (this->Lattice)[ lattice_index(linked_list[L-1], y, z) ]->ptype[0] == 's' ){
+
+			tmp_par_ptr_1 = (this->Lattice) [ lattice_index (linked_list.back(), y, z) ];
+
+			// go backwards 
+			for (int i{0}; i < L ; i=i+2 ){
+
+				(this->Lattice)[lattice_index (linked_list[L-2-i], y, z)]->coords = linked_list[L-1-i]; 
+				(this->Lattice)[lattice_index (linked_list[L-1-i], y, z)] = (this->Lattice)[lattice_index( linked_list[L-2-i], y, z )]; 
+				
+			}
+			tmp_par_ptr_1->coords = linked_list[0]; 
+			(this->Lattice)[lattice_index (linked_list[0], y, z)] = tmp_par_ptr_1; 
+
+		}
+
+		else { // when it is a circulation of monomers 
+
+			for ( int i{0}; i < L; i=i+2){
+				
+				if ( i == 0 ) {
+					// store info about linked_list[1]... and consequently also linked_list[2]
+					tmp_par_ptr_1 = (this->Lattice)[lattice_index ( linked_list[i+1], y, z) ];
+
+					(this->Lattice)[ lattice_index ( linked_list[i],   y, z) ]->coords = linked_list[i+1]; 
+					(this->Lattice)[ lattice_index ( linked_list[i+1], y, z) ] = (this->Lattice)[lattice_index ( linked_list[i], y, z) ]; 
+				
+				}
+				else {
+
+					tmp_par_ptr_1->coords = linked_list[i+1]; 
+					tmp_par_ptr_2 = (this->Lattice)[ lattice_index (linked_list[i+1], y, z) ]; 
+					(this->Lattice)[ lattice_index (linked_list[i+1], y, z) ] = tmp_par_ptr_1;
+					tmp_par_ptr_1 = tmp_par_ptr_2; 
+					
+				}
+			}
+		}	
+	}
+
+	return;
+
+}
+
+//#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
+
+void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursion_depth){
+
+	if (m_idx == 0){
+		this->IMP_BOOL = true;
+	}
+	else{
+		// reset the running boltzmann sum
+		this->enhanced_swing.rboltzmann = 0;
+
+		// reset locally
+		this->enhanced_swing.reset_local();
+
+		// set up some contact counters
+		std::array <int,3>                loc_m   = this->Polymers[p_idx].chain[m_idx-1]->coords;
+		std::array <std::array<int,3>,26> ne_list = obtain_ne_list(this->Polymers[p_idx].chain[m_idx]->coords, this->x, this->y, this->z);
+		
+		// set up the shuffle
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); 
+		std::shuffle(ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
+
+		// get the old position
+		int ne_idx = std::find (ne_list.begin(), ne_list.end(), this->enhanced_swing.initial_locations[m_idx-1]) - ne_list.begin();
+		std::array <int,3> tmp = ne_list[0]; 
+		ne_list[0]             = ne_list[ne_idx];
+		ne_list[ne_idx]        = tmp; 
+
+		// set up some variables
+		int idx_counter   =  0;
+		int self_swap_idx = -1;
+
+		while(idx_counter < this->enhanced_swing.ntest){
+			if (ne_list[idx_counter] == loc_m){
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy;
+				this->enhanced_swing.contacts_store[idx_counter] = this->enhanced_swing.current_contacts;
+			}
+			else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
+				for (int u{0}; u < this->Polymers[p_idx].deg_poly; ++u){
+					if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
+						self_swap_idx = u; 
+						break;
+					}
+				}
+
+				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
+				if (self_swap_idx <= m_idx){
+					this->enhanced_swing.energies[idx_counter]       = 1e+8;
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+				}
+				else{
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+					// swap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// get the energies
+					this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+					this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+					this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+					// set up the final energies
+					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+					this->Polymers[p_idx].print_chain();
+					this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+					// revert back to original structure, reswap particles
+					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+					// reset some local variables
+					this->enhanced_swing.reset_local();
+
+				}
+			}
+			else {
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
+
+				// swap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// get the energies
+				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
+				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
+				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
+
+				// set up the final energies
+				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
+
+				this->Polymers[p_idx].print_chain();
+				this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
+
+				// revert back to original structure, reswap particles
+				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+
+				// reset some local variables
+				this->enhanced_swing.reset_local();
+
+			}
+			idx_counter += 1;
+		}
+		this->enhanced_swing.Emin = *std::min_element(this->enhanced_swing.energies.begin(), this->enhanced_swing.energies.end());
+		for (int i{0}; i<this->enhanced_swing.ntest; ++i){
+			this->enhanced_swing.boltzmann[i] = std::exp(-1/this->T * (this->enhanced_swing.energies[i]-this->enhanced_swing.Emin));
+			this->enhanced_swing.rboltzmann += this->enhanced_swing.boltzmann[i];
+		}
+
+		this->enhanced_swing.sampler_idx      = 0;
+		this->enhanced_swing.prob_o_to_n     *= this->enhanced_swing.boltzmann[this->enhanced_swing.sampler_idx]/this->enhanced_swing.rboltzmann;
+		this->enhanced_swing.current_energy   = this->enhanced_swing.energies[this->enhanced_swing.sampler_idx];
+		this->enhanced_swing.current_contacts = this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx];
+
+		// do the swap to get to the new configuration
+		this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[this->enhanced_swing.sampler_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+		this->Polymers[p_idx].print_chain();
+		this->debug_checks_energy_contacts(this->enhanced_swing.energies[this->enhanced_swing.sampler_idx], this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx]);
+		this->debug_forward_head_regrowth(p_idx, m_idx-1, recursion_depth+1);
+
+	}
+	return;
+
+}
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+/*
 void Simulation::debug_regrowth(int p_idx){
 
 	int deg_poly        = this->Polymers[p_idx].deg_poly; 
@@ -1292,6 +1956,9 @@ void Simulation::debug_forward_head_regrowth(std::array <double,8>* forw_contact
 	int idx_counter   = 0 ;
 	int self_swap_idx = -1;
 
+	// define particle pointer
+	Particle* tmp_par_ptr {nullptr};
+
 	while (idx_counter<5) {
 		std::cout << "While index counter is " << idx_counter << "." << std::endl;
 		std::cout << "Initial config:" << std::endl;
@@ -1326,7 +1993,7 @@ void Simulation::debug_forward_head_regrowth(std::array <double,8>* forw_contact
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1343,7 +2010,7 @@ void Simulation::debug_forward_head_regrowth(std::array <double,8>* forw_contact
 				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting...
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -1368,7 +2035,7 @@ void Simulation::debug_forward_head_regrowth(std::array <double,8>* forw_contact
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1385,7 +2052,7 @@ void Simulation::debug_forward_head_regrowth(std::array <double,8>* forw_contact
 			this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// resetting...
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -1432,7 +2099,7 @@ void Simulation::debug_forward_head_regrowth(std::array <double,8>* forw_contact
 		*forw_contacts = contacts_store[e_idx];
 
 		// do the swap again and go to the new configuration
-		this->perturb_particle_swap(lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+		this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 		this->Polymers[p_idx].print_chain();
 		this->debug_checks_energy_contacts(energies[e_idx], contacts_store[e_idx]);
 		this->debug_forward_head_regrowth(forw_contacts, prob_o_to_n, forw_energy, p_idx, m_idx+1);
@@ -1520,7 +2187,6 @@ void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* o
 	std::shuffle   (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
 
 	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[recursion_depth]) - ne_list.begin();
-
 	std::array <int,3> tmp = ne_list[0]; 
 	ne_list[0]             = ne_list[ne_idx];
 	ne_list[ne_idx]        = tmp; 
@@ -1535,6 +2201,8 @@ void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* o
 	// start attempting jumps 
 	int idx_counter         = 0;
 	int self_swap_idx       = -1;
+
+	Particle* tmp_par_ptr {nullptr};
 
 	while (idx_counter < 5){
 		std::cout << "While index counter is " << idx_counter << "." << std::endl;
@@ -1564,7 +2232,7 @@ void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* o
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1581,7 +2249,7 @@ void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* o
 				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting...
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -1605,7 +2273,7 @@ void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* o
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1618,7 +2286,7 @@ void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* o
 			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));	
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));	
 
 			// resetting...
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -1648,7 +2316,7 @@ void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* o
 	*back_contacts = contacts_store[0];
 
 	// perform the swap
-	this->perturb_particle_swap(lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
+	this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
 	std::cout << "Check at end of regrowth @ recursion depth = " << recursion_depth << "." << std::endl;
 	this->Polymers[p_idx].print_chain();
 	this->debug_checks_energy_contacts(energies[0], contacts_store[0]);
@@ -1700,6 +2368,9 @@ void Simulation::debug_forward_tail_regrowth(std::array <double,8>* forw_contact
 	int idx_counter         = 0 ; 
 	int self_swap_idx       = -1; 
 
+	// define the particle pointer
+	Particle* tmp_par_ptr {nullptr};
+
 	while (idx_counter<5) {
 		std::cout << "While index counter is " << idx_counter << "." << std::endl;
 		std::cout << "Initial config:" << std::endl;
@@ -1733,7 +2404,7 @@ void Simulation::debug_forward_tail_regrowth(std::array <double,8>* forw_contact
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1750,7 +2421,7 @@ void Simulation::debug_forward_tail_regrowth(std::array <double,8>* forw_contact
 				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -1776,7 +2447,7 @@ void Simulation::debug_forward_tail_regrowth(std::array <double,8>* forw_contact
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1793,7 +2464,7 @@ void Simulation::debug_forward_tail_regrowth(std::array <double,8>* forw_contact
 			this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// resetting
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -1841,7 +2512,7 @@ void Simulation::debug_forward_tail_regrowth(std::array <double,8>* forw_contact
 		*forw_contacts = contacts_store[e_idx];
 
 		// do the swap again
-		this->perturb_particle_swap(lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+		this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 		this->debug_forward_tail_regrowth(forw_contacts, prob_o_to_n, forw_energy, p_idx, m_idx-1);
 	}
 
@@ -1960,6 +2631,8 @@ void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* o
 	int idx_counter         = 0;
 	int self_swap_idx       = -1;
 
+	Particle* tmp_par_ptr {nullptr};
+
 	while (idx_counter < 5){
 		std::cout << "While index counter is " << idx_counter << "." << std::endl;
 		std::cout << "Initial config:" << std::endl;
@@ -1994,7 +2667,7 @@ void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* o
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -2011,7 +2684,7 @@ void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* o
 				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting...
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -2037,7 +2710,7 @@ void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* o
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -2054,7 +2727,7 @@ void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* o
 			this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// resetting...
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -2084,7 +2757,7 @@ void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* o
 	*back_contacts = contacts_store[0];
 
 	// perform the swap
-	this->perturb_particle_swap(lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
+	this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
 	std::cout << "Check at end of regrowth @ recursion depth = " << recursion_depth << "." << std::endl;
 	this->Polymers[p_idx].print_chain();
 	this->debug_checks_energy_contacts(energies[0], contacts_store[0]);
@@ -2093,3 +2766,4 @@ void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* o
 	return;
 }
 
+*/

@@ -7,12 +7,13 @@ public:
 
 	// properties
 	// defining how particles were and how they were changed, and how many of them were
-	int nparticles; // number of particles to flip
+	int nparticles;                         // number of particles to flip
+	std::array <double,8> zero_array;       // a zero'd out array of contacts
 	std::vector <int> initial_orientations; // these are the initial orientations of each particle
 	std::vector <int> final_orientations;   // these are the final orientations of each particle
 
 	// defining how new states will be sampled per particles
-	int ntest;      // number of configurations to test
+	int ntest;                                         // number of configurations to test
 	std::vector <int>    orientations;                 // this is the container holding all the orientations of the trialed states
 	std::vector <double> boltzmann;                    // this is the container holding the boltzmann factors of each perturbation
 	
@@ -42,13 +43,22 @@ public:
 	double sampler_rsum;
 
 	// constructor 
-	EnhancedOrientationFlipper(int nparticles, int ntest):nparticles(nparticles), ntest(ntest){
+	EnhancedOrientationFlipper(){};
+
+	// destructor
+	~EnhancedOrientationFlipper(){};
+
+	// set up the object
+	void setup(int nparticles, int ntest){
+		this->nparticles = nparticles;
+		this->zero_array = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		this->ntest      = ntest;
 		this->initial_orientations.resize(nparticles,0);
 		this->final_orientations.resize(nparticles,0);
 		this->boltzmann.resize(ntest,0.0);
 		this->orientations.resize(ntest,0);
 		this->energies.resize(ntest,0);
-		this->contacts_store.resize(ntest);
+		this->contacts_store.resize(ntest, this->zero_array);
 		this->rboltzmann       = 0;
 		this->prob_o_to_n      = 1;
 		this->prob_n_to_o      = 1;
@@ -58,23 +68,39 @@ public:
 		this->sampler_idx      = 0;
 		this->sampler_rng      = 0;
 		this->sampler_rsum     = 0;
-	};
-
-	// destructor
-	~EnhancedOrientationFlipper(){};
-
-	void reset(){
-		this->rboltzmann       = 0;
-		this->prob_o_to_n      = 1;
-		this->prob_n_to_o      = 1;
-		this->Emin             = 0;
-		this->current_energy   = 0;
-		this->current_contacts = {0,0,0,0,0,0,0,0};
-		this->sampler_idx      = 0;
-		this->sampler_rng      = 0;
-		this->sampler_rsum     = 0;
+		this->current_contacts   = {0,0,0,0,0,0,0,0};
+		this->initial_contacts   = {0,0,0,0,0,0,0,0};
+		this->perturbed_contacts = {0,0,0,0,0,0,0,0};
+		return;
 	}
 
+	// reset the object
+	void reset(){
+		std::fill(this->initial_orientations.begin(), this->initial_orientations.end(), 0);
+		std::fill(this->final_orientations.begin(), this->final_orientations.end(), 0); 
+		std::fill(this->boltzmann.begin(), this->boltzmann.end(), 0);
+		std::fill(this->orientations.begin(), this->orientations.end(), 0);
+		std::fill(this->orientations.begin(), this->orientations.end(), 0); 
+		std::fill(this->energies.begin(), this->energies.end(), 0);
+		std::fill(this->contacts_store.begin(), this->contacts_store.end(), this->zero_array);
+		this->rboltzmann       = 0;
+		this->prob_o_to_n      = 1;
+		this->prob_n_to_o      = 1;
+		this->Emin             = 0;
+		this->initial_E          = 0;
+		this->perturbed_E        = 0;
+		this->current_energy   = 0;
+		this->sampler_idx      = 0;
+		this->sampler_rng      = 0;
+		this->sampler_rsum     = 0;
+		this->current_contacts = {0,0,0,0,0,0,0,0};
+		this->current_contacts   = {0,0,0,0,0,0,0,0};
+		this->initial_contacts   = {0,0,0,0,0,0,0,0};
+		this->perturbed_contacts = {0,0,0,0,0,0,0,0};
+		return;
+	}
+
+	// more useful
 	void reset(int nparticles, int ntest){
 		this->nparticles = nparticles;
 		this->ntest      = ntest;
@@ -83,16 +109,21 @@ public:
 		this->boltzmann.resize(ntest,0.0);
 		this->orientations.resize(ntest,0);
 		this->energies.resize(ntest,0);
-		this->contacts_store.resize(ntest);
-		this->rboltzmann       = 0;
-		this->prob_o_to_n      = 1;
-		this->prob_n_to_o      = 1;
-		this->Emin             = 0;
-		this->current_energy   = 0;
-		this->current_contacts = {0,0,0,0,0,0,0,0};
-		this->sampler_idx      = 0;
-		this->sampler_rng      = 0;
-		this->sampler_rsum     = 0;
+		this->contacts_store.resize(ntest, this->zero_array);
+		this->rboltzmann         = 0;
+		this->prob_o_to_n        = 1;
+		this->prob_n_to_o        = 1;
+		this->Emin               = 0;
+		this->initial_E          = 0;
+		this->perturbed_E        = 0;
+		this->current_energy     = 0;
+		this->sampler_idx        = 0;
+		this->sampler_rng        = 0;
+		this->sampler_rsum       = 0;
+		this->current_contacts   = {0,0,0,0,0,0,0,0};
+		this->initial_contacts   = {0,0,0,0,0,0,0,0};
+		this->perturbed_contacts = {0,0,0,0,0,0,0,0};
+		return;
 	};
 
 };

@@ -3,6 +3,7 @@
 #include "Polymer.h"
 #include "Containers.h"
 #include "OrientationFlipper.h"
+#include "MonomerSwinger.h"
 
 // Note: the hardest part of this simulation, whenever you feel like making some changes, is going 
 // to be getting the regrowth right. The biggest issue is the swapping of monomers.
@@ -121,7 +122,7 @@ public:
 	// define the custom objects for some of the more complicated moves
 	Container rotation_container;                // this is the object important for rotation moves
 	EnhancedOrientationFlipper enhanced_flipper; // this is the object important for biased orientation flips
-
+	EnhancedMonomerSwinger     enhanced_swing;   // this is the object important for swinging monomers
 
 	// define maps for interactions 
 	std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double, int, int>> InteractionMap;
@@ -195,7 +196,7 @@ public:
 	}
 
 	// get the solvation shell
-	std::set <int> Simulation::get_solvation_shell();
+	// std::set <int> Simulation::get_solvation_shell();
 
 	// extraction methods (in extraction.cpp)
 	std::vector <std::string> extract_content_from_file(std::string filename);
@@ -265,10 +266,10 @@ public:
 	//////////////////////////////////////////////////////////
 	// swap particles
 	void perturb_particle_swap            (int lat_idx_1, int lat_idx_2);
-	void particle_swap                    (Particle*, int lat_idx_1, int lat_idx_2);
-	void particle_swap_with_monomer       (std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx);
-	void particle_swap_with_update        (Container*, Particle*, int lat_idx_1, int lat_idx_2);
-	void particle_swap_with_monomer_update(Container* container, std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx);
+	void perturb_particle_swap                    (Particle*, int lat_idx_1, int lat_idx_2);
+	void perturb_particle_swap_with_monomer       (std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx);
+	void perturb_particle_swap_with_update        (Particle*, int lat_idx_1, int lat_idx_2);
+	void perturb_particle_swap_with_monomer_update(std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx);
 
 	//////////////////////////////////////////////////////////
 	// rotation of the end
@@ -324,22 +325,22 @@ public:
 	void debug_head_rotation(int p_idx);
 	void debug_reptation_forward(int p_idx);
 	void debug_reptation_backward(int p_idx);
-	void debug_orientation_sampler_forwards   (EnhancedOrientationFlipper* eof, std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int polymer_idx, int monomer_idx);
-	void debug_orientation_sampler_backwards_0(EnhancedOrientationFlipper* eof, std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int polymer_idx, int monomer_idx);
-	void debug_orientation_sampler_backwards  (EnhancedOrientationFlipper* eof, std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int polymer_idx, int monomer_idx);
-	void debug_choose_state_forward(EnhancedOrientationFlipper* eof, int iteration_idx, int polymer_idx, int monomer_idx);
+	void debug_orientation_sampler_forwards    (std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx);
+	void debug_orientation_sampler_backwards_0 (std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx);
+	void debug_orientation_sampler_backwards   (std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx);
+	void debug_choose_state_forward            (int iterator_idx, int lat_idx);
 	void debug_polymer_orientation_flip(int p_idx);
 	void debug_solvation_shell_flip();
 	void debug_lattice_flip();
 	void debug_solvent_exchange_from_shell();
 	void debug_solvent_exchange();
 	void debug_regrowth(int p_idx);
-	void debug_forward_head_regrowth(std::array<double,8>* forw_contacts, double* prob_o_to_n, double* forw_energy, int p_idx, int m_idx);
-	void debug_accept_after_head_regrowth(std::vector<std::array<int,3>>* old_cut, std::vector<std::array<int,3>>* new_cut);
-	void debug_backward_head_regrowth(std::vector <std::array<int,3>>* old_cut, std::array <double,8>* back_contacts, double* prob_n_to_o, double* back_energy, int p_idx, int m_idx, int recursion_depth);
-	void debug_forward_tail_regrowth(std::array <double,8>* forw_contacts, double* prob_o_to_n, double* forw_energy, int p_idx, int m_idx);
-	void debug_accept_after_tail_regrowth(std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut);
-	void debug_backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut, std::array <double,8>* back_contacts, double* prob_n_to_o, double* back_energy, int p_idx, int m_idx, int recursion_depth);
+	void debug_forward_head_regrowth(int p_idx, int m_idx);
+	void debug_accept_after_head_regrowth();
+	void debug_backward_head_regrowth(int p_idx, int m_idx, int recursion_depth);
+	void debug_forward_tail_regrowth(int p_idx, int m_idx);
+	void debug_accept_after_tail_regrowth();
+	void debug_backward_tail_regrowth(int p_idx, int m_idx, int recursion_depth);
 
 	// execution methods (run.cpp)
 	void run_straight();
@@ -349,28 +350,28 @@ public:
 		(this->*run_ptr)();
 	}
 
-};
+	std::set <int> get_solvation_shell(){
+		std::set   <int> solvation_shell_set; 
+		std::array <std::array<int,3>,26> ne_list; 
+		// int dop = static_cast<int>((*Polymers)[0].chain.size() ); 
 
-std::set <int> Simulation::get_solvation_shell(){
-
-	std::set   <int> solvation_shell_set; 
-	std::array <std::array<int,3>,26> ne_list; 
-	// int dop = static_cast<int>((*Polymers)[0].chain.size() ); 
-
-	// get the first solvation shell 
-	// auto start = std::chrono::high_resolution_clock::now(); 
-	for (Polymer& pmer: this->Polymers){
-		for (Particle*& p: pmer.chain){
-			ne_list = obtain_ne_list ( p->coords, this->x, this->y, this->z); 
-			for (std::array <int,3>& loc: ne_list){
-				if (this->Lattice[lattice_index (loc, this->y, this->z)]->ptype[0] == 's'){
-					solvation_shell_set.insert (lattice_index (loc, this->y, this->z)); 
+		// get the first solvation shell 
+		// auto start = std::chrono::high_resolution_clock::now(); 
+		for (Polymer& pmer: this->Polymers){
+			for (Particle*& p: pmer.chain){
+				ne_list = obtain_ne_list ( p->coords, this->x, this->y, this->z); 
+				for (std::array <int,3>& loc: ne_list){
+					if (this->Lattice[lattice_index (loc, this->y, this->z)]->ptype[0] == 's'){
+						solvation_shell_set.insert (lattice_index (loc, this->y, this->z)); 
+					}
 				}
 			}
 		}
+		return solvation_shell_set;
 	}
 
-	return solvation_shell_set;
-}
+};
+
+
 
 #endif

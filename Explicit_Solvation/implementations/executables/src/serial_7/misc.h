@@ -22,6 +22,7 @@
 #include <unordered_set>
 #include <algorithm>
 #include <filesystem>
+#include <limits>
 #include <getopt.h> 
 #include <stdlib.h> 
 
@@ -36,6 +37,8 @@ void sarw                        (std::vector<std::vector<int>>* loc_list, int d
 // run a sarw with periodic boundary conditions 
 void sarw_pbc                    (std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y_len, int z_len); 
 
+//
+double branchless_acos(double input);
 
 // given a list of locations for a particular type of Particle, create a vector of Particles 
 // std::vector <Particle> loc2part           (std::vector <std::vector <int>> loc_list, std::string s); 

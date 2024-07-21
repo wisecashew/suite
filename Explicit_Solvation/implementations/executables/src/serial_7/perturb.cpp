@@ -8,21 +8,7 @@
 //
 //////////////////////////////////////////////////////////
 
-void Simulation::perturb_particle_swap(int lat_idx_1, int lat_idx_2){
-
-	Particle* tmp_par_ptr {nullptr};
-	tmp_par_ptr = (this->Lattice)[lat_idx_1];
-	
-	(this->Lattice)[lat_idx_1] = (this->Lattice)[lat_idx_2];
-	(this->Lattice)[lat_idx_1]->coords = location (lat_idx_1, this->x, this->y, this->z);
-
-	(this->Lattice)[lat_idx_2] = tmp_par_ptr;
-	(this->Lattice)[lat_idx_2]->coords = location(lat_idx_2, this->x, this->y, this->z);
-
-	return;
-}
-
-void Simulation::particle_swap_with_monomer(std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx){
+void Simulation::perturb_particle_swap_with_monomer(std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx){
 
 	// setting up the switch 
 	this->Polymers[polymer_idx].chain[monomer_idx]->coords = location(other_particle_idx, this->x, this->y, this->z);
@@ -36,25 +22,25 @@ void Simulation::particle_swap_with_monomer(std::array<int,3> monomer_location, 
 	return;
 }
 
-void Simulation::particle_swap_with_monomer_update(Container* container, std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx){
+void Simulation::perturb_particle_swap_with_monomer_update(std::array<int,3> monomer_location, int polymer_idx, int monomer_idx, int other_particle_idx){
 
 	// get the initial energetics
-	this->neighbor_energetics(other_particle_idx,                                &(container->c1_initial), &(container->E1_initial));
-	this->neighbor_energetics(lattice_index(monomer_location, this->y, this->z), &(container->c2_initial), &(container->E2_initial));
-	this->selected_pair_interaction(this->Polymers[polymer_idx].chain[monomer_idx], this->Lattice[other_particle_idx], &(container->cpair_initial), &(container->Epair_initial));
+	this->neighbor_energetics(other_particle_idx,                                &(this->rotation_container.c1_initial), &(this->rotation_container.E1_initial));
+	this->neighbor_energetics(lattice_index(monomer_location, this->y, this->z), &(this->rotation_container.c2_initial), &(this->rotation_container.E2_initial));
+	this->selected_pair_interaction(this->Polymers[polymer_idx].chain[monomer_idx], this->Lattice[other_particle_idx], &(this->rotation_container.cpair_initial), &(this->rotation_container.Epair_initial));
 
 	// perform the swap
-	this->particle_swap_with_monomer(monomer_location, polymer_idx, monomer_idx, other_particle_idx);
+	this->perturb_particle_swap_with_monomer(monomer_location, polymer_idx, monomer_idx, other_particle_idx);
 
 	// get the energies in the new neighborhood
-	this->neighbor_energetics(other_particle_idx,                                &(container->c1_final), &(container->E1_final));
-	this->neighbor_energetics(lattice_index(monomer_location, this->y, this->z), &(container->c2_final), &(container->E2_final));
-	this->selected_pair_interaction(this->Polymers[polymer_idx].chain[monomer_idx], this->Lattice[other_particle_idx], &(container->cpair_final), &(container->Epair_final));
+	this->neighbor_energetics(other_particle_idx,                                &(this->rotation_container.c1_final), &(this->rotation_container.E1_final));
+	this->neighbor_energetics(lattice_index(monomer_location, this->y, this->z), &(this->rotation_container.c2_final), &(this->rotation_container.E2_final));
+	this->selected_pair_interaction(this->Polymers[polymer_idx].chain[monomer_idx], this->Lattice[other_particle_idx], &(this->rotation_container.cpair_final), &(this->rotation_container.Epair_final));
 
 	return;
 }
 
-void Simulation::particle_swap(Particle* tmp_par_ptr, int lat_idx_1, int lat_idx_2){
+void Simulation::perturb_particle_swap(Particle* tmp_par_ptr, int lat_idx_1, int lat_idx_2){
 
 	tmp_par_ptr = (this->Lattice)[ lat_idx_1];
 	
@@ -68,20 +54,22 @@ void Simulation::particle_swap(Particle* tmp_par_ptr, int lat_idx_1, int lat_idx
 
 }
 
-void Simulation::particle_swap_with_update(Container* container, Particle* tmp_par_ptr, int lat_idx_1, int lat_idx_2){
+void Simulation::perturb_particle_swap_with_update(Particle* tmp_par_ptr, int lat_idx_1, int lat_idx_2){
 
 	// get the energies in the current neighborhood
-	this->neighbor_energetics(lat_idx_1, &(container->c1_initial), &(container->E1_initial));
-	this->neighbor_energetics(lat_idx_2, &(container->c2_initial), &(container->E2_final));
-	this->selected_pair_interaction(this->Lattice[lat_idx_1], this->Lattice[lat_idx_2], &(container->cpair_initial), &(container->Epair_initial)); 
+	std::cout << "Initial computation." << std::endl;
+	this->neighbor_energetics(lat_idx_1, &(this->rotation_container.c1_initial), &(this->rotation_container.E1_initial));
+	this->neighbor_energetics(lat_idx_2, &(this->rotation_container.c2_initial), &(this->rotation_container.E2_initial));
+	this->selected_pair_interaction(this->Lattice[lat_idx_1], this->Lattice[lat_idx_2], &(this->rotation_container.cpair_initial), &(this->rotation_container.Epair_initial)); 
 
 	// perform the swap
-	this->particle_swap(tmp_par_ptr, lat_idx_1, lat_idx_2);
+	this->perturb_particle_swap(tmp_par_ptr, lat_idx_1, lat_idx_2);
 
 	// get the energies in the new neighborhood
-	this->neighbor_energetics (lat_idx_1, &(container->c1_final), &(container->E1_final));
-	this->neighbor_energetics (lat_idx_2, &(container->c2_final), &(container->E2_final)); 
-	this->selected_pair_interaction(this->Lattice[lat_idx_1], this->Lattice[lat_idx_2], &(container->cpair_final), &(container->Epair_final));
+	std::cout << "Post swap computation." << std::endl;
+	this->neighbor_energetics (lat_idx_1, &(this->rotation_container.c1_final), &(this->rotation_container.E1_final));
+	this->neighbor_energetics (lat_idx_2, &(this->rotation_container.c2_final), &(this->rotation_container.E2_final)); 
+	this->selected_pair_interaction(this->Lattice[lat_idx_1], this->Lattice[lat_idx_2], &(this->rotation_container.cpair_final), &(this->rotation_container.Epair_final));
 
 	return;
 }
@@ -89,8 +77,6 @@ void Simulation::particle_swap_with_update(Container* container, Particle* tmp_p
 //////////////////////////////////////////////////////////
 // modular functions for sampling based on orientations
 //////////////////////////////////////////////////////////
-
-
 
 //////////////////////////////////////////////////////////
 // rotation an end of a polymer
@@ -363,6 +349,8 @@ void Simulation::forward_reptation_with_tail_biting(std::array<double,8>* contac
 	std::array <int,3>    loc_m2    = {0,0,0};
 	std::array <double,8> contacts  = *contacts_i;
 
+	Particle* tmp_par_ptr {nullptr};
+
 	for (int idx{0}; idx<deg_poly-1; ++idx) {
 
 		// get locations of the two starting points
@@ -375,7 +363,7 @@ void Simulation::forward_reptation_with_tail_biting(std::array<double,8>* contac
 		this->selected_pair_interaction(this->Polymers[p_idx].chain[idx], this->Polymers[p_idx].chain[idx+1], &cpair_i, &Epair_i);
 
 		// do the swap 
-		this->perturb_particle_swap(lattice_index(loc_m1, this->y, this->z), lattice_index(loc_m2, this->y, this->z));
+		this->perturb_particle_swap(tmp_par_ptr, lattice_index(loc_m1, this->y, this->z), lattice_index(loc_m2, this->y, this->z));
 		// this->Lattice[lattice_index(loc_m1, this->y, this->z)] = this->Lattice[lattice_index(loc_m2, this->y, this->z)];
 		// this->Lattice[lattice_index(loc_m2, this->y, this->z)] = this->Polymers[p_idx].chain[idx];
 		// this->Lattice[lattice_index(loc_m1, this->y, this->z)]->coords = loc_m1;
@@ -1566,6 +1554,8 @@ void Simulation::forward_head_regrowth(std::array <double,8>* forw_contacts, dou
 	int idx_counter   = 0 ;
 	int self_swap_idx = -1;
 
+	Particle* tmp_par_ptr {nullptr};
+
 	while (idx_counter<5) {
 		if (ne_list[idx_counter] == loc_m){
 			energies[idx_counter]        = Esys;
@@ -1595,7 +1585,7 @@ void Simulation::forward_head_regrowth(std::array <double,8>* forw_contacts, dou
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1608,7 +1598,7 @@ void Simulation::forward_head_regrowth(std::array <double,8>* forw_contacts, dou
 				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting...
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -1632,7 +1622,7 @@ void Simulation::forward_head_regrowth(std::array <double,8>* forw_contacts, dou
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1645,7 +1635,7 @@ void Simulation::forward_head_regrowth(std::array <double,8>* forw_contacts, dou
 			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// resetting...
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -1692,7 +1682,7 @@ void Simulation::forward_head_regrowth(std::array <double,8>* forw_contacts, dou
 		*forw_contacts = contacts_store[e_idx];
 
 		// do the swap again and go to the new configuration
-		this->perturb_particle_swap(lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+		this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 		this->forward_head_regrowth(forw_contacts, prob_o_to_n, forw_energy, p_idx, m_idx+1);
 	}
 
@@ -1801,6 +1791,9 @@ void Simulation::backward_head_regrowth(std::vector <std::array<int,3>>* old_cut
 	int idx_counter         = 0;
 	int self_swap_idx       = -1;
 
+	// get the empty pointer
+	Particle* tmp_par_ptr {nullptr};
+
 	while (idx_counter < 5){
 
 		if (ne_list[idx_counter] == loc_m){
@@ -1826,7 +1819,7 @@ void Simulation::backward_head_regrowth(std::vector <std::array<int,3>>* old_cut
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1839,7 +1832,7 @@ void Simulation::backward_head_regrowth(std::vector <std::array<int,3>>* old_cut
 				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting...
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -1862,7 +1855,7 @@ void Simulation::backward_head_regrowth(std::vector <std::array<int,3>>* old_cut
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1875,7 +1868,7 @@ void Simulation::backward_head_regrowth(std::vector <std::array<int,3>>* old_cut
 			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));	
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));	
 
 			// resetting...
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -1905,7 +1898,7 @@ void Simulation::backward_head_regrowth(std::vector <std::array<int,3>>* old_cut
 	*back_contacts = contacts_store[0];
 
 	// perform the swap
-	this->perturb_particle_swap(lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
+	this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
 	this->backward_head_regrowth(old_cut, back_contacts, prob_n_to_o, back_energy, p_idx, m_idx+1, recursion_depth+1);
 
 	return;
@@ -1954,6 +1947,8 @@ void Simulation::forward_tail_regrowth(std::array <double,8>* forw_contacts, dou
 	int idx_counter         = 0 ; 
 	int self_swap_idx       = -1; 
 
+	Particle* tmp_par_ptr {nullptr};
+
 	while(idx_counter < 5) {
 
 		if (ne_list[idx_counter] == loc_m){
@@ -1984,7 +1979,7 @@ void Simulation::forward_tail_regrowth(std::array <double,8>* forw_contacts, dou
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -1997,7 +1992,7 @@ void Simulation::forward_tail_regrowth(std::array <double,8>* forw_contacts, dou
 				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -2023,7 +2018,7 @@ void Simulation::forward_tail_regrowth(std::array <double,8>* forw_contacts, dou
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -2036,7 +2031,7 @@ void Simulation::forward_tail_regrowth(std::array <double,8>* forw_contacts, dou
 			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// resetting
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -2084,7 +2079,7 @@ void Simulation::forward_tail_regrowth(std::array <double,8>* forw_contacts, dou
 		*forw_contacts = contacts_store[e_idx];
 
 		// do the swap again
-		this->perturb_particle_swap(lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+		this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 		this->forward_tail_regrowth(forw_contacts, prob_o_to_n, forw_energy, p_idx, m_idx-1);
 	}
 
@@ -2205,6 +2200,8 @@ void Simulation::backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut
 	int idx_counter         = 0;
 	int self_swap_idx       = -1;
 
+	Particle* tmp_par_ptr {nullptr};
+
 	while (idx_counter < 5){
 
 		if (ne_list[idx_counter] == loc_m){
@@ -2230,7 +2227,7 @@ void Simulation::backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 				// swap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -2243,7 +2240,7 @@ void Simulation::backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut
 				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 				// resetting...
 				cm_i    = {0,0,0,0,0,0,0,0};
@@ -2268,7 +2265,7 @@ void Simulation::backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut
 			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
 
 			// swap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// get the energies
 			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
@@ -2281,7 +2278,7 @@ void Simulation::backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut
 			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
 
 			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
+			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
 			// resetting...
 			cm_i    = {0,0,0,0,0,0,0,0};
@@ -2311,7 +2308,7 @@ void Simulation::backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut
 	*back_contacts = contacts_store[0];
 
 	// perform the swap
-	this->perturb_particle_swap(lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
+	this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
 	this->backward_tail_regrowth(old_cut, back_contacts, prob_n_to_o, back_energy, p_idx, m_idx-1, recursion_depth+1);
 
 	return; 
@@ -2368,7 +2365,7 @@ void Simulation::perturb_system_straight(){
 
 void Simulation::perturb_system_debug(){
 	std::cout << "Running the debugging-based perturbation." << std::endl;
-	int r = rng_uniform(0, 9);
+	int r = 8; // rng_uniform(0, 1);
 	
 	switch (r) {
 		case 0:

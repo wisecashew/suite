@@ -160,7 +160,7 @@ void Simulation::dump_local_no_ss(){
 void Simulation::dump_lattice(){
 
 	if ((this->step_number % this->lfreq) == 0){
-		std::cout << "dump lattice @ step number = " << this->step_number << ", lfreq = " << this->lfreq << std::endl;
+		// std::cout << "dump lattice @ step number = " << this->step_number << ", lfreq = " << this->lfreq << std::endl;
 		std::ofstream dump_file (this->lattice_file_write, std::ios::out); 
 		dump_file << "FINAL STEP: " << this->step_number << ".\n"; 
 		for ( Particle*& p: this->Lattice ){

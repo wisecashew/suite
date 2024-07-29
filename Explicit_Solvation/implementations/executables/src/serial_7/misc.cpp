@@ -1079,8 +1079,9 @@ void filter_orientations(const std::string& filename, int cutoff_step) {
 }
 
 double branchless_acos(double input) {
-    // Calculate acos and handle precision issues for inputs close to -1 and 1
-    return (std::fabs(input + 1.0) < 0.0001) ? M_PI :
-           (std::fabs(input - 1.0) < 0.0001) ? 0.0 :
-           std::acos(input);
+	// Calculate acos and handle precision issues for inputs close to -1 and 1
+	return (std::fabs(input + 1.0) < 0.0001) ? M_PI :
+			(std::fabs(input - 1.0) < 0.0001) ? 0.0 :
+			std::acos(input);
 }
+

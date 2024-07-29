@@ -292,12 +292,17 @@ public:
 	//////////////////////////////////////////////////////////
 	// all about regrowth
 	void perturb_regrowth(int p_idx);
-	void forward_head_regrowth(std::array <double,8>* forw_contacts, double* prob_o_to_n, double* forw_energy, int p_idx, int m_idx);
-	void accept_after_head_regrowth(std::vector<std::array<int,3>>* old_cut, std::vector<std::array<int,3>>* new_cut);
-	void backward_head_regrowth(std::vector <std::array<int,3>>* old_cut, std::array <double,8>* back_contacts, double* prob_n_to_o, double* back_energy, int p_idx, int m_idx, int recursion_depth);
-	void forward_tail_regrowth(std::array <double,8>* forw_contacts, double* prob_o_to_n, double* forw_energy, int p_idx, int m_idx);
-	void accept_after_tail_regrowth(std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut);
-	void backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut, std::array <double,8>* back_contacts, double* prob_n_to_o, double* back_energy, int p_idx, int m_idx, int recursion_depth);
+	void perturb_forward_head_regrowth(int p_idx, int m_idx);
+	void perturb_accept_after_head_regrowth();
+	void perturb_backward_head_regrowth(int p_idx, int m_idx, int recursion_depth);
+	void perturb_forward_tail_regrowth(int p_idx, int m_idx);
+	void perturb_accept_after_tail_regrowth();
+	void perturb_backward_tail_regrowth(int p_idx, int m_idx, int recursion_depth);
+
+	//////////////////////////////////////////////////////////
+	void perturb_choose_state_forward(int iteration_idx, int lat_idx);
+	void perturb_orientation_sampler_backwards_0(std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx);
+	void perturb_orientation_sampler_backwards(std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx);
 
 	//////////////////////////////////////////////////////////
 	// perturb orientations
@@ -307,6 +312,8 @@ public:
 	void perturb_solvent_exchange();
 	void perturb_solvent_exchange_from_shell();
 	
+	//////////////////////////////////////////////////////////
+	void perturb_orientation_sampler_forwards(std::array<double,8>* contacts_sys, double E_sys, int iterator_idx, int lat_idx);
 	
 	//////////////////////////////////////////////////////////
 

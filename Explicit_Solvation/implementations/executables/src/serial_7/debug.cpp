@@ -392,8 +392,8 @@ void Simulation::debug_head_rotation(int p_idx){
 	else {
 		this->IMP_BOOL = false; 
 	}
-	return;
 
+	return;
 }
 
 void Simulation::debug_reptation_forward(int p_idx){
@@ -898,6 +898,7 @@ void Simulation::debug_solvent_exchange_from_shell(){
 		}
 	}
 	return;
+	
 }
 
 void Simulation::debug_solvent_exchange(){
@@ -962,7 +963,7 @@ void Simulation::debug_regrowth(int p_idx){
 
 	// set up some containers 
 	int deg_poly        = this->Polymers[p_idx].deg_poly; 
-	int m_idx           = rng_uniform(1, deg_poly-2);
+	int m_idx           =  3;
 	int growth          = -1;
 	double forw_energy  =  0;
 	double rng_acc      =  0;
@@ -970,6 +971,8 @@ void Simulation::debug_regrowth(int p_idx){
 
 	// get that reset going
 	this->enhanced_swing.reset(deg_poly);
+	this->enhanced_swing.current_energy   = this->sysEnergy;
+	this->enhanced_swing.current_contacts = this->contacts;
 
 	if (deg_poly%2 == 0){
 		growth = (0.5 >= (m_idx+1)/static_cast<double>(deg_poly)) ? 0 : 1;
@@ -991,7 +994,7 @@ void Simulation::debug_regrowth(int p_idx){
 		}
 
 		std::cout << "\tPerforming the forward pass..." << std::endl;
-		this->debug_forward_head_regrowth();
+		this->debug_forward_head_regrowth(p_idx, m_idx);
 
 		std::cout << "\tPerforming the forward pass check..." << std::endl;
 		this->Polymers[p_idx].print_chain();
@@ -1018,14 +1021,14 @@ void Simulation::debug_regrowth(int p_idx){
 			forw_energy   = this->enhanced_swing.current_energy;
 			forw_contacts = this->enhanced_swing.current_contacts;
 			std::cout << "\tPerforming the backward pass..." << std::endl;
-			this->debug_backward_head_regrowth();
+			this->debug_backward_head_regrowth(p_idx, m_idx, 0);
 
 			rng_acc = rng_uniform(0.0, 1.0);
 			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o / this->enhanced_swing.prob_o_to_n){
 				this->debug_accept_after_head_regrowth();
 				this->sysEnergy = forw_energy; 
-				this->contacts = forw_contacts;
-				this->IMP_BOOL = true;
+				this->contacts  = forw_contacts;
+				this->IMP_BOOL  = true;
 			}
 			else {
 				this->IMP_BOOL = false;
@@ -1039,7 +1042,7 @@ void Simulation::debug_regrowth(int p_idx){
 			this->enhanced_swing.initial_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
 		}
 
-		this->debug_forward_tail_regrowth();
+		this->debug_forward_tail_regrowth(p_idx, m_idx);
 		this->debug_checks_energy_contacts(this->enhanced_swing.current_energy, this->enhanced_swing.current_contacts);
 		this->check_structures();
 
@@ -1060,7 +1063,7 @@ void Simulation::debug_regrowth(int p_idx){
 			forw_energy   = this->enhanced_swing.current_energy;
 			forw_contacts = this->enhanced_swing.current_contacts;
 			std::cout << "\tPerforming backward tail regrowth..." << std::endl;
-			debug_backward_tail_regrowth();
+			this->debug_backward_tail_regrowth(p_idx, m_idx, 0);
 
 			rng_acc = rng_uniform(0.0, 1.0);
 			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o/this->enhanced_swing.prob_o_to_n) {
@@ -1153,6 +1156,7 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
+					std::cout << "Running check..." << std::endl;
 					this->Polymers[p_idx].print_chain();
 					this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
 
@@ -1185,6 +1189,7 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
+				std::cout << "Running check..." << std::endl;
 				this->Polymers[p_idx].print_chain();
 				this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
 
@@ -1289,10 +1294,13 @@ void Simulation::debug_accept_after_head_regrowth(){
 
 void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursion_depth){
 
+	std::cout << "Check for completion..." << std::endl;
 	if (m_idx == this->Polymers[p_idx].deg_poly - 1){
+		std::cout << "Completed!" << std::endl;
 		this->IMP_BOOL = true;
 	}
 	else{
+		std::cout << "Running the move..." << std::endl;
 		// reset the running boltzmann sum
 		this->enhanced_swing.rboltzmann = 0;
 
@@ -1317,12 +1325,19 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 		int idx_counter   =  0;
 		int self_swap_idx = -1;
 
+		std::cout << "Outside the while loop..." << std::endl;
+		std::cout << "ntest = " << this->enhanced_swing.ntest << std::endl;
 		while(idx_counter < this->enhanced_swing.ntest){
+			std::cout << "Inside the while loop..." << std::endl;
+			std::cout << "ne_list["<< idx_counter << "] = "; print(ne_list[idx_counter]);
+			std::cout << "loc_m = "; print(loc_m);
 			if (ne_list[idx_counter] == loc_m){
+				std::cout << "Hit the same monomer" << std::endl;
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy;
 				this->enhanced_swing.contacts_store[idx_counter] = this->enhanced_swing.current_contacts;
 			}
 			else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
+				std::cout << "Switching with monomer..." << std::endl;
 				for (int u{0}; u < this->Polymers[p_idx].deg_poly; ++u){
 					if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
 						self_swap_idx = u; 
@@ -1356,6 +1371,7 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
+					std::cout << "Checking the structures..." << std::endl;
 					this->Polymers[p_idx].print_chain();
 					this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
 
@@ -1368,26 +1384,31 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 				}
 			}
 			else {
+				std::cout << "Switching with solvent." << std::endl;
 
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.initial_cont_part2switch), &(this->enhanced_swing.initial_E_part2switch));
 				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.initial_cont_monomer),     &(this->enhanced_swing.initial_E_monomer));
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.initial_cont_pair), &(this->enhanced_swing.initial_E_pair));
 
+				std::cout << "Doing the swap." << std::endl;
 				// swap particles
 				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 
+				std::cout << "Get the energies (post)." << std::endl;
 				// get the energies
 				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &(this->enhanced_swing.final_cont_part2switch), &(this->enhanced_swing.final_E_part2switch)); 
 				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &(this->enhanced_swing.final_cont_monomer),     &(this->enhanced_swing.final_E_monomer)); 
 				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &(this->enhanced_swing.final_cont_pair), &(this->enhanced_swing.final_E_pair));
 
+				std::cout << "Store the energies." << std::endl;
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
 				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
 				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
+				std::cout << "Checking the structures..." << std::endl;
 				this->Polymers[p_idx].print_chain();
 				this->debug_checks_energy_contacts(this->enhanced_swing.energies[idx_counter], this->enhanced_swing.contacts_store[idx_counter]);
 
@@ -1415,7 +1436,7 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 		this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[this->enhanced_swing.sampler_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 		this->Polymers[p_idx].print_chain();
 		this->debug_checks_energy_contacts(this->enhanced_swing.energies[this->enhanced_swing.sampler_idx], this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx]);
-		this->debug_forward_head_regrowth(p_idx, m_idx+1, recursion_depth+1);
+		this->debug_backward_head_regrowth(p_idx, m_idx+1, recursion_depth+1);
 
 	}
 	return;
@@ -1467,7 +1488,7 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 				}
 
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
-				if (self_swap_idx <= m_idx){
+				if (self_swap_idx >= m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
 					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
 					block_counter                                   += 1;
@@ -1564,7 +1585,7 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 			this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[this->enhanced_swing.sampler_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 			this->Polymers[p_idx].print_chain();
 			this->debug_checks_energy_contacts(this->enhanced_swing.energies[this->enhanced_swing.sampler_idx], this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx]);
-			this->debug_forward_head_regrowth(p_idx, m_idx-1);
+			this->debug_forward_tail_regrowth(p_idx, m_idx-1);
 
 		}
 
@@ -1682,7 +1703,7 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 				}
 
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
-				if (self_swap_idx <= m_idx){
+				if (self_swap_idx >= m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
 					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
 				}
@@ -1751,6 +1772,7 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 			}
 			idx_counter += 1;
 		}
+
 		this->enhanced_swing.Emin = *std::min_element(this->enhanced_swing.energies.begin(), this->enhanced_swing.energies.end());
 		for (int i{0}; i<this->enhanced_swing.ntest; ++i){
 			this->enhanced_swing.boltzmann[i] = std::exp(-1/this->T * (this->enhanced_swing.energies[i]-this->enhanced_swing.Emin));
@@ -1766,7 +1788,7 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 		this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[this->enhanced_swing.sampler_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
 		this->Polymers[p_idx].print_chain();
 		this->debug_checks_energy_contacts(this->enhanced_swing.energies[this->enhanced_swing.sampler_idx], this->enhanced_swing.contacts_store[this->enhanced_swing.sampler_idx]);
-		this->debug_forward_head_regrowth(p_idx, m_idx-1, recursion_depth+1);
+		this->debug_backward_tail_regrowth(p_idx, m_idx-1, recursion_depth+1);
 
 	}
 	return;

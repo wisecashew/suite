@@ -5,6 +5,7 @@ void Simulation::run_straight(){
 	int start = this->step_number+1;
 	int stop  = this->step_number+this->max_iter+1;
 	for (int i {start}; i < stop; ++i){
+		std::cout << "@ step " << i << "." << std::endl;
 		this->step_number += 1;
 		this->perturb_system_straight();
 		if (this->IMP_BOOL){
@@ -13,6 +14,10 @@ void Simulation::run_straight(){
 		this->dump_local();
 		this->dump_lattice();
 	}
+
+	// this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
+	// this->check_structures();
+
 	return;
 }
 

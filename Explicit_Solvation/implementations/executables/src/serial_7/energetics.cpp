@@ -77,14 +77,17 @@ void interaction_p_s1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array
 }
 
 void interaction_a_m1_m1(Simulation* sim, Particle* p1, Particle* p2, std::array<double,8>* contacts, double* energy) {
+	// std::cout << "Entering function." << std::endl;
 	std::array <int,3> connvec = subtract_arrays (&(p2->coords), &(p1->coords));
 	modified_direction (&connvec, sim->x, sim->y, sim->z); 
+	// std::cout << "Evaluating the if condition." << std::endl;
 	double magnitude    = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
 	double theta_1      = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
 	double theta_2      = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 	bool   condition    = (theta_1 + theta_2) > M_PI/2;
 	int    c_idx        = 0 + condition;
 	(*contacts)[c_idx] += 0.5;
+	// std::cout << "Doing energy compute..." << std::endl;
 	(*energy)          += 0.5 * ((sim->energy_surface[0]) * !condition + (sim->energy_surface[1]) * condition);
 	return; 
 }
@@ -145,13 +148,15 @@ void Simulation::initialize_pairwise_function_map(){
 	this->PairwiseFunctionMap[s2s2_pair] = &interaction_s2_s2;
 
 	if (std::get<0>((this->InteractionMap)[mm_pair]) == "isotropic"){
-		// std::cout << "m1-m1 is isotropic" << std::endl;
+		// std::cout << "pairwise m1-m1 is isotropic." << std::endl;
 		this->PairwiseFunctionMap[mm_pair] = &interaction_i_m1_m1;
 	}
 	else if (std::get<0>((this->InteractionMap)[mm_pair]) == "parallel"){
+		// std::cout << "pairwise m1-m1 is parallel." << std::endl;
 		this->PairwiseFunctionMap[mm_pair] = &interaction_p_m1_m1;
 	}
 	else if (std::get<0>((this->InteractionMap)[mm_pair]) == "antiparallel"){
+		// std::cout << "pairwise m1-m1 is antiparallel." << std::endl;
 		this->PairwiseFunctionMap[mm_pair] = &interaction_a_m1_m1;
 	}
 	else {
@@ -160,15 +165,17 @@ void Simulation::initialize_pairwise_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[ms1_pair]) == "isotropic"){
-		// std::cout << "m1-s1 is isotropic" << std::endl;
+		// std::cout << "pairwise m1-s1 is isotropic." << std::endl;
 		this->PairwiseFunctionMap[ms1_pair] = &interaction_i_m1_s1;
 		this->PairwiseFunctionMap[s1m_pair] = &interaction_i_m1_s1;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms1_pair]) == "parallel"){
+		// std::cout << "pairwise m1-s1 is parallel." << std::endl;
 		this->PairwiseFunctionMap[ms1_pair] = &interaction_p_m1_s1;
 		this->PairwiseFunctionMap[s1m_pair] = &interaction_p_m1_s1;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms1_pair]) == "antiparallel"){
+		// std::cout << "pairwise m1-s1 is antiparallel." << std::endl;
 		this->PairwiseFunctionMap[ms1_pair] = &interaction_a_m1_s1;
 		this->PairwiseFunctionMap[s1m_pair] = &interaction_a_m1_s1;
 	}
@@ -178,15 +185,17 @@ void Simulation::initialize_pairwise_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[ms2_pair]) == "isotropic"){
-		// std::cout << "m1-s2 is isotropic" << std::endl;
+		// std::cout << "pairwise m1-s2 is isotropic." << std::endl;
 		this->PairwiseFunctionMap[ms2_pair] = &interaction_i_m1_s2;
 		this->PairwiseFunctionMap[ms2_pair] = &interaction_i_m1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms2_pair]) == "parallel"){
+		// std::cout << "pairwise m1-s2 is parallel." << std::endl;
 		this->PairwiseFunctionMap[ms2_pair] = &interaction_p_m1_s2;
 		this->PairwiseFunctionMap[s2m_pair] = &interaction_p_m1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms2_pair]) == "antiparallel"){
+		// std::cout << "pairwise m1-s2 is antiparallel." << std::endl;
 		this->PairwiseFunctionMap[ms2_pair] = &interaction_a_m1_s2;
 		this->PairwiseFunctionMap[s2m_pair] = &interaction_a_m1_s2;
 	}
@@ -196,15 +205,17 @@ void Simulation::initialize_pairwise_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[s1s2_pair]) == "isotropic"){
-		std::cout << "s1-s2 is isotropic" << std::endl;
+		// std::cout << "pairwise s1-s2 is isotropic." << std::endl;
 		this->PairwiseFunctionMap[s1s2_pair] = &interaction_i_s1_s2;
 		this->PairwiseFunctionMap[s2s1_pair] = &interaction_i_s1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[s1s2_pair]) == "parallel"){
+		// std::cout << "pairwise s1-s2 is parallel." << std::endl;
 		this->PairwiseFunctionMap[s1s2_pair] = &interaction_p_s1_s2;
 		this->PairwiseFunctionMap[s2s1_pair] = &interaction_p_s1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[s1s2_pair]) == "antiparallel"){
+		// std::cout << "pairwise s1-s2 is antiparallel." << std::endl;
 		this->PairwiseFunctionMap[s1s2_pair] = &interaction_a_s1_s2;
 		this->PairwiseFunctionMap[s2s1_pair] = &interaction_a_s1_s2;
 	}
@@ -217,7 +228,13 @@ void Simulation::initialize_pairwise_function_map(){
 
 void Simulation::accelerate_pair_interaction(Particle* p1, Particle* p2, std::array<double,8>* contacts, double* energy){
 	std::pair<std::string, std::string> particle_pair = std::make_pair(p1->ptype, p2->ptype);
+
 	auto it = this->PairwiseFunctionMap.find(particle_pair);
+	if (it == this->PairwiseFunctionMap.end()){
+		std::cout << "key not found. exiting..." << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	// std::cout << "Run the computation." << std::endl;
 	it->second(this, p1, p2, contacts, energy);
 	return;
 }
@@ -352,7 +369,7 @@ void neighbor_a_s1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array<do
 
 void Simulation::initialize_neighbor_function_map(){
 
-	std::cout << "Initializing neighbor_functions" << std::endl;
+	// std::cout << "Initializing neighbor_functions" << std::endl;
 	std::pair  <std::string, std::string> mm_pair    = std::make_pair("m1", "m1");
 	std::pair  <std::string, std::string> ms1_pair   = std::make_pair("m1", "s1");
 	std::pair  <std::string, std::string> s1m_pair   = std::make_pair("s1", "m1");
@@ -367,13 +384,15 @@ void Simulation::initialize_neighbor_function_map(){
 	this->NeighborFunctionMap[s2s2_pair] = &neighbor_s2_s2;
 
 	if (std::get<0>((this->InteractionMap)[mm_pair]) == "isotropic"){
-		std::cout << "m1-m1 is isotropic" << std::endl;
+		// std::cout << "neighbor m1-m1 is isotropic" << std::endl;
 		this->NeighborFunctionMap[mm_pair] = &neighbor_i_m1_m1;
 	}
 	else if (std::get<0>((this->InteractionMap)[mm_pair]) == "parallel"){
+		// std::cout << "neighbor m1-m1 is parallel." << std::endl;
 		this->NeighborFunctionMap[mm_pair] = &neighbor_p_m1_m1;
 	}
 	else if (std::get<0>((this->InteractionMap)[mm_pair]) == "antiparallel"){
+		// std::cout << "neighbor m1-m1 is antiparallel." << std::endl;
 		this->NeighborFunctionMap[mm_pair] = &neighbor_a_m1_m1;
 	}
 	else {
@@ -382,15 +401,17 @@ void Simulation::initialize_neighbor_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[ms1_pair]) == "isotropic"){
-		// std::cout << "m1-s1 is isotropic" << std::endl;
+		// std::cout << "neighbor m1-s1 is isotropic." << std::endl;
 		this->NeighborFunctionMap[ms1_pair] = &neighbor_i_m1_s1;
 		this->NeighborFunctionMap[s1m_pair] = &neighbor_i_m1_s1;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms1_pair]) == "parallel"){
+		// std::cout << "neighbor m1-s1 is parallel." << std::endl;
 		this->NeighborFunctionMap[ms1_pair] = &neighbor_p_m1_s1;
 		this->NeighborFunctionMap[s1m_pair] = &neighbor_p_m1_s1;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms1_pair]) == "antiparallel"){
+		// std::cout << "neighbor m1-s1 is antiparallel." << std::endl;
 		this->NeighborFunctionMap[ms1_pair] = &neighbor_a_m1_s1;
 		this->NeighborFunctionMap[s1m_pair] = &neighbor_a_m1_s1;
 	}
@@ -400,15 +421,17 @@ void Simulation::initialize_neighbor_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[ms2_pair]) == "isotropic"){
-		// std::cout << "m1-s2 is isotropic" << std::endl;
+		// std::cout << "neighbor m1-s2 is isotropic." << std::endl;
 		this->NeighborFunctionMap[ms2_pair] = &neighbor_i_m1_s2;
 		this->NeighborFunctionMap[s2m_pair] = &neighbor_i_m1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms2_pair]) == "parallel"){
+		// std::cout << "neighbor m1-s2 is parallel." << std::endl;
 		this->NeighborFunctionMap[ms2_pair] = &neighbor_p_m1_s2;
 		this->NeighborFunctionMap[s2m_pair] = &neighbor_p_m1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[ms2_pair]) == "antiparallel"){
+		// std::cout << "neighbor m1-s2 is antiparallel." << std::endl;
 		this->NeighborFunctionMap[ms2_pair] = &neighbor_a_m1_s2;
 		this->NeighborFunctionMap[s2m_pair] = &neighbor_a_m1_s2;
 	}
@@ -418,15 +441,17 @@ void Simulation::initialize_neighbor_function_map(){
 	}
 
 	if (std::get<0>((this->InteractionMap)[s1s2_pair]) == "isotropic"){
-		// std::cout << "s1-s2 is isotropic" << std::endl;
+		// std::cout << "neighbor s1-s2 is isotropic." << std::endl;
 		this->NeighborFunctionMap[s1s2_pair] = &neighbor_i_s1_s2;
 		this->NeighborFunctionMap[s2s1_pair] = &neighbor_i_s1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[s1s2_pair]) == "parallel"){
+		// std::cout << "neighbor s1-s2 is parallel." << std::endl;
 		this->NeighborFunctionMap[s1s2_pair] = &neighbor_p_s1_s2;
 		this->NeighborFunctionMap[s2s1_pair] = &neighbor_p_s1_s2;
 	}
 	else if (std::get<0>((this->InteractionMap)[s1s2_pair]) == "antiparallel"){
+		// std::cout << "neighbor s1-s2 is antiparallel." << std::endl;
 		this->NeighborFunctionMap[s1s2_pair] = &neighbor_a_s1_s2;
 		this->NeighborFunctionMap[s2s1_pair] = &neighbor_a_s1_s2;
 	}
@@ -479,24 +504,27 @@ void Simulation::neighbor_energetics(int lat_idx, std::array<double,8>* contacts
 
 void Simulation::accelerate_calculate_energy_cosolvent(){
 
-	std::cout << "Running through the cosolvents for an energy computation." << std::endl;
 	double energy       {0.0};
 	this->contacts = {0,0,0,0,0,0,0,0};
-
 	std::array <std::array <int,3>, 26> ne_list; 
 
 	// run energy computations for every monomer bead 
 	// auto start = std::chrono::high_resolution_clock::now();
-
+	std::cout << "Running through the polymers for an energy computation. Number of polymers = " << this->Polymers.size() << std::endl;
 	for (Polymer& pmer: this->Polymers) {
 		for (Particle*& p: pmer.chain){
 			ne_list = obtain_ne_list(p->coords, this->x, this->y, this->z); // get neighbor list 
 			for (std::array <int,3>& loc: ne_list) {
+				// std::cout << "p->coords = "; print(p->coords);
+				// std::cout << "loc = "; print(loc);
+				// std::cout << "p->orientation = " << p->orientation << ", this->Lattice[lattice_index(loc, this->y, this->z)]->orientation = " << this->Lattice[lattice_index(loc, this->y, this->z)]->orientation << std::endl;
 				this->accelerate_pair_interaction(p, this->Lattice[lattice_index(loc, this->y, this->z)], &this->contacts, &energy);
 			}
 		}
 	}
 
+	std::cout << "Running through the cosolvent for an energy computation..." << std::endl;
+	std::cout << "Length of Cosolvent vector is " << this->Cosolvent.size() << "." << std::endl;
 	for (Particle*& p: this->Cosolvent){
 		ne_list = obtain_ne_list ( p->coords, this->x, this->y, this->z );
 		for (std::array <int,3>& loc: ne_list){
@@ -510,6 +538,7 @@ void Simulation::accelerate_calculate_energy_cosolvent(){
 	}
 
 	this->sysEnergy += energy;
+	std::cout << "Completed computation." << std::endl;
 	return; 
 }
 

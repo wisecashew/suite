@@ -210,6 +210,8 @@ int main (int argc, char** argv) {
 	mySim.initialize_neighbor_function_map(); // initialize the neighbor function
 	mySim.accelerate_calculate_energy();      // get the energy of the system
 	mySim.dump_local();                       // dump out the conditions at step number 0
+	mySim.debug_checks_energy_contacts(mySim.sysEnergy, mySim.contacts);
+	mySim.check_structures();
 
 	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 	// OPENING TILES
@@ -221,7 +223,7 @@ int main (int argc, char** argv) {
 	mySim.run();
 
 	// final dumps of lattice and move statistics
-	// mySim.dump_lattice();
+	mySim.dump_lattice();
 	mySim.dump_statistics(); 
 
 	auto stop     = std::chrono::high_resolution_clock::now(); 

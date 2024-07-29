@@ -58,11 +58,10 @@ public:
 	// set up the object 
 	void setup(int loc_size, int ntest){
 		this->ntest           = ntest;
-		this->recursion_depth = 0;
-		this->zero_3array = {0,0,0};
-		this->zero_8array = {0,0,0,0,0,0,0,0};
-		this->initial_locations.resize(loc_size, this->zero_3array);
-		this->final_locations.resize(loc_size, this->zero_3array);
+		this->zero_3array     = {0,0,0};
+		this->zero_8array     = {0,0,0,0,0,0,0,0};
+		this->initial_locations.reserve(loc_size);
+		this->final_locations.reserve(loc_size);
 		this->initial_cont_monomer     = this->zero_8array;     // initial contacts, prior to perturbation
 		this->initial_cont_part2switch = this->zero_8array; // initial contacts, prior to perturbation
 		this->final_cont_monomer       = this->zero_8array;       // 
@@ -87,8 +86,10 @@ public:
 
 	// reset the object 
 	void reset(int loc_size){ // fixed ntest
-		this->initial_locations.resize(loc_size, this->zero_3array);
-		this->final_locations.resize  (loc_size, this->zero_3array);
+		this->initial_locations.clear();
+		this->initial_locations.reserve(loc_size);
+		this->final_locations.clear();
+		this->final_locations.reserve  (loc_size);
 		this->initial_cont_monomer     = this->zero_8array;     // initial contacts, prior to perturbation
 		this->initial_cont_part2switch = this->zero_8array; // initial contacts, prior to perturbation
 		this->final_cont_monomer       = this->zero_8array;       // 
@@ -99,7 +100,6 @@ public:
 		std::fill(this->contacts_store.begin(), this->contacts_store.end(), this->zero_8array);
 		std::fill(this->boltzmann.begin(), this->boltzmann.end(), 0);
 		std::fill(this->energies.begin(), this->energies.end(), 0);
-		this->recursion_depth  = 0;
 		this->rboltzmann       = 0;
 		this->prob_o_to_n      = 1;
 		this->prob_n_to_o      = 1;

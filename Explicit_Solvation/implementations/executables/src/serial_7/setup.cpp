@@ -48,6 +48,8 @@ void Simulation::set_up_system(){
 	return;
 }
 
+//////////////////////////////////////////////
+
 void Simulation::add_solvent(){
 
 	int c_idx {-1};
@@ -195,10 +197,6 @@ void Simulation::set_up_lattice_for_restart(){
 	std::regex pattern (R"([^,]+)");
 	std::smatch mat;
 
-	// int orientation   = -1;
-	// std::string ptype = "x";
-	// int index         = -1;
-
 	int final_step = 0;
 	bool start_recording = false;
 
@@ -212,23 +210,19 @@ void Simulation::set_up_lattice_for_restart(){
 
 	// find the last step dumped in lattice file
 	for ( std::string& s: contents) {
-
 		if ( std::regex_search (s, start) ) {
 			std::regex_search (s, mat, numbers);
 			final_step = std::stoi (mat[0].str());
 		}
-
 	}
 
 	this->step_number = final_step;
 
-	std::cout << "Final step is " << this->step_number << std::endl;
 	for ( std::string& s: contents) {
-
+		std::cout << "line = " << s << std::endl;
 		if ( std::regex_search (s, start) ) {
 			std::regex_search ( s, mat, numbers ); 
 			if ( final_step == std::stoi(mat[0].str()) ) {
-				std::cout << "Begin recording. Line: \"" << s << "\"." << std::endl;
 				start_recording = true;
 			}
 		}
@@ -248,31 +242,35 @@ void Simulation::set_up_lattice_for_restart(){
 				}
 				search_start = matches.suffix().first;
 			}
-			// std::cout << "Making the particle." << std::endl;
-			// std::cout << "idx = " << parts[2] << ", ptype = " << parts[1] << ", orientation = " << parts[0] << "." << std::endl;
+			parts[1] = trim(parts[1]);
 			p_ptr = new Particle (location(std::stoi(parts[2]), this->x, this->y, this->z), parts[1], std::stoi(parts[0])); 
-			// std::cout << "Made the particle." << std::endl;
 
-			Lattice.insert ( Lattice.begin() + std::stoi(parts[2]), p_ptr); 
+			Lattice.insert (Lattice.begin() + std::stoi(parts[2]), p_ptr);
 			if (parts[1] == "s1"){
 				Solvent.push_back(p_ptr);
 			}
 			else if (parts[1] == "s2"){
 				Cosolvent.push_back(p_ptr);
 			}
+			else {
+				;
+				// std::cout << "Ptype is " << parts[1] << "." << std::endl;
+			}
 		}
 	}
 
-	std::cout << "start_recording = " << start_recording << std::endl;
 	if (!start_recording) {
 		std::cout <<"Something is wrong with the restart!" << std::endl;
+		std::cerr << "Exiting..." << std::endl;
+		exit(EXIT_FAILURE);
 	}
 
-	std::cout << "Created lattice from file!" << std::endl;
-	this->Lattice = Lattice;
-	this->Solvent = Solvent;
-	this->Cosolvent = Cosolvent;
-
+	else {
+		std::cout << "Created lattice from file!" << std::endl;
+		this->Lattice   = Lattice;
+		this->Solvent   = Solvent;
+		this->Cosolvent = Cosolvent;
+	}
 	return;
 }
 
@@ -284,7 +282,7 @@ void Simulation::set_up_polymers_for_restart(){
 
 	std::vector <std::string> contents = this->extract_content_from_file(this->dfile);
 
-	int final_step_num = this->step_number;
+	int  final_step_num = this->step_number;
 	bool step_bool {false}, start_bool {false}, end_bool {false}; 
 
 	std::regex start ("START"), end ("END"), step ("step " + std::to_string(final_step_num) );
@@ -303,17 +301,12 @@ void Simulation::set_up_polymers_for_restart(){
 
 			std::regex_search ( s, match, numbers ); 
 			std::regex_token_iterator<std::string::iterator> rend; 
-			std::regex_token_iterator<std::string::iterator> a ( s.begin(), s.end(), numbers );
-
-			// std::cout << "*a is " << std::stoi(*a) << std::endl;
+			std::regex_token_iterator<std::string::iterator> a (s.begin(), s.end(), numbers);
 
 			if ( std::stoi(*a) > final_step_num ){
-				// std::cout << "*a is " << std::stoi(*a) << std::endl;
-				// std::cout << "final_step_num = " << final_step_num << std::endl;				
 				std::cerr << "\n\nYou coordinates file and restart file are not in sync. \nIt is probably because the restart file you chose is not for that simulation.\nPlease check them out. Exiting..." << std::endl;
 				exit (EXIT_FAILURE);
 			}
-
 		}
 
 		if ( std::regex_search (s, step) ) {
@@ -335,7 +328,11 @@ void Simulation::set_up_polymers_for_restart(){
 				end_bool   = false; 
 				step_bool  = false; 
 
+				// std::cout << "Final line = " << s << std::endl;
 				Polymer pmer = Polymer (locations, spins);
+				for (int i=0; i<pmer.deg_poly; ++i){
+					pmer.chain[i] = this->Lattice[lattice_index(pmer.chain[i]->coords, this->y, this->z)];
+				}
 				polymer_container.push_back(pmer);
 				
 				locations.clear();
@@ -374,13 +371,11 @@ void Simulation::set_up_polymers_for_restart(){
 					}
 				}  
 				
-				// std::cout << "Location is "; print (loc);
-				
 				if (!this->check_validity_of_coords(loc)){
 					std::cerr << "Coordinates are out of bounds. Bad input file." << std::endl;
 					exit(EXIT_FAILURE); 
 				}
-			
+				std::cout << "location = "; print(loc);
 				locations.push_back(loc); 
 				
 			}
@@ -463,3 +458,4 @@ void Simulation::set_up_from_scratch(){
 	return;
 }
 
+//////////////////////////////////////////////

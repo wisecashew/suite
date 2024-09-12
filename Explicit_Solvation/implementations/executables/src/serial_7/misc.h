@@ -26,6 +26,7 @@
 #include <getopt.h> 
 #include <stdlib.h> 
 
+constexpr int CONTACT_SIZE = 10;
 
 // this is a bunch of miscellaneous functions I use 
 // check if the new location added to random walk has been visited before 
@@ -98,17 +99,18 @@ std::vector <int>      add_vectors (std::vector <int>* v1, std::vector <int>* v2
 std::array  <int,3>    add_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
 std::array  <double,3> add_arrays  (std::array <int,3>* a1, std::array <double,3>* a2);
 std::array  <double,3> add_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
-std::array  <double,8> add_arrays  (std::array <double,8>* a1, std::array <double,8>* a2);
-std::array  <double,8> add_arrays  (std::array<double,8> a1, std::array <double,8> a2); 
+std::array  <int,CONTACT_SIZE>    add_arrays  (std::array <int,CONTACT_SIZE>*     a1, std::array <int,CONTACT_SIZE>*     a2);
+std::array  <double,CONTACT_SIZE> add_arrays  (std::array <double,CONTACT_SIZE>*  a1, std::array <double,CONTACT_SIZE>*  a2);
+std::array  <double,CONTACT_SIZE> add_arrays  (std::array <double,CONTACT_SIZE>   a1, std::array <double,CONTACT_SIZE>   a2);
 
 
 // subtracting the two 
-std::vector <int>      subtract_vectors (std::vector <int>* v1, std::vector <int>* v2); 
-std::array  <int,3>    subtract_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
-std::array  <int,8>    subtract_arrays  (std::array <int,8>* a1, std::array <int,8>* a2);
+std::vector <int>      subtract_vectors (std::vector <int>* v1,     std::vector <int>* v2); 
+std::array  <int,3>    subtract_arrays  (std::array <int,3>* a1,    std::array <int,3>* a2);
 std::array  <double,3> subtract_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
-std::array  <double,8> subtract_arrays  (std::array <double,8>* a1, std::array <double,8>* a2);
-std::array  <double,8> subtract_arrays  (std::array<double,8> a1, std::array <double,8> a2); 
+std::array  <int,CONTACT_SIZE>    subtract_arrays (std::array <int,CONTACT_SIZE>*    a1, std::array <int,CONTACT_SIZE>*    a2);
+std::array  <double,CONTACT_SIZE> subtract_arrays (std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2);
+std::array  <double,CONTACT_SIZE> subtract_arrays (std::array <double,CONTACT_SIZE>  a1, std::array <double,CONTACT_SIZE>  a2); 
 
 // scaling arrays 
 std::array <double,3>  scale_arrays ( double scalar, std::array <double,3>* array );
@@ -128,6 +130,7 @@ void input_parser (int dfreq,
 	int lfreq, 
 	int max_iter, 
 	bool r, 
+	bool potts_bool, 
 	std::string positions, 
 	std::string topology, 
 	std::string dfile, 
@@ -146,8 +149,6 @@ void filter_orientations(const std::string& filename, int cutoffStep);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // print methods  
 // print out a vector 
-
-
 void print (std::vector <int> v, std::string c="\n"); 
 void print (std::vector <double> v, std::string c="\n");
 
@@ -185,9 +186,9 @@ void reset(T &x){
     x = T();
 }
 
-void resetting_containers(std::array<double,8>* cs1_i, std::array<double,8>*cs1_f,
-std::array<double,8>* cs2_i, std::array<double,8>*cs2_f,
-std::array<double,8>* cpair_i, std::array<double,8>* cpair_f,
+void resetting_containers(std::array<double,CONTACT_SIZE>* cs1_i, std::array<double,CONTACT_SIZE>*cs1_f,
+std::array<double,CONTACT_SIZE>* cs2_i, std::array<double,CONTACT_SIZE>*cs2_f,
+std::array<double,CONTACT_SIZE>* cpair_i, std::array<double,CONTACT_SIZE>* cpair_f,
 double* Es1_i, double* Es1_f, double* Es2_i, double* Es2_f,
 double* Epair_i, double* Epair_f);
 

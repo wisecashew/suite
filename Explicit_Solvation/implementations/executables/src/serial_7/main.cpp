@@ -12,6 +12,8 @@ int main (int argc, char** argv) {
 	bool solvation_align_bool     = false; // boolean for biased solvation shell 
 	bool align_lattice_bool       = false; // boolean for aligned lattice 
 	bool cosolvent_solvation_bool = false; // boolean for solvation 
+	bool isotropic_bool           = false; // boolean for isotropic simulation
+	bool potts_bool               = false; // boolean for a potts simulation
 	std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 	std::string topology           {"__blank__"}; // name of file with topology of system 
 	std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -42,13 +44,14 @@ int main (int argc, char** argv) {
 		{"align-solvation",        no_argument, 0, 'S'},
 		{"align-lattice",          no_argument, 0, 'A'},
 		{"solvate-with-cosolvent", no_argument, 0, 'y'},
-		{"low-temperature",        no_argument, 0, 'T'},
+		{"isotropic",              no_argument, 0, 'I'},
+		{"potts",                  no_argument, 0, 'P'},
 		{0, 0, 0, 0}  // End of options
 	};
 
 	// loop to obtain inputs and assign them to the appropriate variables 
 	int option_index = 0;
-	while ( (opt = getopt_long(argc, argv, ":l:s:L:R:f:H:M:o:u:p:t:e:vhSAyrT", long_options, &option_index)) != -1 ) {
+	while ( (opt = getopt_long(argc, argv, ":l:s:L:R:f:H:M:o:u:p:t:e:vhSAyrTIP", long_options, &option_index)) != -1 ) {
 		switch (opt) {
 		
 		case 'f':
@@ -78,7 +81,8 @@ int main (int argc, char** argv) {
 			"solvation bias flag                      [-y, --solvate-with-cosolvent]    (NO ARG)       (NOT REQUIRED)        Solvated cosolvent right around polymer. \n"<<
 			"solvation shell orientation bias flag    [-S, --align-solvation]           (NO ARG)       (NOT REQUIRED)        All particles around polymer have orientation 0. \n"<<
 			"lattice orientation bias flag            [-A, --align-lattice]             (NO ARG)       (NOT REQUIRED)        All particles in lattice have orientation 0. \n"<<
-			// "Low temperature simulation               [-T, --low-temperature]           (NO ARG)       (NOT REQUIRED)        Simulation will have moves geared for low temperature simulations. \n" <<
+			"isotropic polymer simulation flag        [-I, --isotropic]                 (NO ARG)       (NOT REQUIRED)        Simulation will have no orientation and solvent moves. \n"<<
+			"Run a Potts simulation                   [-P, --potts]                     (NO ARG)       (NOT REQUIRED)        A Potts model simulation will be run. \n" <<
 			"Dump frequency                           [-f, --frequency-of-sim-dump]     (INTEGER ARG)  (REQUIRED)            Frequency at which coordinates should be dumped out. \n"<<
 			"Number of maximum moves                  [-M, --total-moves]               (INTEGER ARG)  (REQUIRED)            Number of MC moves to be run on the system. \n" <<
 			"Dump frequency of entire lattice         [-l, --frequency-of-lattice-dump] (INTEGER ARG)  (NOT REQUIRED)        Frequency at which lattice should be dumped out. \n"<<
@@ -97,6 +101,10 @@ int main (int argc, char** argv) {
 
 		case 'p':
 			positions = optarg; // check
+			break;
+
+		case 'I':
+			isotropic_bool = true; // check
 			break;
 
 		case 'S':
@@ -165,6 +173,10 @@ int main (int argc, char** argv) {
 			SSfile=optarg; // check
 			break;
 
+		case 'P':
+			potts_bool = true;
+			break;
+
 		default:
 			std::cout << "A bad option has been provided. Exiting..." << std::endl;
 			exit(EXIT_FAILURE);
@@ -177,7 +189,7 @@ int main (int argc, char** argv) {
 
 	// Parse inputs... 
 	// This command will take all of the above inputs and make sure they are valid. 
-	input_parser(dfreq, lfreq, max_iter, restart_bool, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read, lattice_file_write, SSfile); 
+	input_parser(dfreq, lfreq, max_iter, restart_bool, potts_bool, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read, lattice_file_write, SSfile); 
 
 	// this is the ultimate simulation object
 	// constructing the Simulation object
@@ -189,6 +201,8 @@ int main (int argc, char** argv) {
 	verbosity_bool,            // boolean to check for verbose output
 	align_lattice_bool,        // boolean to check if you want the entire lattice to be aligned
 	solvation_align_bool,      // boolean to check if you only want the solvation shell to be aligned
+	isotropic_bool,            // boolean to check if simulation is isotropic
+	potts_bool,                // boolean to run a potts simulation
 	positions,                 // file holding all positions
 	topology,                  // file holding energetic parameters and simulation cell conditions
 	dfile,                     // file holding polymer coordinates 
@@ -201,35 +215,29 @@ int main (int argc, char** argv) {
 	// end of object instantiation
 
 	// right now, i have only instantiated certain files and certain pathways. 
-	mySim.extract_topology_from_file();       // I have the geometry and energies.
-	mySim.set_up_system();                    // now that i have all the info, i can set up the simulation lattice
-	mySim.set_up_local_dump();                // sets up the dump function
-	mySim.set_up_energy_calculator();         // sets up the energy function
-	mySim.set_up_run();                       // sets up the run function
-	mySim.initialize_pairwise_function_map(); // initialize the pairwise function
-	mySim.initialize_neighbor_function_map(); // initialize the neighbor function
-	mySim.accelerate_calculate_energy();      // get the energy of the system
-	mySim.dump_local();                       // dump out the conditions at step number 0
-	mySim.debug_checks_energy_contacts(mySim.sysEnergy, mySim.contacts);
-	mySim.check_structures();
-
-	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-	// OPENING TILES
+	if (mySim.potts){
+		// set up the potts simulation
+		mySim.set_up_Potts();
+	}
+	else {
+		// set up the fhp simulation
+		mySim.set_up_FHP();
+	}
+	
+	// print out the opening tiles
 	mySim.opening_tiles();
-
-	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 	// run the simulation!
 	mySim.run();
 
 	// final dumps of lattice and move statistics
-	mySim.dump_lattice();
-	mySim.dump_statistics(); 
-
+	mySim.dump_lattice_end();
+	mySim.dump_statistics();
+	
 	auto stop     = std::chrono::high_resolution_clock::now(); 
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds> (stop-start); 
 
-	std::cout << "Time required for computation is " << duration.count() << " microseconds." << std::endl;
+	std::cout << "Time required for computation is " << duration.count()/1e+6 << " seconds." << std::endl;
 	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 
 	return 0;

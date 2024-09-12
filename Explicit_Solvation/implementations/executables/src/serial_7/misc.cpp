@@ -29,7 +29,6 @@ std::vector<std::string> split (const std::string &s, char delim) {
 }
 
 
-
 //==============================================================================================
 // impose periodic boundary conditions on vector 
 //==============================================================================================
@@ -73,7 +72,6 @@ void impose_pbc(std::array <int,3>* arr, int x_len, int y_len, int z_len) {
 	return; 
 }
 
-
 void impose_pbc(std::array <double,3>* arr, int x_len, int y_len, int z_len) {
 	for (int i{0}; i<3; ++i){
 		switch (i) {
@@ -92,7 +90,6 @@ void impose_pbc(std::array <double,3>* arr, int x_len, int y_len, int z_len) {
 
 	return;
 }
-
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -182,7 +179,6 @@ double rng_uniform(double start, double end){
 
 }
 
-
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
@@ -213,9 +209,6 @@ std::array <int,3> location ( int lattice_index, int x, int y, int z){
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
-
-
-
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
@@ -379,38 +372,36 @@ std::array <double,3> add_arrays(std::array <int,3>* a1, std::array <double,3>* 
 
 }
 
-std::array <double,8> add_arrays(std::array <double,8>* a1, std::array <double,8>* a2){
-	std::array<double, 8> a3; 
+std::array <double,CONTACT_SIZE> add_arrays(std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2){
 
-	for (int i{0}; i<8; ++i){
+	std::array<double, CONTACT_SIZE> a3; 
+	for (int i{0}; i<CONTACT_SIZE; ++i){
 		a3[i] = (*a1)[i] + (*a2)[i]; 
 	}
-
 	return a3;
 
 }
 
-std::array <double,8> add_arrays (std::array<double,8> a1, std::array <double,8> a2) {
+std::array <int,CONTACT_SIZE> add_arrays(std::array <int,CONTACT_SIZE>* a1, std::array <int,CONTACT_SIZE>* a2){
+
+	std::array<int,CONTACT_SIZE> a3; 
+	for (int i{0}; i<CONTACT_SIZE; ++i){
+		a3[i] = (*a1)[i] + (*a2)[i]; 
+	}
+	return a3;
+
+}
+
+std::array <double,CONTACT_SIZE> add_arrays (std::array<double,CONTACT_SIZE> a1, std::array <double,CONTACT_SIZE> a2) {
 	
-	std::array<double, 8> a3; 
-	for (int i{0}; i<8; ++i){
+	std::array<double, CONTACT_SIZE> a3; 
+	for (int i{0}; i<CONTACT_SIZE; ++i){
 		a3[i] = (a1)[i] + (a2)[i]; 
 	}
-
 	return a3;
 
 }
 
-std::array <double,8> subtract_arrays (std::array<double,8> a1, std::array <double,8> a2) {
-	
-	std::array<double, 8> a3; 
-	for (int i{0}; i<8; ++i){
-		a3[i] = (a1)[i] - (a2)[i]; 
-	}
-
-	return a3;
-
-}
 
 std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2){
 	size_t s = (*v1).size(); 
@@ -433,35 +424,47 @@ std::array <int,3> subtract_arrays(std::array <int,3>* a1, std::array <int,3>* a
 
 }
 
-std::array <int,8> subtract_arrays(std::array <int,8>* a1, std::array <int,8>* a2){
-	std::array<int, 8> a3; 
-
-	for (int i{0}; i<8; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,8> subtract_arrays(std::array <double,8>* a1, std::array <double,8>* a2){
-	std::array<double, 8> a3; 
-
-	for (int i{0}; i<8; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-
-	return a3;
-
-}
 
 std::array <double,3> subtract_arrays(std::array <double,3>* a1, std::array <double,3>* a2){
-	std::array<double, 3> a3; 
+	std::array<double, 3> a3;
 
 	for (int i{0}; i<3; ++i){
 		a3[i] = (*a1)[i] - (*a2)[i]; 
 	}
 
+	return a3;
+
+}
+
+
+std::array <int,CONTACT_SIZE> subtract_arrays(std::array <int,CONTACT_SIZE>* a1, std::array <int,CONTACT_SIZE>* a2){
+	std::array<int, CONTACT_SIZE> a3; 
+
+	for (int i{0}; i<CONTACT_SIZE; ++i){
+		a3[i] = (*a1)[i] - (*a2)[i]; 
+	}
+
+	return a3;
+
+}
+
+std::array <double,CONTACT_SIZE> subtract_arrays (std::array<double,CONTACT_SIZE> a1, std::array <double,CONTACT_SIZE> a2) {
+	
+	std::array<double, CONTACT_SIZE> a3; 
+	for (int i{0}; i<CONTACT_SIZE; ++i){
+		a3[i] = (a1)[i] - (a2)[i]; 
+	}
+
+	return a3;
+
+}
+
+std::array <double,CONTACT_SIZE> subtract_arrays(std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2){
+
+	std::array<double, CONTACT_SIZE> a3; 
+	for (int i{0}; i<CONTACT_SIZE; ++i){
+		a3[i] = (*a1)[i] - (*a2)[i]; 
+	}
 	return a3;
 
 }
@@ -826,86 +829,142 @@ int heads_or_tails(int m_index, int deg_poly){
 
 
 
-void input_parser(int dfreq, int lfreq, int max_iter, bool r, \
+void input_parser(int dfreq, int lfreq, int max_iter, bool r, bool potts_bool, \
 	std::string positions, std::string topology, std::string dfile, \
 	std::string efile, std::string mfile, std::string stats_file, \
 	std::string lattice_file_read, std::string lattice_file_write, std::string ssfile){
 
-	
-	if (!r) {
 
-		if (dfreq == -1 || lfreq == -1 || max_iter == -1) {
-			std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ") and/or for option l (ell) (" << lfreq << ") and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
-			exit (EXIT_FAILURE);
-		}
-	
-		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
-			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_write == "__blank__" ){
-			std::cerr << "polymer coords file is " << positions <<
-			",\ntopology is " << topology <<
-			",\npolymer coordinate dump file is " << dfile << 
-			",\nenergy dump file is " << efile << 
-			",\norientation file is " << mfile << 
-			",\nmove statistics file is " << stats_file << 
-			",\nlattice dump file is " << lattice_file_write << 
-			",\nsolvation dump file is " << ssfile << "." << std::endl;
+	if (potts_bool){
+		if (!r) {
 
-			std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
-			"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
-			"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
-			exit (EXIT_FAILURE);    
-		}
-		
-		// set up these files 
-		std::ofstream polymer_dump_file (dfile);
-		std::ofstream energy_dump_file (efile);
-		std::ofstream orientation_dump_file (mfile); 
-		std::ofstream statistics_dump_file (stats_file); 
+			if (dfreq == -1 || max_iter == -1) {
+				std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ")" << " and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
+				exit (EXIT_FAILURE);
+			}
 
-		polymer_dump_file.close();
-		energy_dump_file.close();
-		orientation_dump_file.close();
-		statistics_dump_file.close();
+			if ( topology == "__blank__" || efile == "__blank__" || \
+				stats_file == "__blank__" || lattice_file_write == "__blank__" ){
+				std::cerr << "Topology is in " << topology <<
+				",\nenergy dump file is " << efile << 
+				",\nmove statistics file is " << stats_file << 
+				",\nlattice dump file is " << lattice_file_write << std::endl;
+				std::cerr << "ERROR: No value for " <<
+				"for option t (energy and geometry file) and/or\n" <<
+				"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
+				exit (EXIT_FAILURE);    
+			}
+			
+			// set up these files 
+			std::ofstream lattice_dump_file (lattice_file_write);
+			std::ofstream energy_dump_file (efile);
+			std::ofstream statistics_dump_file (stats_file); 
 
-		if ( lattice_file_read != "__blank__" ){
-			std::cerr << "Restart has not been requested. Do not provide a lattice file to read. Exiting..." << std::endl;
-			exit (EXIT_FAILURE);
-		} 
+			lattice_dump_file.close();
+			energy_dump_file.close();
+			statistics_dump_file.close();
 
-		if ( ssfile != "__blank__"){
-			std::ofstream solvation_dump_file(ssfile);
-			solvation_dump_file.close();
+			if ( lattice_file_read != "__blank__" ){
+				std::cerr << "Restart has not been requested. Do not provide a lattice file to read. Exiting..." << std::endl;
+				exit (EXIT_FAILURE);
+			}
 		}
 
+		else {
+			if ( dfreq == -1 || max_iter == -1 ){
+				std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ")" << " and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
+				exit (EXIT_FAILURE);
+			}
+			if ( topology == "__blank__" || efile == "__blank__" || \
+				stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
+				std::cerr << "Topology is " << topology <<
+				",\nenergy dump file is " << efile << 
+				",\nmove statistics file is " << stats_file << 
+				",\nlattice file to read is " << lattice_file_read << std::endl;
+				std::cerr << "ERROR: No value for " <<
+				"for option t (energy and geometry file) and/or\n" <<
+				"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
+				exit(EXIT_FAILURE);
+			}
+		}
 	}
 
 	else {
+		if (!r) {
 
-		if ( dfreq == -1 || lfreq == -1 || max_iter == -1 ){
-			std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option l (ell) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-	        exit (EXIT_FAILURE);	
+			if (dfreq == -1 || lfreq == -1 || max_iter == -1) {
+				std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ") and/or for option l (ell) (" << lfreq << ") and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
+				exit (EXIT_FAILURE);
+			}
+		
+			if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
+				mfile == "__blank__" || stats_file == "__blank__" || lattice_file_write == "__blank__" ){
+				std::cerr << "polymer coords file is " << positions <<
+				",\ntopology is " << topology <<
+				",\npolymer coordinate dump file is " << dfile << 
+				",\nenergy dump file is " << efile << 
+				",\norientation file is " << mfile << 
+				",\nmove statistics file is " << stats_file << 
+				",\nlattice dump file is " << lattice_file_write << 
+				",\nsolvation dump file is " << ssfile << "." << std::endl;
+
+				std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
+				"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
+				"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
+				exit (EXIT_FAILURE);    
+			}
+			
+			// set up these files 
+			std::ofstream polymer_dump_file (dfile);
+			std::ofstream energy_dump_file (efile);
+			std::ofstream orientation_dump_file (mfile); 
+			std::ofstream statistics_dump_file (stats_file); 
+
+			polymer_dump_file.close();
+			energy_dump_file.close();
+			orientation_dump_file.close();
+			statistics_dump_file.close();
+
+			if ( lattice_file_read != "__blank__" ){
+				std::cerr << "Restart has not been requested. Do not provide a lattice file to read. Exiting..." << std::endl;
+				exit (EXIT_FAILURE);
+			} 
+
+			if ( ssfile != "__blank__"){
+				std::ofstream solvation_dump_file(ssfile);
+				solvation_dump_file.close();
+			}
+
 		}
 
-		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
-			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
-			std::cerr << "polymer coords file is " << positions <<
-			",\ntopology is " << topology <<
-			",\npolymer coordinate dump file is " << dfile << 
-			",\nenergy dump file is " << efile << 
-			",\norientation file is " << mfile << 
-			",\nmove statistics file is " << stats_file << 
-			",\nlattice file to read is " << lattice_file_read << 
-			",\nsolvation dump file is " << ssfile << "." << std::endl;
-			std::cerr << 
-			"ERROR: No value for option p (polymer coordinate file) and/or\n" << 
-			"for option t (energy and geometry file) and/or\n" << 
-			"for option o (name of output dump file) and/or\n" << 
-			"for option e (name of orientation file) and/or\n" <<
-			"for option s (name of move stats file) and/or\n" << 
-			"for option u (name of energy dump file) was provided. Exiting..." << std::endl;
-			exit(EXIT_FAILURE);
+		else {
+
+			if ( dfreq == -1 || lfreq == -1 || max_iter == -1 ){
+				std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option l (ell) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+				exit (EXIT_FAILURE);	
+			}
+			if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
+				mfile == "__blank__" || stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
+				std::cerr << "polymer coords file is " << positions <<
+				",\ntopology is " << topology <<
+				",\npolymer coordinate dump file is " << dfile << 
+				",\nenergy dump file is " << efile << 
+				",\norientation file is " << mfile << 
+				",\nmove statistics file is " << stats_file << 
+				",\nlattice file to read is " << lattice_file_read << 
+				",\nsolvation dump file is " << ssfile << "." << std::endl;
+				std::cerr << 
+				"ERROR: No value for option p (polymer coordinate file) and/or\n" << 
+				"for option t (energy and geometry file) and/or\n" << 
+				"for option o (name of output dump file) and/or\n" << 
+				"for option e (name of orientation file) and/or\n" <<
+				"for option s (name of move stats file) and/or\n" << 
+				"for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+				exit(EXIT_FAILURE);
+			}
 		}
 	}
+
 	return;
 }
 

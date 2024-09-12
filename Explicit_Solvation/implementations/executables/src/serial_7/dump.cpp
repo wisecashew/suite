@@ -10,13 +10,35 @@ void Simulation::dump_energy(){
 
 	std::ofstream dump_file(this->efile, std::ios::app); 
 
-	dump_file << sysEnergy << " | " \
+	dump_file << this->sysEnergy << " | " \
 			<< (this->contacts)[0]+(this->contacts)[1] << " | " << (this->contacts)[0] << " | " << (this->contacts)[1] << " | " \
 			<< (this->contacts)[2]+(this->contacts)[3] << " | " << (this->contacts)[2] << " | " << (this->contacts)[3] << " | " \
 			<< (this->contacts)[4]+(this->contacts)[5] << " | " << (this->contacts)[4] << " | " << (this->contacts)[5] << " | " \
 			<< (this->contacts)[6]+(this->contacts)[7] << " | " << (this->contacts)[6] << " | " << (this->contacts)[7] << " | " << this->step_number << "\n";
 
 	return; 
+}
+
+void Simulation::dump_potts(){
+
+	if ((this->step_number % this->dfreq) == 0){
+		std::ofstream dump_file(this->efile, std::ios::app);
+
+		dump_file << this->sysEnergy << " | " \
+				<< (this->contacts)[8]+(this->contacts)[9] << " | " << (this->contacts)[8] << " | " << (this->contacts)[9] << " | " << this->step_number << "\n";
+	}
+
+	if ((this->step_number % this->lfreq) == 0){
+		std::ofstream dump_file (this->lattice_file_write, std::ios::app); 
+		dump_file << "STEP: " << this->step_number << ".\n"; 
+		for ( Particle*& p: this->Lattice ){
+			dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
+		}
+		dump_file << "END. \n";
+	}
+
+	return; 
+
 }
 
 void Simulation::dump_polymers(){
@@ -71,50 +93,86 @@ void Simulation::dump_solvation_shell_orientations(){
 void Simulation::dump_solvation_shell(){
 
 	std::ofstream dump_file(this->SSfile, std::ios::app);
+	double energy{0};
+
+	// define set for solvent and cosolvent indices
+	std::set  <int>      solvent_indices;
+	std::set  <int>      cosolvent_indices;
+
+	// define some stores
+	std::array<double,2> stats    = {0,0};
+	std::array<double,CONTACT_SIZE> contacts = {0,0,0,0,0,0,0,0,0,0};
+
+	// define a store neighboring particles
 	std::array<std::array<int,3>,26> ne_list;
-	std::array<double,8> contacts = {0,0,0,0,0,0,0,0};
-	std::array<int,3> stats = {0, 0, 0}; // {aligned, misaligned, total number of particles}
-	std::set  <int> solvation_shell_set; 
 
 	// get the first solvation shell 
-	// auto start = std::chrono::high_resolution_clock::now(); 
 	for ( Polymer& pmer: this->Polymers){
 		for (Particle*& p: pmer.chain){
 		ne_list = obtain_ne_list (p->coords, this->x, this->y, this->z); 
 			for ( std::array <int,3>& loc: ne_list ){
-				if ( this->Lattice[lattice_index (loc, y, z)]->ptype[0] == 's' ){
-					solvation_shell_set.insert (lattice_index (loc, y, z)); 
+				if ( this->Lattice[lattice_index (loc, y, z)]->ptype == "s1" ){
+					solvent_indices.insert (lattice_index (loc, y, z));
+				}
+				else if ( this->Lattice[lattice_index(loc, this->y, this->z)]->ptype == "s2" ){
+					cosolvent_indices.insert (lattice_index (loc, y, z));
 				}
 			}
 		}
 	}
 
-	stats[2] = solvation_shell_set.size(); 
-	double energy{0}; 
+	// get the total solvent and cosolvent particles
+	int total_solvent_particles   {static_cast<int>(  solvent_indices.size())};
+	int total_cosolvent_particles {static_cast<int>(cosolvent_indices.size())};
+	std::pair <std::string, std::string> particle_pair = std::make_pair ("s1", "s2");
 
-	for (const int loc: solvation_shell_set){
-		ne_list = obtain_ne_list(location(loc, this->x, this->y, this->z), this->x, this->y, this->z);
-		for (std::array <int,3>& ne: ne_list){
-			if (this->Lattice[lattice_index(ne, this->y, this->z)]->ptype[0] != 'm' && this->Lattice[lattice_index(ne, this->y, this->z)]->ptype != this->Lattice[loc]->ptype){
-				auto func = this->PairwiseFunctionMap.find({"s1", "s2"});
-				func->second(this, Lattice[loc], Lattice[lattice_index(ne, this->y, this->z)], &contacts, &energy);
-				auto it   = solvation_shell_set.find(lattice_index(ne, this->y, this->z));
-				if (it != solvation_shell_set.end()){
-					stats[0] += contacts[6]; // outside solvation shell
-					stats[1] += contacts[7]; // outside solvation shell
+	auto func = this->PairwiseFunctionMap.find(particle_pair);
+
+	for (int s_idx: solvent_indices) {
+		// get the neighbors
+		ne_list = obtain_ne_list ((this->Lattice)[s_idx]->coords, this->x, this->y, this->z);
+		for (std::array<int,3>& ne: ne_list){
+			if ((this->Lattice)[lattice_index(ne, this->y, this->z)]->ptype == "s2"){
+				func->second(this, Lattice[s_idx], Lattice[lattice_index(ne, this->y, this->z)], &contacts, &energy);
+				auto it = solvent_indices.find(lattice_index(ne, this->y, this->z));
+				if (it == solvent_indices.end()){
+					stats[0]   += contacts[6]; // outside solvation shell, aligned
+					stats[1]   += contacts[7]; // outside solvation shell, misaligned
 					contacts[6] = 0;
 					contacts[7] = 0;
 				}
-				else {
-					stats[0] += 0.5 * contacts[6]; // inside solvation shell
-					stats[1] += 0.5 * contacts[7]; // inside solvation shell
+				else{
+					stats[0]   += 0.5 * contacts[6]; // inside solvation shell, aligned
+					stats[1]   += 0.5 * contacts[7]; // inside solvation shell, misaligned
 					contacts[6] = 0;
 					contacts[7] = 0;
 				}
 			}
 		}
 	}
-	dump_file << stats[0] << " | " << stats[1] << " | " << stats[2] << " | " << this->step_number << "\n";
+
+	for (int c_idx: cosolvent_indices){
+		// get the neighbors
+		ne_list = obtain_ne_list(this->Lattice[c_idx]->coords, this->x, this->y, this->z);
+		for (std::array<int,3>& ne: ne_list){
+			auto it = solvent_indices.find(lattice_index(ne, y, z)); // check if the neighbor is within the solvation shell
+			// check if the particle 
+			if(this->Lattice[lattice_index(ne, this->y, this->z)]->ptype == "s1" && it == solvent_indices.end()){
+				stats[0]   += contacts[6];
+				stats[1]   += contacts[7];
+				contacts[6] = 0;
+				contacts[7] = 0;
+			}
+			else{
+				contacts[6] = 0;
+				contacts[7] = 0;
+			}
+		}
+	}
+
+	dump_file << total_solvent_particles + total_cosolvent_particles << " | " << total_solvent_particles \
+	<< " | " << total_cosolvent_particles << " | " << stats[0] << " | " << stats[1] << " | " << this->step_number << "\n";
+
 	return; 
 
 }
@@ -126,13 +184,12 @@ void Simulation::dump_statistics(){
 
 	dump_file << "End rotations without bias         - attempts: " << (this->attempts)[0] <<", acceptances: " << (this->acceptances)[0] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[0])/static_cast<double>((this->attempts)[0]) << std::endl; 
 	dump_file << "Reptation without bias             - attempts: " << (this->attempts)[1] <<", acceptances: " << (this->acceptances)[1] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[1])/static_cast<double>((this->attempts)[1]) << std::endl; 
-	dump_file << "Chain regrowth with overlap bias   - attempts: " << (this->attempts)[2] <<", acceptances: " << (this->acceptances)[2] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[2])/static_cast<double>((this->attempts)[2]) << std::endl; 
-	dump_file << "Chain regrowth with ori flip       - attempts: " << (this->attempts)[3] <<", acceptances: " << (this->acceptances)[3] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[3])/static_cast<double>((this->attempts)[3]) << std::endl; 
-	dump_file << "Solvent flips without bias         - attempts: " << (this->attempts)[4] <<", acceptances: " << (this->acceptances)[4] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[4])/static_cast<double>((this->attempts)[4]) << std::endl;
-	dump_file << "Solvation shell flip with bias     - attempts: " << (this->attempts)[5] <<", acceptances: " << (this->acceptances)[5] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[5])/static_cast<double>((this->attempts)[5]) << std::endl;
-	dump_file << "Polymer flips                      - attempts: " << (this->attempts)[6] <<", acceptances: " << (this->acceptances)[6] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[6])/static_cast<double>((this->attempts)[6]) << std::endl;
-	dump_file << "Solvent exchange with bias         - attempts: " << (this->attempts)[7] <<", acceptances: " << (this->acceptances)[7] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[7])/static_cast<double>((this->attempts)[7]) << std::endl;
-	dump_file << "Solvent exchange without bias      - attempts: " << (this->attempts)[8] <<", acceptances: " << (this->acceptances)[8] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[8])/static_cast<double>((this->attempts)[8]) << std::endl;
+	dump_file << "Polymer flips                      - attempts: " << (this->attempts)[2] <<", acceptances: " << (this->acceptances)[2] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[2])/static_cast<double>((this->attempts)[2]) << std::endl;
+	dump_file << "Solvation shell flip with bias     - attempts: " << (this->attempts)[3] <<", acceptances: " << (this->acceptances)[3] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[3])/static_cast<double>((this->attempts)[3]) << std::endl;
+	dump_file << "Lattice flip                       - attempts: " << (this->attempts)[4] <<", acceptances: " << (this->acceptances)[4] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[4])/static_cast<double>((this->attempts)[4]) << std::endl;
+	dump_file << "Regrowth                           - attempts: " << (this->attempts)[7] <<", acceptances: " << (this->acceptances)[7] << ", acceptance fraction: " << static_cast<double>((this->acceptances)[7])/static_cast<double>((this->attempts)[7]) << std::endl;
+	dump_file << "Solvation shell exchange           - attempts: " << (this->attempts)[5] <<", acceptances: " << (this->acceptances)[5] << "." << std::endl;
+	dump_file << "Solvent exchange                   - attempts: " << (this->attempts)[6] <<", acceptances: " << (this->acceptances)[6] << "." << std::endl;
 
 	return;
 }
@@ -160,7 +217,29 @@ void Simulation::dump_local_no_ss(){
 void Simulation::dump_lattice(){
 
 	if ((this->step_number % this->lfreq) == 0){
-		// std::cout << "dump lattice @ step number = " << this->step_number << ", lfreq = " << this->lfreq << std::endl;
+		std::ofstream dump_file (this->lattice_file_write, std::ios::out); 
+		dump_file << "FINAL STEP: " << this->step_number << ".\n"; 
+		for ( Particle*& p: this->Lattice ){
+			dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
+		}
+		dump_file << "END. \n";
+	}
+	return; 
+}
+
+void Simulation::dump_lattice_end(){
+
+	if (this->potts){
+		if (this->step_number % this->lfreq != 0){
+			std::ofstream dump_file (this->lattice_file_write, std::ios::app);
+			dump_file << "STEP: " << this->step_number << ".\n"; 
+			for ( Particle*& p: this->Lattice ){
+				dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
+			}
+			dump_file << "END. \n";
+		}
+	}
+	else {
 		std::ofstream dump_file (this->lattice_file_write, std::ios::out); 
 		dump_file << "FINAL STEP: " << this->step_number << ".\n"; 
 		for ( Particle*& p: this->Lattice ){

@@ -14,7 +14,7 @@ OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror
 main: main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp energetics.cpp verify.cpp dump.cpp lattice_directions.cpp extraction.cpp run.cpp debug.cpp perturb.cpp run.cpp
 	@echo "Compiling main for simulation..."
 	@$(CC) $(FFLAGS) main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp extraction.cpp energetics.cpp verify.cpp dump.cpp debug.cpp lattice_directions.cpp perturb.cpp run.cpp -o flogotts
-	@echo "Compiled!" 
+	@echo "Compiled!"
 
 wmain: main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp energetics.cpp verify.cpp dump.cpp lattice_directions.cpp extraction.cpp run.cpp
 	@echo "Compiling main for simulation..."

@@ -229,20 +229,20 @@ bool Simulation::check_pointers_on_lattice(){
 
 void Simulation::check_structures(){
 
-	std::cout << "Checking validity of coords...";
+	// std::cout << "Checking validity of coords...";
 	// std::cout << std::boolalpha << "checkForOverlaps says: " << this->check_for_overlaps_within_polymers() << "." << std::endl; 
 	if (!this->check_for_overlaps_within_polymers()){
 		std::cout << "Something is fucked up overlaps-wise in the polymer itself." << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	std::cout << "Looks good." << std::endl;
+	// std::cout << "Looks good." << std::endl;
 
-	std::cout << "Checking if no stray monomers are on the Lattice...";
+	// std::cout << "Checking if no stray monomers are on the Lattice...";
 	if (!this->check_for_overlaps_on_lattice()){
 		std::cout << "Random monomer floating in the lattice! Breaking out..." << std::endl; 
 		exit (EXIT_FAILURE);
 	}
-	std::cout << "No random monomers floating around!" << std::endl;
+	// std::cout << "No random monomers floating around!" << std::endl;
 
 	if (!this->check_for_solvent_monomer_overlap()){
 		std::cout << "Something is fucked up solvent-monomer overlaps-wise. " << std::endl; 
@@ -252,6 +252,7 @@ void Simulation::check_structures(){
 	// std::cout << std::boolalpha << "checkConnectivity says: " << this->check_connectivity() << "." << std::endl;
 	if (!this->check_connectivity()){
 		std::cout << "Something is fucked up connectivity-wise." << std::endl; 
+		this->Polymers[0].print_chain();
 		exit(EXIT_FAILURE);
 	}
 
@@ -264,7 +265,8 @@ void Simulation::check_structures(){
 		}
 
 	}
-	std::cout << "Cosolvent placement looks good!" << std::endl;
+
+	// std::cout << "Cosolvent placement looks good!" << std::endl;
 
 	for (Particle*& p: this->Solvent){
 
@@ -274,11 +276,11 @@ void Simulation::check_structures(){
 			exit (EXIT_FAILURE);
 		}
 	}
-	std::cout << "Solvent placement looks good!" << std::endl;
 
+	// std::cout << "Solvent placement looks good!" << std::endl;
 
 	if (this->check_pointers_on_lattice()){
-		std::cout << "Okay. Lattice is in good shape." << std::endl; 
+		// std::cout << "Okay. Lattice is in good shape." << std::endl; 
 	}
 	else {
 		std::cerr <<"Something is fucked with pointers on Lattice." << std::endl; 

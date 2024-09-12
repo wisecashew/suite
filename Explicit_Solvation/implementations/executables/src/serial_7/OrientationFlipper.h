@@ -7,10 +7,10 @@ public:
 
 	// properties
 	// defining how particles were and how they were changed, and how many of them were
-	int nparticles;                         // number of particles to flip
-	std::array <double,8> zero_array;       // a zero'd out array of contacts
-	std::vector <int> initial_orientations; // these are the initial orientations of each particle
-	std::vector <int> final_orientations;   // these are the final orientations of each particle
+	int nparticles;                              // number of particles to flip
+	std::array <double,CONTACT_SIZE> zero_array; // a zero'd out array of contacts
+	std::vector <int> initial_orientations;      // these are the initial orientations of each particle
+	std::vector <int> final_orientations;        // these are the final orientations of each particle
 
 	// defining how new states will be sampled per particles
 	int ntest;                                         // number of configurations to test
@@ -23,9 +23,9 @@ public:
 	std::vector <double> energies; // this is the container holding energies of each perturbation
 
 	// containers for contacts as the orientation of each particle is perturbed
-	std::array <double,8>              initial_contacts;   // initial contacts, prior to perturbation
-	std::array <double,8>              perturbed_contacts; // local change in contacts on perturbation
-	std::vector <std::array<double,8>> contacts_store;     // this is the container holding all the net contacts when running through the trialed states
+	std::array <double,CONTACT_SIZE>              initial_contacts;   // initial contacts, prior to perturbation
+	std::array <double,CONTACT_SIZE>              perturbed_contacts; // local change in contacts on perturbation
+	std::vector <std::array<double,CONTACT_SIZE>> contacts_store;     // this is the container holding all the net contacts when running through the trialed states
 
 	// these are running sums and cumulant probabilities to keep track of
 	double rboltzmann;
@@ -35,7 +35,7 @@ public:
 
 	// create a holder for the current energy and contacts
 	double               current_energy;
-	std::array<double,8> current_contacts;
+	std::array<double,CONTACT_SIZE> current_contacts;
 
 	// rng holder for an internal decision
 	int    sampler_idx;
@@ -51,7 +51,7 @@ public:
 	// set up the object
 	void setup(int nparticles, int ntest){
 		this->nparticles = nparticles;
-		this->zero_array = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+		this->zero_array = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 		this->ntest      = ntest;
 		this->initial_orientations.resize(nparticles,0);
 		this->final_orientations.resize(nparticles,0);
@@ -64,13 +64,13 @@ public:
 		this->prob_n_to_o      = 1;
 		this->Emin             = 0;
 		this->current_energy   = 0;
-		this->current_contacts = {0,0,0,0,0,0,0,0};
+		this->current_contacts = {0,0,0,0,0,0,0,0,0,0};
 		this->sampler_idx      = 0;
 		this->sampler_rng      = 0;
 		this->sampler_rsum     = 0;
-		this->current_contacts   = {0,0,0,0,0,0,0,0};
-		this->initial_contacts   = {0,0,0,0,0,0,0,0};
-		this->perturbed_contacts = {0,0,0,0,0,0,0,0};
+		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
+		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
+		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
 		return;
 	}
 
@@ -93,10 +93,10 @@ public:
 		this->sampler_idx      = 0;
 		this->sampler_rng      = 0;
 		this->sampler_rsum     = 0;
-		this->current_contacts = {0,0,0,0,0,0,0,0};
-		this->current_contacts   = {0,0,0,0,0,0,0,0};
-		this->initial_contacts   = {0,0,0,0,0,0,0,0};
-		this->perturbed_contacts = {0,0,0,0,0,0,0,0};
+		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
+		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
+		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
+		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
 		return;
 	}
 
@@ -120,9 +120,9 @@ public:
 		this->sampler_idx        = 0;
 		this->sampler_rng        = 0;
 		this->sampler_rsum       = 0;
-		this->current_contacts   = {0,0,0,0,0,0,0,0};
-		this->initial_contacts   = {0,0,0,0,0,0,0,0};
-		this->perturbed_contacts = {0,0,0,0,0,0,0,0};
+		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
+		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
+		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
 		return;
 	};
 

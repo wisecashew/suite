@@ -12,12 +12,12 @@ public:
 	double                E2_final;
 	double                Epair_initial;
 	double                Epair_final;
-	std::array <double,8> c1_initial;
-	std::array <double,8> c1_final;
-	std::array <double,8> c2_initial;
-	std::array <double,8> c2_final;
-	std::array <double,8> cpair_initial;
-	std::array <double,8> cpair_final;
+	std::array <double,CONTACT_SIZE> c1_initial;
+	std::array <double,CONTACT_SIZE> c1_final;
+	std::array <double,CONTACT_SIZE> c2_initial;
+	std::array <double,CONTACT_SIZE> c2_final;
+	std::array <double,CONTACT_SIZE> cpair_initial;
+	std::array <double,CONTACT_SIZE> cpair_final;
 
 	// constructor
 	Container(){
@@ -27,12 +27,12 @@ public:
 		this->E2_final      = 0;
 		this->Epair_initial = 0;
 		this->Epair_final   = 0;
-		this->c1_initial    = {0,0,0,0,0,0,0,0};
-		this->c1_final      = {0,0,0,0,0,0,0,0};
-		this->c2_initial    = {0,0,0,0,0,0,0,0};
-		this->c2_final      = {0,0,0,0,0,0,0,0};
-		this->cpair_initial = {0,0,0,0,0,0,0,0};
-		this->cpair_final   = {0,0,0,0,0,0,0,0};
+		this->c1_initial    = {0,0,0,0,0,0,0,0,0,0};
+		this->c1_final      = {0,0,0,0,0,0,0,0,0,0};
+		this->c2_initial    = {0,0,0,0,0,0,0,0,0,0};
+		this->c2_final      = {0,0,0,0,0,0,0,0,0,0};
+		this->cpair_initial = {0,0,0,0,0,0,0,0,0,0};
+		this->cpair_final   = {0,0,0,0,0,0,0,0,0,0};
 	};
 
 	// destructor
@@ -45,12 +45,12 @@ public:
 		this->E2_final      = 0;
 		this->Epair_initial = 0;
 		this->Epair_final   = 0;
-		this->c1_initial    = {0,0,0,0,0,0,0,0};
-		this->c1_final      = {0,0,0,0,0,0,0,0};
-		this->c2_initial    = {0,0,0,0,0,0,0,0};
-		this->c2_final      = {0,0,0,0,0,0,0,0};
-		this->cpair_initial = {0,0,0,0,0,0,0,0};
-		this->cpair_final   = {0,0,0,0,0,0,0,0};
+		this->c1_initial    = {0,0,0,0,0,0,0,0,0,0};
+		this->c1_final      = {0,0,0,0,0,0,0,0,0,0};
+		this->c2_initial    = {0,0,0,0,0,0,0,0,0,0};
+		this->c2_final      = {0,0,0,0,0,0,0,0,0,0};
+		this->cpair_initial = {0,0,0,0,0,0,0,0,0,0};
+		this->cpair_final   = {0,0,0,0,0,0,0,0,0,0};
 		return;
 	}
 

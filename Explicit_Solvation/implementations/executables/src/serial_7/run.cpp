@@ -1,16 +1,41 @@
 #include "Simulation.h"
 
-void Simulation::run_straight(){
-	std::cout << "Running straight..." << std::endl;
+void Simulation::run_isotropic(){
+
+	std::cout << "Running (isotropic)..." << std::endl;
 	int start = this->step_number+1;
 	int stop  = this->step_number+this->max_iter+1;
 	for (int i {start}; i < stop; ++i){
-		std::cout << "@ step " << i << "." << std::endl;
+		// std::cout << "@ step " << i << "." << std::endl;
+		this->step_number += 1;
+		this->perturb_system_isotropic();
+		if (this->IMP_BOOL){
+			this->acceptances[this->move_number] += 1;
+		}
+		// start dumping out information
+		this->dump_local();
+		this->dump_lattice();
+	}
+
+	return;
+}
+
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+void Simulation::run_straight(){
+	std::cout << "Running..." << std::endl;
+	int start = this->step_number+1;
+	int stop  = this->step_number+this->max_iter+1;
+	for (int i {start}; i < stop; ++i){
+		// std::cout << "@ step " << i << "." << std::endl;
 		this->step_number += 1;
 		this->perturb_system_straight();
 		if (this->IMP_BOOL){
 			this->acceptances[this->move_number] += 1;
 		}
+		// start dumping out information
 		this->dump_local();
 		this->dump_lattice();
 	}
@@ -21,7 +46,9 @@ void Simulation::run_straight(){
 	return;
 }
 
-void Simulation::run_debug(){	
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+void Simulation::run_debug(){
 	std::cout << "Inside the debugging run!" << std::endl;
 	int start = this->step_number+1;
 	int stop  = this->step_number+this->max_iter+1;
@@ -45,5 +72,22 @@ void Simulation::run_debug(){
 		this->dump_local();
 		this->dump_lattice();
 	}
+	return;
+}
+
+void Simulation::run_potts(){
+	std::cout << "Inside the potts run!" << std::endl;
+	int start = this->step_number + 1;
+	int stop  = this->step_number+this->max_iter+1;
+	for (int i{start}; i < stop; ++i){
+		this->step_number += 1;
+		this->perturb_potts();
+		if (this->IMP_BOOL){
+			this->acceptances[this->move_number] += 1;
+		}
+		// start dumpoing out information
+		this->dump_potts();
+	}
+
 	return;
 }

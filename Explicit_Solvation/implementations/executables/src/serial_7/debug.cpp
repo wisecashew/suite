@@ -5,10 +5,10 @@
 // all methods will have the prefix `debug_`
 // all properties and variable unique to these methods will have the prefix `db_`
 
-void Simulation::debug_calculate_energy(double* db_energy, std::array<double,8>* db_contacts){
+void Simulation::debug_calculate_energy(double* db_energy, std::array<double,CONTACT_SIZE>* db_contacts){
 
 	*db_energy   = 0.0;
-	*db_contacts = {0,0,0,0,0,0,0,0}; 
+	*db_contacts = {0,0,0,0,0,0,0,0,0,0}; 
 	std::array <std::array <int,3>, 26> ne_list; 
 
 	// more debug shit
@@ -38,7 +38,7 @@ void Simulation::debug_calculate_energy(double* db_energy, std::array<double,8>*
 	return;
 }
 
-void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<double,8>* db_contacts, double* db_energy){
+void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* db_contacts, double* db_energy){
 
 	double dot_product = 0;
 	double theta_1     = 0;
@@ -134,29 +134,35 @@ void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<d
 	return;
 }
 
-void Simulation::debug_checks_energy_contacts(double E_final, std::array<double,8> final_contacts){
+void Simulation::debug_checks_energy_contacts(double E_final, std::array<double,CONTACT_SIZE> final_contacts){
 
 	double E_debug = 0;
-	std::array<double,8> debug_contacts = {0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array<double,CONTACT_SIZE> debug_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; 
 
 	// run the debugger
 	this->debug_calculate_energy(&E_debug, &debug_contacts); 
-	if (E_debug != E_final){
+	if ( std::abs(E_debug - E_final) > 1e-8){
+		std::cout << "E_debug - E_final = " << E_debug-E_final << std::endl;
+		std::cout << "Energy mismatch." << std::endl;
 		std::cout << "E_real = " << E_debug << ", E_final = " << E_final << "." << std::endl;
-		std::cout << "real_contacts = "; print(debug_contacts); 
+		std::cout << "real_contacts  = "; print(debug_contacts); 
 		std::cout << "final_contacts = "; print(final_contacts);
 		exit(EXIT_FAILURE);
 	} 
 	else {
-		std::cout << "energies match @ " << E_debug << "!" << std::endl;
+		// std::cout << "energies match @ " << E_debug << "!" << std::endl;
 	}
-	if (debug_contacts != final_contacts){
-		std::cout << "real_contacts = "; print(debug_contacts); 
-		std::cout << "final_contacts = "; print(final_contacts);
-		exit(EXIT_FAILURE);
-	}
-	else {
-		std::cout << "contacts match @ "; print(final_contacts, ""); std::cout << "!" << std::endl;
+
+	for (int i{0}; i<CONTACT_SIZE; ++i){
+		if (debug_contacts[i] != final_contacts[i]){
+			std::cout << "Contacts mismatch." << std::endl;
+			std::cout << "real_contacts  = "; print(debug_contacts); 
+			std::cout << "final_contacts = "; print(final_contacts);
+			exit(EXIT_FAILURE);
+		}
+		else {
+			// std::cout << "contacts match @ "; print(final_contacts, ""); std::cout << "!" << std::endl;
+		}
 	}
 
 	return; 
@@ -164,7 +170,7 @@ void Simulation::debug_checks_energy_contacts(double E_final, std::array<double,
 
 /////////////////////////////////////////////////////////////////
 
-void Simulation::debug_orientation_sampler_forwards(std::array<double,8>* contacts_sys, double E_sys, int iterator_idx, int lat_idx){
+void Simulation::debug_orientation_sampler_forwards(std::array<double,CONTACT_SIZE>* contacts_sys, double E_sys, int iterator_idx, int lat_idx){
 
 	this->enhanced_flipper.initial_orientations[iterator_idx] = this->Lattice[lat_idx]->orientation;
 	this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.initial_contacts), &(this->enhanced_flipper.initial_E));
@@ -176,7 +182,7 @@ void Simulation::debug_orientation_sampler_forwards(std::array<double,8>* contac
 		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
 		this->enhanced_flipper.contacts_store[j]  = subtract_arrays(contacts_sys, &(this->enhanced_flipper.initial_contacts));
 		this->enhanced_flipper.contacts_store[j]  = add_arrays     (&(this->enhanced_flipper.contacts_store[j]), &(this->enhanced_flipper.perturbed_contacts));
-		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		this->enhanced_flipper.perturbed_E        = 0;
 		std::cout << "Forward sampler (" << j << ")" << std::endl;
 		this->debug_checks_energy_contacts(this->enhanced_flipper.energies[j], this->enhanced_flipper.contacts_store[j]);
@@ -186,7 +192,7 @@ void Simulation::debug_orientation_sampler_forwards(std::array<double,8>* contac
 
 }
 
-void Simulation::debug_orientation_sampler_backwards_0(std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx){
+void Simulation::debug_orientation_sampler_backwards_0(std::array<double,CONTACT_SIZE>* contacts_sys, double E_sys, int iteration_idx, int lat_idx){
 
 	this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.initial_contacts), &(this->enhanced_flipper.initial_E));
 
@@ -198,14 +204,14 @@ void Simulation::debug_orientation_sampler_backwards_0(std::array<double,8>* con
 	std::cout << "Inside fourth set of flip test..." << std::endl;
 	this->debug_checks_energy_contacts(this->enhanced_flipper.energies[0], this->enhanced_flipper.contacts_store[0]);
 
-	this->enhanced_flipper.perturbed_contacts = {0,0,0,0,0,0,0,0};
+	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	this->enhanced_flipper.perturbed_E        = 0;
 
 	return;
 
 }
 
-void Simulation::debug_orientation_sampler_backwards(std::array<double,8>* contacts_sys, double E_sys, int iteration_idx, int lat_idx){
+void Simulation::debug_orientation_sampler_backwards(std::array<double,CONTACT_SIZE>* contacts_sys, double E_sys, int iteration_idx, int lat_idx){
 
 	this->debug_orientation_sampler_backwards_0(contacts_sys, E_sys, iteration_idx, lat_idx);
 
@@ -216,7 +222,7 @@ void Simulation::debug_orientation_sampler_backwards(std::array<double,8>* conta
 		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
 		this->enhanced_flipper.contacts_store [j]  = subtract_arrays (*contacts_sys, this->enhanced_flipper.initial_contacts);
 		this->enhanced_flipper.contacts_store [j]  = add_arrays      (this->enhanced_flipper.contacts_store[j], this->enhanced_flipper.perturbed_contacts);
-		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		this->enhanced_flipper.perturbed_E        = 0;
 		this->debug_checks_energy_contacts(this->enhanced_flipper.energies[j], this->enhanced_flipper.contacts_store[j]);
 	}
@@ -266,7 +272,7 @@ void Simulation::debug_tail_rotation(int p_idx){
 
 	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
-	std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 	// generate a neighbor list 
 	std::array<std::array<int,3>, 26> ne_list = obtain_ne_list(loc_1, this->x, this->y, this->z);
@@ -338,7 +344,7 @@ void Simulation::debug_head_rotation(int p_idx){
 
 	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
-	std::array <double,8> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 	// generate a neighbor list 
 	std::array<std::array<int,3>, 26> ne_list = obtain_ne_list(loc_1, this->x, this->y, this->z);
@@ -398,11 +404,11 @@ void Simulation::debug_head_rotation(int p_idx){
 
 void Simulation::debug_reptation_forward(int p_idx){
 
-	int                  deg_poly   = this->Polymers[p_idx].deg_poly;
-	std::array<int,3>    loc_i      = this->Polymers[p_idx].chain[0]->coords;
-	std::array<int,3>    loc_f      = this->Polymers[p_idx].chain[deg_poly-1]->coords;
-	std::array<double,8> contacts_i = this->contacts; 
-	double               E_i        = this->sysEnergy;
+	int                             deg_poly   = this->Polymers[p_idx].deg_poly;
+	std::array<int,3>               loc_i      = this->Polymers[p_idx].chain[0]->coords;
+	std::array<int,3>               loc_f      = this->Polymers[p_idx].chain[deg_poly-1]->coords;
+	std::array<double,CONTACT_SIZE> contacts_i = this->contacts; 
+	double                          E_i        = this->sysEnergy;
 
 	// get the possibilities of how the polymer can slither forward
 	std::array<std::array<int,3>, 26> ne_list = obtain_ne_list(loc_f, this->x, this->y, this->z);
@@ -461,11 +467,11 @@ void Simulation::debug_reptation_forward(int p_idx){
 
 void Simulation::debug_reptation_backward(int p_idx){
 
-	int                   deg_poly         = this->Polymers[p_idx].deg_poly;
-	std::array <int,3>    loc_i            = this->Polymers[p_idx].chain[0]->coords;
-	std::array <int,3>    loc_f            = this->Polymers[p_idx].chain[deg_poly-1]->coords;
-	std::array <double,8> contacts_i       = this->contacts;
-	double                E_i              = this->sysEnergy;
+	int                              deg_poly         = this->Polymers[p_idx].deg_poly;
+	std::array <int,3>               loc_i            = this->Polymers[p_idx].chain[0]->coords;
+	std::array <int,3>               loc_f            = this->Polymers[p_idx].chain[deg_poly-1]->coords;
+	std::array <double,CONTACT_SIZE> contacts_i       = this->contacts;
+	double                           E_i              = this->sysEnergy;
 
 	// first check if tail rotation can be performed at all 
 	std::array <std::array <int,3>, 26> ne_list = obtain_ne_list( loc_i, x, y, z );
@@ -545,13 +551,13 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 	this->enhanced_flipper.reset(nflip, ntest); 
 
 	// define some holders 
-	double               E_sys        = this->sysEnergy;
-	std::array<double,8> contacts_sys = this->contacts;
+	double                          E_sys        = this->sysEnergy;
+	std::array<double,CONTACT_SIZE> contacts_sys = this->contacts;
 
 	// some more holders
-	double               E_post        = 0;                 // the energy of the system after final perturbation
-	double               rng_acc       = 0;                 // rng for acceptance at the very end
-	std::array<double,8> contacts_post = {0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
+	double                          E_post        = 0;                 // the energy of the system after final perturbation
+	double                          rng_acc       = 0;                 // rng for acceptance at the very end
+	std::array<double,CONTACT_SIZE> contacts_post = {0,0,0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
 
 	// relevant indices variable store
 	int m_lattice_idx = 0; 
@@ -578,7 +584,7 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 		this->debug_checks_energy_contacts(E_sys, contacts_sys);
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		this->enhanced_flipper.initial_E        = 0;
 		this->enhanced_flipper.rboltzmann       = 0;
 		this->enhanced_flipper.sampler_rsum     = 0;
@@ -589,7 +595,7 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 	contacts_post = contacts_sys;
 
 	this->debug_checks_energy_contacts(E_sys, contacts_sys);
-	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	this->enhanced_flipper.perturbed_E        = 0;
 
 
@@ -619,7 +625,7 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 		this->debug_checks_energy_contacts(E_sys, contacts_sys);
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0};
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0, 0, 0};
 		this->enhanced_flipper.initial_E        = 0;
 		this->enhanced_flipper.rboltzmann       = 0;
 
@@ -632,7 +638,7 @@ void Simulation::debug_polymer_orientation_flip(int p_idx){
 	rng_acc = rng_uniform(0.0, 1.0);
 
 	// run the criterion
-	if ( rng_acc < std::exp (-1/this->T * (E_post - this->sysEnergy ) * this->enhanced_flipper.prob_n_to_o/this->enhanced_flipper.prob_o_to_n)){
+	if ( rng_acc < std::exp (-1/this->T * (E_post - this->sysEnergy )) * this->enhanced_flipper.prob_n_to_o/this->enhanced_flipper.prob_o_to_n){
 		std::cout << "Orientation to be assigned = "; print(this->enhanced_flipper.final_orientations);
 		for (int j{0}; j < nflip; ++j){
 			(this->Polymers)[p_idx].chain[polymer_indices[j]]->orientation = this->enhanced_flipper.final_orientations[j];
@@ -671,12 +677,12 @@ void Simulation::debug_solvation_shell_flip(){
 	this->enhanced_flipper.reset(nflip, ntest);
 
 	// define some holders 
-	double               E_sys        = this->sysEnergy;
-	std::array<double,8> contacts_sys = this->contacts;
+	double               E_sys                   = this->sysEnergy;
+	std::array<double,CONTACT_SIZE> contacts_sys = this->contacts;
 
-	double               E_post        = 0; // the energy of the system after final perturbation
-	std::array<double,8> contacts_post = {0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
-	double               rng_acc       = 0; // rng for acceptance at the very end
+	double               E_post                   = 0; // the energy of the system after final perturbation
+	std::array<double,CONTACT_SIZE> contacts_post = {0,0,0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
+	double               rng_acc                  = 0; // rng for acceptance at the very end
 
 	for (int i{0}; i < nflip; ++i){
 
@@ -697,7 +703,7 @@ void Simulation::debug_solvation_shell_flip(){
 		this->debug_checks_energy_contacts(E_sys, contacts_sys);
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		this->enhanced_flipper.initial_E        = 0;
 		this->enhanced_flipper.rboltzmann       = 0;
 		this->enhanced_flipper.sampler_rsum     = 0;
@@ -708,7 +714,7 @@ void Simulation::debug_solvation_shell_flip(){
 	contacts_post = contacts_sys;
 
 	this->debug_checks_energy_contacts(E_sys, contacts_sys);
-	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0};
+	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 	this->enhanced_flipper.perturbed_E        = 0;
 
 
@@ -737,7 +743,7 @@ void Simulation::debug_solvation_shell_flip(){
 		this->debug_checks_energy_contacts(E_sys, contacts_sys);
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0};
+		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0, 0, 0};
 		this->enhanced_flipper.initial_E        = 0;
 		this->enhanced_flipper.rboltzmann       = 0;
 
@@ -779,14 +785,14 @@ void Simulation::debug_lattice_flip(){
 
 	// number of particles to flip
 	int nflips = rng_uniform(1, static_cast<int>(this->x * this->y * this->z / 8));
-	std::array <double,8> contacts = this->contacts; 
+	std::array <double,CONTACT_SIZE> contacts = this->contacts; 
 
 	// set up the orientations
 	std::vector <int> orientations (nflips, 0); 
 
 	// set up the contacts store
-	std::array <double,8> cs_i = {0, 0, 0, 0, 0, 0, 0, 0};
-	std::array <double,8> cs_f = {0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> cs_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> cs_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 	// set up the energies
 	double Es_i = 0;
@@ -802,32 +808,37 @@ void Simulation::debug_lattice_flip(){
 	std::mt19937 g(rd()); 
 	std::shuffle(samples.begin(), samples.end(), g); 
 
+	std::cout << "orientations.size() = " << orientations.size() << std::endl;
+
 	for (int i{0}; i<nflips; ++i){
-		
+
 		this->neighbor_energetics(samples[i], &cs_i, &Es_i); 
-		orientations.push_back(this->Lattice[samples[i]]->orientation); 
-		this->Lattice[samples[i]]->orientation = rng_uniform(0, 25);
+		orientations[i] =  (this->Lattice[samples[i]])->orientation; // .push_back((this->Lattice[samples[i]])->orientation); 
+		(this->Lattice[samples[i]])->orientation = rng_uniform(0, 25);
 		this->neighbor_energetics(samples[i], &cs_f, &Es_f); 
 		contacts = add_arrays(subtract_arrays(contacts, cs_i), cs_f);
 		Ef += Es_f - Es_i;
+		std::cout << "i = " << i << ", " << this->Lattice[samples[i]]->ptype << ", "; print(this->Lattice[samples[i]]->coords);
 		this->debug_checks_energy_contacts(Ef, contacts);
 
 		// resetting...
-		cs_i = {0, 0, 0, 0, 0, 0, 0, 0};
-		cs_f = {0, 0, 0, 0, 0, 0, 0, 0};
+		cs_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		cs_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		Es_i = 0;
 		Es_f = 0;
 
 	}
 
-	if (metropolis_acceptance(this->sysEnergy, Ef, this->T)){
-		this->sysEnergy = Ef; 
-		this->contacts  = contacts; 
+	double rng = rng_uniform(0.0, 1.0);
+
+	if ( rng < std::exp(-1/this->T * (Ef - this->sysEnergy)) ) {
+		this->sysEnergy = Ef;
+		this->contacts  = contacts;
 		this->IMP_BOOL  = true;
 	}
 	else {
 		for (int i{0}; i<nflips; ++i){
-			this->Lattice[samples[i]]->orientation = orientations[i];
+			(this->Lattice[samples[i]])->orientation = orientations[i];
 		}
 		this->IMP_BOOL = false;
 	}
@@ -850,7 +861,7 @@ void Simulation::debug_solvent_exchange_from_shell(){
 	// set up some holders
 	double post_energy = 0;
 	double rng_acc     = 0;
-	std::array <double,8> post_contacts = {0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> post_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 	// define the holder to facilitate the swap
 	Particle* tmp_par_ptr {nullptr};
@@ -916,7 +927,7 @@ void Simulation::debug_solvent_exchange(){
 	// these are the variables 
 	double post_energy = 0;
 	double rng_acc          = 0;
-	std::array <double,8> post_contacts = this->contacts;
+	std::array <double,CONTACT_SIZE> post_contacts = this->contacts;
 
 	// set up the pointer to facilitate the swap
 	Particle* tmp_par_ptr {nullptr};
@@ -963,11 +974,11 @@ void Simulation::debug_regrowth(int p_idx){
 
 	// set up some containers 
 	int deg_poly        = this->Polymers[p_idx].deg_poly; 
-	int m_idx           =  3;
+	int m_idx           =  deg_poly-4;
 	int growth          = -1;
 	double forw_energy  =  0;
 	double rng_acc      =  0;
-	std::array <double,8> forw_contacts = {0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> forw_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
 	// get that reset going
 	this->enhanced_swing.reset(deg_poly);
@@ -996,15 +1007,12 @@ void Simulation::debug_regrowth(int p_idx){
 		std::cout << "\tPerforming the forward pass..." << std::endl;
 		this->debug_forward_head_regrowth(p_idx, m_idx);
 
-		std::cout << "\tPerforming the forward pass check..." << std::endl;
-		this->Polymers[p_idx].print_chain();
-		this->debug_checks_energy_contacts(this->enhanced_swing.current_energy, this->enhanced_swing.current_contacts);
-		this->check_structures();
-		std::cout << "done!" << std::endl;
-
-		for (int i{m_idx+1}; i<deg_poly; ++i){
+		for (int i{m_idx+1}; i<deg_poly; ++i) {
 			this->enhanced_swing.final_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
 		}
+
+		std::cout << "initial size = " << this->enhanced_swing.initial_locations.size() << std::endl;
+		std::cout << "final size   = " << this->enhanced_swing.initial_locations.size() << std::endl;
 
 		if (this->enhanced_swing.initial_locations == this->enhanced_swing.final_locations){
 			// do nothing
@@ -1012,7 +1020,7 @@ void Simulation::debug_regrowth(int p_idx){
 		}
 
 		else if (!(this->IMP_BOOL)){
-			this->debug_accept_after_head_regrowth();
+			this->debug_accept_after_head_regrowth(this->IMP_BOOL);
 			this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
 			this->check_structures();
 		}
@@ -1025,41 +1033,50 @@ void Simulation::debug_regrowth(int p_idx){
 
 			rng_acc = rng_uniform(0.0, 1.0);
 			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o / this->enhanced_swing.prob_o_to_n){
-				this->debug_accept_after_head_regrowth();
+				this->debug_accept_after_head_regrowth(this->IMP_BOOL);
 				this->sysEnergy = forw_energy; 
 				this->contacts  = forw_contacts;
-				this->IMP_BOOL  = true;
 			}
 			else {
 				this->IMP_BOOL = false;
 			}
 		}
+		this->Polymers[0].print_chain();
+		this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
+		this->check_structures();
 	}
 
 	else {
-		std::cout << "\tPerforming forward tail regrowth..." << std::endl;
+
+		std::cout << "\tPerforming tail regrowth..." << std::endl;
 		for (int i{0}; i<m_idx; ++i){
+			// old_cut.push_back ((this->Polymers).at(p_idx).chain.at(i)->coords) ;
 			this->enhanced_swing.initial_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
 		}
 
 		this->debug_forward_tail_regrowth(p_idx, m_idx);
-		this->debug_checks_energy_contacts(this->enhanced_swing.current_energy, this->enhanced_swing.current_contacts);
-		this->check_structures();
 
 		for (int i{0}; i<m_idx; ++i){
+			// new_cut.push_back ((this->Polymers).at(p_idx).chain.at(i)->coords) ;
 			this->enhanced_swing.final_locations.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
 		}
 
-		if (this->enhanced_swing.initial_locations == this->enhanced_swing.final_locations){
+		if (!(this->IMP_BOOL)){
+			std::cout << "Rejecting due to trapping." << std::endl;
+			this->debug_accept_after_tail_regrowth(this->IMP_BOOL);
+			this->Polymers[0].print_chain();
+		}
+
+		else if (this->enhanced_swing.initial_locations == this->enhanced_swing.final_locations){
 			// do nothing
 			;
 		}
 
-		else if (!(this->IMP_BOOL)){
-			this->debug_accept_after_tail_regrowth();
-		}
-
 		else {
+
+			this->debug_checks_energy_contacts(this->enhanced_swing.current_energy, this->enhanced_swing.current_contacts);
+			this->check_structures();
+
 			forw_energy   = this->enhanced_swing.current_energy;
 			forw_contacts = this->enhanced_swing.current_contacts;
 			std::cout << "\tPerforming backward tail regrowth..." << std::endl;
@@ -1067,7 +1084,7 @@ void Simulation::debug_regrowth(int p_idx){
 
 			rng_acc = rng_uniform(0.0, 1.0);
 			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o/this->enhanced_swing.prob_o_to_n) {
-				this->debug_accept_after_tail_regrowth();
+				this->debug_accept_after_tail_regrowth(this->IMP_BOOL);
 				this->sysEnergy = forw_energy;
 				this->contacts  = forw_contacts;
 			}
@@ -1075,7 +1092,9 @@ void Simulation::debug_regrowth(int p_idx){
 			else {
 				this->IMP_BOOL = false;
 			}
+			
 		}
+		this->Polymers[0].print_chain();
 		this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
 		this->check_structures();
 	}
@@ -1089,6 +1108,7 @@ void Simulation::debug_regrowth(int p_idx){
 
 void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 
+	std::cout << "@m_idx = " << m_idx << std::endl;
 	if (m_idx == this->Polymers[p_idx].deg_poly-1){
 		this->IMP_BOOL = true;
 	}
@@ -1119,7 +1139,7 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 			if (ne_list[idx_counter] == loc_m){
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy;
 				this->enhanced_swing.contacts_store[idx_counter] = this->enhanced_swing.current_contacts;
-				block_counter                                   += 1;
+				// block_counter                                   += 1;
 			}
 			else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
 				for (int u{0}; u < this->Polymers[p_idx].deg_poly; ++u){
@@ -1130,9 +1150,9 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 				}
 
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
-				if (self_swap_idx <= m_idx){
+				if (self_swap_idx < m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 					block_counter                                   += 1;
 				}
 				else{
@@ -1210,7 +1230,7 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 			this->enhanced_swing.Emin = *std::min_element(this->enhanced_swing.energies.begin(), this->enhanced_swing.energies.end());
 			for (int i{0}; i<this->enhanced_swing.ntest; ++i){
 				this->enhanced_swing.boltzmann[i] = std::exp(-1/this->T * (this->enhanced_swing.energies[i]-this->enhanced_swing.Emin));
-				this->enhanced_swing.rboltzmann += this->enhanced_swing.boltzmann[i];
+				this->enhanced_swing.rboltzmann  += this->enhanced_swing.boltzmann[i];
 			}
 			this->enhanced_swing.sampler_rsum = 0;
 			this->enhanced_swing.sampler_rng  = rng_uniform(0.0, 1.0);
@@ -1240,7 +1260,7 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 
 //#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void Simulation::debug_accept_after_head_regrowth(){
+void Simulation::debug_accept_after_head_regrowth(bool not_trap_bool){
 
 	// define some stuff
 	int L{0}; 
@@ -1250,7 +1270,12 @@ void Simulation::debug_accept_after_head_regrowth(){
 	std::vector<std::array<int,3>> link;
 
 	// get the linked list 
-	create_linked_list(this->enhanced_swing.initial_locations, this->enhanced_swing.final_locations, link, &master_linked_list, 1);
+	if (not_trap_bool){
+		create_linked_list (this->enhanced_swing.initial_locations, this->enhanced_swing.final_locations, link, &master_linked_list, 1);
+	}
+	else {
+		create_linked_list (this->enhanced_swing.final_locations,   this->enhanced_swing.initial_locations, link, &master_linked_list, 1);
+	}
 
 	// set up some particle pointers 
 	Particle* tmp_par_1 {nullptr};
@@ -1348,7 +1373,7 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
 				if (self_swap_idx <= m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 				}
 				else{
 
@@ -1446,7 +1471,7 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 //#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
 void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
-
+	std::cout << "@m_idx = " << m_idx << std::endl;
 	if (m_idx == 0){
 		this->IMP_BOOL = true;
 	}
@@ -1474,10 +1499,10 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 
 		while(idx_counter < this->enhanced_swing.ntest){
 
-			if (ne_list[idx_counter] == loc_m){
+			if (ne_list[idx_counter] == loc_m) {
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy;
 				this->enhanced_swing.contacts_store[idx_counter] = this->enhanced_swing.current_contacts;
-				block_counter                                   += 1;
+				// block_counter                                   += 1;
 			}
 			else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
 				for (int u{0}; u < this->Polymers[p_idx].deg_poly; ++u){
@@ -1488,9 +1513,9 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 				}
 
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
-				if (self_swap_idx >= m_idx){
+				if (self_swap_idx > m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 					block_counter                                   += 1;
 				}
 				else{
@@ -1560,8 +1585,10 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 		}
 
 		if (block_counter == this->enhanced_swing.ntest){
+			std::cout << "block_counter = " << block_counter << ", ntest = " << this->enhanced_swing.ntest << std::endl;
 			this->IMP_BOOL = false;
 		}
+		
 		else {
 			this->enhanced_swing.Emin = *std::min_element(this->enhanced_swing.energies.begin(), this->enhanced_swing.energies.end());
 			for (int i{0}; i<this->enhanced_swing.ntest; ++i){
@@ -1596,13 +1623,18 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 
 //#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
-void Simulation::debug_accept_after_tail_regrowth(){
+void Simulation::debug_accept_after_tail_regrowth(bool not_trap_bool){
 
 	// set up some vectors
 	std::vector< std::vector<std::array<int,3>>> master_linked_list;
 	std::vector <std::array<int,3>> link; 
 
-	create_linked_list (this->enhanced_swing.initial_locations, this->enhanced_swing.final_locations, link, &master_linked_list, 1);
+	if (not_trap_bool){
+		create_linked_list (this->enhanced_swing.initial_locations, this->enhanced_swing.final_locations, link, &master_linked_list, 1);
+	}
+	else {
+		create_linked_list (this->enhanced_swing.final_locations, this->enhanced_swing.initial_locations, link, &master_linked_list, 1);
+	}
 
 	int L {0}; // to store length of linked_list 
 
@@ -1615,17 +1647,17 @@ void Simulation::debug_accept_after_tail_regrowth(){
 
 		if ( (this->Lattice)[ lattice_index(linked_list[L-1], y, z) ]->ptype[0] == 's' ){
 
-			tmp_par_ptr_1 = (this->Lattice) [ lattice_index (linked_list.back(), y, z) ];
+			tmp_par_ptr_1 = (this->Lattice) [ lattice_index (linked_list.back(), this->y, this->z) ];
 
 			// go backwards 
 			for (int i{0}; i < L ; i=i+2 ){
 
-				(this->Lattice)[lattice_index (linked_list[L-2-i], y, z)]->coords = linked_list[L-1-i]; 
-				(this->Lattice)[lattice_index (linked_list[L-1-i], y, z)] = (this->Lattice)[lattice_index( linked_list[L-2-i], y, z )]; 
+				(this->Lattice)[lattice_index (linked_list[L-2-i], this->y, this->z)]->coords = linked_list[L-1-i]; 
+				(this->Lattice)[lattice_index (linked_list[L-1-i], this->y, this->z)] = (this->Lattice)[lattice_index( linked_list[L-2-i], this->y, this->z)]; 
 				
 			}
 			tmp_par_ptr_1->coords = linked_list[0]; 
-			(this->Lattice)[lattice_index (linked_list[0], y, z)] = tmp_par_ptr_1; 
+			(this->Lattice)[lattice_index (linked_list[0], this->y, this->z)] = tmp_par_ptr_1; 
 
 		}
 
@@ -1635,17 +1667,17 @@ void Simulation::debug_accept_after_tail_regrowth(){
 				
 				if ( i == 0 ) {
 					// store info about linked_list[1]... and consequently also linked_list[2]
-					tmp_par_ptr_1 = (this->Lattice)[lattice_index ( linked_list[i+1], y, z) ];
+					tmp_par_ptr_1 = (this->Lattice)[lattice_index ( linked_list[i+1], this->y, this->z) ];
 
-					(this->Lattice)[ lattice_index ( linked_list[i],   y, z) ]->coords = linked_list[i+1]; 
-					(this->Lattice)[ lattice_index ( linked_list[i+1], y, z) ] = (this->Lattice)[lattice_index ( linked_list[i], y, z) ]; 
+					(this->Lattice)[ lattice_index ( linked_list[i],   this->y, this->z) ]->coords = linked_list[i+1]; 
+					(this->Lattice)[ lattice_index ( linked_list[i+1], this->y, this->z) ] = (this->Lattice)[lattice_index ( linked_list[i], this->y, this->z) ]; 
 				
 				}
 				else {
 
 					tmp_par_ptr_1->coords = linked_list[i+1]; 
-					tmp_par_ptr_2 = (this->Lattice)[ lattice_index (linked_list[i+1], y, z) ]; 
-					(this->Lattice)[ lattice_index (linked_list[i+1], y, z) ] = tmp_par_ptr_1;
+					tmp_par_ptr_2 = (this->Lattice)[ lattice_index (linked_list[i+1], this->y, this->z) ]; 
+					(this->Lattice)[ lattice_index (linked_list[i+1], this->y, this->z) ] = tmp_par_ptr_1;
 					tmp_par_ptr_1 = tmp_par_ptr_2; 
 					
 				}
@@ -1703,9 +1735,9 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 				}
 
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
-				if (self_swap_idx >= m_idx){
+				if (self_swap_idx > m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
 				}
 				else{
 
@@ -1796,996 +1828,3 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
-
-/*
-void Simulation::debug_regrowth(int p_idx){
-
-	int deg_poly        = this->Polymers[p_idx].deg_poly; 
-	int m_idx           = rng_uniform(1, deg_poly-2);
-	int recursion_depth = 0;
-	int growth          = -1;
-
-	double rng_acc     {0};
-	double prob_o_to_n {1};
-	double prob_n_to_o {1};
-	double back_energy {0};
-	double forw_energy {this->sysEnergy};
-
-	std::array <double,8> forw_contacts = this->contacts;
-	std::array <double,8> back_contacts = {0,0,0,0,0,0,0,0};
-
-	std::vector <std::array<int,3>> old_cut;
-	std::vector <std::array<int,3>> new_cut;
-	old_cut.reserve(deg_poly);
-	new_cut.reserve(deg_poly);
-
-	if (deg_poly%2 == 0){
-		growth = (0.5 >= (m_idx+1)/static_cast<double>(deg_poly)) ? 0 : 1;
-	}
-	else {
-		if ( 0.5 == (m_idx+1)/static_cast<double>(deg_poly+1) ){
-			growth = rng_uniform (0, 1);
-		}
-		else {
-			growth = (0.5 > (m_idx+1)/static_cast<double>(deg_poly)) ? 0 : 1; 
-		}
-	}
-
-	if (growth){
-
-		std::cout << "Performing head regrowth..." << std::endl;
-		for (int i{m_idx+1}; i<deg_poly; ++i){
-			old_cut.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
-		}
-
-		std::cout << "\tPerforming the forward pass..." << std::endl;
-		this->debug_forward_head_regrowth(&forw_contacts, &prob_o_to_n, &forw_energy, p_idx, m_idx);
-		std::cout << "\tPerforming the forward pass check..." << std::endl;
-		this->Polymers[p_idx].print_chain();
-		this->debug_checks_energy_contacts(forw_energy, forw_contacts);
-		this->check_structures();
-		std::cout << "done!" << std::endl;
-
-		for (int i{m_idx+1}; i<deg_poly; ++i){
-			new_cut.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
-		}
-
-		if (old_cut == new_cut){
-			// do nothing
-			;
-		}
-
-		else if (!(this->IMP_BOOL)){
-			this->debug_accept_after_head_regrowth(&new_cut, &old_cut);
-			this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
-			this->check_structures();
-		}
-
-		else {
-			back_contacts = forw_contacts;
-			back_energy   = forw_energy;
-			std::cout << "\tPerforming the backward pass..." << std::endl;
-			this->debug_backward_head_regrowth(&old_cut, &back_contacts, &prob_n_to_o, &back_energy, p_idx, m_idx, recursion_depth);
-
-			rng_acc = rng_uniform(0.0, 1.0);
-			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * prob_n_to_o / prob_o_to_n){
-
-				this->debug_accept_after_head_regrowth(&old_cut, &new_cut);
-				this->sysEnergy = forw_energy; 
-				this->contacts = forw_contacts;
-				this->IMP_BOOL = true;
-			}
-			else {
-				this->IMP_BOOL = false;
-			}
-		}
-		std::cout << "\tPerforming the post back flow check..." << std::endl;
-		this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
-		this->check_structures();
-		std::cout << "done!" << std::endl;
-	}
-
-	else {
-
-		std::cout << "\tPerforming forward tail regrowth..." << std::endl;
-		for (int i{0}; i<m_idx; ++i){
-			old_cut.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
-		}
-
-		this->debug_forward_tail_regrowth(&forw_contacts, &prob_o_to_n, &forw_energy, p_idx, m_idx);
-		this->debug_checks_energy_contacts(forw_energy, forw_contacts);
-		this->check_structures();
-
-		for (int i{0}; i<m_idx; ++i){
-			new_cut.push_back(this->Polymers.at(p_idx).chain.at(i)->coords);
-		}
-
-		if (old_cut == new_cut){
-			// do nothing
-			;
-		}
-
-		else if (!(this->IMP_BOOL)){
-			this->debug_accept_after_tail_regrowth(&new_cut, &old_cut);
-		}
-
-		else {
-
-			back_contacts = forw_contacts; 
-			back_energy = forw_energy;
-			std::cout << "\tPerforming backward tail regrowth..." << std::endl;
-			debug_backward_tail_regrowth(&old_cut, &back_contacts, &prob_n_to_o, &back_energy, p_idx, m_idx, recursion_depth);
-
-			rng_acc = rng_uniform(0.0, 1.0);
-			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * prob_n_to_o/prob_o_to_n) {
-
-				this->debug_accept_after_tail_regrowth(&old_cut, &new_cut);
-				this->sysEnergy = forw_energy;
-				this->contacts  = forw_contacts;
-			}
-
-			else {
-				this->IMP_BOOL = false;
-			}
-		}
-		this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
-		this->check_structures();
-	}
-
-	return;
-}
-
-void Simulation::debug_forward_head_regrowth(std::array <double,8>* forw_contacts, double* prob_o_to_n, double* forw_energy, int p_idx, int m_idx){
-
-	int deg_poly   = this->Polymers[p_idx].deg_poly; 
-	if (m_idx == deg_poly-1) {
-		this->IMP_BOOL = true;
-		return; 
-	}
-
-	std::array<double,8> current_contacts = *forw_contacts;
-
-	std::array<double,5>               energies;
-	std::array<std::array<double,8>,5> contacts_store;
-	std::array<double,5>               boltzmann;
-	std::array<int,3>                  loc_m = this->Polymers.at(p_idx).chain.at(m_idx+1)->coords;
-
-	std::array<std::array<int,3>,26> ne_list = obtain_ne_list(this->Polymers.at(p_idx).chain.at(m_idx)->coords, this->x, this->y, this->z);
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); 
-	std::shuffle(ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
-
-	// set up the initial energies
-	double rboltzmann = 0; // running sum for boltzmann weights 
-	double Em_i       = 0;
-	double Es_i       = 0;
-	double Em_n       = 0;
-	double Es_n       = 0;
-	double Epair_i    = 0;
-	double Epair_n    = 0;
-	double Esys       = *forw_energy;
-
-	// set the contacts ready
-	// doubles for energy transfer 
-	std::array <double,8> cm_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_i = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cm_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_n = {0,0,0,0,0,0,0,0};
-
-	// start attempting jumps
-	int block_counter = 0 ;
-	int idx_counter   = 0 ;
-	int self_swap_idx = -1;
-
-	// define particle pointer
-	Particle* tmp_par_ptr {nullptr};
-
-	while (idx_counter<5) {
-		std::cout << "While index counter is " << idx_counter << "." << std::endl;
-		std::cout << "Initial config:" << std::endl;
-		this->Polymers[p_idx].print_chain();
-		if (ne_list[idx_counter] == loc_m){
-			energies[idx_counter]       = Esys;
-			contacts_store[idx_counter] = current_contacts;
-			block_counter              += 1;
-		}
-		else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm') {
-
-			for (int u{0}; u<deg_poly; ++u){
-				if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
-					self_swap_idx = u;
-					break;
-				}
-			}
-
-			std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
-			if (self_swap_idx <= m_idx){
-				energies[idx_counter]       = 1e+8;
-				contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
-				block_counter              += 1;
-			}
-
-			else {
-				std::cout << "Switching up monomer-monomer particles..." << std::endl;
-
-				// get the energies
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-				// swap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// get the energies
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-				// set up the final energies
-				energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-				contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-				std::cout << "contacts_store[" << idx_counter << "] = "; print(contacts_store[idx_counter]);
-
-				this->Polymers[p_idx].print_chain();
-				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
-
-				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// resetting...
-				cm_i    = {0,0,0,0,0,0,0,0};
-				cs_i    = {0,0,0,0,0,0,0,0};
-				cpair_i = {0,0,0,0,0,0,0,0};
-				cm_n    = {0,0,0,0,0,0,0,0};
-				cs_n    = {0,0,0,0,0,0,0,0};
-				cpair_n = {0,0,0,0,0,0,0,0};
-				Em_i    = 0;
-				Es_i    = 0;
-				Em_n    = 0;
-				Es_n    = 0;
-				Epair_i = 0;
-				Epair_n = 0;
-			}
-		}
-		else {
-			std::cout << "Switching up monomer-solvent particles..." << std::endl;
-			// get the energies
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-			// swap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-			// get the energies
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-			// set up the final energies
-			energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-			contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-			std::cout << "contacts_store[" << idx_counter << "] = "; print(contacts_store[idx_counter]);
-
-			this->Polymers[p_idx].print_chain();
-			this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
-
-			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-			// resetting...
-			cm_i    = {0,0,0,0,0,0,0,0};
-			cs_i    = {0,0,0,0,0,0,0,0};
-			cpair_i = {0,0,0,0,0,0,0,0};
-			cm_n    = {0,0,0,0,0,0,0,0};
-			cs_n    = {0,0,0,0,0,0,0,0};
-			cpair_n = {0,0,0,0,0,0,0,0};
-			Em_i    = 0;
-			Es_i    = 0;
-			Em_n    = 0;
-			Es_n    = 0;
-			Epair_i = 0;
-			Epair_n = 0;
-		}
-		idx_counter += 1;
-	}
-
-	if (block_counter == 5){
-		this->IMP_BOOL = false;
-	}
-	else {
-
-		double Emin = *std::min_element(energies.begin(), energies.end());
-		for (int i{0}; i<5; ++i){
-			boltzmann[i] = std::exp(-1/this->T * (energies[i]-Emin));
-			rboltzmann  += boltzmann[i];
-		}
-
-		double rng_acc = rng_uniform(0.0, 1.0);
-		double rsum    = 0;
-		int    e_idx   = 0;
-
-		for (int j{0}; j<5; ++j){
-			rsum += boltzmann[j]/rboltzmann;
-			if (rng_acc < rsum){
-				e_idx = j;
-				break;
-			}
-		}
-
-		*prob_o_to_n  *= boltzmann[e_idx]/rboltzmann;
-		*forw_energy   = energies[e_idx];
-		*forw_contacts = contacts_store[e_idx];
-
-		// do the swap again and go to the new configuration
-		this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-		this->Polymers[p_idx].print_chain();
-		this->debug_checks_energy_contacts(energies[e_idx], contacts_store[e_idx]);
-		this->debug_forward_head_regrowth(forw_contacts, prob_o_to_n, forw_energy, p_idx, m_idx+1);
-	}
-
-	return;
-}
-
-void Simulation::debug_accept_after_head_regrowth(std::vector<std::array<int,3>>* old_cut, std::vector<std::array<int,3>>* new_cut){
-
-	// define some stuff
-	int L {0};
-
-	std::vector<std::vector<std::array<int,3>>> master_linked_list;
-	std::vector<std::array<int,3>> link;
-
-	create_linked_list(*old_cut, *new_cut, link, &master_linked_list, 1);
-
-	Particle* tmp_par_1 {nullptr};
-	Particle* tmp_par_2 {nullptr};
-
-	for (std::vector<std::array<int,3>>& linked_list: master_linked_list){
-		L = static_cast<int>(linked_list.size()); 
-		if (this->Lattice[lattice_index(linked_list[L-1], this->y, this->z)]->ptype[0] =='s'){
-			tmp_par_1 = this->Lattice[lattice_index(linked_list.back(), this->y, this->z)];
-			// go backward
-			for (int i{0}; i<L; i=i+2){
-				this->Lattice[lattice_index(linked_list[L-2-i], this->y, this->z)]->coords = linked_list[L-1-i];
-				this->Lattice[lattice_index(linked_list[L-1-i], this->y, this->z)] = this->Lattice[lattice_index(linked_list[L-2-i], this->y, this->z)];
-			}
-			tmp_par_1->coords = linked_list[0];
-			this->Lattice[lattice_index(linked_list[0], this->y, this->z)] = tmp_par_1;
-		}
-		else {
-			for (int i{0}; i<L; i=i+2){
-
-				if (i==0){
-					tmp_par_1 = this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)];
-					this->Lattice[lattice_index(linked_list[i],   this->y, this->z)]->coords = linked_list[i+1];
-					this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)] = this->Lattice[lattice_index(linked_list[i], this->y, this->z)];
-				}
-				else {
-					tmp_par_1->coords = linked_list[i+1];
-					tmp_par_2 = this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)];
-					this->Lattice[lattice_index(linked_list[i+1], this->y, this->z)] = tmp_par_1;
-					tmp_par_1 = tmp_par_2;
-				}
-			}
-		}
-	}
-
-	return;
-}
-
-void Simulation::debug_backward_head_regrowth(std::vector <std::array<int,3>>* old_cut, std::array <double,8>* back_contacts, double* prob_n_to_o, double* back_energy, int p_idx, int m_idx, int recursion_depth){
-
-	int deg_poly = this->Polymers[p_idx].deg_poly;
-	if (m_idx == deg_poly-1){
-		this->IMP_BOOL = true; 
-		return; 
-	}
-
-	// these are doubles for energies 
-	double Em_i       = 0;
-	double Es_i       = 0;
-	double Em_n       = 0;
-	double Es_n       = 0;
-	double Epair_i    = 0;
-	double Epair_n    = 0;
-	double Esys       = *back_energy;
-	double rboltzmann = 0; // running sum for boltzmann weights
-
-	std::array <double,5>               energies;
-	std::array <double,5>               boltzmann;
-	std::array <double,8>               current_contacts = *back_contacts;
-	std::array <std::array<double,8>,5> contacts_store; 
-
-	std::array <int,3> loc_m = (this->Polymers)[p_idx].chain[m_idx+1]->coords; // this is the key item of interest
-
-	// generate possible locations to jump to 
-	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((this->Polymers)[p_idx].chain[m_idx]->coords, this->x, this->y, this->z);
-
-	// randomly select five of them 
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle   (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
-
-	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[recursion_depth]) - ne_list.begin();
-	std::array <int,3> tmp = ne_list[0]; 
-	ne_list[0]             = ne_list[ne_idx];
-	ne_list[ne_idx]        = tmp; 
-
-	std::array <double,8> cm_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_i = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cm_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_n = {0,0,0,0,0,0,0,0};
-
-	// start attempting jumps 
-	int idx_counter         = 0;
-	int self_swap_idx       = -1;
-
-	Particle* tmp_par_ptr {nullptr};
-
-	while (idx_counter < 5){
-		std::cout << "While index counter is " << idx_counter << "." << std::endl;
-		std::cout << "Initial config:" << std::endl;
-		this->Polymers[p_idx].print_chain();
-
-		if (ne_list[idx_counter] == loc_m){
-			energies[idx_counter]       = Esys;
-			contacts_store[idx_counter] = current_contacts;
-		}
-		else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm'){
-
-			for (int u{0}; u<deg_poly; ++u){
-				if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
-					self_swap_idx = u;
-					break;
-				}
-			}
-
-			if (self_swap_idx <= m_idx){
-				energies[idx_counter] = 1e+8; 
-				contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
-			}
-			else {
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-				// swap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// get the energies
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-				// set up the final energies
-				energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-				contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-				std::cout << "contacts_store[" << idx_counter << "] = "; print(contacts_store[idx_counter]);
-
-				this->Polymers[p_idx].print_chain();
-				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
-
-				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// resetting...
-				cm_i    = {0,0,0,0,0,0,0,0};
-				cs_i    = {0,0,0,0,0,0,0,0};
-				cpair_i = {0,0,0,0,0,0,0,0};
-				cm_n    = {0,0,0,0,0,0,0,0};
-				cs_n    = {0,0,0,0,0,0,0,0};
-				cpair_n = {0,0,0,0,0,0,0,0};
-				Em_i    = 0;
-				Es_i    = 0;
-				Em_n    = 0;
-				Es_n    = 0;
-				Epair_i = 0;
-				Epair_n = 0;
-			}
-
-		}
-		else {
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-			// swap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-			// get the energies
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-			// set up the final energies
-			energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-			contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-
-			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));	
-
-			// resetting...
-			cm_i    = {0,0,0,0,0,0,0,0};
-			cs_i    = {0,0,0,0,0,0,0,0};
-			cpair_i = {0,0,0,0,0,0,0,0};
-			cm_n    = {0,0,0,0,0,0,0,0};
-			cs_n    = {0,0,0,0,0,0,0,0};
-			cpair_n = {0,0,0,0,0,0,0,0};
-			Em_i    = 0;
-			Es_i    = 0;
-			Em_n    = 0;
-			Es_n    = 0;
-			Epair_i = 0;
-			Epair_n = 0;
-		}
-		idx_counter += 1;
-	}
-
-	double Emin = *std::min_element(energies.begin(), energies.end());
-	for (int i{0}; i<5; ++i){
-		boltzmann[i] = std::exp(-1/this->T * (energies[i]-Emin));
-		rboltzmann  += boltzmann[i];
-	}
-
-	*prob_n_to_o   = (*prob_n_to_o) * boltzmann[0]/rboltzmann;
-	*back_energy   = energies[0];
-	*back_contacts = contacts_store[0];
-
-	// perform the swap
-	this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
-	std::cout << "Check at end of regrowth @ recursion depth = " << recursion_depth << "." << std::endl;
-	this->Polymers[p_idx].print_chain();
-	this->debug_checks_energy_contacts(energies[0], contacts_store[0]);
-	this->debug_backward_head_regrowth(old_cut, back_contacts, prob_n_to_o, back_energy, p_idx, m_idx+1, recursion_depth+1);
-
-	return; 
-}
-
-void Simulation::debug_forward_tail_regrowth(std::array <double,8>* forw_contacts, double* prob_o_to_n, double* forw_energy, int p_idx, int m_idx){
-
-	int deg_poly = this->Polymers[p_idx].deg_poly;
-	if (m_idx == 0){
-		this->IMP_BOOL = true; 
-		return;
-	}
-
-	std::array<double,8> current_contacts = *forw_contacts;
-
-	std::array<double,5>               energies;
-	std::array<std::array<double,8>,5> contacts_store;
-	std::array<double,5>               boltzmann;
-	std::array<int,3>                  loc_m = this->Polymers.at(p_idx).chain.at(m_idx-1)->coords;
-
-	std::array<std::array<int,3>,26> ne_list = obtain_ne_list(this->Polymers.at(p_idx).chain.at(m_idx)->coords, this->x, this->y, this->z);
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count(); 
-	std::shuffle(ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
-
-	// set up the initial energies
-	double rboltzmann = 0; // running sum for boltzmann weights 
-	double Em_i       = 0;
-	double Es_i       = 0;
-	double Em_n       = 0;
-	double Es_n       = 0;
-	double Epair_i    = 0;
-	double Epair_n    = 0;
-	double Esys       = *forw_energy;
-
-	// set the contacts ready
-	// doubles for energy transfer 
-	std::array <double,8> cm_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_i = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cm_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_n = {0,0,0,0,0,0,0,0};
-
-	// start attempting jumps
-	int block_counter       = 0 ; 
-	int idx_counter         = 0 ; 
-	int self_swap_idx       = -1; 
-
-	// define the particle pointer
-	Particle* tmp_par_ptr {nullptr};
-
-	while (idx_counter<5) {
-		std::cout << "While index counter is " << idx_counter << "." << std::endl;
-		std::cout << "Initial config:" << std::endl;
-		this->Polymers[p_idx].print_chain();
-		if (ne_list[idx_counter] == loc_m){
-			energies[idx_counter]       = Esys;
-			contacts_store[idx_counter] = current_contacts;
-			block_counter              += 1;
-		}
-		else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm'){
-
-			for (int u{0}; u<deg_poly; ++u){
-				if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
-					self_swap_idx = u;
-					break;
-				}
-			}
-
-			if (self_swap_idx >= m_idx){
-				energies[idx_counter]       = 1e+8;
-				contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
-				block_counter              += 1;
-			}
-
-			else {
-				std::cout << "Switching up monomer-monomer particles..." << std::endl;
-
-				// get the energies
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-				// swap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// get the energies
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-				// set up the final energies
-				energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-				contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-				std::cout << "contacts_store[" << idx_counter << "] = "; print(contacts_store[idx_counter]);
-
-				this->Polymers[p_idx].print_chain();
-				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
-
-				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// resetting
-				cm_i    = {0,0,0,0,0,0,0,0};
-				cs_i    = {0,0,0,0,0,0,0,0};
-				cpair_i = {0,0,0,0,0,0,0,0};
-				cm_n    = {0,0,0,0,0,0,0,0};
-				cs_n    = {0,0,0,0,0,0,0,0};
-				cpair_n = {0,0,0,0,0,0,0,0};
-				Em_i    = 0;
-				Es_i    = 0;
-				Em_n    = 0;
-				Es_n    = 0;
-				Epair_i = 0;
-				Epair_n = 0;
-
-			}
-		}
-		else {
-			std::cout << "Switching up monomer-solvent particles..." << std::endl;
-			// get the energies
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-			// swap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-			// get the energies
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-			// set up the final energies
-			energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-			contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-			std::cout << "contacts_store[" << idx_counter << "] = "; print(contacts_store[idx_counter]);
-
-			this->Polymers[p_idx].print_chain();
-			this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
-
-			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-			// resetting
-			cm_i    = {0,0,0,0,0,0,0,0};
-			cs_i    = {0,0,0,0,0,0,0,0};
-			cpair_i = {0,0,0,0,0,0,0,0};
-			cm_n    = {0,0,0,0,0,0,0,0};
-			cs_n    = {0,0,0,0,0,0,0,0};
-			cpair_n = {0,0,0,0,0,0,0,0};
-			Em_i    = 0;
-			Es_i    = 0;
-			Em_n    = 0;
-			Es_n    = 0;
-			Epair_i = 0;
-			Epair_n = 0;
-
-		}
-		idx_counter += 1;
-	}
-
-	if (block_counter == 5){
-		this->IMP_BOOL = false;
-	}
-	else {
-
-		double Emin = *std::min_element(energies.begin(), energies.end());
-		for (int i{0}; i<5; ++i){
-			boltzmann[i] = std::exp(-1/this->T * (energies[i]-Emin));
-			rboltzmann  += boltzmann[i];
-		}
-
-		double rng_acc = rng_uniform(0.0, 1.0);
-		double rsum    = 0;
-		int    e_idx   = 0;
-
-		for (int j{0}; j<5; ++j){
-			rsum += boltzmann[j]/rboltzmann;
-			if (rng_acc < rsum){
-				e_idx = j;
-				break;
-			}
-		}
-
-		*prob_o_to_n  *= boltzmann[e_idx]/rboltzmann;
-		*forw_energy   = energies[e_idx];
-		*forw_contacts = contacts_store[e_idx];
-
-		// do the swap again
-		this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[e_idx],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-		this->debug_forward_tail_regrowth(forw_contacts, prob_o_to_n, forw_energy, p_idx, m_idx-1);
-	}
-
-	return;
-}
-
-void Simulation::debug_accept_after_tail_regrowth(std::vector <std::array<int,3>>* old_cut, std::vector <std::array<int,3>>* new_cut){
-
-	std::vector< std::vector<std::array<int,3>>> master_linked_list;
-	std::vector <std::array<int,3>> link; 
-
-	create_linked_list (*old_cut, *new_cut, link, &master_linked_list, 1);
-
-	int L {0}; // to store length of linked_list 
-
-	Particle* tmp_par_ptr_1 {nullptr}; // to help with swaps of pointers
-	Particle* tmp_par_ptr_2 {nullptr}; // this guy as well 
-
-	for ( std::vector <std::array<int,3>>& linked_list: master_linked_list ) {
-
-		L = static_cast<int> (linked_list.size()) ;
-
-		if ( (this->Lattice)[ lattice_index(linked_list[L-1], y, z) ]->ptype[0] == 's' ){
-
-			tmp_par_ptr_1 = (this->Lattice) [ lattice_index (linked_list.back(), y, z) ];
-
-			// go backwards 
-			for (int i{0}; i < L ; i=i+2 ){
-
-				(this->Lattice)[lattice_index (linked_list[L-2-i], y, z)]->coords = linked_list[L-1-i]; 
-				(this->Lattice)[lattice_index (linked_list[L-1-i], y, z)] = (this->Lattice)[lattice_index( linked_list[L-2-i], y, z )]; 
-				
-			}
-			tmp_par_ptr_1->coords = linked_list[0]; 
-			(this->Lattice)[lattice_index (linked_list[0], y, z)] = tmp_par_ptr_1; 
-
-		}
-
-		else { // when it is a circulation of monomers 
-
-			for ( int i{0}; i < L; i=i+2){
-				
-				if ( i == 0 ) {
-					// store info about linked_list[1]... and consequently also linked_list[2]
-					tmp_par_ptr_1 = (this->Lattice)[lattice_index ( linked_list[i+1], y, z) ];
-
-					(this->Lattice)[ lattice_index ( linked_list[i],   y, z) ]->coords = linked_list[i+1]; 
-					(this->Lattice)[ lattice_index ( linked_list[i+1], y, z) ] = (this->Lattice)[lattice_index ( linked_list[i], y, z) ]; 
-				
-				}
-				else {
-
-					tmp_par_ptr_1->coords = linked_list[i+1]; 
-					tmp_par_ptr_2 = (this->Lattice)[ lattice_index (linked_list[i+1], y, z) ]; 
-					(this->Lattice)[ lattice_index (linked_list[i+1], y, z) ] = tmp_par_ptr_1;
-					tmp_par_ptr_1 = tmp_par_ptr_2; 
-					
-				}
-			}
-		}	
-	}
-
-	return;
-}
-
-void Simulation::debug_backward_tail_regrowth(std::vector <std::array<int,3>>* old_cut, std::array <double,8>* back_contacts, double* prob_n_to_o, double* back_energy, int p_idx, int m_idx, int recursion_depth){
-
-	int deg_poly = this->Polymers[p_idx].deg_poly;
-	if (m_idx == 0) {
-		this->IMP_BOOL = true; 
-		return; 
-	}
-
-	// these are doubles for energies 
-	double Em_i       = 0;
-	double Es_i       = 0;
-	double Em_n       = 0;
-	double Es_n       = 0;
-	double Epair_i    = 0;
-	double Epair_n    = 0;
-	double Esys       = *back_energy;
-	double rboltzmann = 0; // running sum for boltzmann weights 
-
-	std::array <double,5>               energies;
-	std::array <double,5>               boltzmann;
-	std::array <double,8>               current_contacts = *back_contacts;
-	std::array <std::array<double,8>,5> contacts_store;
-
-	std::array <int,3> loc_m = (this->Polymers)[p_idx].chain[m_idx-1]->coords; // this is the key item of interest
-
-	// generate possible locations to jump to 
-	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ((this->Polymers)[p_idx].chain[m_idx]->coords, this->x, this->y, this->z); 
-	std::cout << "ne_list = " << std::endl;
-	for (std::array<int,3> ne: ne_list){
-		print(ne);
-	}
-
-	// randomly select five of them 
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle   (ne_list.begin(), ne_list.end(), std::default_random_engine(seed)); 
-
-	int ne_idx = std::find (ne_list.begin(), ne_list.end(), (*old_cut)[m_idx-1]) - ne_list.begin() ; 
-
-	std::array <int,3> tmp = ne_list[0]; 
-	ne_list[0]             = ne_list[ne_idx];
-	ne_list[ne_idx]        = tmp; 
-
-	std::array <double,8> cm_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_i    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_i = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cm_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cs_n    = {0,0,0,0,0,0,0,0};
-	std::array <double,8> cpair_n = {0,0,0,0,0,0,0,0};
-
-	// start attempting jumps 
-	int idx_counter         = 0;
-	int self_swap_idx       = -1;
-
-	Particle* tmp_par_ptr {nullptr};
-
-	while (idx_counter < 5){
-		std::cout << "While index counter is " << idx_counter << "." << std::endl;
-		std::cout << "Initial config:" << std::endl;
-		this->Polymers[p_idx].print_chain();
-
-		std::cout << "Going into the if-statements..." << std::endl;
-		std::cout << "ne_list[" << idx_counter << "] = "; print(ne_list[idx_counter]);
-		std::cout << "loc_m = "; print(loc_m);
-		if (ne_list[idx_counter] == loc_m){
-			std::cout << "is this the segfault locations?" << std::endl;
-			energies[idx_counter]       = *back_energy;
-			contacts_store[idx_counter] = current_contacts;
-		}
-		else if (this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)]->ptype[0] == 'm'){
-			
-			std::cout << "monomer-monomer switch." << std::endl;
-			for (int u{0}; u<deg_poly; ++u){
-				if (this->Polymers[p_idx].chain[u]->coords == ne_list[idx_counter]){
-					self_swap_idx = u;
-					break;
-				}
-			}
-
-			if (self_swap_idx >= m_idx){
-				energies[idx_counter]       = 1e+8;
-				contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
-			}
-			else {
-				std::cout << "Running the monomer-monomer switch." << std::endl;
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-				// swap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// get the energies
-				this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-				this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-				this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-				// set up the final energies
-				energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-				contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-				contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-				std::cout << "contacts_store[" << idx_counter << "] = "; print(contacts_store[idx_counter]);
-
-				this->Polymers[p_idx].print_chain();
-				this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
-
-				// revert back to original structure, reswap particles
-				this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-				// resetting...
-				cm_i    = {0,0,0,0,0,0,0,0};
-				cs_i    = {0,0,0,0,0,0,0,0};
-				cpair_i = {0,0,0,0,0,0,0,0};
-				cm_n    = {0,0,0,0,0,0,0,0};
-				cs_n    = {0,0,0,0,0,0,0,0};
-				cpair_n = {0,0,0,0,0,0,0,0};
-				Em_i    = 0;
-				Es_i    = 0;
-				Em_n    = 0;
-				Es_n    = 0;
-				Epair_i = 0;
-				Epair_n = 0;
-
-			}
-
-		}
-		else {
-			std::cout << "Running the monomer-solvent switch." << std::endl;
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_i, &Es_i);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_i, &Em_i);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_i, &Epair_i);
-
-			// swap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-			// get the energies
-			this->neighbor_energetics(lattice_index(ne_list[idx_counter], this->y, this->z), &cs_n, &Es_n);
-			this->neighbor_energetics(lattice_index(loc_m,                this->y, this->z), &cm_n, &Em_n);
-			this->selected_pair_interaction(this->Lattice[lattice_index(ne_list[idx_counter], this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_n, &Epair_n);
-
-			// set up the final energies
-			energies[idx_counter]       = Esys - (Es_i+Em_i-Epair_i) + (Es_n+Em_n-Epair_n);
-			contacts_store[idx_counter] = add_arrays(subtract_arrays(current_contacts, add_arrays (cm_i, cs_i)), add_arrays (cm_n, cs_n));
-			contacts_store[idx_counter] = subtract_arrays(add_arrays(contacts_store[idx_counter], cpair_i), cpair_n);
-			std::cout << "contacts_store[" << idx_counter << "] = "; print(contacts_store[idx_counter]);
-
-			this->Polymers[p_idx].print_chain();
-			this->debug_checks_energy_contacts(energies[idx_counter], contacts_store[idx_counter]);
-
-			// revert back to original structure, reswap particles
-			this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
-
-			// resetting...
-			cm_i    = {0,0,0,0,0,0,0,0};
-			cs_i    = {0,0,0,0,0,0,0,0};
-			cpair_i = {0,0,0,0,0,0,0,0};
-			cm_n    = {0,0,0,0,0,0,0,0};
-			cs_n    = {0,0,0,0,0,0,0,0};
-			cpair_n = {0,0,0,0,0,0,0,0};
-			Em_i    = 0;
-			Es_i    = 0;
-			Em_n    = 0;
-			Es_n    = 0;
-			Epair_i = 0;
-			Epair_n = 0;
-		}
-		idx_counter += 1;
-	}
-
-	double Emin = *std::min_element(energies.begin(), energies.end());
-	for (int i{0}; i<5; ++i){
-		boltzmann[i] = std::exp(-1/this->T * (energies[i]-Emin));
-		rboltzmann  += boltzmann[i];
-	}
-
-	*prob_n_to_o   = (*prob_n_to_o) * boltzmann[0]/rboltzmann;
-	*back_energy   = energies[0];
-	*back_contacts = contacts_store[0];
-
-	// perform the swap
-	this->perturb_particle_swap(tmp_par_ptr, lattice_index(ne_list[0], this->y, this->z), lattice_index(loc_m, this->y, this->z));
-	std::cout << "Check at end of regrowth @ recursion depth = " << recursion_depth << "." << std::endl;
-	this->Polymers[p_idx].print_chain();
-	this->debug_checks_energy_contacts(energies[0], contacts_store[0]);
-	this->debug_backward_tail_regrowth(old_cut, back_contacts, prob_n_to_o, back_energy, p_idx, m_idx-1, recursion_depth+1);
-
-	return;
-}
-
-*/

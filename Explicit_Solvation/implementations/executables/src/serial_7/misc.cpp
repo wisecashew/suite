@@ -1027,57 +1027,65 @@ void filter_coords(const std::string& filename, int cutoff_step) {
 
 void filter_csv(const std::string& filename, int cutoff_step) {
 
-	std::ifstream input_file(filename);
-
-	if (!(input_file.good())){
-		// create the file;
-		std::ofstream file(filename);
-		file.close();
+	if (filename == "__blank__"){
+		// do nothing
 	}
 
 	else {
-		if (!input_file.is_open()) {
-			std::cerr << "Error opening file for reading: " << filename << std::endl;
-			std::cerr << "Exiting..." << std::endl;
-			exit(EXIT_FAILURE);
+		std::ifstream input_file(filename);
+
+		if (!(input_file.good())){
+			// create the file;
+			std::ofstream file(filename);
+			file.close();
 		}
 
-		std::string line; 
-		std::vector<std::string> contents;
-		while (std::getline(input_file, line)){
-			contents.push_back(line);
-		}
-		input_file.close();
-
-		std::ofstream output_file(filename);
-
-		if (!output_file.is_open()) {
-			std::cerr << "Error opening file for writing: " << filename << std::endl;
-			std::cerr << "Exiting..." << std::endl;
-			exit(EXIT_FAILURE);
-		}
-
-		std::regex pattern("(\\d+)(?![^|]*\\|)");
-		std::smatch matches;
-		int step_number {-1};
-
-		for (std::string& single_line: contents){
-			// std::cout << "line = " << single_line << std::endl;
-			if (std::regex_search(single_line, matches, pattern)) {
-				step_number = std::stoi(matches[0]);
-				// std::cout << "step_number = " << step_number << std::endl;
-				if (step_number > cutoff_step){
-					break;
-				}
-				else {
-					output_file << single_line << std::endl;
-				}
+		else {
+			if (!input_file.is_open()) {
+				std::cerr << "Error opening file for reading: " << filename << std::endl;
+				std::cerr << "Exiting..." << std::endl;
+				exit(EXIT_FAILURE);
 			}
+
 			else {
-				output_file << single_line << std::endl;
+				std::string line; 
+				std::vector<std::string> contents;
+				while (std::getline(input_file, line)){
+					contents.push_back(line);
+				}
+				input_file.close();
+
+				std::ofstream output_file(filename);
+
+				if (!output_file.is_open()) {
+					std::cerr << "Error opening file for writing: " << filename << std::endl;
+					std::cerr << "Exiting..." << std::endl;
+					exit(EXIT_FAILURE);
+				}
+
+				std::regex pattern("(\\d+)(?![^|]*\\|)");
+				std::smatch matches;
+				int step_number {-1};
+
+				for (std::string& single_line: contents){
+					// std::cout << "line = " << single_line << std::endl;
+					if (std::regex_search(single_line, matches, pattern)) {
+						step_number = std::stoi(matches[0]);
+						// std::cout << "step_number = " << step_number << std::endl;
+						if (step_number > cutoff_step){
+							break;
+						}
+						else {
+							output_file << single_line << std::endl;
+						}
+					}
+					else {
+						output_file << single_line << std::endl;
+					}
+				}
+				output_file.close();
 			}
 		}
-		output_file.close();
 	}
 	return;
 }

@@ -587,7 +587,9 @@ void Simulation::set_up_FHP(){
 	this->initialize_pairwise_function_map();                            // initialize the pairwise function
 	this->initialize_neighbor_function_map();                            // initialize the neighbor function
 	this->accelerate_calculate_energy();                                 // get the energy of the system
-	this->dump_local();                                                  // dump out the conditions at step number 0
+	if (!this->r){
+		this->dump_local();                                              // dump out the conditions at step number 0
+	}
 	this->debug_checks_energy_contacts(this->sysEnergy, this->contacts); // run the final debugging check
 	this->check_structures();                                            // run another structure check
 
@@ -605,7 +607,9 @@ void Simulation::set_up_Potts(){
 	this->initialize_pairwise_function_map(); // initialize the pairwise function
 	this->initialize_neighbor_function_map(); // initialize the neighbor function
 	this->accelerate_calculate_energy();      // get the energy of the system
-	this->dump_local();                       // dump out the conditions at step number 0
+	if (!this->r){
+		this->dump_local();                   // dump out the conditions at step number 0
+	}
 
 	return;
 

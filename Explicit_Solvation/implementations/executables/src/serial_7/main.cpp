@@ -224,6 +224,16 @@ int main (int argc, char** argv) {
 		mySim.set_up_FHP();
 	}
 	
+	std::cout << "Positions: " << mySim.positions << std::endl;
+	std::cout << "Topology: " << mySim.topology << std::endl;
+	std::cout << "Coord dump file: " << mySim.dfile << std::endl;
+	std::cout << "Energy dump file: " << mySim.efile << std::endl;
+	std::cout << "Orientation dump file: " << mySim.mfile << std::endl;
+	std::cout << "Stats file: " << mySim.stats_file << std::endl;
+	std::cout << "Lattice file to write: " << mySim.lattice_file_write << std::endl;
+	std::cout << "Lattice file to read: " << mySim.lattice_file_read << std::endl;
+	std::cout << "Solvation shell file: " << mySim.SSfile << std::endl;
+
 	// print out the opening tiles
 	mySim.opening_tiles();
 

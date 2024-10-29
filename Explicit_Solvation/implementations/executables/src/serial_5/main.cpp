@@ -290,13 +290,13 @@ int main (int argc, char** argv) {
 	// if i am not restarting, i do not need to dump anything. All the information is already present. 
 	if (!r) {
 		dumpEnergy    (sysEnergy, step_number, &contacts, efile); 
-		dumpSolvation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
+		dumpSolvation (&Polymers, &LATTICE, &InteractionMap, step_number, mfile, x, y, z); 
 		// dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
 		
 	}
 
 	else {
-		dumpSolvation (&Polymers, &LATTICE, step_number, mfile, x, y, z); 
+		dumpSolvation (&Polymers, &LATTICE, &InteractionMap, step_number, mfile, x, y, z); 
 		// dumpOrientation (&Polymers, &LATTICE, step_number, mfile, x, y, z);
 	}
 
@@ -337,10 +337,7 @@ int main (int argc, char** argv) {
 		if ( ( i % dfreq == 0 ) ){
 			dumpPositionsOfPolymers (&Polymers, i, dfile); 
 			dumpEnergy (sysEnergy, i, &contacts, efile);
-			dumpSolvation(&Polymers, &LATTICE, i, mfile, x, y, z);
-			// if ( i % (dfreq*10) == 0 ) {
-			//     dumpOrientation (&Polymers, &LATTICE, i, mfile, x, y, z); 
-			// }
+			dumpSolvation(&Polymers, &LATTICE, &InteractionMap, i, mfile, x, y, z);
 
 			if ( i % (lfreq) == 0 ){
 				dumpLATTICE ( &LATTICE, i, y, z, lattice_file_write ); 

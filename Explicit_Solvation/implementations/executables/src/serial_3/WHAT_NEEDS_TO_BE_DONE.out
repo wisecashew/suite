@@ -1,5 +1,0 @@
-What I need to do is implement first solvation shell flips with bias. 
-Next, I need to implement second solvation shell flips with bias. 
-Then, I need to implement identity swaps. 
-
-Once this has been done, I will run unit tests. I do not want simulations to crash. Somehow find a way to visualize results. 

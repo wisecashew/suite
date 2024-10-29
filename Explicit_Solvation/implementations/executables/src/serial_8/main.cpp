@@ -165,7 +165,7 @@ int main (int argc, char** argv) {
 
 	std::array <int,9>    attempts    = {0,0,0,0,0,0,0,0,0};
 	std::array <int,9>    acceptances = {0,0,0,0,0,0,0,0,0}; 
-	std::array <double,9> contacts    = {0,0,0,0,0,0,0,0,0}; 
+	std::array <double,8> contacts    = {0,0,0,0,0,0,0,0}; 
 
 	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 	// Parse inputs... 

@@ -1,6 +1,5 @@
 {
     "files.associations": {
-        "iostream": "cpp",
         "thread": "cpp",
         "cctype": "cpp",
         "clocale": "cpp",
@@ -18,6 +17,7 @@
         "*.tcc": "cpp",
         "bitset": "cpp",
         "chrono": "cpp",
+        "codecvt": "cpp",
         "cstdint": "cpp",
         "deque": "cpp",
         "unordered_map": "cpp",
@@ -45,6 +45,7 @@
         "fstream": "cpp",
         "initializer_list": "cpp",
         "iosfwd": "cpp",
+        "iostream": "cpp",
         "istream": "cpp",
         "limits": "cpp",
         "new": "cpp",

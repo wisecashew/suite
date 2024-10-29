@@ -1309,10 +1309,10 @@ std::array <double,13> ExtractTopologyFromFile( std::string filename, std::map <
 
 double NeighborEnergetics ( std::vector <Particle*>* LATTICE, \
 	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
-	std::array <double, 9>* contacts, int ss_index, int x, int y, int z ){
+	std::array <double, 8>* contacts, int ss_index, int x, int y, int z ){
 
 	double   Ei = 0; 
-	(*contacts) = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+	(*contacts) = {0, 0, 0, 0, 0, 0, 0, 0};
 	std::array <std::array<int,3>, 26> ne_list = obtain_ne_list ( (*LATTICE)[ss_index]->coords, x, y, z); 
 
 	for ( std::array <int,3>& loc: ne_list) {
@@ -1329,7 +1329,7 @@ double NeighborEnergetics ( std::vector <Particle*>* LATTICE, \
 
 void ParticlePairEnergyContribution (Particle* p1, Particle* p2, \
 	std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
-	double* pair_energy, std::array <double,9>* contacts, int x, int y, int z) {
+	double* pair_energy, std::array <double,8>* contacts, int x, int y, int z) {
 
 	double dot_product = 0;
 	double theta_1     = 0;
@@ -2861,10 +2861,10 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 
 double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE, \
 	std::map <std::pair <std::string, std::string>, std::tuple<std::string, double, double, int, int>>* InteractionMap, \
-	std::array<double,9>* contacts, int x, int y, int z) {
+	std::array<double,8>* contacts, int x, int y, int z) {
     
     double Energy {0.0};
-    (*contacts) = {0,0,0,0,0,0,0,0,0}; 
+    (*contacts) = {0,0,0,0,0,0,0,0}; 
 
     std::array <std::array <int,3>, 26> ne_list; 
 
@@ -2884,15 +2884,10 @@ double CalculateEnergyRevamped (std::vector <Polymer>* Polymers, std::vector <Pa
 		// std::cout << "Entered cosolvent loop. " << std::endl;
 		ne_list = obtain_ne_list ( p->coords, x, y, z );
 		for ( std::array <int,3>& loc: ne_list ){
-			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1"){
+			if ( (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "m1" || (*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
 				continue; 
 			}
-			else if ((*LATTICE)[ lattice_index(loc, y, z) ]->ptype == "s2"){
-				(*contacts)[8] += 0.5; 
-			}
-			else {
-				ParticlePairEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
-			}
+			ParticlePairEnergyContribution (p, (*LATTICE)[ lattice_index(loc, y, z) ], InteractionMap, &Energy, contacts, x, y, z);
 		}
 	}
 
@@ -3131,7 +3126,7 @@ void dumpPositionOfSolvent(std::vector <Particle*>* LATTICE, int step, std::stri
 // THE CODE: 
 
 
-void dumpEnergy (double sysEnergy, int step, std::array<double,9>* contacts, std::string filename) {
+void dumpEnergy (double sysEnergy, int step, std::array<double,8>* contacts, std::string filename) {
     std::ofstream dump_file(filename, std::ios::app); 
     // std::ostringstream os; 
     
@@ -3144,7 +3139,7 @@ void dumpEnergy (double sysEnergy, int step, std::array<double,9>* contacts, std
 			<< (*contacts)[0]+(*contacts)[1] << " | " << (*contacts)[0] << " | " << (*contacts)[1] << " | " \
 			<< (*contacts)[2]+(*contacts)[3] << " | " << (*contacts)[2] << " | " << (*contacts)[3] << " | " \
 			<< (*contacts)[4]+(*contacts)[5] << " | " << (*contacts)[4] << " | " << (*contacts)[5] << " | " \
-			<< (*contacts)[6]+(*contacts)[7] << " | " << (*contacts)[6] << " | " << (*contacts)[7] << " | " << (*contacts)[8] << " | " << step << "\n";
+			<< (*contacts)[6]+(*contacts)[7] << " | " << (*contacts)[6] << " | " << (*contacts)[7] << " | " << step << "\n";
 
     return; 
 }
@@ -3333,7 +3328,7 @@ void dumpLATTICE ( std::vector <Particle*> *LATTICE, int step, int y, int z, std
 
 void TailRotation_UNBIASED_debug (std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector <Particle*>* LATTICE,  \
 	std::map <std::pair<std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
-	std::array <double,8>* E, std::array<double,9>* contacts, bool* IMP_BOOL, double* sysEnergy, \
+	std::array <double,8>* E, std::array<double,8>* contacts, bool* IMP_BOOL, double* sysEnergy, \
 	double temperature, int index, int x, int y, int z) {
 
 	

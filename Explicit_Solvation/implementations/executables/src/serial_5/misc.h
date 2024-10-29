@@ -213,7 +213,7 @@ void dumpPositionOfSolvent   (std::vector <Particle*>* LATTICE, int step, std::s
 void dumpOrientation         (std::vector <Polymer> * Polymers, std::vector<Particle*>* LATTICE, int step, std::string filename, int x, int y, int z);
 void dumpMoveStatistics      (std::array  <int,9>   * attempts, std::array <int,9>* acceptances, int step, std::string stats_file); 
 void dumpLATTICE             (std::vector <Particle*>* LATTICE, int step, int y, int z, std::string filename);
-void dumpSolvation           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int step, std::string filename, int x, int y, int z );
+void dumpSolvation           (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, int step, std::string filename, int x, int y, int z );
 void BiasTheStart            (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z);
 void AlignTheSolvationShell  (std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z);
 void AlignTheLattice         (std::vector <Particle*>* LATTICE); 

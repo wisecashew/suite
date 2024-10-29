@@ -208,6 +208,13 @@ void modified_direction(std::array<int,3>* a, int x, int y, int z){
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
+double branchless_acos(double input) {
+    // Calculate acos and handle precision issues for inputs close to -1 and 1
+    return (std::fabs(input + 1.0) < 0.0001) ? M_PI :
+           (std::fabs(input - 1.0) < 0.0001) ? 0.0 :
+           std::acos(input);
+}
+
 //==============================================================================================
 // random number generators 
 //==============================================================================================
@@ -277,6 +284,7 @@ void print(std::vector <int> v, std::string c){
 		std::cout << i << " | ";
 	}
 	std::cout << c;
+	return;
 }
 
 void print(std::vector <double> v, std::string c){
@@ -284,6 +292,7 @@ void print(std::vector <double> v, std::string c){
 		std::cout << i << " | ";
 	}
 	std::cout << c;
+	return;
 }
 
 void print(std::array <int, 3> v, std::string c){
@@ -291,6 +300,7 @@ void print(std::array <int, 3> v, std::string c){
 		std::cout << i << " | ";
 	}
 	std::cout << c;
+	return;
 }
 
 void print(std::array <int, 6> v, std::string c){
@@ -298,6 +308,7 @@ void print(std::array <int, 6> v, std::string c){
 		std::cout << i << " | ";
 	}
 	std::cout << c;
+	return;
 }
 
 void print(std::array <double, 3> v, std::string c){
@@ -305,6 +316,7 @@ void print(std::array <double, 3> v, std::string c){
 		std::cout << i << " | ";
 	}
 	std::cout << c;
+	return;
 }
 
 void print(std::array <double, 4> v, std::string c){
@@ -312,6 +324,7 @@ void print(std::array <double, 4> v, std::string c){
 		std::cout << i << " | ";
 	}
 	std::cout << c;
+	return;
 }
 
 void print(std::array <double, 6> v, std::string c){
@@ -319,6 +332,7 @@ void print(std::array <double, 6> v, std::string c){
 		std::cout << i << " | ";
 	}
 	std::cout << c;
+	return;
 }
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -333,18 +347,21 @@ void print(std::vector <std::vector <int>>vv){
 	for (std::vector <int> v: vv){
 		print(v);
 	}
+	return;
 }
 
 void print(std::vector <std::vector <double>>vv){
 	for (std::vector <double> v: vv){
 		print(v);
 	}
+	return;
 }
 
 void print(std::vector <std::string>vv){
 	for (std::string s: vv){
 		std::cout << s << std::endl;
 	}
+	return;
 }
 
 void print(std::vector <Particle> pvec){
@@ -352,6 +369,7 @@ void print(std::vector <Particle> pvec){
 		p.printCoords();
 		// std::cout << p.ptype << std::endl;
 	}
+	return;
 }
 
 void print( std::array <std::array<int,3>,6> aa ){
@@ -359,7 +377,7 @@ void print( std::array <std::array<int,3>,6> aa ){
 	for ( std::array<int,3>& a: aa){
 		print(a);
 	}
-
+	return;
 }
 
 void print ( std::vector <std::array<int,3>> aa ){
@@ -367,7 +385,7 @@ void print ( std::vector <std::array<int,3>> aa ){
 	for ( std::array <int,3>& a: aa){
 		print (a);
 	}
-
+	return;
 }
 
 void print ( std::vector <Particle*>* LATTICE ){
@@ -375,6 +393,7 @@ void print ( std::vector <Particle*>* LATTICE ){
 	for ( Particle*& p: (*LATTICE) ){
 		print( p->coords );
 	}
+	return;
 }
 
 void print ( std::vector <std::vector <std::array<int,3>>> V){
@@ -1363,8 +1382,8 @@ void ParticlePairEnergyContribution (Particle* p1, Particle* p2, \
 			connvec = subtract_arrays ( &(p2->coords), &(p1->coords) );
 			modified_direction ( &connvec, x, y, z); 
 			magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+			theta_1   = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+			theta_2   = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 
 			if ( theta_1 + theta_2 > M_PI/2 ){
 
@@ -1425,8 +1444,8 @@ double IsolatedPairParticleInteraction (Particle* p1, Particle* p2, \
 
 		case 'a':
 			magnitude = std::sqrt ( connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2] );
-			theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
-			theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
+			theta_1   = branchless_acos (take_dot_product (scale_arrays (1/magnitude, &connvec),  Or2Dir[p1->orientation]) ); 
+			theta_2   = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation]) );
 
 			if (theta_1 + theta_2 > M_PI/2) {
 				pE = std::get<2>((*InteractionMap)[particle_pair]);
@@ -1812,11 +1831,10 @@ void SetUpLatticeFromScratch (std::vector <Polymer>* Polymers, std::vector <Part
 	return;
 }
 
-
 void SetUpLatticeFromRestart ( std::vector <Polymer>* Polymers, std::vector <Particle*>* Cosolvent, std::vector<Particle*>* LATTICE, int* step_number, std::string lattice_file_read, std::string dfile, std::string positions, int x, int y, int z ){
 	
-	(*LATTICE)  = ExtractLatticeFromRestart ( lattice_file_read, step_number, x, y, z ); 
-    (*Polymers) = ExtractPolymersFromTraj   ( dfile, positions, *step_number, x, y, z );
+	(*LATTICE)  = ExtractLatticeFromRestart (lattice_file_read, step_number, x, y, z);
+    (*Polymers) = ExtractPolymersFromTraj   (dfile, positions, *step_number, x, y, z);
 
     for ( Polymer& pmer: (*Polymers)) {
         for ( Particle*& p: pmer.chain){
@@ -1838,7 +1856,6 @@ void SetUpLatticeFromRestart ( std::vector <Polymer>* Polymers, std::vector <Par
     return; 
 
 }
-
 
 void AlignTheSolvationShell ( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int x, int y, int z ) {
 
@@ -2832,8 +2849,8 @@ double CalculateEnergy (std::vector <Polymer>* Polymers, std::vector <Particle*>
 				connvec   = subtract_arrays ( &(*LATTICE)[lattice_index(loc, y, z)]->coords, &(p->coords) );
 				modified_direction ( &connvec, x, y, z); 
 				magnitude = std::sqrt (connvec[0]*connvec[0]+connvec[1]*connvec[1]+connvec[2]*connvec[2]); 
-				theta_1 = std::acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[p->orientation] ) ); 
-				theta_2 = std::acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
+				theta_1 = branchless_acos (take_dot_product ( scale_arrays( 1/magnitude, &connvec), Or2Dir[p->orientation] ) ); 
+				theta_2 = branchless_acos (take_dot_product ( scale_arrays(-1/magnitude, &connvec), Or2Dir[(*LATTICE)[lattice_index(loc, y, z)]->orientation] ) ); 
 
 				if ( theta_1+theta_2 > M_PI/2 ){
 						Energy += (*E)[7]; 
@@ -2957,8 +2974,8 @@ void PairInteractionForRevampedEnergyCalc (Particle* p1, Particle* p2, \
 		connvec = subtract_arrays ( &(p2->coords), &(p1->coords) );
 		modified_direction (&connvec, x, y, z); 
 		magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-		theta_1   = std::acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-		theta_2   = std::acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+		theta_1   = branchless_acos (take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
+		theta_2   = branchless_acos (take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
 
 		if ( theta_1 + theta_2 > M_PI/2 ){
 			if ( particle_pair.first == "m1" && particle_pair.second == "m1" ) {
@@ -3241,19 +3258,22 @@ void dumpOrientation( std::vector <Polymer>* Polymers, std::vector <Particle*>* 
 
 }
 
-void dumpSolvation( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, int step, std::string filename, int x, int y, int z ) {
-	std::ofstream dump_file (filename, std::ios::app); 
+void dumpSolvation( std::vector <Polymer>* Polymers, std::vector <Particle*>* LATTICE, \
+std::map <std::pair <std::string, std::string>, std::tuple <std::string, double, double, int, int>>* InteractionMap, \
+int step, std::string filename, int x, int y, int z ) {
+
+	std::ofstream dump_file (filename, std::ios::app);
 	std::set <int> solvent_indices  ;
 	std::set <int> cosolvent_indices;
-	
-	for ( Polymer& pmer: (*Polymers) ) {
-		for ( Particle*& p: pmer.chain ) {
-			std::array <std::array<int,3>, 26> ne_list = obtain_ne_list (p->coords, x, y, z);
-			for ( std::array <int,3>& ne: ne_list) {
-				if ((*LATTICE)[lattice_index(ne, y, z)]->ptype[1] == '1' && (*LATTICE)[lattice_index(ne, y, z)]->ptype[0]=='s'){
+	std::array <std::array<int,3>,26> ne_list;
+	for (Polymer& pmer: (*Polymers)) {
+		for (Particle*& p: pmer.chain) {
+			ne_list = obtain_ne_list (p->coords, x, y, z);
+			for (std::array <int,3>& ne: ne_list) {
+				if ((*LATTICE)[lattice_index(ne, y, z)]->ptype == "s1"){
 					solvent_indices.insert(lattice_index(ne, y, z));
 				}
-				else if ((*LATTICE)[lattice_index(ne, y, z)]->ptype[1] == '2' && (*LATTICE)[lattice_index(ne, y, z)]->ptype[0]=='s'){
+				else if ((*LATTICE)[lattice_index(ne, y, z)]->ptype == "s2"){
 					cosolvent_indices.insert(lattice_index(ne, y, z));
 				}
 			}
@@ -3262,7 +3282,37 @@ void dumpSolvation( std::vector <Polymer>* Polymers, std::vector <Particle*>* LA
 
 	int total_solvent_particles   {static_cast<int>(solvent_indices.size())};
 	int total_cosolvent_particles {static_cast<int>(cosolvent_indices.size())};
-	dump_file << total_solvent_particles + total_cosolvent_particles << " | " << total_solvent_particles << " | " << total_cosolvent_particles << " | " << step << "\n";
+	double E_s1s2 = 0;
+	std::array <double,8> contacts = {0,0,0,0,0,0,0,0};
+
+	for (int s_idx: solvent_indices) {
+		// get the neighbors
+		ne_list = obtain_ne_list ((*LATTICE)[s_idx]->coords, x, y, z);
+		for (std::array<int,3>& ne: ne_list){
+			if ((*LATTICE)[lattice_index(ne, y, z)]->ptype == "s2"){
+				ParticlePairEnergyContribution((*LATTICE)[s_idx], (*LATTICE)[lattice_index(ne, y, z)], InteractionMap, &E_s1s2, &contacts, x, y, z);
+			}
+		}
+	}
+
+	for (int c_idx: cosolvent_indices){
+		// get the neighbors
+		ne_list = obtain_ne_list ((*LATTICE)[c_idx]->coords, x, y, z);
+		for (std::array<int,3>& ne: ne_list){
+			auto it = solvent_indices.find(lattice_index(ne, y, z));
+			if ((*LATTICE)[lattice_index(ne, y, z)]->ptype == "s1" && it == solvent_indices.end()){
+				ParticlePairEnergyContribution((*LATTICE)[c_idx], (*LATTICE)[lattice_index(ne, y, z)], InteractionMap, &E_s1s2, &contacts, x, y, z);
+			}
+		}
+	}
+
+
+	std::pair <std::string, std::string> particle_pair = std::make_pair ("s1", "s2");
+	int aligned_idx    = std::get<3>((*InteractionMap)[particle_pair]);
+	int misaligned_idx = std::get<4>((*InteractionMap)[particle_pair]);
+
+	dump_file << total_solvent_particles + total_cosolvent_particles << " | " << total_solvent_particles << " | " << total_cosolvent_particles << " | " <<
+	contacts[aligned_idx] << " | " << contacts[misaligned_idx] << " | " << step << "\n";
 
 	return;
 
@@ -4158,8 +4208,8 @@ void forward_reptation_with_tail_biting_new (std::vector <Polymer>* Polymers, st
 	std::array <double,8> cm1_n             = {0,0,0,0,0,0,0,0};
 	std::array <double,8> cm2_n             = {0,0,0,0,0,0,0,0};
 	std::array <double,8> current_contacts  = *contacts;
-	std::array <int,3>    loc_m1             = {0,0,0}; 
-	std::array <int,3>    loc_m2             = {0,0,0}; 
+	std::array <int,3>    loc_m1            = {0,0,0}  ;
+	std::array <int,3>    loc_m2            = {0,0,0}  ;
 
 	for (int i{0}; i<deg_poly-1; ++i){
 		
@@ -5999,7 +6049,7 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 	if ( growth ){
 		
 		// std::cout << "Head regrowth... " << std::endl;
-		// std::cout << "OLD ENERGY = " << *sysEnergy << std::endl << std::endl;
+		// std::cout << "OLD ENERGY = "     << *sysEnergy << std::endl << std::endl;
 		// get old_cut 
 		
 		for (int i {m_index+1}; i<deg_poly; ++i){
@@ -6025,9 +6075,7 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 		if ( !(*IMP_BOOL) ){
 			// std::cout << "ALL BLOCKS! REVERTING!" << std::endl;
 			// revert back to the original state. 
-
 			acceptance_after_head_regrowth ( LATTICE, &new_cut, &old_cut, y, z );
-
 			return; 
 		}
 
@@ -6042,7 +6090,7 @@ void ChainRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 		// check acceptance criterion
 		double rng_acc = rng_uniform (0.0, 1.0); 
 	
-		if ( rng_acc < std::exp(-1/temperature * (frontflow_energy- *sysEnergy)) * prob_n_to_o/prob_o_to_n ){
+		if (rng_acc < std::exp(-1/temperature * (frontflow_energy- *sysEnergy)) * prob_n_to_o/prob_o_to_n){
 
 			acceptance_after_head_regrowth (LATTICE, &old_cut, &new_cut, y, z); 
 			*sysEnergy = frontflow_energy; 
@@ -6350,8 +6398,8 @@ void HeadRegrowth_BIASED (std::vector <Polymer>* Polymers, std::vector <Particle
 
 		else if ( (*LATTICE)[ lattice_index (ne_list[idx_counter], y, z) ]->ptype[0] == 'm' ){
 
-			for ( int u{0}; u<deg_poly; ++u ) {
-				if ( (*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter] ) {
+			for (int u{0}; u<deg_poly; ++u){
+				if ((*Polymers)[p_index].chain[u]->coords == ne_list[idx_counter]) {
 					self_swap_idx = u; 
 					break; 
 				}
@@ -6580,7 +6628,7 @@ void HeadRegrowth_BIASED_debug (std::vector <Polymer>* Polymers, std::vector <Pa
 				// maintain_idx.push_back(idx_counter); 
 
 				energies[idx_counter] = 1e+08; // very unfavorable state 
-				contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1}; 
+				contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
 				block_counter += 1; 
 			}
 			else {
@@ -8106,7 +8154,6 @@ void ChainRegrowth_UNBIASED (std::vector <Polymer>* Polymers, std::vector <Parti
 
 		// if the move could not be completed, i need to back track 
 		if ( !(*IMP_BOOL) ){
-
 			acceptance_after_head_regrowth (LATTICE, &new_cut, &old_cut, y, z); 
 			return; 
 		}
@@ -8377,7 +8424,7 @@ void acceptance_after_head_regrowth (std::vector <Particle*>* LATTICE, \
 				
 			}
 			tmp_par_ptr->coords = linked_list[0]; 
-			(*LATTICE)[lattice_index (linked_list[0], y, z)] = tmp_par_ptr; 
+			(*LATTICE)[lattice_index (linked_list[0], y, z)] = tmp_par_ptr;
 
 		}
 
@@ -8401,11 +8448,8 @@ void acceptance_after_head_regrowth (std::vector <Particle*>* LATTICE, \
 					tmp_par_ptr = tmp_par_ptr_; 
 					
 				}
-						
 			}
-
 		}
-
 	}
 
 	return; 
@@ -11976,7 +12020,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			}
 			ChainRegrowthPlusOrientationFlip_BIASED (Polymers, Cosolvent, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, index, x, y, z);
 			*move_number    = r; 
-			(*attempts)[r] += 1;			
+			(*attempts)[r] += 1;
 			break; 
 
 		case (6):
@@ -12013,7 +12057,7 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			SolventExchange_BIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z);
 			*move_number    = r;
 			(*attempts)[r] += 1; 
-			break;			
+			break;
 
 		case (5):
 			if (v) {
@@ -12021,12 +12065,11 @@ void PerturbSystem_BIASED (std::vector <Polymer>* Polymers, std::vector <Particl
 			}
 			SolventExchange_UNBIASED (Polymers, LATTICE, InteractionMap, contacts, IMP_BOOL, sysEnergy, temperature, x, y, z);
 			*move_number = r;
-			(*attempts)[r] += 1; 
-			break; 
-
+			(*attempts)[r] += 1;
+			break;
 	}
 
-	return; 
+	return;
 
 }
 

@@ -214,6 +214,14 @@ void Simulation::dump_local_no_ss(){
 	return;
 }
 
+void Simulation::dump_local_dry(){
+	if ((this->step_number % this->dfreq) == 0){
+		this->dump_energy();
+		this->dump_polymers();
+	}
+	return;
+}
+
 void Simulation::dump_lattice(){
 
 	if ((this->step_number % this->lfreq) == 0){

@@ -22,6 +22,11 @@ public:
 	double perturbed_E;            // energy of the system after perturbation
 	std::vector <double> energies; // this is the container holding energies of each perturbation
 
+	// containers for magnetization as the orientation of each particle is perturbed
+	std::array <double,3>              initial_magnetization;   // initial contacts, prior to perturbation
+	std::array <double,3>              perturbed_magnetization; // local change in contacts on perturbation
+	std::vector <std::array<double,3>> magnetization_store;     // this is the container holding all the net contacts when running through the trialed states
+
 	// containers for contacts as the orientation of each particle is perturbed
 	std::array <double,CONTACT_SIZE>              initial_contacts;   // initial contacts, prior to perturbation
 	std::array <double,CONTACT_SIZE>              perturbed_contacts; // local change in contacts on perturbation
@@ -83,6 +88,7 @@ public:
 		std::fill(this->orientations.begin(), this->orientations.end(), 0); 
 		std::fill(this->energies.begin(), this->energies.end(), 0);
 		std::fill(this->contacts_store.begin(), this->contacts_store.end(), this->zero_array);
+		std::fill(this->magnetization_store.begin(), this->magnetization_store.end(), std::array<double,3>{0, 0, 0})
 		this->rboltzmann       = 0;
 		this->prob_o_to_n      = 1;
 		this->prob_n_to_o      = 1;
@@ -94,9 +100,11 @@ public:
 		this->sampler_rng      = 0;
 		this->sampler_rsum     = 0;
 		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
-		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
 		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
 		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
+		this->current_magnetization   = {0,0,0};
+		this->initial_magnetization   = {0,0,0};
+		this->perturbed_magnetization = {0,0,0};
 		return;
 	}
 
@@ -110,6 +118,7 @@ public:
 		this->orientations.resize(ntest,0);
 		this->energies.resize(ntest,0);
 		this->contacts_store.resize(ntest, this->zero_array);
+		this->magnetization_store.resize(ntest, std::array<double,3>{0,0,0});
 		this->rboltzmann         = 0;
 		this->prob_o_to_n        = 1;
 		this->prob_n_to_o        = 1;
@@ -123,6 +132,9 @@ public:
 		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
 		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
 		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
+		this->current_magnetization   = {0,0,0};
+		this->initial_magnetization   = {0,0,0};
+		this->perturbed_magnetization = {0,0,0};
 		return;
 	};
 

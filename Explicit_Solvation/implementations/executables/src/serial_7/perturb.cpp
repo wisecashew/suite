@@ -51,7 +51,6 @@ void Simulation::perturb_particle_swap(Particle* tmp_par_ptr, int lat_idx_1, int
 	(this->Lattice)[lat_idx_2]->coords = location (lat_idx_2, this->x, this->y, this->z);
 
 	return;
-
 }
 
 void Simulation::perturb_particle_swap_with_update(Particle* tmp_par_ptr, int lat_idx_1, int lat_idx_2){
@@ -104,7 +103,6 @@ void Simulation::perturb_orientation_sampler_forwards(std::array<double,CONTACT_
 	}
 
 	return;
-
 }
 
 void Simulation::perturb_choose_state_forward(int iterator_idx, int lat_idx){
@@ -175,7 +173,6 @@ void Simulation::perturb_orientation_sampler_backwards(std::array<double,CONTACT
 	}
 
 	return;
-
 }
 
 //////////////////////////////////////////////////////////
@@ -457,7 +454,6 @@ void Simulation::forward_reptation_with_tail_biting(std::array<double,CONTACT_SI
 	*E_i        = Esys;
 	*contacts_i = contacts;
 	return; 
-
 }
 
 void Simulation::forward_reptation_without_tail_biting(std::array<double,CONTACT_SIZE>* contacts_i, std::array<int,3>* to_slither, double* E_i, int p_idx){
@@ -540,7 +536,6 @@ void Simulation::forward_reptation_without_tail_biting(std::array<double,CONTACT
 	*contacts_i = contacts;
 
 	return; 
-
 }
 
 void Simulation::backward_reptation_with_head_butting(std::array<double,CONTACT_SIZE>* contacts_i, double* E_i, int p_idx){
@@ -614,7 +609,6 @@ void Simulation::backward_reptation_with_head_butting(std::array<double,CONTACT_
 	*contacts_i = contacts;
 	*E_i        = Esys;
 	return; 
-
 }
 
 void Simulation::backward_reptation_without_head_butting(std::array<double,CONTACT_SIZE>* contacts_i, std::array<int,3>* to_slither, double* E_i, int p_idx){
@@ -838,7 +832,7 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 
 	// instantiate variables for boltzmann sampling
 	int ntest    = 5;
-	int nflip    = (deg_poly==1) ? 1 : rng_uniform (1, deg_poly-1);
+	int nflip    = (deg_poly==1) ? 1 : rng_uniform(1, deg_poly-1);
 
 	// set up the flipper object
 	this->enhanced_flipper.reset(nflip, ntest);
@@ -848,15 +842,15 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 	std::array<double,CONTACT_SIZE> contacts_sys = this->contacts;
 
 	// some more holders
-	double               E_post        = 0;                 // the energy of the system after final perturbation
-	double               rng_acc       = 0;                 // rng for acceptance at the very end
+	double               E_post        = 0;                                // the energy of the system after final perturbation
+	double               rng_acc       = 0;                                // rng for acceptance at the very end
 	std::array<double,CONTACT_SIZE> contacts_post = {0,0,0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
 
 	// relevant indices variable store
 	int m_lattice_idx = 0; 
 
 	// loop over the different monomer indices
-	for ( int i{0}; i < nflip; ++i ){
+	for (int i{0}; i < nflip; ++i){
 
 		// sample different orientations and get the boltzmann factors 
 		m_lattice_idx = lattice_index(this->Polymers[p_idx].chain[polymer_indices[i]]->coords, this->y, this->z);
@@ -876,9 +870,9 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 
 		// reset
 		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		this->enhanced_flipper.initial_E        = 0;
-		this->enhanced_flipper.rboltzmann       = 0;
-		this->enhanced_flipper.sampler_rsum     = 0;
+		this->enhanced_flipper.initial_E        =  0;
+		this->enhanced_flipper.rboltzmann       =  0;
+		this->enhanced_flipper.sampler_rsum     =  0;
 
 	}
 	
@@ -947,9 +941,7 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 		this->IMP_BOOL = false; 
 	}
 
-
 	return;
-
 }
 
 void Simulation::perturb_solvation_shell_flip(){
@@ -1063,7 +1055,6 @@ void Simulation::perturb_solvation_shell_flip(){
 	}
 
 	return;
-
 }
 
 void Simulation::perturb_lattice_flip(){
@@ -1202,7 +1193,6 @@ void Simulation::perturb_solvent_exchange_from_shell(){
 		}
 	}
 	return;
-	
 }
 
 void Simulation::perturb_solvent_exchange(){
@@ -1325,10 +1315,6 @@ void Simulation::perturb_regrowth(int p_idx){
 
 			rng_acc = rng_uniform(0.0, 1.0);
 			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o / this->enhanced_swing.prob_o_to_n){
-				// if (forw_energy > this->sysEnergy){
-				//	std::cout << "forw_energy = " << forw_energy << ", current_energy = " << this->sysEnergy << std::endl;
-				//	std::cout << "prob_n_to_o = " << this->enhanced_swing.prob_n_to_o << ", prob_o_to_n = " << this->enhanced_swing.prob_o_to_n << std::endl;
-				// }
 				this->perturb_accept_after_head_regrowth(this->IMP_BOOL);
 				this->sysEnergy = forw_energy; 
 				this->contacts  = forw_contacts;
@@ -1370,15 +1356,10 @@ void Simulation::perturb_regrowth(int p_idx){
 			
 			forw_energy   = this->enhanced_swing.current_energy;
 			forw_contacts = this->enhanced_swing.current_contacts;
-			
 			this->perturb_backward_tail_regrowth(p_idx, m_idx, 0);
 			
 			rng_acc = rng_uniform(0.0, 1.0);
 			if (rng_acc < std::exp(-1/this->T * (forw_energy - this->sysEnergy)) * this->enhanced_swing.prob_n_to_o/this->enhanced_swing.prob_o_to_n) {
-				// if (forw_energy > this->sysEnergy){
-				// 	std::cout << "forw_energy = " << forw_energy << ", current_energy = " << this->sysEnergy << std::endl;
-				// 	std::cout << "prob_n_to_o = " << this->enhanced_swing.prob_n_to_o << ", prob_o_to_n = " << this->enhanced_swing.prob_o_to_n << std::endl;
-				// }
 				this->perturb_accept_after_tail_regrowth(this->IMP_BOOL);
 				this->sysEnergy = forw_energy;
 				this->contacts  = forw_contacts;
@@ -1588,7 +1569,6 @@ void Simulation::perturb_accept_after_head_regrowth(bool not_trap_bool){
 	}
 
 	return;
-
 }
 
 //#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -1922,7 +1902,6 @@ void Simulation::perturb_accept_after_tail_regrowth(bool not_trap_bool){
 	}
 
 	return;
-
 }
 
 //#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -2053,7 +2032,6 @@ void Simulation::perturb_backward_tail_regrowth(int p_idx, int m_idx, int recurs
 	}
 
 	return;
-
 }
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -2137,6 +2115,38 @@ void Simulation::perturb_system_straight(){
 
 // ~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%
 
+void Simulation::perturb_system_dry(){
+
+	int r = rng_uniform(0, 5);
+	switch (r) {
+		case 0:
+			this->perturb_tail_rotation(0);
+			break;
+		case 1:
+			this->perturb_head_rotation(0);
+			break;
+		case 2:
+			this->perturb_reptation_forward(0);
+			break;
+		case 3:
+			this->perturb_reptation_backward(0);
+			break;
+		case 4:
+			this->perturb_polymer_orientation_flip_dry(0);
+			break;
+		case 5:
+			this->perturb_regrowth(0);
+			break;
+		default:
+			std::cout << "Bad random number generated. Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
+			break;
+	}
+	return;
+}
+
+// ~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%
+
 void Simulation::perturb_system_debug(){
 	std::cout << "Running the debugging-based perturbation." << std::endl;
 	int r = rng_uniform(0,8);
@@ -2195,7 +2205,6 @@ void Simulation::perturb_system_debug(){
 			break;
 	}
 	return;
-
 }
 
 // ~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%
@@ -2205,5 +2214,4 @@ void Simulation::perturb_potts(){
 	this->perturb_lattice_flip();
 	
 	return;
-
 }

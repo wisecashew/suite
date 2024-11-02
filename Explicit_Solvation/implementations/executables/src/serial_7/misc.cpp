@@ -1152,3 +1152,7 @@ double branchless_acos(double input) {
 			std::acos(input);
 }
 
+double norm(std::array<double,3> arr){
+	return std::sqrt(arr[0]*arr[0] + arr[1]*arr[1]+arr[2]*arr[2]);
+}
+

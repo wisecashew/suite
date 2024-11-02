@@ -22,6 +22,11 @@ void interaction_i_sp_sp(Simulation* sim, Particle*, Particle*, std::array<doubl
 	return; 
 }
 
+void interaction_m1_s0(Simulation* sim, Particle*, Particle*, std::array<double,CONTACT_SIZE>* contacts, double* energy) {
+	(*contacts)[3] += 1;
+	return;
+}
+
 void interaction_i_m1_m1(Simulation* sim, Particle*, Particle*, std::array<double,CONTACT_SIZE>* contacts, double* energy) {
 	(*contacts)[1] += 0.5;
 	(*energy)      += 0.5 * sim->energy_surface[0];
@@ -323,6 +328,11 @@ void neighbor_i_sp_sp(Simulation* sim, Particle*, Particle*, std::array<double,C
 	return; 
 }
 
+void neighbor_m1_s0(Simulation* sim, Particle*, Particle*, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr) {
+    (*contacts)[3] += 1;
+	return; 
+}
+
 void neighbor_i_m1_m1(Simulation* sim, Particle*, Particle*, std::array<double,CONTACT_SIZE>* contacts, double* energy) {
 	(*contacts)[1] += 1;
 	(*energy)      += sim->energy_surface[1];
@@ -470,7 +480,65 @@ void neighbor_a_s1_s2(Simulation* sim, Particle* p1, Particle* p2, std::array<do
 void Simulation::initialize_neighbor_function_map(){
 
 	// std::cout << "Initializing neighbor_functions" << std::endl;
-	if (!this->potts){
+	if (this->dry) {
+		std::pair  <std::string, std::string> mm_pair    = std::make_pair("m1", "m1");
+		std::pair  <std::string, std::string> ms0_pair   = std::make_pair("m1", "s0");
+		std::pair  <std::string, std::string> s0m_pair   = std::make_pair("s0", "m1");
+
+		if (std::get<0>((this->InteractionMap)[mm_pair]) == "isotropic"){
+			// std::cout << "neighbor m1-m1 is isotropic" << std::endl;
+			this->NeighborFunctionMap[mm_pair] = &neighbor_i_m1_m1;
+		}
+		else if (std::get<0>((this->InteractionMap)[mm_pair]) == "parallel"){
+			// std::cout << "neighbor m1-m1 is parallel." << std::endl;
+			this->NeighborFunctionMap[mm_pair] = &neighbor_p_m1_m1;
+		}
+		else if (std::get<0>((this->InteractionMap)[mm_pair]) == "antiparallel"){
+			// std::cout << "neighbor m1-m1 is antiparallel." << std::endl;
+			this->NeighborFunctionMap[mm_pair] = &neighbor_a_m1_m1;
+		}
+		else {
+			std::cout << "No interaction for mm." << std::endl; 
+			exit(EXIT_FAILURE); 
+		}
+
+		if (std::get<0>((this->InteractionMap)[ms0_pair]) == "no_interaction"){
+			// std::cout << "neighbor m1-s1 is isotropic." << std::endl;
+			this->NeighborFunctionMap[ms0_pair] = &neighbor_m1_s0;
+			this->NeighborFunctionMap[s0m_pair] = &neighbor_m1_s0;
+		}
+		else {
+			std::cout << "No interactions for m-sn." << std::endl; 
+			exit(EXIT_FAILURE);
+		}
+	}
+	
+	else if (this->potts) {
+		std::pair  <std::string, std::string> spsp_pair  = std::make_pair("sp", "sp");
+		if (std::get<0>((this->InteractionMap)[spsp_pair]) == "isotropic"){
+			// std::cout << "neighbor s1-s2 is isotropic." << std::endl;
+			this->NeighborFunctionMap[spsp_pair] = &neighbor_i_sp_sp;
+		}
+		else if (std::get<0>((this->InteractionMap)[spsp_pair]) == "parallel"){
+			// std::cout << "neighbor s1-s2 is parallel." << std::endl;
+			this->NeighborFunctionMap[spsp_pair] = &neighbor_p_sp_sp;
+		}
+		else if (std::get<0>((this->InteractionMap)[spsp_pair]) == "antiparallel"){
+			// std::cout << "neighbor s1-s2 is antiparallel." << std::endl;
+			this->NeighborFunctionMap[spsp_pair] = &neighbor_a_sp_sp;
+		}
+		else if (std::get<0>((this->InteractionMap)[spsp_pair]) == "symmetric"){
+			// std::cout << "neighbor s1-s2 is antiparallel." << std::endl;
+			this->NeighborFunctionMap[spsp_pair] = &neighbor_symm_sp_sp;
+		}
+
+		else {
+			std::cout << "No interactions for sp-sp." << std::endl; 
+			exit(EXIT_FAILURE);
+		}
+	}
+
+	else {
 
 		std::pair  <std::string, std::string> mm_pair    = std::make_pair("m1", "m1");
 		std::pair  <std::string, std::string> ms1_pair   = std::make_pair("m1", "s1");
@@ -562,31 +630,7 @@ void Simulation::initialize_neighbor_function_map(){
 			exit(EXIT_FAILURE);
 		}
 	}
-	
-	else {
-		std::pair  <std::string, std::string> spsp_pair  = std::make_pair("sp", "sp");
-		if (std::get<0>((this->InteractionMap)[spsp_pair]) == "isotropic"){
-			// std::cout << "neighbor s1-s2 is isotropic." << std::endl;
-			this->NeighborFunctionMap[spsp_pair] = &neighbor_i_sp_sp;
-		}
-		else if (std::get<0>((this->InteractionMap)[spsp_pair]) == "parallel"){
-			// std::cout << "neighbor s1-s2 is parallel." << std::endl;
-			this->NeighborFunctionMap[spsp_pair] = &neighbor_p_sp_sp;
-		}
-		else if (std::get<0>((this->InteractionMap)[spsp_pair]) == "antiparallel"){
-			// std::cout << "neighbor s1-s2 is antiparallel." << std::endl;
-			this->NeighborFunctionMap[spsp_pair] = &neighbor_a_sp_sp;
-		}
-		else if (std::get<0>((this->InteractionMap)[spsp_pair]) == "symmetric"){
-			// std::cout << "neighbor s1-s2 is antiparallel." << std::endl;
-			this->NeighborFunctionMap[spsp_pair] = &neighbor_symm_sp_sp;
-		}
 
-		else {
-			std::cout << "No interactions for sp-sp." << std::endl; 
-			exit(EXIT_FAILURE);
-		}
-	}
 	return;
 }
 
@@ -728,3 +772,4 @@ void Simulation::accelerate_calculate_energy_potts(){
 
 	return;
 }
+

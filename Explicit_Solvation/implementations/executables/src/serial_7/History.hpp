@@ -1,6 +1,6 @@
 #ifndef _HISTORY_H_
 #define _HISTORY_H_ 
-#include "Particle.h"
+#include "Particle.hpp"
 
 class History {
 public:

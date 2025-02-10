@@ -1,6 +1,6 @@
 #ifndef _POLYMER_H_
-#define _POLYMER_H_ 
-#include "Particle.h"
+#define _POLYMER_H_
+#include "Particle.hpp"
 
 
 class Polymer{

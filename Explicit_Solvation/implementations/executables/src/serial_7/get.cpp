@@ -1,6 +1,6 @@
-#include "Simulation.h"
-#include "lattice_directions.h"
-#include "History.h"
+#include "Simulation.hpp"
+#include "lattice_directions.hpp"
+#include "History.hpp"
 
 std::set <int> Simulation::get_solvation_shell(){
 	std::set   <int> solvation_shell_set; 

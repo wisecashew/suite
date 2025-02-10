@@ -1,6 +1,6 @@
 #ifndef _ORIENTATIONFLIPPER_H_
 #define _ORIENTATIONFLIPPER_H_
-#include "misc.h"
+#include "consts.hpp"
 
 class EnhancedOrientationFlipper {
 public:
@@ -8,7 +8,6 @@ public:
 	// properties
 	// defining how particles were and how they were changed, and how many of them were
 	int nparticles;                              // number of particles to flip
-	std::array <double,CONTACT_SIZE> zero_array; // a zero'd out array of contacts
 	std::vector <int> initial_orientations;      // these are the initial orientations of each particle
 	std::vector <int> final_orientations;        // these are the final orientations of each particle
 
@@ -28,9 +27,9 @@ public:
 	std::vector <std::array<double,3>> magnetization_store;     // this is the container holding all the net contacts when running through the trialed states
 
 	// containers for contacts as the orientation of each particle is perturbed
-	std::array <double,CONTACT_SIZE>              initial_contacts;   // initial contacts, prior to perturbation
-	std::array <double,CONTACT_SIZE>              perturbed_contacts; // local change in contacts on perturbation
-	std::vector <std::array<double,CONTACT_SIZE>> contacts_store;     // this is the container holding all the net contacts when running through the trialed states
+	std::array <double,CONTACT_SIZE_FHP>              initial_contacts;   // initial contacts, prior to perturbation
+	std::array <double,CONTACT_SIZE_FHP>              perturbed_contacts; // local change in contacts on perturbation
+	std::vector <std::array<double,CONTACT_SIZE_FHP>> contacts_store;     // this is the container holding all the net contacts when running through the trialed states
 
 	// these are running sums and cumulant probabilities to keep track of
 	double rboltzmann;
@@ -40,7 +39,7 @@ public:
 
 	// create a holder for the current energy and contacts
 	double               current_energy;
-	std::array<double,CONTACT_SIZE> current_contacts;
+	std::array<double,CONTACT_SIZE_FHP> current_contacts;
 
 	// rng holder for an internal decision
 	int    sampler_idx;
@@ -56,26 +55,24 @@ public:
 	// set up the object
 	void setup(int nparticles, int ntest){
 		this->nparticles = nparticles;
-		this->zero_array = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 		this->ntest      = ntest;
+		this->current_contacts.fill(0);
+		this->initial_contacts.fill(0);
+		this->perturbed_contacts.fill(0);
 		this->initial_orientations.resize(nparticles,0);
 		this->final_orientations.resize(nparticles,0);
 		this->boltzmann.resize(ntest,0.0);
 		this->orientations.resize(ntest,0);
 		this->energies.resize(ntest,0);
-		this->contacts_store.resize(ntest, this->zero_array);
+		this->contacts_store.resize(ntest, this->current_contacts);
 		this->rboltzmann       = 0;
 		this->prob_o_to_n      = 1;
 		this->prob_n_to_o      = 1;
 		this->Emin             = 0;
 		this->current_energy   = 0;
-		this->current_contacts = {0,0,0,0,0,0,0,0,0,0};
 		this->sampler_idx      = 0;
 		this->sampler_rng      = 0;
 		this->sampler_rsum     = 0;
-		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
-		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
-		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
 		return;
 	}
 
@@ -87,24 +84,23 @@ public:
 		std::fill(this->orientations.begin(), this->orientations.end(), 0);
 		std::fill(this->orientations.begin(), this->orientations.end(), 0); 
 		std::fill(this->energies.begin(), this->energies.end(), 0);
-		std::fill(this->contacts_store.begin(), this->contacts_store.end(), this->zero_array);
-		std::fill(this->magnetization_store.begin(), this->magnetization_store.end(), std::array<double,3>{0, 0, 0})
 		this->rboltzmann       = 0;
 		this->prob_o_to_n      = 1;
 		this->prob_n_to_o      = 1;
 		this->Emin             = 0;
-		this->initial_E          = 0;
-		this->perturbed_E        = 0;
+		this->initial_E        = 0;
+		this->perturbed_E      = 0;
 		this->current_energy   = 0;
 		this->sampler_idx      = 0;
 		this->sampler_rng      = 0;
 		this->sampler_rsum     = 0;
-		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
-		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
-		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
-		this->current_magnetization   = {0,0,0};
-		this->initial_magnetization   = {0,0,0};
-		this->perturbed_magnetization = {0,0,0};
+		this->current_contacts.fill(0);
+		this->initial_contacts.fill(0);
+		this->perturbed_contacts.fill(0);
+		this->initial_magnetization.fill(0);
+		this->perturbed_magnetization.fill(0);
+		std::fill(this->contacts_store.begin(), this->contacts_store.end(), this->current_contacts);
+		std::fill(this->magnetization_store.begin(), this->magnetization_store.end(), std::array<double,3>{0, 0, 0});
 		return;
 	}
 
@@ -114,10 +110,15 @@ public:
 		this->ntest      = ntest;
 		this->initial_orientations.resize(nparticles,0);
 		this->final_orientations.resize(nparticles,0);
+		this->current_contacts.fill(0);
+		this->initial_contacts.fill(0);
+		this->perturbed_contacts.fill(0);
+		this->initial_magnetization   = {0,0,0};
+		this->perturbed_magnetization = {0,0,0};
 		this->boltzmann.resize(ntest,0.0);
 		this->orientations.resize(ntest,0);
 		this->energies.resize(ntest,0);
-		this->contacts_store.resize(ntest, this->zero_array);
+		this->contacts_store.resize(ntest, this->initial_contacts);
 		this->magnetization_store.resize(ntest, std::array<double,3>{0,0,0});
 		this->rboltzmann         = 0;
 		this->prob_o_to_n        = 1;
@@ -129,12 +130,7 @@ public:
 		this->sampler_idx        = 0;
 		this->sampler_rng        = 0;
 		this->sampler_rsum       = 0;
-		this->current_contacts   = {0,0,0,0,0,0,0,0,0,0};
-		this->initial_contacts   = {0,0,0,0,0,0,0,0,0,0};
-		this->perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
-		this->current_magnetization   = {0,0,0};
-		this->initial_magnetization   = {0,0,0};
-		this->perturbed_magnetization = {0,0,0};
+
 		return;
 	};
 

@@ -1,4 +1,4 @@
-#include "Simulation.h"
+#include "Simulation.hpp"
 
 void Simulation::run_isotropic(){
 
@@ -65,9 +65,6 @@ void Simulation::run_dry(){
 		this->dump_local();
 		this->dump_lattice();
 	}
-
-	// this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
-	// this->check_structures();
 
 	return;
 }

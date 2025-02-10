@@ -1,6 +1,6 @@
 #ifndef _CONTAINERS_H_
 #define _CONTAINERS_H_
-#include "misc.h"
+#include "misc.hpp"
 
 class Container {
 public:
@@ -27,12 +27,12 @@ public:
 		this->E2_final      = 0;
 		this->Epair_initial = 0;
 		this->Epair_final   = 0;
-		this->c1_initial    = {0,0,0,0,0,0,0,0,0,0};
-		this->c1_final      = {0,0,0,0,0,0,0,0,0,0};
-		this->c2_initial    = {0,0,0,0,0,0,0,0,0,0};
-		this->c2_final      = {0,0,0,0,0,0,0,0,0,0};
-		this->cpair_initial = {0,0,0,0,0,0,0,0,0,0};
-		this->cpair_final   = {0,0,0,0,0,0,0,0,0,0};
+		this->c1_initial.fill(0);
+		this->c1_final.fill(0);
+		this->c2_initial.fill(0);
+		this->c2_final.fill(0);
+		this->cpair_initial.fill(0);
+		this->cpair_final.fill(0);
 	};
 
 	// destructor
@@ -45,12 +45,12 @@ public:
 		this->E2_final      = 0;
 		this->Epair_initial = 0;
 		this->Epair_final   = 0;
-		this->c1_initial    = {0,0,0,0,0,0,0,0,0,0};
-		this->c1_final      = {0,0,0,0,0,0,0,0,0,0};
-		this->c2_initial    = {0,0,0,0,0,0,0,0,0,0};
-		this->c2_final      = {0,0,0,0,0,0,0,0,0,0};
-		this->cpair_initial = {0,0,0,0,0,0,0,0,0,0};
-		this->cpair_final   = {0,0,0,0,0,0,0,0,0,0};
+		this->c1_initial.fill(0);
+		this->c1_final.fill(0);
+		this->c2_initial.fill(0);
+		this->c2_final.fill(0);
+		this->cpair_initial.fill(0);
+		this->cpair_final.fill(0);
 		return;
 	}
 

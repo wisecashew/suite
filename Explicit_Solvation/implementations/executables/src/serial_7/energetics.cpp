@@ -1,6 +1,6 @@
-#include "Simulation.h"
-#include "lattice_directions.h"
-#include "misc.h"
+#include "Simulation.hpp"
+#include "lattice_directions.hpp"
+#include "misc.hpp"
 
 //////////////////////////////////////////////////////////
 //
@@ -667,7 +667,7 @@ void Simulation::selected_pair_interaction(Particle* p1, Particle* p2, std::arra
 void Simulation::neighbor_energetics(int lat_idx, std::array<double,CONTACT_SIZE>* contacts_store, double* neighbor_energy){
 	std::array <std::array<int,3>,26> ne_list = obtain_ne_list(this->Lattice[lat_idx]->coords, this->x, this->y, this->z);
 	for (std::array<int,3>& loc: ne_list){
-		selected_pair_interaction(this->Lattice[lat_idx], this->Lattice[lattice_index(loc, this->y, this->z)], contacts_store, neighbor_energy);
+		this->selected_pair_interaction(this->Lattice[lat_idx], this->Lattice[lattice_index(loc, this->y, this->z)], contacts_store, neighbor_energy);
 	}
 	return;
 }

@@ -1,6 +1,6 @@
 #ifndef _MONOMERSWINGER_H_
 #define _MONOMERSWINGER_H_
-#include "misc.h"
+#include "consts.hpp"
 
 class EnhancedMonomerSwinger {
 public:
@@ -8,7 +8,7 @@ public:
 	// properties
 	int ntest;
 	std::array <int,3>    zero_3array;
-	std::array <double,CONTACT_SIZE> zero_Narray; // a zero'd out array of contacts
+	std::array <double,CONTACT_SIZE_FHP> zero_Narray; // a zero'd out array of contacts
 	std::vector <std::array<int,3>> initial_locations;
 	std::vector <std::array<int,3>> final_locations;
 	std::vector <double> boltzmann; 
@@ -23,13 +23,13 @@ public:
 	std::vector <double> energies; // this is the container holding energies of each perturbation
 
 	// containers for contacts as the orientation of each particle is perturbed
-	std::array <double,CONTACT_SIZE>              initial_cont_monomer;     // initial contacts, prior to perturbation
-	std::array <double,CONTACT_SIZE>              initial_cont_part2switch; // initial contacts, prior to perturbation
-	std::array <double,CONTACT_SIZE>              final_cont_monomer;       // 
-	std::array <double,CONTACT_SIZE>              final_cont_part2switch;   // 
-	std::array <double,CONTACT_SIZE>              initial_cont_pair;        //
-	std::array <double,CONTACT_SIZE>              final_cont_pair;          // 
-	std::vector <std::array<double,CONTACT_SIZE>> contacts_store;     // this is the container holding all the net contacts when running through the trialed states
+	std::array <double,CONTACT_SIZE_FHP>              initial_cont_monomer;     // initial contacts, prior to perturbation
+	std::array <double,CONTACT_SIZE_FHP>              initial_cont_part2switch; // initial contacts, prior to perturbation
+	std::array <double,CONTACT_SIZE_FHP>              final_cont_monomer;       // 
+	std::array <double,CONTACT_SIZE_FHP>              final_cont_part2switch;   // 
+	std::array <double,CONTACT_SIZE_FHP>              initial_cont_pair;        //
+	std::array <double,CONTACT_SIZE_FHP>              final_cont_pair;          // 
+	std::vector <std::array<double,CONTACT_SIZE_FHP>> contacts_store;     // this is the container holding all the net contacts when running through the trialed states
 
 	// these are running sums and cumulant probabilities to keep track of
 	double rboltzmann;
@@ -39,7 +39,7 @@ public:
 
 	// create a holder for the current energy and contacts
 	double               current_energy;
-	std::array<double,CONTACT_SIZE> current_contacts;
+	std::array<double,CONTACT_SIZE_FHP> current_contacts;
 
 	// rng holder for an internal decision
 	int    sampler_idx;
@@ -59,7 +59,7 @@ public:
 	void setup(int loc_size, int ntest){
 		this->ntest           = ntest;
 		this->zero_3array     = {0,0,0};
-		this->zero_Narray     = {0,0,0,0,0,0,0,0,0,0};
+		this->zero_Narray     = {0,0,0,0,0,0,0,0};
 		this->initial_locations.reserve(loc_size);
 		this->final_locations.reserve(loc_size);
 		this->initial_cont_monomer     = this->zero_Narray;     // initial contacts, prior to perturbation
@@ -122,12 +122,12 @@ public:
 		this->final_E_pair          = 0;
 
 		// reset the contacts
-		this->initial_cont_monomer     = {0,0,0,0,0,0,0,0,0,0};
-		this->initial_cont_part2switch = {0,0,0,0,0,0,0,0,0,0};
-		this->initial_cont_pair        = {0,0,0,0,0,0,0,0,0,0};
-		this->final_cont_monomer       = {0,0,0,0,0,0,0,0,0,0};
-		this->final_cont_part2switch   = {0,0,0,0,0,0,0,0,0,0};
-		this->final_cont_pair          = {0,0,0,0,0,0,0,0,0,0};
+		this->initial_cont_monomer     = {0,0,0,0,0,0,0,0};
+		this->initial_cont_part2switch = {0,0,0,0,0,0,0,0};
+		this->initial_cont_pair        = {0,0,0,0,0,0,0,0};
+		this->final_cont_monomer       = {0,0,0,0,0,0,0,0};
+		this->final_cont_part2switch   = {0,0,0,0,0,0,0,0};
+		this->final_cont_pair          = {0,0,0,0,0,0,0,0};
 	}
 
 };

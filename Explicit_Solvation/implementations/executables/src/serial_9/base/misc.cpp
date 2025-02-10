@@ -1,5 +1,5 @@
 #include "misc.hpp"
-#include "lattice_directions.hpp"
+
 /* 
 =============================================================================================
 These are some objects I have defined which I tend to use often. 
@@ -329,243 +329,42 @@ void print ( std::vector <std::vector <std::array<int,3>>> V){
 // functions to perform arithmetic with vectors and arrays 
 //==============================================================================================
 
-template <typename ContainerType>
-auto add_containers(const ContainerType& c1, const ContainerType& c2) {
-	// Ensure both containers have the same size
-	assert(c1.size() == c2.size());
+std::vector <double> scale_containers(double scalar, const std::vector<double>& container){
 
-	// Deduce the result type using the common type between the two containers' elements
-	using CommonType = typename ContainerType::value_type;
-
-	// Create a container of the same size for the result
-	ContainerType result;          // Can be array or vector; assumes both containers are the same type
-	result.fill(CommonType(0)); // For arrays
-
-	// Perform element-wise addition
-	for (std::size_t i = 0; i < c1.size(); ++i) {
-		result[i] = static_cast<CommonType>(c1[i]) + static_cast<CommonType>(c2[i]);
-	}
-
-	return result;
-}
-
-template <typename ContainerType>
-auto subtract_containers(const ContainerType& c1, const ContainerType& c2) {
-	// Ensure both containers have the same size
-	assert(c1.size() == c2.size());
-
-	// Deduce the result type using the common type between the two containers' elements
-	using CommonType = typename ContainerType::value_type;
-
-	// Create a container of the same size for the result
-	ContainerType result;          // Can be array or vector; assumes both containers are the same type
-	result.fill(CommonType(0));    // For arrays
-
-	// Perform element-wise addition
-	for (std::size_t i = 0; i < c1.size(); ++i) {
-		result[i] = static_cast<CommonType>(c1[i]) - static_cast<CommonType>(c2[i]);
-	}
-
-	return result;
-}
-
-// Primary template for scaling arrays and vectors
-template <typename Container>
-typename std::conditional<
-	std::is_same<Container, std::array<typename Container::value_type, Container::size()>>::value,
-	std::array<double, Container::size()>,
-	std::vector<double>>::type
-scale_containers(double scalar, const Container& array) {
-	// Create a result of the appropriate type
-	using ResultType = typename std::conditional<
-		std::is_same<Container, std::array<typename Container::value_type, Container::size()>>::value,
-		std::array<double, Container::size()>,
-		std::vector<double>>::type;
-
-	ResultType result(array.size());
-
-	for (std::size_t i = 0; i < array.size(); ++i) {
-		result[i] = static_cast<double>(array[i]) * scalar; // Scale and convert to double
-	}
-	return result;
-}
-
-// Specialization for std::vector
-template <typename T>
-std::vector<double> scale_containers(double scalar, const std::vector<T>& array) {
-	std::vector<double> result(array.size());
-
-	for (std::size_t i = 0; i < array.size(); ++i) {
-		result[i] = static_cast<double>(array[i]) * scalar; // Scale and convert to double
-	}
-	return result;
-}
-
-
-/*
-std::vector <int> add_vectors(std::vector <int>* v1, std::vector <int>* v2){
-	size_t s = (*v1).size(); 
-	std::vector <int> v3 (s,0); 
-	for (int i{0}; i < static_cast<int>(s); i++){
-		v3.at(i) = (*v2).at(i) + (*v1).at(i);
-	}
-
-	return v3; 
-}
-
-std::array <int,3> add_arrays(std::array <int,3>* a1, std::array <int,3>* a2){
-	std::array<int, 3> a3; 
-
+	std::vector <double> arr;
+	arr.reserve(container.size());
 	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
+		arr.push_back(scalar * container[i]);
 	}
-
-	return a3;
-
+	return arr;
 }
 
-std::array <double,3> add_arrays(std::array <double,3>* a1, std::array <double,3>* a2){
-	std::array<double, 3> a3; 
+std::array <double, 3> scale_containers(double scalar, const std::array <int,3>& container){
 
+	std::array <double,3> arr;
 	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
+		arr[i] = scalar * container[i];
 	}
-
-	return a3;
-
+	return arr;
 }
 
-std::array <double,3> add_arrays(std::array <int,3>* a1, std::array <double,3>* a2){
-	std::array<double, 3> a3; 
+std::array <double, 3> scale_containers(double scalar, const std::array <double,3>& container){
 
+	std::array <double,3> arr;
 	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
+		arr[i] = scalar * container[i];
 	}
-
-	return a3;
-
+	return arr;
 }
 
-std::array <double,CONTACT_SIZE> add_arrays(std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2){
+std::array <int, 3> scale_containers(int scalar, const std::array <int,3>& container){
 
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
-	}
-	return a3;
-
-}
-
-std::array <int,CONTACT_SIZE> add_arrays(std::array <int,CONTACT_SIZE>* a1, std::array <int,CONTACT_SIZE>* a2){
-
-	std::array<int,CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
-	}
-	return a3;
-
-}
-
-std::array <double,CONTACT_SIZE> add_arrays (std::array<double,CONTACT_SIZE> a1, std::array <double,CONTACT_SIZE> a2) {
-	
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (a1)[i] + (a2)[i]; 
-	}
-	return a3;
-
-}
-
-
-
-std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2){
-	size_t s = (*v1).size(); 
-	std::vector <int> v3 (s,0); 
-	for (int i{0}; i < static_cast<int>(s); i++){
-		v3.at(i) = (*v1).at(i) -  (*v2).at(i);
-	}
-
-	return v3; 
-}
-
-std::array <int,3> subtract_arrays(std::array <int,3>* a1, std::array <int,3>* a2){
-	std::array<int, 3> a3; 
-
+	std::array <int,3> arr;
 	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
+		arr[i] = scalar * container[i];
 	}
-
-	return a3;
-
+	return arr;
 }
-
-
-std::array <double,3> subtract_arrays(std::array <double,3>* a1, std::array <double,3>* a2){
-	std::array<double, 3> a3;
-
-	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-
-std::array <int,CONTACT_SIZE> subtract_arrays(std::array <int,CONTACT_SIZE>* a1, std::array <int,CONTACT_SIZE>* a2){
-	std::array<int, CONTACT_SIZE> a3; 
-
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,CONTACT_SIZE> subtract_arrays (std::array<double,CONTACT_SIZE> a1, std::array <double,CONTACT_SIZE> a2) {
-	
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (a1)[i] - (a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,CONTACT_SIZE> subtract_arrays(std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2){
-
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-	return a3;
-
-}
-*/
-
-/*
-std::array <double,3> scale_arrays ( double scalar, std::array <double,3>* array){
-
-	std::array <double,3> arr_n;
-	for (int i{0}; i<3; ++i){
-		arr_n [i] = (*array)[i]*scalar; 
-	}
-	return arr_n;
-
-}
-
-std::array <double,3> scale_arrays ( double scalar, std::array <int,3>* array){
-
-	std::array <double,3> arr_n;
-	for (int i{0}; i<3; ++i){
-		arr_n [i] = static_cast<double>((*array)[i])*scalar; 
-	}
-	return arr_n;
-	
-}
-*/
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -627,6 +426,9 @@ double take_dot_product (const std::array <double,3>& o1, const std::array <doub
 
 }
 
+
+
+
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 
@@ -661,8 +463,9 @@ void sarw(std::vector<std::vector<int>>* loc_list, int dop){
 	std::vector <int> next(3,0); 
 	for (auto v: drns){
 		 
-		next = add_vectors(&((*loc_list).at((*loc_list).size()-1)), &v);
-		 
+		// next = add_vectors(&((*loc_list).at((*loc_list).size()-1)), &v);
+		next = add_containers((*loc_list).at((*loc_list).size()-1), v);
+
 		if (check_avoidance(next, *loc_list)){
 			dop--; // decrease dop now that a monomer unit has been added 
 			(*loc_list).push_back(next); // add monomer to list 
@@ -690,8 +493,8 @@ void sarw_pbc(std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y
 	std::vector <int> next(3,0); 
 	for (auto v: drns){
 
-		next = add_vectors(&((*loc_list).at((*loc_list).size()-1)), &v);
-		
+		// next = add_vectors(&((*loc_list).at((*loc_list).size()-1)), &v);
+		next = add_containers((*loc_list).at((*loc_list).size()-1), v);
 		impose_pbc(&next, x_len, y_len, z_len); 
 		
 		
@@ -777,8 +580,8 @@ void create_linked_list ( std::vector<std::array<int,3>> v1, std::vector<std::ar
 std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len, int y_len, int z_len){
 	std::vector <std::vector <int>> nl;
 	nl.reserve(6); 
-	for (std::vector <int> d: drns){
-		std::vector <int> v = add_vectors(&loc, &d); 
+	for (std::vector <int>& d: drns){
+		std::vector <int> v = add_containers(loc, d); 
 		impose_pbc(&v, x_len, y_len, z_len); 
 		nl.push_back(v);
 	}
@@ -793,8 +596,8 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 std::array <std::array <int,3>, 26> obtain_ne_list(std::array <int,3> loc, int x_len, int y_len, int z_len){
 	std::array <std::array <int,3>,26> nl;
 	int i {0}; 
-	for (std::array <int,3> d: adrns) {
-		std::array <int,3>  a = add_arrays(&loc, &d); 
+	for (std::array <int,3>& d: adrns) {
+		std::array <int,3>  a = add_containers(loc, d); 
 		impose_pbc(&a, x_len, y_len, z_len); 
 		nl[i] = a;
 		++i; 
@@ -903,8 +706,32 @@ int heads_or_tails(int m_index, int deg_poly){
 	return growth_dir;
 }
 
+// extract content from file
 
+std::vector <std::string> extract_content_from_file(std::string filename){
 
+	std::ifstream myfile (filename); 
+
+	if ( !myfile ){
+		std::cerr << "File named " << filename << " could not be opened!" << std::endl; 
+		exit(EXIT_FAILURE);
+	}
+
+	std::string mystring; 
+	std::vector <std::string> contents; 
+
+	if (myfile.is_open() ){
+		while ( std::getline(myfile, mystring) ) {
+			// pipe file's content into stream 
+			contents.push_back(mystring); 
+		}
+	}
+
+	return contents; 
+}
+
+//
+/*
 void input_parser(int dfreq, int lfreq, int max_iter, bool r, bool potts_bool, bool dry_bool, \
 	std::string positions, std::string topology, std::string dfile, \
 	std::string efile, std::string mfile, std::string stats_file, \
@@ -1043,7 +870,7 @@ void input_parser(int dfreq, int lfreq, int max_iter, bool r, bool potts_bool, b
 
 	return;
 }
-
+*/
 
 void filter_coords(const std::string& filename, int cutoff_step) {
 

@@ -1,13 +1,12 @@
-#include "lattice_directions.hpp"
-#include "Simulation.hpp"
+#include "FHP.hpp"
 
 //////////////////////////////////////////////////////////
-//   
+//
 //                Verify structures
 //
 //////////////////////////////////////////////////////////
 
-bool Simulation::check_validity_of_coords(std::array<int,3> v){
+bool FHP::check_validity_of_coords(std::array<int,3> v){
 	if (v.at(0)>this->x || v.at(0) < 0 || v.at(1)>this->y || v.at(1)<0 || v.at(2)>this->z || v.at(2)<0){
 		return false;
 	}
@@ -16,7 +15,7 @@ bool Simulation::check_validity_of_coords(std::array<int,3> v){
 	}
 }
 
-bool Simulation::check_for_overlaps_within_polymers_raw(){
+bool FHP::check_for_overlaps_within_polymers_raw(){
 
 	std::vector <std::array <int,3>> loc_list; 
 	for (Polymer& pmer: this->Polymers){
@@ -38,7 +37,7 @@ bool Simulation::check_for_overlaps_within_polymers_raw(){
 	return true;
 }
 
-bool Simulation::check_for_overlaps_within_polymers(){
+bool FHP::check_for_overlaps_within_polymers(){
 
 	std::vector <std::array <int,3>> loc_list; 
 
@@ -61,7 +60,7 @@ bool Simulation::check_for_overlaps_within_polymers(){
 	return true;
 }
 
-bool Simulation::check_for_solvent_monomer_overlap(){
+bool FHP::check_for_solvent_monomer_overlap(){
 
 	std::vector <std::array <int,3>> loc_list;
 
@@ -112,7 +111,7 @@ bool Simulation::check_for_solvent_monomer_overlap(){
 	return true;
 }
 
-bool Simulation::check_for_overlaps_on_lattice(){
+bool FHP::check_for_overlaps_on_lattice(){
 
 	bool pmer_loop_flag = false; 
 	bool particle_found_flag = false; 
@@ -151,7 +150,7 @@ bool Simulation::check_for_overlaps_on_lattice(){
 	return true;
 }
 
-bool Simulation::check_connectivity_raw(){
+bool FHP::check_connectivity_raw(){
 
 	for (Polymer& pmer: this->Polymers){
 		size_t length = pmer.chain.size(); 
@@ -160,7 +159,7 @@ bool Simulation::check_connectivity_raw(){
 
 		for (int i{1}; i<static_cast<int>(length); ++i){
 			
-			connection = subtract_arrays(&(pmer.chain[i]->coords), &(pmer.chain[i-1]->coords));
+			connection = subtract_containers(pmer.chain[i]->coords, pmer.chain[i-1]->coords);
 			impose_pbc(&connection, this->x, this->y, this->z);
 			modified_direction ( &connection, this->x, this->y, this->z); 
 
@@ -179,7 +178,7 @@ bool Simulation::check_connectivity_raw(){
 	return true;
 }
 
-bool Simulation::check_connectivity(){
+bool FHP::check_connectivity(){
 
 	for (Polymer& pmer: this->Polymers){
 		size_t length = pmer.chain.size(); 
@@ -188,7 +187,7 @@ bool Simulation::check_connectivity(){
 
 		for (int i{1}; i<static_cast<int>(length); ++i){
 			
-			connection = subtract_arrays(&(pmer.chain[i]->coords), &(pmer.chain[i-1]->coords));
+			connection = subtract_containers(pmer.chain[i]->coords, pmer.chain[i-1]->coords);
 			impose_pbc(&connection, this->x, this->y, this->z);
 			modified_direction ( &connection, this->x, this->y, this->z); 
 
@@ -207,7 +206,7 @@ bool Simulation::check_connectivity(){
 	return true;
 }
 
-bool Simulation::check_pointers_on_lattice(){
+bool FHP::check_pointers_on_lattice(){
 	for ( int i{0}; i<this->x*this->y*this->z; ++i ) {
 
 		if ( location(i, this->x, this->y, this->z) == (this->Lattice)[i]->coords ) {
@@ -227,7 +226,7 @@ bool Simulation::check_pointers_on_lattice(){
 	return true;
 }
 
-void Simulation::check_structures(){
+void FHP::check_structures(){
 
 	// std::cout << "Checking validity of coords...";
 	// std::cout << std::boolalpha << "checkForOverlaps says: " << this->check_for_overlaps_within_polymers() << "." << std::endl; 

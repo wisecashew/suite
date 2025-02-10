@@ -1,7 +1,6 @@
 #ifndef _PARTICLE_SETS_H_
 #define _PARTICLE_SETS_H_ 
-#include "Polymer.h"
-
+#include "Polymer.hpp"
 
 class ParticleSets{
 public:

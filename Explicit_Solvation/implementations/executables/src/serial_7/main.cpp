@@ -1,4 +1,4 @@
-#include "Simulation.h"
+#include "Simulation.hpp"
 
 int main (int argc, char** argv) {
 
@@ -12,10 +12,6 @@ int main (int argc, char** argv) {
 	if (mySim.potts){
 		// set up the potts simulation
 		mySim.set_up_Potts();
-	}
-	else if (mySim.dry) {
-		// set up the dry simulation (no solvent)
-		mySim.set_up_dry(); 
 	}
 	else {
 		// set up the fhp simulation

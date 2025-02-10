@@ -23,10 +23,11 @@
 #include <algorithm>
 #include <filesystem>
 #include <limits>
+#include <type_traits>
 #include <getopt.h> 
 #include <stdlib.h> 
 
-constexpr int CONTACT_SIZE = 10;
+constexpr int CONTACT_SIZE = 8;
 
 // this is a bunch of miscellaneous functions I use 
 // check if the new location added to random walk has been visited before 
@@ -38,8 +39,11 @@ void sarw                        (std::vector<std::vector<int>>* loc_list, int d
 // run a sarw with periodic boundary conditions 
 void sarw_pbc                    (std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y_len, int z_len); 
 
-//
+// get the arccos of an input
 double branchless_acos(double input);
+
+// get the norm of an array
+double norm(std::array<double,3> arr);
 
 // given a list of locations for a particular type of Particle, create a vector of Particles 
 // std::vector <Particle> loc2part           (std::vector <std::vector <int>> loc_list, std::string s); 
@@ -131,6 +135,7 @@ void input_parser (int dfreq,
 	int max_iter, 
 	bool r, 
 	bool potts_bool, 
+	bool dry_bool, 
 	std::string positions, 
 	std::string topology, 
 	std::string dfile, 
@@ -142,9 +147,9 @@ void input_parser (int dfreq,
 	std::string ssfile); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
-void filter_coords(const std::string& filename, int cutoffStep);
-void filter_csv(const std::string& filename, int cutoffStep);
-void filter_orientations(const std::string& filename, int cutoffStep);
+void filter_coords       (const std::string& filename, int cutoffStep);
+void filter_csv          (const std::string& filename, int cutoffStep);
+void filter_orientations (const std::string& filename, int cutoffStep);
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // print methods  
@@ -183,8 +188,24 @@ void print (T vec, std::string end="\n"){
 
 template <typename T>
 void reset(T &x){
-    x = T();
+	x = T();
 }
+
+template <typename ContainerType>
+auto add_containers(const ContainerType& c1, const ContainerType& c2);
+
+template <typename ContainerType>
+auto subtract_containers(const ContainerType& c1, const ContainerType& c2);
+
+template <typename Container>
+typename std::conditional<
+	std::is_same<Container, std::array<typename Container::value_type, Container::size()>>::value,
+	std::array<double, Container::size()>,
+	std::vector<double>>::type
+scale_containers(double scalar, const Container& array);
+
+template <typename T>
+std::vector<double> scale_containers(double scalar, const std::vector<T>& array);
 
 void resetting_containers(std::array<double,CONTACT_SIZE>* cs1_i, std::array<double,CONTACT_SIZE>*cs1_f,
 std::array<double,CONTACT_SIZE>* cs2_i, std::array<double,CONTACT_SIZE>*cs2_f,

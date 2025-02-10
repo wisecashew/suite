@@ -1,0 +1,18 @@
+x = 10
+y = 10
+z = 10
+T = 0.1
+frac = 0.4
+m1-m1:isotropic
+m1-s1:antiparallel
+m1-s2:isotropic
+s1-s2:parallel
+Emm_a   = -1
+Emm_n   = -1
+Ems1_a  = -0.5
+Ems1_n  = 0
+Ems2_a  = -0.8
+Ems2_n  = 0
+Es1s2_a = -1
+Es1s2_n = 0
+END OF FILE

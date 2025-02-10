@@ -1,4 +1,4 @@
-#include "Simulation.h"
+#include "Simulation.hpp"
 
 //////////////////////////////////////////////////////////
 //
@@ -631,54 +631,6 @@ void Simulation::set_up_from_scratch_potts(){
 
 //////////////////////////////////////////////
 
-void Simulation::set_up_from_scratch_dry(){
-
-	// set up the system from scratch
-	this->step_number = 0;
-
-	// extract the number of polymers from the file
-	this->extract_number_of_polymers();
-
-	// initialize custom data structures
-	// this data structure will hold the coordinates of the polymer
-	std::vector <Polymer> Polymers;
-	Polymers.reserve(this->Npoly);
-
-	// this data structure will hold the coordinates of the cosolvent
-	std::vector <Particle*> Cosolvent (0);
-	std::vector <Particle*> Solvent;
-
-	// this data structure will hold the lattice
-	std::vector <Particle*> Lattice; 
-	Lattice.reserve((this->x)*(this->y)*(this->z));
-
-	this->Lattice   =  Lattice;
-	this->Polymers  =  Polymers;
-	this->Solvent   =  Solvent;
-	this->Cosolvent =  Cosolvent;
-
-	this->extract_polymers_from_file();
-
-	// just raw addition of solvent particles
-	// these particles will be overwritten if frac_c > 0
-	this->set_up_add_solvent0();
-
-	// populate the lattice
-	for (Polymer& pmer: (this->Polymers)) {
-		for (Particle*& p: pmer.chain){
-			// now that I have my polymer coordinates, time to create the grand lattice 
-			(this->Lattice).at(lattice_index (p->coords, y, z) ) = p; 
-		}
-	}
-
-	this->check_structures();
-	this->enhanced_flipper.setup(1, 5);
-	this->enhanced_swing.setup(1, 5);
-	return;
-}
-
-
-
 //////////////////////////////////////////////
 
 void Simulation::set_up_FHP(){
@@ -718,23 +670,3 @@ void Simulation::set_up_Potts(){
 	return;
 
 }
-
-void Simulation::set_up_dry(){
-
-	this->extract_topology_for_dry();
-	this->set_up_system(); 
-	this->set_up_local_dump();
-	this->set_up_energy_calculator();
-	this->set_up_style_of_run();
-	this->initialize_pairwise_function_map();
-	this->initialize_neighbor_function_map(); 
-	this->accelerate_calculate_energy(); 
-	if (!this->r){
-		this->dump_local();
-	}
-	this->debug_checks_energy_contacts(this->sysEnergy, this->contacts); // run the final debugging check
-	this->check_structures();                                            // run another structure check
-
-	return;
-}
-

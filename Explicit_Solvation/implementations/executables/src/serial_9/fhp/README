@@ -1,0 +1,8 @@
+This document takes you through the methods called to run a simulation. 
+The simulation is run the following way:
+1. Setting up topology, energetics, lattice, dumps, and perturbation. 
+2. Running the perturbation and dumping out information. 
+
+The `.run()` command has two possibilities: `straight` and `debug`. `debug` can be called using the `-v` option. `straight` can be called by leaving the `-v` option out when executing the code. 
+
+

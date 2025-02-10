@@ -1,14 +1,14 @@
 #ifndef _SIMULATION_H_
 #define _SIMULATION_H_
-#include "Polymer.h"
-#include "Containers.h"
-#include "OrientationFlipper.h"
-#include "MonomerSwinger.h"
+#include "Polymer.hpp"
+#include "Containers.hpp"
+#include "OrientationFlipper.hpp"
+#include "MonomerSwinger.hpp"
 
-// Note: the hardest part of this simulation, whenever you feel like making some changes, is going 
+// Note: the hardest part of this simulation engine is going 
 // to be getting the regrowth right. The biggest issue is the swapping of monomers.
-// this is where the linked lists come into play. Be wary while making changes! 
-// Usually, making other changes to the code is harmless, but this is always the part where you will be hit by
+// this is where the linked lists come into play. Be wary while making changes!
+// Usually, making other changes to the code is harmless; but this is always the part where you will be hit by
 // segfaults and bad internal structures.
 
 /*~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
@@ -81,7 +81,7 @@ public:
 	//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#*/ 
 	// to first order, let's define certain properties 
 	// class properties are organized according to their data type
-	// as in, all the `int`s come first, then `doubles`, then `bools`, and so on...
+	// as in, all the `int`s come first, then `double`s, then `bool`s, and so on...
 	int x;                // length along x-axis of box. 
 	int y;                // length along y-axis of box. 
 	int z;                // length along z-axis of box. 
@@ -95,7 +95,6 @@ public:
 
 	double T         {0}; // temperature of the system
 	double frac_c    {0}; // fraction of cosolvent in the system
-	double Bfield    {0}; // Field present in the system
 	double sysEnergy {0}; // energy of the system
 	// end of `double` properties
 
@@ -104,7 +103,7 @@ public:
 	bool v;         // if true, verbose output, if false, non-verbose output. Useful for debugging. 
 	bool A;         // if true, the entire lattice has orientation 0.
 	bool S;         // if true, the solvation shell including the polymer has orientation 0. 
-	bool isotropic; // if ture, the simulation will be isotropic
+	bool isotropic; // if true, the simulation will be isotropic
 	bool potts;     // if true, the simulation will be a standard potts model simulation
 	bool dry;       // if true, the simulation will be solvent free
 	bool IMP_BOOL;  // if true, the suggested perturbation has been accepted.  
@@ -140,8 +139,8 @@ public:
 
 	// define the custom objects for some of the more complicated moves
 	Container                  rotation_container; // this is the object important for rotation moves
-	EnhancedOrientationFlipper enhanced_flipper; // this is the object important for biased orientation flips
-	EnhancedMonomerSwinger     enhanced_swing;   // this is the object important for swinging monomers
+	EnhancedOrientationFlipper enhanced_flipper;   // this is the object important for biased orientation flips
+	EnhancedMonomerSwinger     enhanced_swing;     // this is the object important for swinging monomers
 
 	// define maps for interactions 
 	std::map <std::pair<std::string, std::string>, std::tuple<std::string, double, double, int, int>> InteractionMap;
@@ -459,6 +458,9 @@ public:
 	void set_up_align_lattice();
 	void set_up_align_solvation_shell();
 
+	// get statistics
+	std::set <int> Simulation::get_solvation_shell();
+
 	// energy calculation methods (in energy.cpp) 
 	void selected_pair_interaction(Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy);
 	void neighbor_energetics(int lat_idx, std::array<double,CONTACT_SIZE>* contacts_store, double* neighbor_energy);
@@ -561,6 +563,8 @@ public:
 	void perturb_system_isotropic();
 	void perturb_system_straight();
 	void perturb_system_debug();
+	void perturb_system_dry();
+	void perturb_system_dry_debug();
 
 	// debugging (found in debug.cpp)
 	void debug_calculate_energy                  (double* db_energy,          std::array<double,CONTACT_SIZE>* db_contacts); 
@@ -578,6 +582,7 @@ public:
 	void debug_orientation_sampler_backwards   (std::array<double,CONTACT_SIZE>* contacts_sys, double E_sys, int iteration_idx, int lat_idx);
 	void debug_choose_state_forward            (int iterator_idx, int lat_idx);
 	void debug_polymer_orientation_flip        (int p_idx);
+	void debug_polymer_orientation_flip_dry    (int p_idx);
 	void debug_solvation_shell_flip();
 	void debug_lattice_flip();
 	void debug_solvent_exchange_from_shell();
@@ -591,32 +596,12 @@ public:
 	void debug_backward_tail_regrowth    (int p_idx, int m_idx, int recursion_depth);
 
 	// execution methods (run.cpp)
-	void run_straight();
+	void run_straight ();
 	void run_isotropic();
-	void run_debug   ();
-	void run_potts   ();
+	void run_debug    ();
+	void run_potts    ();
 	void run(){
 		(this->*run_ptr)();
-	}
-
-	std::set <int> get_solvation_shell(){
-		std::set   <int> solvation_shell_set; 
-		std::array <std::array<int,3>,26> ne_list; 
-		// int dop = static_cast<int>((*Polymers)[0].chain.size() ); 
-
-		// get the first solvation shell 
-		// auto start = std::chrono::high_resolution_clock::now(); 
-		for (Polymer& pmer: this->Polymers){
-			for (Particle*& p: pmer.chain){
-				ne_list = obtain_ne_list ( p->coords, this->x, this->y, this->z); 
-				for (std::array <int,3>& loc: ne_list){
-					if (this->Lattice[lattice_index (loc, this->y, this->z)]->ptype[0] == 's'){
-						solvation_shell_set.insert (lattice_index (loc, this->y, this->z)); 
-					}
-				}
-			}
-		}
-		return solvation_shell_set;
 	}
 
 };

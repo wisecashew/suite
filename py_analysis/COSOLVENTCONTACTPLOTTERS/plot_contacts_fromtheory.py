@@ -68,7 +68,7 @@ if __name__=="__main__":
 	M       = 32
 	Hmix    = args.U
 	cols    = args.cols # color_map("coral", "darkred", len(Hmix))
-	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(2.5,2.5))
+	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(1.7,1.7))
 
 	keys    = ["M1-M1", "M1-S", "S1-S2", "M1-S1", "M1-S2", "M1-S1-A", "M1-S1-N"]
 	titles  = ["Monomer-monomer contacts", "Solvent-cosolvent contacts", "Monomer-solvent contacts", "Monomer-cosolvent contacts", "Solvent-solvent contacts", "cosolvent-cosolvent contacts"]
@@ -80,7 +80,6 @@ if __name__=="__main__":
 	df_real = pd.read_csv (args.real, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 	x_real  = df_real ["x"]
 
-	colormap = cm.get_cmap ("coolwarm")
 	for k in range( len(keys) ):
 
 		ax[0][0].tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both')

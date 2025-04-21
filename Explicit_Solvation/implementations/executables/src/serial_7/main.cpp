@@ -9,14 +9,8 @@ int main (int argc, char** argv) {
 	Simulation mySim(argc, argv);
 
 	// right now, i have only instantiated certain files and certain pathways. 
-	if (mySim.potts){
-		// set up the potts simulation
-		mySim.set_up_Potts();
-	}
-	else {
-		// set up the fhp simulation
-		mySim.set_up_FHP();
-	}
+	// set up the fhp simulation
+	mySim.set_up_FHP();
 	
 	// print out certain properties of the simulation
 	std::cout << "Positions: "             << mySim.positions          << std::endl;

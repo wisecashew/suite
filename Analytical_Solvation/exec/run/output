@@ -1,0 +1,318 @@
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 16.8076 seconds.
+@ Nmm = 100... done! Time spent: 129.472 seconds.
+@ Nmm = 150... done! Time spent: 292.556 seconds.
+@ Nmm = 200... done! Time spent: 480.644 seconds.
+@ Nmm = 250... done! Time spent: 706.934 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.9572 seconds.
+@ Nmm = 100... done! Time spent: 121.056 seconds.
+@ Nmm = 150... done! Time spent: 276.744 seconds.
+@ Nmm = 200... done! Time spent: 462.96 seconds.
+@ Nmm = 250... done! Time spent: 684.899 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 17.105 seconds.
+@ Nmm = 100... done! Time spent: 131.034 seconds.
+@ Nmm = 150... done! Time spent: 302.04 seconds.
+@ Nmm = 200... done! Time spent: 488.147 seconds.
+@ Nmm = 250... done! Time spent: 699.284 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 16.2461 seconds.
+@ Nmm = 100... done! Time spent: 123.572 seconds.
+@ Nmm = 150... done! Time spent: 283.273 seconds.
+@ Nmm = 200... done! Time spent: 473.618 seconds.
+@ Nmm = 250... done! Time spent: 694.123 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.911 seconds.
+@ Nmm = 100... done! Time spent: 112.179 seconds.
+@ Nmm = 150... done! Time spent: 248.886 seconds.
+@ Nmm = 200... done! Time spent: 411.021 seconds.
+@ Nmm = 250... done! Time spent: 601.083 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.4125 seconds.
+@ Nmm = 100... done! Time spent: 116.02 seconds.
+@ Nmm = 150... done! Time spent: 264.533 seconds.
+@ Nmm = 200... done! Time spent: 441.902 seconds.
+@ Nmm = 250... done! Time spent: 648.522 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.2223 seconds.
+@ Nmm = 100... done! Time spent: 114.279 seconds.
+@ Nmm = 150... done! Time spent: 277.107 seconds.
+@ Nmm = 200... done! Time spent: 467.929 seconds.
+@ Nmm = 250... done! Time spent: 668.956 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.543 seconds.
+@ Nmm = 100... done! Time spent: 110.944 seconds.
+@ Nmm = 150... done! Time spent: 253.767 seconds.
+@ Nmm = 200... done! Time spent: 425.518 seconds.
+@ Nmm = 250... done! Time spent: 627.562 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.1364 seconds.
+@ Nmm = 100... done! Time spent: 107.273 seconds.
+@ Nmm = 150... done! Time spent: 246.274 seconds.
+@ Nmm = 200... done! Time spent: 412.324 seconds.
+@ Nmm = 250... done! Time spent: 607.178 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.9806 seconds.
+@ Nmm = 100... done! Time spent: 113.43 seconds.
+@ Nmm = 150... done! Time spent: 259.876 seconds.
+@ Nmm = 200... done! Time spent: 433.283 seconds.
+@ Nmm = 250... done! Time spent: 631.926 seconds.
+Starting CMA-ES optimization...
+
+Params: [-0.80909162 -1.07661967 -0.08040913  0.40770261  0.89992675]
+Errors - Nmm: 0.020537, Nmm_a: 9.892464
+Total Error: 9.913001
+
+Params: [-1.59380791 -0.28387088 -0.79596418 -0.66508351  0.12154354]
+Errors - Nmm: 0.016151, Nmm_a: 0.192328
+Total Error: 0.208479
+
+Params: [-1.05586435 -0.97552049  0.0487484  -0.36433802  0.21615701]
+Errors - Nmm: 0.019625, Nmm_a: 0.000027
+Total Error: 0.019652
+
+Params: [-1.67191087 -0.16356156  1.13784184  0.23823976  0.44024829]
+Errors - Nmm: 0.024491, Nmm_a: 1.039379
+Total Error: 1.063870
+
+Params: [-1.01362044 -0.95587283 -0.1968517  -0.96042674  0.28716233]
+Errors - Nmm: 0.017145, Nmm_a: 0.104005
+Total Error: 0.121150
+
+Params: [-1.47360294 -0.2830971   0.09648635  1.36455209  0.52829439]
+Errors - Nmm: 0.025144, Nmm_a: 2.051469
+Total Error: 2.076613
+
+Params: [-2.61352362 -1.02618611  0.65244428  0.64980191  0.11720785]
+Errors - Nmm: 0.025836, Nmm_a: 0.213197
+Total Error: 0.239033
+
+Params: [-0.36354832 -0.56263402 -0.11697103 -0.86546792  0.33915557]
+Errors - Nmm: 0.016609, Nmm_a: 0.316685
+Total Error: 0.333294
+
+Params: [-0.99134257 -1.07267967 -1.07854209 -0.25363682  0.41578842]
+Errors - Nmm: 0.018043, Nmm_a: 0.848217
+Total Error: 0.866260
+
+Params: [-0.94551362 -1.15851683 -0.00679025 -0.5708366   0.45809819]
+Errors - Nmm: 0.019606, Nmm_a: 1.228728
+Total Error: 1.248334
+
+Iterat #Fevals   function value  axis ratio  sigma  min&max std  t[m:s]
+    1     10 1.965157867315436e-02 1.0e+00 4.75e-01  2e-01  5e-01 128:51.2
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.3152 seconds.
+@ Nmm = 100... done! Time spent: 107.565 seconds.
+@ Nmm = 150... done! Time spent: 244.857 seconds.
+@ Nmm = 200... done! Time spent: 409.794 seconds.
+@ Nmm = 250... done! Time spent: 602.961 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.9485 seconds.
+@ Nmm = 100... done! Time spent: 112.01 seconds.
+@ Nmm = 150... done! Time spent: 252.656 seconds.
+@ Nmm = 200... done! Time spent: 427.532 seconds.
+@ Nmm = 250... done! Time spent: 626.019 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.0264 seconds.
+@ Nmm = 100... done! Time spent: 105.715 seconds.
+@ Nmm = 150... done! Time spent: 241.25 seconds.
+@ Nmm = 200... done! Time spent: 403.338 seconds.
+@ Nmm = 250... done! Time spent: 593.143 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 13.9127 seconds.
+@ Nmm = 100... done! Time spent: 105.297 seconds.
+@ Nmm = 150... done! Time spent: 240.89 seconds.
+@ Nmm = 200... done! Time spent: 403.36 seconds.
+@ Nmm = 250... done! Time spent: 593.611 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 13.8776 seconds.
+@ Nmm = 100... done! Time spent: 105.377 seconds.
+@ Nmm = 150... done! Time spent: 241.844 seconds.
+@ Nmm = 200... done! Time spent: 404.69 seconds.
+@ Nmm = 250... done! Time spent: 594.666 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.5778 seconds.
+@ Nmm = 100... done! Time spent: 109.587 seconds.
+@ Nmm = 150... done! Time spent: 252.648 seconds.
+@ Nmm = 200... done! Time spent: 425.88 seconds.
+@ Nmm = 250... done! Time spent: 627.068 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.4271 seconds.
+@ Nmm = 100... done! Time spent: 107.557 seconds.
+@ Nmm = 150... done! Time spent: 245.123 seconds.
+@ Nmm = 200... done! Time spent: 409.42 seconds.
+@ Nmm = 250... done! Time spent: 601.585 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 14.3727 seconds.
+@ Nmm = 100... done! Time spent: 108.015 seconds.
+@ Nmm = 150... done! Time spent: 252.719 seconds.
+@ Nmm = 200... done! Time spent: 433.688 seconds.
+@ Nmm = 250... done! Time spent: 648.137 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.4988 seconds.
+@ Nmm = 100... done! Time spent: 117.663 seconds.
+@ Nmm = 150... done! Time spent: 269.494 seconds.
+@ Nmm = 200... done! Time spent: 449.694 seconds.
+@ Nmm = 250... done! Time spent: 657.866 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.1354 seconds.
+@ Nmm = 100... done! Time spent: 111.508 seconds.
+@ Nmm = 150... done! Time spent: 257.739 seconds.
+@ Nmm = 200... done! Time spent: 450.823 seconds.
+@ Nmm = 250... done! Time spent: 685.697 seconds.
+Params: [-1.25524729 -1.47117785 -0.43031786 -0.81222543  0.10603594]
+Errors - Nmm: 0.018197, Nmm_a: 0.261746
+Total Error: 0.279944
+
+Params: [-1.68671608 -1.49644745  0.41663687 -0.84735662  0.15887572]
+Errors - Nmm: 0.019059, Nmm_a: 0.073185
+Total Error: 0.092244
+
+Params: [-1.63440736 -0.15613983 -0.50550828 -0.61159471  0.29530761]
+Errors - Nmm: 0.017005, Nmm_a: 0.131372
+Total Error: 0.148377
+
+Params: [-0.55004143 -0.95929901 -0.52498225 -1.21692535  0.31011564]
+Errors - Nmm: 0.015553, Nmm_a: 0.184886
+Total Error: 0.200439
+
+Params: [-1.246452   -0.56093624 -0.80811607 -0.67355218  0.40796238]
+Errors - Nmm: 0.016884, Nmm_a: 0.780401
+Total Error: 0.797285
+
+Params: [-2.05362024 -0.47165053  0.1961947  -0.30012124  0.66751036]
+Errors - Nmm: 0.022924, Nmm_a: 4.277792
+Total Error: 4.300716
+
+Params: [-1.56072559 -0.38927624 -0.20308531 -0.54644164  0.10142492]
+Errors - Nmm: 0.017134, Nmm_a: 0.283549
+Total Error: 0.300683
+
+Params: [-0.8888506  -0.73823697  0.21989463 -0.83203648  0.38610146]
+Errors - Nmm: 0.018298, Nmm_a: 0.602578
+Total Error: 0.620876
+
+Params: [-1.62420379 -0.99622445  0.04096483 -0.87204381  0.19051498]
+Errors - Nmm: 0.017722, Nmm_a: 0.015260
+Total Error: 0.032982
+
+Params: [-1.30024176 -1.11777307  0.21852846 -0.02406045  0.15381608]
+Errors - Nmm: 0.021681, Nmm_a: 0.085613
+Total Error: 0.107294
+
+    2     20 3.298186273989683e-02 1.3e+00 4.81e-01  2e-01  5e-01 251:20.8
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.6685 seconds.
+@ Nmm = 100... done! Time spent: 117.592 seconds.
+@ Nmm = 150... done! Time spent: 267.54 seconds.
+@ Nmm = 200... done! Time spent: 447 seconds.
+@ Nmm = 250... done! Time spent: 658.121 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.4056 seconds.
+@ Nmm = 100... done! Time spent: 116.64 seconds.
+@ Nmm = 150... done! Time spent: 267.051 seconds.
+@ Nmm = 200... done! Time spent: 446.537 seconds.
+@ Nmm = 250... done! Time spent: 654.374 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.699 seconds.
+@ Nmm = 100... done! Time spent: 117.605 seconds.
+@ Nmm = 150... done! Time spent: 267.739 seconds.
+@ Nmm = 200... done! Time spent: 448.628 seconds.
+@ Nmm = 250... done! Time spent: 662.126 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.9059 seconds.
+@ Nmm = 100... done! Time spent: 120.137 seconds.
+@ Nmm = 150... done! Time spent: 275.005 seconds.
+@ Nmm = 200... done! Time spent: 460.034 seconds.
+@ Nmm = 250... done! Time spent: 672.877 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.0388 seconds.
+@ Nmm = 100... done! Time spent: 113.855 seconds.
+@ Nmm = 150... done! Time spent: 260.968 seconds.
+@ Nmm = 200... done! Time spent: 436.863 seconds.
+@ Nmm = 250... done! Time spent: 643.379 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.6922 seconds.
+@ Nmm = 100... done! Time spent: 118.797 seconds.
+@ Nmm = 150... done! Time spent: 272.138 seconds.
+@ Nmm = 200... done! Time spent: 455.006 seconds.
+@ Nmm = 250... done! Time spent: 666.355 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 16.0014 seconds.
+@ Nmm = 100... done! Time spent: 120.744 seconds.
+@ Nmm = 150... done! Time spent: 276.17 seconds.
+@ Nmm = 200... done! Time spent: 462.058 seconds.
+@ Nmm = 250... done! Time spent: 678.28 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 15.5898 seconds.
+@ Nmm = 100... done! Time spent: 117.678 seconds.
+@ Nmm = 150... done! Time spent: 268.677 seconds.
+@ Nmm = 200... done! Time spent: 447.699 seconds.
+@ Nmm = 250... done! Time spent: 656.662 seconds.
+Instantiating weights...
+About to jump into the loop.
+this->Nm = 40, this->Nmm_max = 273
+@ Nmm = 50... done! Time spent: 16.1793 seconds.
+@ Nmm = 100... done! Time spent: 122.1 seconds.
+@ Nmm = 150... done! Time spent: 277.206 seconds.
+@ Nmm = 200... done! Time spent: 459.743 seconds.
+slurmstepd: error: *** STEP 1865360.0 ON stellar-k09n1 CANCELLED AT 2024-12-12T18:57:36 DUE TO TIME LIMIT ***
+srun: Job step aborted: Waiting up to 47 seconds for job step to finish.

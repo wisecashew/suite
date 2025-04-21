@@ -11,9 +11,9 @@ IFLAGS = -std=c++14 -O3 -flto -ipo -march=native -pedantic -Wall -Wextra -Wall -
 MACFLAGS = -std=c++14 -pedantic -Ofast -mcpu=apple-a10 -Wall -Wextra -Wdisabled-optimization -Werror -Wnonnull -Wnull-dereference -Wno-return-stack-address -Wreturn-type -Wuninitialized -Wmain -Wnarrowing -Wnonnull -Wparentheses -Wreorder -Wreturn-type -Wsign-compare -Wsequence-point -Wtrigraphs -Wunused-function -Wunused-const-variable -Wunused-variable -Wwrite-strings
 OMPFLAGS = -fopenmp -O3 -std=c++14 -Wall -Wextra -Wdisabled-optimization -Werror -pedantic -Wnonnull -Wnull-dereference -Wno-return-local-addr -Wreturn-type
 
-main: main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp energetics.cpp verify.cpp dump.cpp lattice_directions.cpp extraction.cpp run.cpp debug.cpp perturb.cpp run.cpp
+main: main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp energetics.cpp verify.cpp dump.cpp lattice_directions.cpp extraction.cpp run.cpp debug.cpp perturb.cpp run.cpp get.cpp
 	@echo "Compiling main for simulation..."
-	@$(CC) $(FFLAGS) main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp extraction.cpp energetics.cpp verify.cpp dump.cpp debug.cpp lattice_directions.cpp perturb.cpp run.cpp -o flogotts
+	@$(CC) $(FFLAGS) main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp extraction.cpp energetics.cpp verify.cpp dump.cpp debug.cpp lattice_directions.cpp perturb.cpp run.cpp get.cpp -o flogotts
 	@echo "Compiled!"
 
 mac: main.cpp misc.cpp Particle.cpp Polymer.cpp setup.cpp energetics.cpp verify.cpp dump.cpp lattice_directions.cpp extraction.cpp run.cpp debug.cpp perturb.cpp run.cpp

@@ -3,19 +3,21 @@
 import pylab
 if __name__=="__main__":
 
-    hexcolor_cg = '#369DE8' # 'steelblue'
-    hexcolor_cc = '#1FB967' # 'lightskyblue'
-    hexcolor_gg = '#B9B41F' # 'lightcoral'
-    hexcolor_gc = '#B91F72' # 'darkred'
+	col1 = "steelblue"
+	col2 = "coral"
+	col3 = "lavender"
+	col4 = "seagreen"
 
-    fig = pylab.figure()
-    figlegend = pylab.figure(figsize=(50,25))
-    ax = fig.add_subplot(111)
-    lines = []
-    lines.append(ax.bar(range(10), pylab.randn(10), color=hexcolor_cg, edgecolor='k'))
-    lines.append(ax.bar(range(10), pylab.randn(10), color=hexcolor_cc, edgecolor='k'))
-    lines.append(ax.bar(range(10), pylab.randn(10), color=hexcolor_gg, edgecolor='k'))
-    lines.append(ax.bar(range(10), pylab.randn(10), color=hexcolor_gc, edgecolor='k'))
+	fig = pylab.figure()
+	figlegend = pylab.figure(figsize=(50,25))
+	ax = fig.add_subplot(111)
+	lines = []
+	lines.append(ax.plot(range(10), pylab.randn(10), color=col1, markeredgecolor='k', ls='--', marker='o')[0])
+	lines.append(ax.plot(range(10), pylab.randn(10), color=col2, markeredgecolor='k', ls='--', marker='^')[0])
+	lines.append(ax.plot(range(10), pylab.randn(10), color=col3, markeredgecolor='k', ls='--')[0])
+	lines.append(ax.plot(range(10), pylab.randn(10), color=col4, markeredgecolor='k', ls='--', marker='o')[0])
 
-    figlegend.legend(lines, ('$\\mathcal{R}_0$', '$\\mathcal{R}_1\'$', '$\\mathcal{R}_2$', '$\\mathcal{R}_3\'$'), 'center', frameon=False, ncol=4)
-    figlegend.savefig('legend.png', bbox_inches="tight", dpi=1200)
+	figlegend.legend(lines, ('$\\tilde{R}_g$', '$\\langle \\tilde{R}_g \\rangle_i$', '$\\langle \\tilde{R}_g \\rangle$', 'ACF'), 
+					 loc='center', frameon=False, ncol=4)
+	figlegend.savefig('legend.png', bbox_inches="tight", dpi=1200)
+

@@ -45,8 +45,6 @@ if __name__ == "__main__":
     f.write("COMPND    MY_POLYMER\n")
     f.write("AUTHOR    SAT\n")
     fss, sss = aux.get_neighbors (polymer)
-    # print ("fss = ", fss)
-    # print ("sss = ", sss)
     count = 1 
     for row in polymer:
         f.write ("ATOM  {:>5} {:>2}{:<2} POL P{:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( count, "M", " ", 1, row[0]*10, row[1]*10, row[2]*10, 1.00, 1.00, "M", "M" ) )

@@ -72,13 +72,14 @@ if __name__=="__main__":
 	tern_b  = True
 	edges_b = args.pe
 	crits_b = args.pc
+	mesh    = args.mpkl
 
 	# set up objects and crit points
 	print(f"Setting up the Phase object...", flush=True, end=' ')
 	P = phase.Phase(inputs)
 	print("done!", flush=True)
 
-	blibrary.get_crits(P, critpkl)
+	blibrary.get_crits(P, args.critpkl)
 	print(f"crits = {P.crits}", flush=True)
 
 	print(f"Plotting the ternary diagram...", flush=True,end=' ')
@@ -86,25 +87,26 @@ if __name__=="__main__":
 	print(f"done!", flush=True)
 	
 	# extract island information
-	stable_islands, unstable_islands, mesh = blibrary.extract_islands(args.spkl, args.upkl, args.mesh)
+	stable_islands, unstable_islands, mesh = blibrary.extract_islands(args.spkl, args.upkl, mesh)
 	
 	# get hull paths
 	hull_paths_u, hull_paths_s = blibrary.get_hull_paths(stable_islands, unstable_islands, mesh)
 
 	# define the BINODALS dictionary 
-	BINODALS = blibrary.setup(hull_paths_s, hull_paths_s)
+	# BINODALS = blibrary.setup(hull_paths_s, stable_islands)
+	BINODALS = blibrary.setup(hull_paths_u, unstable_islands, hull_paths_s, stable_islands)
 
 	# compile together all the geometric information of the critical points
 	blibrary.update_crit_info(BINODALS, P, ax)
 
 	# order the groupings of critical points
-	blibrary.order_groupings(BINODALS)
+	blibrary.order_groupings(BINODALS, P)
 
 	# now, based on critical point information, run searches for binodal curves
 	blibrary.search(BINODALS, P) 
 
 	# start the scanning distinct islands for binodal curves
-	blibrary.search_islands(BINODALS, P)
+	blibrary.search_islands(BINODALS, P, stable_islands)
 
 	# get the binodal on a file
 	f = open(args.fb, 'wb')

@@ -18,10 +18,13 @@ custom_font = FontProperties(fname="arial.ttf")
 # plt.scatter([], [], c="steelblue", s=5, label="metastable/stable")
 # plt.scatter([], [], c="coral",     s=5, label="unstable")
 
-plt.plot([], [], c='#8EDA25', ls='--', lw=1, markersize=2, marker='o', mec='k', label="solvent mixing")
-plt.plot([], [], c='#258EDA', ls='--', lw=1, markersize=2, marker='o', mec='k', label="enthalpic bridging")
-plt.plot([], [], c='#DA258E', ls='--', lw=1, markersize=2, marker='o', mec='k', label="geometric frustration")
+# plt.plot([], [], c='#8EDA25', ls='--', lw=1, markersize=2, marker='o', mec='k', label="solvent mixing")
+# plt.plot([], [], c='#258EDA', ls='--', lw=1, markersize=2, marker='o', mec='k', label="enthalpic bridging")
+# plt.plot([], [], c='#DA258E', ls='--', lw=1, markersize=2, marker='o', mec='k', label="geometric frustration")
 
+plt.plot([], [], c="#005A9C",    ls='--', lw=1, markersize=8/1.3, marker='o', mec='k', label="$T=0.1$")
+plt.plot([], [], c="whitesmoke", ls='--', lw=1, markersize=8/1.3, marker='o', mec='k', label="$T=1.0$")
+plt.plot([], [], c='#FF4500',    ls='--', lw=1, markersize=8/1.3, marker='o', mec='k', label="$T=10.0$")
 
 # Display legend window only
 plt.legend(loc='center', frameon=False, prop=custom_font)

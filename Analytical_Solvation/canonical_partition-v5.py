@@ -19,7 +19,7 @@ parser.add_argument ("--color", dest='c',     type=str,   action='store', help="
 parser.add_argument ("--csv",   dest='csv',   type=str,   action='store', help="name of csv file.")
 args = parser.parse_args()
 
-def boltzmann(T):
+def partition_function(T):
 	energy    = lambda Nmm, Nmm_a, Nms_a: mp.exp(-1/(kb * T) * (Nmm_a * emm_a + (Nmm - Nmm_a) * emm_n + Nms_a * ems_a + (Nms_tot(Nmm) - Nms_a) * ems_n))
 	boltzmann = lambda Nmm, Nmm_a, Nms_a: p_chain(Nmm) * comb_mm(Nmm, Nmm_a) * comb_ms(Nmm, Nms_a) * energy(Nmm, Nmm_a, Nms_a)
 	print(f"@T = {T}...", flush=True)
@@ -33,6 +33,7 @@ def boltzmann(T):
 				Z        += boltzmann(Nmm, Nmm_a, Nms_a)
 				ave_Nmm  += Nmm           * boltzmann(Nmm, Nmm_a, Nms_a)
 				ave_Nms  += Nms_tot(Nmm)  * boltzmann(Nmm, Nmm_a, Nms_a)
+	print(f"-kbT*log(Z) = {-T * mp.log(Z)}", flush=True)
 	return [ave_Nmm/Z, ave_Nms/Z]
 
 if __name__=="__main__":
@@ -70,14 +71,6 @@ if __name__=="__main__":
 	scale = 208 - 31
 
 	rv = beta(a, b, loc=loc, scale=scale)
-	print(f"p(61) = {rv.pdf(61)}", flush=True)
-	print(f"p(80) = {rv.pdf(80)}", flush=True)
-	print(f"p(100) = {rv.pdf(100)}", flush=True)
-	print(f"p(120) = {rv.pdf(120)}", flush=True)
-	print(f"p(150) = {rv.pdf(150)}", flush=True)
-	print(f"p(200) = {rv.pdf(200)}", flush=True)
-	print(f"p(208) = {rv.pdf(208)}", flush=True)
-	exit()
 
 	Nms_tot = lambda Nmm: 770 - 2 * (Nmm - (Nm - 1))
 	p_chain = lambda Nmm: rv.pdf(Nmm)
@@ -85,7 +78,7 @@ if __name__=="__main__":
 	comb_ms = lambda Nmm, Nms_a: mp.factorial(Nms_tot(Nmm)) / (mp.factorial(Nms_a) * mp.factorial(Nms_tot(Nmm)-Nms_a)) * mp.power(pw, Nms_a) * mp.power(1-pw, Nms_tot(Nmm)-Nms_a)
 
 	pool    = multiprocessing.Pool(processes=len(T_range))
-	results = pool.starmap(boltzmann, zip(T_range))
+	results = pool.starmap(partition_function, zip(T_range))
 
 	for res in results:
 		Nmm_list.append(res[0])

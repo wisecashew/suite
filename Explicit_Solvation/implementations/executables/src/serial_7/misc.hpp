@@ -24,6 +24,7 @@
 #include <filesystem>
 #include <limits>
 #include <type_traits>
+#include <cassert>
 #include <getopt.h> 
 #include <stdlib.h> 
 
@@ -99,34 +100,31 @@ std::array <int,3>   location      ( int lattice_index, int x, int y, int z);
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // std::vector and std::array arithmetic
 // adding the two 
-std::vector <int>      add_vectors (std::vector <int>* v1, std::vector <int>* v2); 
-std::array  <int,3>    add_arrays  (std::array <int,3>* a1, std::array <int,3>* a2);
-std::array  <double,3> add_arrays  (std::array <int,3>* a1, std::array <double,3>* a2);
-std::array  <double,3> add_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
-std::array  <int,CONTACT_SIZE>    add_arrays  (std::array <int,CONTACT_SIZE>*     a1, std::array <int,CONTACT_SIZE>*     a2);
-std::array  <double,CONTACT_SIZE> add_arrays  (std::array <double,CONTACT_SIZE>*  a1, std::array <double,CONTACT_SIZE>*  a2);
-std::array  <double,CONTACT_SIZE> add_arrays  (std::array <double,CONTACT_SIZE>   a1, std::array <double,CONTACT_SIZE>   a2);
+/*
+std::vector <int>      add_containers (std::vector <int>* v1, std::vector <int>* v2); 
+std::array  <int,3>    add_containers  (std::array <int,3>* a1, std::array <int,3>* a2);
+std::array  <double,3> add_containers  (std::array <int,3>* a1, std::array <double,3>* a2);
+std::array  <double,3> add_containers  (std::array <double,3>* a1, std::array <double,3>* a2);
+std::array  <int,CONTACT_SIZE>    add_containers  (std::array <int,CONTACT_SIZE>*     a1, std::array <int,CONTACT_SIZE>*     a2);
+std::array  <double,CONTACT_SIZE> add_containers  (std::array <double,CONTACT_SIZE>*  a1, std::array <double,CONTACT_SIZE>*  a2);
+std::array  <double,CONTACT_SIZE> add_containers  (std::array <double,CONTACT_SIZE>   a1, std::array <double,CONTACT_SIZE>   a2);
 
 
 // subtracting the two 
 std::vector <int>      subtract_vectors (std::vector <int>* v1,     std::vector <int>* v2); 
-std::array  <int,3>    subtract_arrays  (std::array <int,3>* a1,    std::array <int,3>* a2);
-std::array  <double,3> subtract_arrays  (std::array <double,3>* a1, std::array <double,3>* a2);
-std::array  <int,CONTACT_SIZE>    subtract_arrays (std::array <int,CONTACT_SIZE>*    a1, std::array <int,CONTACT_SIZE>*    a2);
-std::array  <double,CONTACT_SIZE> subtract_arrays (std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2);
-std::array  <double,CONTACT_SIZE> subtract_arrays (std::array <double,CONTACT_SIZE>  a1, std::array <double,CONTACT_SIZE>  a2); 
-
-// scaling arrays 
-std::array <double,3>  scale_arrays ( double scalar, std::array <double,3>* array );
-std::array <double,3>  scale_arrays ( double scalar, std::array <int,3>*    array ); 
-
+std::array  <int,3>    subtract_containers  (std::array <int,3>* a1,    std::array <int,3>* a2);
+std::array  <double,3> subtract_containers  (std::array <double,3>* a1, std::array <double,3>* a2);
+std::array  <int,CONTACT_SIZE>    subtract_containers (std::array <int,CONTACT_SIZE>*    a1, std::array <int,CONTACT_SIZE>*    a2);
+std::array  <double,CONTACT_SIZE> subtract_containers (std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2);
+std::array  <double,CONTACT_SIZE> subtract_containers (std::array <double,CONTACT_SIZE>  a1, std::array <double,CONTACT_SIZE>  a2); 
+*/
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // getting distance between two points 
 double              distance_between_points (std::array <int,3>*    a1, std::array <int,3>* a2   , int xlen, int ylen, int zlen);
 double              distance_between_points (std::array <double,3>* a1, std::array <double,3>* a2, int xlen, int ylen, int zlen);
 double              take_dot_product        (int o1, int o2); 
-double              take_dot_product        (std::array <double,3> o1, std::array <double,3> o2); 
+double              take_dot_product        (const std::array <double,3>& o1, const std::array <double,3>& o2); 
 
 //~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 // check input of main driver code 
@@ -134,8 +132,6 @@ void input_parser (int dfreq,
 	int lfreq, 
 	int max_iter, 
 	bool r, 
-	bool potts_bool, 
-	bool dry_bool, 
 	std::string positions, 
 	std::string topology, 
 	std::string dfile, 
@@ -191,21 +187,76 @@ void reset(T &x){
 	x = T();
 }
 
-template <typename ContainerType>
-auto add_containers(const ContainerType& c1, const ContainerType& c2);
+// template <typename ContainerType>
+// ContainerType add_containers(const ContainerType& c1, const ContainerType& c2);
+
+// template <typename ContainerType>
+// ContainerType subtract_containers(const ContainerType& c1, const ContainerType& c2);
 
 template <typename ContainerType>
-auto subtract_containers(const ContainerType& c1, const ContainerType& c2);
+ContainerType add_containers(const ContainerType& c1, const ContainerType& c2) {
+	// Ensure both containers have the same size
+	assert(c1.size() == c2.size());
 
-template <typename Container>
-typename std::conditional<
-	std::is_same<Container, std::array<typename Container::value_type, Container::size()>>::value,
-	std::array<double, Container::size()>,
-	std::vector<double>>::type
-scale_containers(double scalar, const Container& array);
+	// Deduce the result type using the common type between the two containers' elements
 
-template <typename T>
-std::vector<double> scale_containers(double scalar, const std::vector<T>& array);
+	// Create a container of the same size for the result
+	ContainerType result = c1;          // Can be array or vector; assumes both containers are the same type
+	// std::fill(result.begin(), result.end(), 0); // result.fill(CommonType(0));    // For arrays
+
+	// Perform element-wise addition
+	for (std::size_t i = 0; i < c1.size(); ++i) {
+		result[i] = (c1[i]) + (c2[i]);
+	}
+
+	return result;
+}
+
+template <typename ContainerType>
+ContainerType subtract_containers(const ContainerType& c1, const ContainerType& c2) {
+	// Ensure both containers have the same size
+	assert(c1.size() == c2.size());
+
+	// Deduce the result type using the common type between the two containers' elements
+
+	// Create a container of the same size for the result
+	ContainerType result = c1;          // Can be array or vector; assumes both containers are the same type
+	// std::fill(result.begin(), result.end(), 0); // result.fill(CommonType(0));    // For arrays
+
+	// Perform element-wise addition
+	for (std::size_t i = 0; i < c1.size(); ++i) {
+		result[i] = (c1[i]) - (c2[i]);
+	}
+
+	return result;
+}
+
+
+template <typename Scalar, typename T>
+std::vector<decltype(std::declval<Scalar>() * std::declval<T>())> scale_vectors(Scalar scalar, const std::vector<T>& container) {
+    using ResultType = decltype(scalar * std::declval<T>());
+    std::vector<ResultType> result;
+    result.reserve(container.size());
+    
+    for (const T& value : container) {
+        result.push_back(scalar * value);
+    }
+    return result;
+}
+
+template <typename Scalar, typename T, std::size_t N>
+std::array<decltype(std::declval<Scalar>() * std::declval<T>()), N> 
+scale_arrays (Scalar scalar, const std::array<T, N>& container) {
+    using ResultType = decltype(scalar * std::declval<T>());
+    std::array<ResultType, N> result{};
+    
+    for (std::size_t i = 0; i < N; ++i) {
+        result[i] = scalar * container[i];
+    }
+    
+    return result;
+}
+
 
 void resetting_containers(std::array<double,CONTACT_SIZE>* cs1_i, std::array<double,CONTACT_SIZE>*cs1_f,
 std::array<double,CONTACT_SIZE>* cs2_i, std::array<double,CONTACT_SIZE>*cs2_f,

@@ -63,31 +63,30 @@ def color_map(start_color, end_color, n_steps):
 
 if __name__=="__main__":
 
-	# cols = ["rosybrown", "lightcoral", "indianred", "brown"]
 	z       = 26
 	M       = 32
 	Hmix    = args.Hmix
-	cols    = args.color # color_map("coral", "darkred", len(Hmix))
-	fig     = plt.figure(figsize=(1.8,1.8), constrained_layout=True)
-	ax      = plt.axes()
+	cols    = args.color
 
 	keys    = ["M1-M1", "M1-S", "S1-S2", "M1-S1", "M1-S2", "M1-S1-A", "M1-S1-N", "S1-S2-A"]
 	titles  = ["Monomer-monomer contacts", "Solvent-cosolvent contacts", "Monomer-solvent contacts", "Monomer-cosolvent contacts", "Solvent-solvent contacts", "cosolvent-cosolvent contacts"]
 
-	ylims   = [(0,0.25), (0,1), (0,0.5), (0,1), (0,1), (0,1), (0,1), (0,0.5)]
+	ylims   = [(0,0.2), (0,1), (0,0.5), (0,1), (0,1), (0,1), (0,1), (0,0.5)]
 	ypads   = [3, 1, 1, 1, 1, 3]
-	yticks  = [np.linspace(0, 0.25, 6), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6), np.linspace(0, 0.5, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6)]
+	yticks  = [np.linspace(0, 0.20, 5), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6), np.linspace(0, 0.5, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6)]
 	norms   = [M*z, M*z, (M+2)**3*z, M*z, M*z, M*z, M*z, (M+2)**3*z]
 
 	df_real = pd.read_csv (args.real, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 	x_real  = df_real["x"]
 
-	colormap = cm.get_cmap ("coolwarm")
+	# fig, ax = plt.subplots(1, 1, num=1, figsize=(1.5,1.5), squeeze=False)
 	for k in range( len(keys) ):
-
+		fig = plt.figure(num=k, figsize=(1.5,1.5))
+		ax  = fig.add_subplot(111)
 		ax.tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both')
 		ax.tick_params(axis='x', labelsize=8)
 		ax.tick_params(axis='y', labelsize=8)
+		print(f"key = {keys[k]}, lims = {ylims[k]}")
 		ax.set_ylim(ylims[k][0], ylims[k][1])
 		ax.set_yticks(yticks[k])
 		if args.show_ylabels:
@@ -115,5 +114,5 @@ if __name__=="__main__":
 			
 			ax.plot (df_subset["x"].values, p_diff, marker='o', c=cols[idx], linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10, ls='--')
 
-		plt.savefig ("contact-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
+		fig.savefig ("contact-plots-class-"+keys[k]+"-"+args.s, bbox_inches='tight', dpi=1200)
 		ax.cla()

@@ -160,7 +160,7 @@ bool Simulation::check_connectivity_raw(){
 
 		for (int i{1}; i<static_cast<int>(length); ++i){
 			
-			connection = subtract_arrays(&(pmer.chain[i]->coords), &(pmer.chain[i-1]->coords));
+			connection = subtract_containers((pmer.chain[i]->coords), (pmer.chain[i-1]->coords));
 			impose_pbc(&connection, this->x, this->y, this->z);
 			modified_direction ( &connection, this->x, this->y, this->z); 
 
@@ -188,7 +188,7 @@ bool Simulation::check_connectivity(){
 
 		for (int i{1}; i<static_cast<int>(length); ++i){
 			
-			connection = subtract_arrays(&(pmer.chain[i]->coords), &(pmer.chain[i-1]->coords));
+			connection = subtract_containers((pmer.chain[i]->coords), (pmer.chain[i-1]->coords));
 			impose_pbc(&connection, this->x, this->y, this->z);
 			modified_direction ( &connection, this->x, this->y, this->z); 
 

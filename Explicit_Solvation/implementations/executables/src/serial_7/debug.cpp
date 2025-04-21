@@ -8,7 +8,7 @@
 void Simulation::debug_calculate_energy(double* db_energy, std::array<double,CONTACT_SIZE>* db_contacts){
 
 	*db_energy   = 0.0;
-	*db_contacts = {0,0,0,0,0,0,0,0,0,0}; 
+	*db_contacts = {0,0,0, 0,0,0, 0,0}; 
 	std::array <std::array <int,3>, 26> ne_list; 
 
 	// more debug shit
@@ -35,26 +35,6 @@ void Simulation::debug_calculate_energy(double* db_energy, std::array<double,CON
 			this->debug_pair_interaction(p, this->Lattice[lattice_index(loc, this->y, this->z)], db_contacts, db_energy);
 		}
 	}
-	return;
-}
-
-void Simulation::debug_calculate_energy_dryfield(double* db_energy, std::array<double,3>* db_magnetization, std::array<double, CONTACT_SIZE>* db_contacts){
-	*db_energy        = 0;
-	*db_magnetization = {0, 0, 0};
-	*db_contacts      = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	std::array<std::array<int,3>, 26> ne_list;
-
-	for (Polymer& pmer: this->Polymers){
-		for (Particle*& p: pmer.chain){
-			*db_magnetization = add_containers(*db_magnetization, Or2Dir[p->orientation]);
-			ne_list = obtain_ne_list(p->coords, this->x, this->y, this->z);
-			for (std::array<int,3>& loc: ne_list){
-				this->debug_pair_interaction(p, this->Lattice[lattice_index(loc, this->y, this->z)], db_contacts, db_energy);
-			}
-		}
-	}
-
-	*db_energy += this->Bfield * std::sqrt(this->polymer_magnetization[0]*this->polymer_magnetization[0] + this->polymer_magnetization[1]*this->polymer_magnetization[1] + this->polymer_magnetization[2]*this->polymer_magnetization[2]);
 	return;
 }
 
@@ -109,11 +89,11 @@ void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<d
 		break;
 
 	case 'a':
-		connvec = subtract_arrays ( &(p2->coords), &(p1->coords) );
+		connvec = subtract_containers ( (p2->coords), (p1->coords) );
 		modified_direction (&connvec, x, y, z); 
 		magnitude = std::sqrt (connvec[0]*connvec[0] + connvec[1]*connvec[1] + connvec[2]*connvec[2]);
-		theta_1   = branchless_acos(take_dot_product (scale_arrays (1/magnitude , &connvec), Or2Dir[p1->orientation] ) );
-		theta_2   = branchless_acos(take_dot_product (scale_arrays (-1/magnitude, &connvec), Or2Dir[p2->orientation] ) );
+		theta_1   = branchless_acos(take_dot_product (scale_arrays (1/magnitude , connvec), Or2Dir[p1->orientation] ) );
+		theta_2   = branchless_acos(take_dot_product (scale_arrays (-1/magnitude, connvec), Or2Dir[p2->orientation] ) );
 
 		// std::cout << "theta_1 = " << theta_1 << ", theta_2 = " << theta_2 << std::endl;
 		if ( (theta_1 + theta_2) > M_PI/2 ){
@@ -157,7 +137,7 @@ void Simulation::debug_pair_interaction(Particle* p1, Particle* p2, std::array<d
 void Simulation::debug_checks_energy_contacts(double E_final, std::array<double,CONTACT_SIZE> final_contacts){
 
 	double E_debug = 0;
-	std::array<double,CONTACT_SIZE> debug_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}; 
+	std::array<double,CONTACT_SIZE> debug_contacts = {0,0,0, 0,0,0, 0,0}; 
 
 	// run the debugger
 	this->debug_calculate_energy(&E_debug, &debug_contacts); 
@@ -200,9 +180,9 @@ void Simulation::debug_orientation_sampler_forwards(std::array<double,CONTACT_SI
 		this->enhanced_flipper.orientations[j] = this->Lattice[lat_idx]->orientation;
 		this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
 		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
-		this->enhanced_flipper.contacts_store[j]  = subtract_arrays(contacts_sys, &(this->enhanced_flipper.initial_contacts));
-		this->enhanced_flipper.contacts_store[j]  = add_arrays     (&(this->enhanced_flipper.contacts_store[j]), &(this->enhanced_flipper.perturbed_contacts));
-		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.contacts_store[j]  = subtract_containers(*contacts_sys, (this->enhanced_flipper.initial_contacts));
+		this->enhanced_flipper.contacts_store[j]  = add_containers     ((this->enhanced_flipper.contacts_store[j]), (this->enhanced_flipper.perturbed_contacts));
+		this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.perturbed_E        = 0;
 		std::cout << "Forward sampler (" << j << ")" << std::endl;
 		this->debug_checks_energy_contacts(this->enhanced_flipper.energies[j], this->enhanced_flipper.contacts_store[j]);
@@ -219,12 +199,12 @@ void Simulation::debug_orientation_sampler_backwards_0(std::array<double,CONTACT
 	this->Lattice[lat_idx]->orientation = this->enhanced_flipper.initial_orientations[iteration_idx];
 	this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
 	this->enhanced_flipper.energies[0] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
-	this->enhanced_flipper.contacts_store[0]  = subtract_arrays(*contacts_sys, this->enhanced_flipper.initial_contacts);
-	this->enhanced_flipper.contacts_store[0]  = add_arrays     (this->enhanced_flipper.contacts_store[0], this->enhanced_flipper.perturbed_contacts);
+	this->enhanced_flipper.contacts_store[0]  = subtract_containers(*contacts_sys, this->enhanced_flipper.initial_contacts);
+	this->enhanced_flipper.contacts_store[0]  = add_containers     (this->enhanced_flipper.contacts_store[0], this->enhanced_flipper.perturbed_contacts);
 	std::cout << "Inside fourth set of flip test..." << std::endl;
 	this->debug_checks_energy_contacts(this->enhanced_flipper.energies[0], this->enhanced_flipper.contacts_store[0]);
 
-	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 	this->enhanced_flipper.perturbed_E        = 0;
 
 	return;
@@ -240,9 +220,9 @@ void Simulation::debug_orientation_sampler_backwards(std::array<double,CONTACT_S
 		this->Lattice[lat_idx]->orientation = rng_uniform (0, 25); 
 		this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
 		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
-		this->enhanced_flipper.contacts_store [j]  = subtract_arrays (*contacts_sys, this->enhanced_flipper.initial_contacts);
-		this->enhanced_flipper.contacts_store [j]  = add_arrays      (this->enhanced_flipper.contacts_store[j], this->enhanced_flipper.perturbed_contacts);
-		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.contacts_store [j]  = subtract_containers (*contacts_sys, this->enhanced_flipper.initial_contacts);
+		this->enhanced_flipper.contacts_store [j]  = add_containers      (this->enhanced_flipper.contacts_store[j], this->enhanced_flipper.perturbed_contacts);
+		this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.perturbed_E        = 0;
 		this->debug_checks_energy_contacts(this->enhanced_flipper.energies[j], this->enhanced_flipper.contacts_store[j]);
 	}
@@ -292,7 +272,7 @@ void Simulation::debug_tail_rotation(int p_idx){
 
 	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
-	std::array <double,CONTACT_SIZE> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> final_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// generate a neighbor list 
 	std::array<std::array<int,3>, 26> ne_list = obtain_ne_list(loc_1, this->x, this->y, this->z);
@@ -319,9 +299,9 @@ void Simulation::debug_tail_rotation(int p_idx){
 
 		final_E = this->sysEnergy - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial);
 		final_E = final_E + (this->rotation_container.E1_final   + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
-		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-		final_contacts = add_arrays(final_contacts, this->rotation_container.cpair_initial);
-		final_contacts = subtract_arrays(final_contacts, this->rotation_container.cpair_final);
+		final_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+		final_contacts = add_containers(final_contacts, this->rotation_container.cpair_initial);
+		final_contacts = subtract_containers(final_contacts, this->rotation_container.cpair_final);
 
 		// run the debugger
 		std::cout << "Running the debugger..." << std::endl; 
@@ -364,7 +344,7 @@ void Simulation::debug_head_rotation(int p_idx){
 
 	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
-	std::array <double,CONTACT_SIZE> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> final_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// generate a neighbor list 
 	std::array<std::array<int,3>, 26> ne_list = obtain_ne_list(loc_1, this->x, this->y, this->z);
@@ -391,9 +371,9 @@ void Simulation::debug_head_rotation(int p_idx){
 		// doing the quick manipulations to get the final energy and contacts
 		final_E = this->sysEnergy - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial);
 		final_E = final_E + (this->rotation_container.E1_final   + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
-		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-		final_contacts = add_arrays(final_contacts, this->rotation_container.cpair_initial);
-		final_contacts = subtract_arrays(final_contacts, this->rotation_container.cpair_final);
+		final_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+		final_contacts = add_containers(final_contacts, this->rotation_container.cpair_initial);
+		final_contacts = subtract_containers(final_contacts, this->rotation_container.cpair_final);
 
 		// run the debugger
 		std::cout << "Running the debugger..." << std::endl; 
@@ -551,133 +531,6 @@ void Simulation::debug_reptation_backward(int p_idx){
 //////////////////////////////////////////////////////////////////
 
 //////////////////////////////////////////////////////////////////
-
-void Simulation::debug_polymer_orientation_flip_dryfield(int p_idx){
-
-	// instantiate some useful variables
-	int deg_poly = this->Polymers[p_idx].deg_poly;
-	std::vector<int> polymer_indices (deg_poly);
-	std::iota(polymer_indices.begin(), polymer_indices.end(), 0);
-
-	// set up the random number generation
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::shuffle(polymer_indices.begin(), polymer_indices.end(), std::default_random_engine(seed));
-
-	// instantiate variables for boltzmann sampling
-	int ntest    = 5;
-	int nflip    = (deg_poly==1) ? 1 : rng_uniform (1, deg_poly-1);
-
-	// set up the flipper object! 
-	this->enhanced_flipper.reset(nflip, ntest); 
-
-	// define some holders 
-	double                          E_sys        = this->sysEnergy;
-	std::array<double,CONTACT_SIZE> contacts_sys = this->contacts;
-
-	// some more holders
-	double                          E_post        = 0;                 // the energy of the system after final perturbation
-	double                          rng_acc       = 0;                 // rng for acceptance at the very end
-	std::array<double,CONTACT_SIZE> contacts_post; 
-	contacts_post.fill(0); // the contacts of the system after final perturbation
-
-	// relevant indices variable store
-	int m_lattice_idx = 0; 
-
-	// loop over the different monomer indices
-	for ( int i{0}; i < nflip; ++i ){
-
-		// sample different orientations and get the boltzmann factors 
-		m_lattice_idx = lattice_index(this->Polymers[p_idx].chain[polymer_indices[i]]->coords, this->y, this->z);
-		this->debug_orientation_sampler_forwards(&contacts_sys, E_sys, i, m_lattice_idx);
-
-		// get the energy minima
-		this->enhanced_flipper.Emin = *std::min_element(this->enhanced_flipper.energies.begin(), this->enhanced_flipper.energies.end());
-
-		// go to the new state 
-		this->debug_choose_state_forward(i, m_lattice_idx);
-
-		// set the system energy at the final point
-		E_sys        = this->enhanced_flipper.energies[enhanced_flipper.sampler_idx];
-		contacts_sys = this->enhanced_flipper.contacts_store[enhanced_flipper.sampler_idx];
-
-		// run the check
-		std::cout << "Second flip test..." << std::endl;
-		this->debug_checks_energy_contacts(E_sys, contacts_sys);
-
-		// reset
-		this->enhanced_flipper.initial_contacts.fill(0);
-		this->enhanced_flipper.initial_E        = 0;
-		this->enhanced_flipper.rboltzmann       = 0;
-		this->enhanced_flipper.sampler_rsum     = 0;
-
-	}
-
-	E_post        = E_sys;
-	contacts_post = contacts_sys;
-
-	this->debug_checks_energy_contacts(E_sys, contacts_sys);
-	this->enhanced_flipper.perturbed_contacts.fill(0);
-	this->enhanced_flipper.perturbed_E        = 0;
-
-
-	for ( int i{0}; i < nflip; ++i ){
-
-		// sample different orientations and get the boltzmann factors for the backward flux
-		m_lattice_idx = lattice_index(this->Polymers[p_idx].chain[polymer_indices[i]]->coords, this->y, this->z);
-		this->debug_orientation_sampler_backwards(&contacts_sys, E_sys, i, m_lattice_idx);
-
-		// get the minimum energy
-		this->enhanced_flipper.Emin = *std::min_element(this->enhanced_flipper.energies.begin(), this->enhanced_flipper.energies.end());
-
-		// get the backwards probability flux
-		for (int k{0}; k < ntest; ++k){
-			this->enhanced_flipper.boltzmann [k] = std::exp (-1/this->T*(this->enhanced_flipper.energies[k] - this->enhanced_flipper.Emin));
-			this->enhanced_flipper.rboltzmann   += this->enhanced_flipper.boltzmann[k];
-		}
-		this->enhanced_flipper.prob_n_to_o      *= this->enhanced_flipper.boltzmann[0]/this->enhanced_flipper.rboltzmann;
-
-		// make the jump to the old state 
-		this->Polymers[p_idx].chain[polymer_indices[i]]->orientation = this->enhanced_flipper.initial_orientations[i];
-
-		// set the energetics and contacts right
-		E_sys        = this->enhanced_flipper.energies[0];
-		contacts_sys = this->enhanced_flipper.contacts_store[0];
-		std::cout << "Sixth flip test..." << std::endl;
-		this->debug_checks_energy_contacts(E_sys, contacts_sys);
-
-		// reset
-		this->enhanced_flipper.initial_contacts.fill(0);
-		this->enhanced_flipper.initial_E        = 0;
-		this->enhanced_flipper.rboltzmann       = 0;
-
-	}
-
-	std::cout << "Seventh flip test..." << std::endl;
-	this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
-
-	// get a random number
-	rng_acc = rng_uniform(0.0, 1.0);
-
-	// run the criterion
-	if ( rng_acc < std::exp (-1/this->T * (E_post - this->sysEnergy )) * this->enhanced_flipper.prob_n_to_o/this->enhanced_flipper.prob_o_to_n){
-		std::cout << "Orientation to be assigned = "; print(this->enhanced_flipper.final_orientations);
-		for (int j{0}; j < nflip; ++j){
-			(this->Polymers)[p_idx].chain[polymer_indices[j]]->orientation = this->enhanced_flipper.final_orientations[j];
-		}
-		this->sysEnergy = E_post;
-		this->contacts  = contacts_post;
-		this->IMP_BOOL  = true;
-	}
-	else {
-		this->IMP_BOOL = false; 
-	}
-
-	std::cout << "Eighth flip test..." << std::endl;
-	this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);
-
-	return;
-
-}
 
 void Simulation::debug_polymer_orientation_flip(int p_idx){
 
@@ -940,8 +793,8 @@ void Simulation::debug_lattice_flip(){
 	std::vector <int> orientations (nflips, 0); 
 
 	// set up the contacts store
-	std::array <double,CONTACT_SIZE> cs_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	std::array <double,CONTACT_SIZE> cs_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> cs_i = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cs_f = {0,0,0, 0,0,0, 0,0};
 
 	// set up the energies
 	double Es_i = 0;
@@ -965,14 +818,14 @@ void Simulation::debug_lattice_flip(){
 		orientations[i] =  (this->Lattice[samples[i]])->orientation; // .push_back((this->Lattice[samples[i]])->orientation); 
 		(this->Lattice[samples[i]])->orientation = rng_uniform(0, 25);
 		this->neighbor_energetics(samples[i], &cs_f, &Es_f); 
-		contacts = add_arrays(subtract_arrays(contacts, cs_i), cs_f);
+		contacts = add_containers(subtract_containers(contacts, cs_i), cs_f);
 		Ef += Es_f - Es_i;
 		std::cout << "i = " << i << ", " << this->Lattice[samples[i]]->ptype << ", "; print(this->Lattice[samples[i]]->coords);
 		this->debug_checks_energy_contacts(Ef, contacts);
 
 		// resetting...
-		cs_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cs_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		cs_i = {0,0,0, 0,0,0, 0,0};
+		cs_f = {0,0,0, 0,0,0, 0,0};
 		Es_i = 0;
 		Es_f = 0;
 
@@ -1010,7 +863,7 @@ void Simulation::debug_solvent_exchange_from_shell(){
 	// set up some holders
 	double post_energy = 0;
 	double rng_acc     = 0;
-	std::array <double,CONTACT_SIZE> post_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> post_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// define the holder to facilitate the swap
 	Particle* tmp_par_ptr {nullptr};
@@ -1032,9 +885,9 @@ void Simulation::debug_solvent_exchange_from_shell(){
 			// update energy and contacts
 			post_energy   = this->sysEnergy  - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial); 
 			post_energy   = post_energy + (this->rotation_container.E1_final + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
-			post_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-			post_contacts = add_arrays(post_contacts, this->rotation_container.cpair_initial);
-			post_contacts = subtract_arrays(post_contacts, this->rotation_container.cpair_final);
+			post_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+			post_contacts = add_containers(post_contacts, this->rotation_container.cpair_initial);
+			post_contacts = subtract_containers(post_contacts, this->rotation_container.cpair_final);
 			
 			this->debug_checks_energy_contacts(post_energy, post_contacts);
 
@@ -1094,9 +947,9 @@ void Simulation::debug_solvent_exchange(){
 			
 			post_energy   = this->sysEnergy  - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial); 
 			post_energy   = post_energy + (this->rotation_container.E1_final   + this->rotation_container.E2_final   - this->rotation_container.Epair_final);
-			post_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-			post_contacts = add_arrays(post_contacts, this->rotation_container.cpair_initial);
-			post_contacts = subtract_arrays(post_contacts, this->rotation_container.cpair_final);
+			post_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+			post_contacts = add_containers(post_contacts, this->rotation_container.cpair_initial);
+			post_contacts = subtract_containers(post_contacts, this->rotation_container.cpair_final);
 
 			this->debug_checks_energy_contacts(post_energy, post_contacts);
 
@@ -1127,7 +980,7 @@ void Simulation::debug_regrowth(int p_idx){
 	int growth          = -1;
 	double forw_energy  =  0;
 	double rng_acc      =  0;
-	std::array <double,CONTACT_SIZE> forw_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> forw_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// get that reset going
 	this->enhanced_swing.reset(deg_poly);
@@ -1301,7 +1154,7 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
 				if (self_swap_idx < m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1, -1,-1,-1, -1,-1};
 					block_counter                                   += 1;
 				}
 				else{
@@ -1321,8 +1174,8 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 					std::cout << "Running check..." << std::endl;
@@ -1354,8 +1207,8 @@ void Simulation::debug_forward_head_regrowth(int p_idx, int m_idx){
 
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 				std::cout << "Running check..." << std::endl;
@@ -1522,7 +1375,7 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
 				if (self_swap_idx <= m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1, -1,-1,-1, -1,-1};
 				}
 				else{
 
@@ -1541,8 +1394,8 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 					std::cout << "Checking the structures..." << std::endl;
@@ -1578,8 +1431,8 @@ void Simulation::debug_backward_head_regrowth(int p_idx, int m_idx, int recursio
 				std::cout << "Store the energies." << std::endl;
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 				std::cout << "Checking the structures..." << std::endl;
@@ -1664,7 +1517,7 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
 				if (self_swap_idx > m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1, -1,-1,-1, -1,-1};
 					block_counter                                   += 1;
 				}
 				else{
@@ -1684,8 +1537,8 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 					this->Polymers[p_idx].print_chain();
@@ -1716,8 +1569,8 @@ void Simulation::debug_forward_tail_regrowth(int p_idx, int m_idx){
 
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 				this->Polymers[p_idx].print_chain();
@@ -1886,7 +1739,7 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 				std::cout << "self swap monomer index = " << self_swap_idx << "." << std::endl;
 				if (self_swap_idx > m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1, -1,-1,-1, -1,-1};
 				}
 				else{
 
@@ -1905,8 +1758,8 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 					std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 					this->Polymers[p_idx].print_chain();
@@ -1937,8 +1790,8 @@ void Simulation::debug_backward_tail_regrowth(int p_idx, int m_idx, int recursio
 
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 				std::cout << "contacts_store[" << idx_counter << "] = "; print(this->enhanced_swing.contacts_store[idx_counter]);
 
 				this->Polymers[p_idx].print_chain();

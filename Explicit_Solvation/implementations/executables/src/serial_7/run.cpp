@@ -49,26 +49,6 @@ void Simulation::run_straight(){
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-void Simulation::run_dry(){
-	std::cout << "Running..." << std::endl;
-	int start = this->step_number+1;
-	int stop  = this->step_number+this->max_iter+1;
-	for (int i {start}; i < stop; ++i){
-		// std::cout << "@ step " << i << "." << std::endl;
-		this->step_number += 1;
-		this->perturb_system_dry();
-		if (this->IMP_BOOL){
-			this->acceptances[this->move_number] += 1;
-		}
-		// start dumping out information
-		this->dump_local();
-		this->dump_lattice();
-	}
-
-	return;
-}
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 void Simulation::run_debug(){
@@ -95,22 +75,5 @@ void Simulation::run_debug(){
 		this->dump_local();
 		this->dump_lattice();
 	}
-	return;
-}
-
-void Simulation::run_potts(){
-	std::cout << "Inside the potts run!" << std::endl;
-	int start = this->step_number + 1;
-	int stop  = this->step_number+this->max_iter+1;
-	for (int i{start}; i < stop; ++i){
-		this->step_number += 1;
-		this->perturb_potts();
-		if (this->IMP_BOOL){
-			this->acceptances[this->move_number] += 1;
-		}
-		// start dumpoing out information
-		this->dump_potts();
-	}
-
 	return;
 }

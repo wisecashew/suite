@@ -27,8 +27,6 @@ class Simulation;
 // ~~~ there is probably a way of doing this without taking as many lines of code as I have. This is a job for future developers. ~~~
 // ~~~ the solution likely is somewhere in the land of meta-programming and template definitions. ~~~
 typedef void (*InteractionFunction)(Simulation*, Particle*, Particle*, std::array<double,CONTACT_SIZE>*, double*);
-void interaction_m1_s0     (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
-void interaction_i_sp_sp   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void interaction_i_m1_m1   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void interaction_i_m1_s1   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void interaction_i_m1_s2   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
@@ -43,11 +41,8 @@ void interaction_a_m1_m1   (Simulation* S, Particle* p1, Particle* p2, std::arra
 void interaction_a_m1_s1   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void interaction_a_m1_s2   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void interaction_a_s1_s2   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
-void interaction_symm_sp_sp(Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 
 typedef void (*NeighborFunction)(Simulation*, Particle*, Particle*, std::array<double,CONTACT_SIZE>* contacts, double* energy);
-void neighbor_m1_s0     (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
-void neighbor_i_sp_sp   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void neighbor_i_m1_m1   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void neighbor_i_m1_s1   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void neighbor_i_m1_s2   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
@@ -62,7 +57,6 @@ void neighbor_a_m1_m1   (Simulation* S, Particle* p1, Particle* p2, std::array<d
 void neighbor_a_m1_s1   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void neighbor_a_m1_s2   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 void neighbor_a_s1_s2   (Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
-void neighbor_symm_sp_sp(Simulation* S, Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy_incr);
 
 
 class Simulation {
@@ -104,19 +98,14 @@ public:
 	bool A;         // if true, the entire lattice has orientation 0.
 	bool S;         // if true, the solvation shell including the polymer has orientation 0. 
 	bool isotropic; // if true, the simulation will be isotropic
-	bool potts;     // if true, the simulation will be a standard potts model simulation
-	bool dry;       // if true, the simulation will be solvent free
 	bool IMP_BOOL;  // if true, the suggested perturbation has been accepted.  
 	// end of `bool` properties
 
-	// define the polymer magnetization
-	std::array <double,3> polymer_magnetization = {0, 0, 0};
-
 	// some other properties
-	std::array <int,9>    attempts        = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-	std::array <int,9>    acceptances     = {0, 0, 0, 0, 0, 0, 0, 0, 0};
-	std::array <double,CONTACT_SIZE> contacts       = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	std::array <double,CONTACT_SIZE> energy_surface = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <int,9>    attempts        = {0,0,0, 0,0,0, 0,0,0};
+	std::array <int,9>    acceptances     = {0,0,0, 0,0,0, 0,0,0};
+	std::array <double,CONTACT_SIZE> contacts       = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> energy_surface = {0,0,0, 0,0,0, 0,0};
 	// end of `std::array` properties
 
 	std::string positions;          // name of file with initial coords of polymer 
@@ -165,8 +154,6 @@ public:
 		bool align_lattice_bool       = false; // boolean for aligned lattice 
 		bool cosolvent_solvation_bool = false; // boolean for solvation 
 		bool isotropic_bool           = false; // boolean for isotropic simulation
-		bool potts_bool               = false; // boolean for a potts simulation
-		bool dry_bool                 = false; // boolean for a dry, coarse-grained simulation
 		std::string positions          {"__blank__"}; // name of file with initial coords of polymer 
 		std::string topology           {"__blank__"}; // name of file with topology of system 
 		std::string dfile              {"__blank__"}; // name of coordinate dump file 
@@ -198,8 +185,6 @@ public:
 			{"align-lattice",          no_argument, 0, 'A'},
 			{"solvate-with-cosolvent", no_argument, 0, 'y'},
 			{"isotropic",              no_argument, 0, 'I'},
-			{"potts",                  no_argument, 0, 'P'},
-			{"dry",                    no_argument, 0, 'D'},
 			{0, 0, 0, 0}  // End of options
 		};
 
@@ -236,8 +221,6 @@ public:
 				"solvation shell orientation bias flag    [-S, --align-solvation]           (NO ARG)       (NOT REQUIRED)        All particles around polymer have orientation 0. \n"<<
 				"lattice orientation bias flag            [-A, --align-lattice]             (NO ARG)       (NOT REQUIRED)        All particles in lattice have orientation 0. \n"<<
 				"isotropic polymer simulation flag        [-I, --isotropic]                 (NO ARG)       (NOT REQUIRED)        Simulation will have no orientation and solvent moves. \n"<<
-				"Run a Potts simulation                   [-P, --potts]                     (NO ARG)       (NOT REQUIRED)        A Potts model simulation will be run. \n" <<
-				"Run a dry simulation                     [-D, --dry]                     (NO ARG)         (NOT REQUIRED)        A dry simulation will be run. \n" <<
 				"Dump frequency                           [-f, --frequency-of-sim-dump]     (INTEGER ARG)  (REQUIRED)            Frequency at which coordinates should be dumped out. \n"<<
 				"Number of maximum moves                  [-M, --total-moves]               (INTEGER ARG)  (REQUIRED)            Number of MC moves to be run on the system. \n" <<
 				"Dump frequency of entire lattice         [-l, --frequency-of-lattice-dump] (INTEGER ARG)  (NOT REQUIRED)        Frequency at which lattice should be dumped out. \n"<<
@@ -260,10 +243,6 @@ public:
 
 			case 'I':
 				isotropic_bool = true; // check
-				break;
-
-			case 'D':
-				dry_bool = true; // check
 				break;
 
 			case 'S':
@@ -332,10 +311,6 @@ public:
 				SSfile=optarg; // check
 				break;
 
-			case 'P':
-				potts_bool = true;
-				break;
-
 			default:
 				std::cout << "A bad option has been provided. Exiting..." << std::endl;
 				exit(EXIT_FAILURE);
@@ -346,7 +321,7 @@ public:
 		//~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#
 		// Parse inputs... 
 		// This command will take all of the above inputs and make sure they are valid. 
-		input_parser(dfreq, lfreq, max_iter, restart_bool, potts_bool, dry_bool, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read, lattice_file_write, SSfile); 
+		input_parser(dfreq, lfreq, max_iter, restart_bool, positions, topology, dfile, efile, mfile, stats_file, lattice_file_read, lattice_file_write, SSfile); 
 		this->max_iter                 = max_iter;                  // total moves to perform
 		this->dfreq                    = dfreq;                     // total frequency of dumping out statistics 
 		this->lfreq                    = lfreq;                     // total frequency of lattice dumps
@@ -356,8 +331,6 @@ public:
 		this->A                        = align_lattice_bool;        // boolean to check if you want the entire lattice to be aligned
 		this->S                        = solvation_align_bool;      // boolean to check if you only want the solvation shell to be aligned
 		this->isotropic                = isotropic_bool;            // boolean to check if simulation is isotropic
-		this->potts                    = potts_bool;                // boolean to run a potts simulation
-		this->dry                      = dry_bool;                  // boolean to run a dry simulation
 		this->positions                = positions;                 // file holding all positions
 		this->topology                 = topology;                  // file holding energetic parameters and simulation cell conditions
 		this->dfile                    = dfile;                     // file holding polymer coordinates 
@@ -383,41 +356,26 @@ public:
 	void opening_tiles(){
 		
 		std::cout << std::endl;
+	
+		std::pair  <std::string, std::string> mm_pair    = std::make_pair("m1", "m1");
+		std::pair  <std::string, std::string> ms1_pair   = std::make_pair("m1", "s1");
+		std::pair  <std::string, std::string> ms2_pair   = std::make_pair("m1", "s2");
+		std::pair  <std::string, std::string> s1s2_pair  = std::make_pair("s1", "s2");
 
-		if (this->potts){
-			std::pair  <std::string, std::string> spsp_pair  = std::make_pair("sp", "sp");
-			std::cout << "--------------------------------------------------------------------" << std::endl;
-			std::cout << "This is a Potts model simulation." << std::endl;
-			std::cout << "--------------------------------------------------------------------" << std::endl << std::endl;
-			std::cout << "Preparing for take-off." << std::endl << std::endl;
-			std::cout << "Geometric information about simulation cell: " << std::endl;
-			std::cout << "x = " << this->x <<", y = " << this->y << ", z = "<< this->z << "." << std::endl << std::endl;
-			std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
-			std::cout << "Temperature = " << this->T << "." << std::endl;
-			std::cout << "Particle-particle energetics: "    << std::get<0>(this->InteractionMap[spsp_pair])  << ", Espsp_a = "  << this->energy_surface[8] <<", Espsp_n = "  << this->energy_surface[9] << ".\n";
+		std::cout << "--------------------------------------------------------------------" << std::endl << std::endl;
+		if (this->isotropic){
+			std::cout << "Simulation will have no spin-based moves." << std::endl;
 		}
-		
-		else {
-			std::pair  <std::string, std::string> mm_pair    = std::make_pair("m1", "m1");
-			std::pair  <std::string, std::string> ms1_pair   = std::make_pair("m1", "s1");
-			std::pair  <std::string, std::string> ms2_pair   = std::make_pair("m1", "s2");
-			std::pair  <std::string, std::string> s1s2_pair  = std::make_pair("s1", "s2");
-
-			std::cout << "--------------------------------------------------------------------" << std::endl << std::endl;
-			if (this->isotropic){
-				std::cout << "Simulation will have no spin-based moves." << std::endl;
-			}
-			std::cout << "Preparing for take-off." << std::endl << std::endl;
-			std::cout << "Chemical information: " << std::endl;
-			std::cout << "Number of polymers in system = " << this->Npoly << "." << std::endl << std::endl;
-			std::cout << "Geometric information about simulation cell: " << std::endl;
-			std::cout << "x = " << this->x <<", y = " << this->y << ", z = "<< this->z << "." << std::endl << std::endl;
-			std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
-			std::cout << "Temperature = " << this->T << "." << std::endl; 
-			std::cout << "Fraction of Solvent II = " << this->frac_c << "." << std::endl;
-			std::cout << "Monomer-Monomer energetics: "    << std::get<0>(this->InteractionMap[mm_pair])  << ", Emm_a = "  << this->energy_surface[0] <<", Emm_n = "  << this->energy_surface[1] << ".\nMonomer-Solvent I energetics: "    << std::get<0>(this->InteractionMap[ms1_pair]) << ", Ems1_a = "  << this->energy_surface[2] << ", Ems1_n = "  << this->energy_surface[3] <<"." << std::endl;
-			std::cout << "Monomer-Solvent II energetics: " << std::get<0>(this->InteractionMap[ms2_pair]) << ", Ems2_a = " << this->energy_surface[4] <<", Ems2_n = " << this->energy_surface[5] << ".\nSolvent I-Solvent II energetics: " << std::get<0>(this->InteractionMap[s1s2_pair])<< ", Es1s2_a = " << this->energy_surface[6] << ", Es1s2_n = " << this->energy_surface[7] <<"." << std::endl;
-		}
+		std::cout << "Preparing for take-off." << std::endl << std::endl;
+		std::cout << "Chemical information: " << std::endl;
+		std::cout << "Number of polymers in system = " << this->Npoly << "." << std::endl << std::endl;
+		std::cout << "Geometric information about simulation cell: " << std::endl;
+		std::cout << "x = " << this->x <<", y = " << this->y << ", z = "<< this->z << "." << std::endl << std::endl;
+		std::cout << "Thermodynamic and energetic information about simulation: " << std::endl; 
+		std::cout << "Temperature = " << this->T << "." << std::endl; 
+		std::cout << "Fraction of Solvent II = " << this->frac_c << "." << std::endl;
+		std::cout << "Monomer-Monomer energetics: "    << std::get<0>(this->InteractionMap[mm_pair])  << ", Emm_a = "  << this->energy_surface[0] <<", Emm_n = "  << this->energy_surface[1] << ".\nMonomer-Solvent I energetics: "    << std::get<0>(this->InteractionMap[ms1_pair]) << ", Ems1_a = "  << this->energy_surface[2] << ", Ems1_n = "  << this->energy_surface[3] <<"." << std::endl;
+		std::cout << "Monomer-Solvent II energetics: " << std::get<0>(this->InteractionMap[ms2_pair]) << ", Ems2_a = " << this->energy_surface[4] <<", Ems2_n = " << this->energy_surface[5] << ".\nSolvent I-Solvent II energetics: " << std::get<0>(this->InteractionMap[s1s2_pair])<< ", Es1s2_a = " << this->energy_surface[6] << ", Es1s2_n = " << this->energy_surface[7] <<"." << std::endl;
 
 		std::cout << "Energy of system is " << this->sysEnergy << "." << std::endl;
 		std::cout << "Off to a good start." << std::endl << std::endl;
@@ -437,14 +395,12 @@ public:
 	void extract_polymers_from_restart();
 	void extract_lattice_from_restart ();
 	void extract_topology_from_file   ();
-	void extract_topology_for_potts   ();
 
 	// lattice set up methods (in setup.cpp)
 	void set_up_local_dump();
 	void set_up_energy_calculator();
 	void set_up_lattice_from_scratch();
 	void set_up_from_scratch();
-	void set_up_from_scratch_potts();
 	void set_up_lattice_for_restart ();
 	void set_up_polymers_for_restart();
 	void set_up_files_for_restart();
@@ -459,7 +415,7 @@ public:
 	void set_up_align_solvation_shell();
 
 	// get statistics
-	std::set <int> Simulation::get_solvation_shell();
+	std::set <int> get_solvation_shell();
 
 	// energy calculation methods (in energy.cpp) 
 	void selected_pair_interaction(Particle* p1, Particle* p2, std::array<double,CONTACT_SIZE>* contacts, double* energy);
@@ -470,7 +426,6 @@ public:
 	void modified_pair_interaction(Particle* p1, Particle* p2, double* energy);
 	void accelerate_calculate_energy_solvent();
 	void accelerate_calculate_energy_cosolvent();
-	void accelerate_calculate_energy_potts();
 	void accelerate_calculate_energy(){
 		(this->*calculate_energy_ptr)();
 	}
@@ -490,7 +445,6 @@ public:
 	void check_structures();
 
 	// dump methods (in dump.cpp)
-	void dump_potts();
 	void dump_energy();
 	void dump_polymers();
 	void dump_solvation_shell_orientations();
@@ -559,12 +513,9 @@ public:
 	
 	//////////////////////////////////////////////////////////
 	// final perturbation
-	void perturb_potts();
 	void perturb_system_isotropic();
 	void perturb_system_straight();
 	void perturb_system_debug();
-	void perturb_system_dry();
-	void perturb_system_dry_debug();
 
 	// debugging (found in debug.cpp)
 	void debug_calculate_energy                  (double* db_energy,          std::array<double,CONTACT_SIZE>* db_contacts); 
@@ -582,7 +533,6 @@ public:
 	void debug_orientation_sampler_backwards   (std::array<double,CONTACT_SIZE>* contacts_sys, double E_sys, int iteration_idx, int lat_idx);
 	void debug_choose_state_forward            (int iterator_idx, int lat_idx);
 	void debug_polymer_orientation_flip        (int p_idx);
-	void debug_polymer_orientation_flip_dry    (int p_idx);
 	void debug_solvation_shell_flip();
 	void debug_lattice_flip();
 	void debug_solvent_exchange_from_shell();
@@ -599,7 +549,6 @@ public:
 	void run_straight ();
 	void run_isotropic();
 	void run_debug    ();
-	void run_potts    ();
 	void run(){
 		(this->*run_ptr)();
 	}

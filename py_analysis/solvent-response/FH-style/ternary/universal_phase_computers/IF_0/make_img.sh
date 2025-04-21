@@ -2,7 +2,7 @@
 
 set -e
 
-for f in BINODALS/*; do
+for f in *binodals.pkl; do
 	echo "In $f..."
 	chisc=$(echo "$f" | grep -oP '(?<=chisc_)-?[0-9]+(\.[0-9]+)?')
 	chips=$(echo "$f" | grep -oP '(?<=chips_)-?[0-9]+(\.[0-9]+)?')
@@ -15,5 +15,5 @@ for f in BINODALS/*; do
 	img="chisc_${chisc}_chips_${chips}_chipc_${chipc}-vs_${vs}-vc_${vc}-vp_${vp}.png"
 	python /scratch/gpfs/satyend/MC_POLYMER/polymer_lattice/lattice_md/py_analysis/solvent-response/FH-style/ternary/universal_phase_computers/prober.py \
 	--chisc $chisc --chips $chips --chipc $chipc -vs $vs -vc $vc -vp $vp --mesh-pkl ../mesh.pkl \
-	--binodal-pkl BINODALS/$bi --crit-pkl CRITS/$ci --img IMAGES/$img --plot-crits 
+	--binodal-pkl $bi --crit-pkl $ci --img $img --plot-crits 
 done

@@ -691,8 +691,10 @@ if __name__=="__main__":
 
 	start = time.time()
 
-	fig = plt.figure(num=0, figsize=(3,3))
+	fig = plt.figure(num=0, figsize=(2.4,2.4))
 	ax  = plt.axes()
+	ax.set_facecolor("none")
+	fig.patch.set_facecolor("none")
 	ax.tick_params(direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	vm      = args.vm
 	vs      = args.vs
@@ -855,6 +857,6 @@ if __name__=="__main__":
 		ax.set_yticklabels([])
 		ax.set_xticklabels([])
 
-	fig.savefig(args.img, dpi=1200, bbox_inches="tight")
+	fig.savefig(args.img, dpi=3000, bbox_inches="tight", transparent=True, format="png")
 	stop = time.time()
 	print(f"Time for computation is {stop - start} seconds.", flush=True)

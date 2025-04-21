@@ -19,28 +19,6 @@ void Simulation::dump_energy(){
 	return; 
 }
 
-void Simulation::dump_potts(){
-
-	if ((this->step_number % this->dfreq) == 0){
-		std::ofstream dump_file(this->efile, std::ios::app);
-
-		dump_file << this->sysEnergy << " | " \
-				<< (this->contacts)[8]+(this->contacts)[9] << " | " << (this->contacts)[8] << " | " << (this->contacts)[9] << " | " << this->step_number << "\n";
-	}
-
-	if ((this->step_number % this->lfreq) == 0){
-		std::ofstream dump_file (this->lattice_file_write, std::ios::app); 
-		dump_file << "STEP: " << this->step_number << ".\n"; 
-		for ( Particle*& p: this->Lattice ){
-			dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
-		}
-		dump_file << "END. \n";
-	}
-
-	return; 
-
-}
-
 void Simulation::dump_polymers(){
 	std::ofstream dump_file(this->dfile, std::ios::app); 
 	dump_file <<"Dumping coordinates at step " << this->step_number << ".\n";
@@ -101,7 +79,7 @@ void Simulation::dump_solvation_shell(){
 
 	// define some stores
 	std::array<double,2> stats    = {0,0};
-	std::array<double,CONTACT_SIZE> contacts = {0,0,0,0,0,0,0,0,0,0};
+	std::array<double,CONTACT_SIZE> contacts = {0,0,0, 0,0,0, 0,0};
 
 	// define a store neighboring particles
 	std::array<std::array<int,3>,26> ne_list;
@@ -214,14 +192,6 @@ void Simulation::dump_local_no_ss(){
 	return;
 }
 
-void Simulation::dump_local_dry(){
-	if ((this->step_number % this->dfreq) == 0){
-		this->dump_energy();
-		this->dump_polymers();
-	}
-	return;
-}
-
 void Simulation::dump_lattice(){
 
 	if ((this->step_number % this->lfreq) == 0){
@@ -237,23 +207,12 @@ void Simulation::dump_lattice(){
 
 void Simulation::dump_lattice_end(){
 
-	if (this->potts){
-		if (this->step_number % this->lfreq != 0){
-			std::ofstream dump_file (this->lattice_file_write, std::ios::app);
-			dump_file << "STEP: " << this->step_number << ".\n"; 
-			for ( Particle*& p: this->Lattice ){
-				dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
-			}
-			dump_file << "END. \n";
-		}
+	std::ofstream dump_file (this->lattice_file_write, std::ios::out); 
+	dump_file << "FINAL STEP: " << this->step_number << ".\n"; 
+	for ( Particle*& p: this->Lattice ){
+		dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
 	}
-	else {
-		std::ofstream dump_file (this->lattice_file_write, std::ios::out); 
-		dump_file << "FINAL STEP: " << this->step_number << ".\n"; 
-		for ( Particle*& p: this->Lattice ){
-			dump_file << p->orientation << ", " << p->ptype << ", " << lattice_index(p->coords, y, z) << "\n"; 
-		}
-		dump_file << "END. \n";
-	}
+	dump_file << "END. \n";
+
 	return; 
 }

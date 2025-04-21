@@ -36,7 +36,8 @@ shebang for homemachine: #!/usr/bin/env python3
 
 import argparse 
 parser = argparse.ArgumentParser(description="Read a trajectory file and obtain a radius of gyration plot given a degree of polymerization over a range of temperatures and potential energy surfaces.")
-parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
+parser.add_argument('--dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
+parser.add_argument('--dop-suffix', metavar='DOP', dest='dsuf', type=str, action='store', help='suffix to the degree of polymerization file.', default="")
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this move number (not index or line number in file).', default=100)
 parser.add_argument('-nproc', metavar='N', type=int, dest='nproc', action='store', help='Request these many proccesses.')
 parser.add_argument('--U', metavar='U', type=str, dest='U', nargs='+', action='store', help='Enter potential energy surfaces.')
@@ -50,14 +51,14 @@ args = parser.parse_args()
 divnorm = matplotlib.colors.SymLogNorm ( 0.001, vmin=-0.2, vmax=0.1 ) # this is for entropy 
 
 def get_starting_ind ( U, T, num, dop, dumpfile):
-	filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
+	filename = U + "/DOP_" + str(dop) + args.dsuf + "/" + str(T) + "/" + dumpfile + "_" + str(num) + ".mc"
 	df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
 	L = len(df["energy"])
 	return int(df["time_step"].values[L-2000])
 
 def infiltrate_coords_get_rg ( U, T, num, dop, coords_files, starting_index ):
 
-	filename = U + "/DOP_" + str(dop) + "/" + str(T) + "/"+ coords_files + "_" + str(num)+".mc" 
+	filename = U + "/DOP_" + str(dop) + args.dsuf + "/" + str(T) + "/"+ coords_files + "_" + str(num)+".mc" 
 	edge = aux.edge_length (dop)
 	master_dict = aux.get_pdict (filename, starting_index, dop, edge, edge, edge)
 	rg = aux.get_Rg(master_dict, edge, edge, edge) 
@@ -100,7 +101,7 @@ if __name__ == "__main__":
 	pool_list = [pool1] 
 
 	for U in U_list:
-		print("Inside U = " + U + ", and N = " + str(dop) + "...", flush=True )
+		print("Inside U = " + U + ", and N = " + str(dop) + args.dsuf + "...", flush=True )
 		rg_mean = [] 
 		rg_std  = [] 
 		temperatures = args.T
@@ -112,10 +113,10 @@ if __name__ == "__main__":
 		rg_dict    = {}
 		ntraj_dict = {}
 		for T in temperatures:
-			num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + "/" + str(T) ) ) ) )
+			num_list = list(np.unique ( aux.dir2nsim (os.listdir (str(U) + "/DOP_" + str(dop) + args.dsuf + "/" + str(T) ) ) ) )
 			master_num_list.extend ( num_list )
 			for num in num_list:
-				master_index_list.append (get_starting_ind (U, T, num, dop, "energydump") )
+				master_index_list.append (get_starting_ind (U, T, num, dop, "energy") )
 			master_temp_list.extend ( [T]*len( num_list ) )
 			ntraj_dict[T] = len ( num_list )
 			rg_dict[T]    = []

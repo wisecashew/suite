@@ -1547,8 +1547,10 @@ def plot_binodals(BINODALS, ax):
 			if H[0][0].shape[0] == 0 and H[0][1].shape[0] == 0:
 				continue
 			else:
-				ax.scatter(H[0][0][:,0], 1-H[0][0][:,0]-H[0][0][:,1], H[0][0][:,1], s=0.5, c='black')
-				ax.scatter(H[0][1][:,0], 1-H[0][1][:,0]-H[0][1][:,1], H[0][1][:,1], s=0.5, c='white')
+				ax.scatter(H[0][0][:,0], 1-H[0][0][:,0]-H[0][0][:,1], H[0][0][:,1], s=0.5, c='orangered')
+				ax.scatter(H[0][1][:,0], 1-H[0][1][:,0]-H[0][1][:,1], H[0][1][:,1], s=0.5, c='darkred')
+				for i in range(0, len(H[0][0]), 100):
+					ax.plot([H[0][0][i,0], H[0][1][i,0]], [1-H[0][0][i,0]-H[0][0][i,1], 1-H[0][1][i,0]-H[0][1][i,1]], [H[0][0][i,1], H[0][1][:,1]], s=0.5, c='gold', lw=1, ls='--')
 		elif H[-1] == "three_phase":
 			ax.plot(np.hstack([H[0][:,0],H[0][0,0]]),\
 			np.hstack([1-H[0][:,0]-H[0][:,1], 1-H[0][0,0]-H[0][0,1]]), np.hstack([H[0][:,1], H[0][0,1]]), c='slategray', lw=1)

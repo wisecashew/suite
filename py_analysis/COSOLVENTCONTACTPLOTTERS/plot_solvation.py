@@ -29,6 +29,7 @@ parser.add_argument('--real'  , dest='real', action='store', type=str, help='ent
 parser.add_argument('--colors', dest='cols', action='store', nargs='+', type=str, help='Enter the colors you want.')
 parser.add_argument('--U'  , dest='U', action='store', type=str, nargs='+', help="enter the enthalpic conditions.")
 parser.add_argument('--suffix', dest='s', action='store', type=str, help='enter suffix to images.')
+parser.add_argument('--yticks', dest='yticks', action='store', nargs='+', type=float, help='Set yticks for plot.')
 parser.add_argument('--show-ylabels', dest='show_ylabels', action='store_true', default=False, help='enter suffix to images.')
 args = parser.parse_args() 
 
@@ -42,13 +43,11 @@ def intersection(lst1, lst2):
 
 if __name__=="__main__":
 
-	# cols = ["rosybrown", "lightcoral", "indianred", "brown"]
 	z       = 26
 	M       = 32
 	U_list  = args.U
 	cols    = args.cols
-	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(2.5,2.5))
-
+	fig, ax = plt.subplots (1, 1, num=1, squeeze=False, figsize=(1.5,1.5))
 	keys    = ["SOLVATION"]
 
 	df_real = pd.read_csv (args.real, sep='|', names=["U", "x", "SOLVATION", "T_ms", "N_ms"], engine='python', skiprows=1)
@@ -57,6 +56,8 @@ if __name__=="__main__":
 	ax[0][0].tick_params (direction='in', bottom=True, top=True, left=True, right=True, which='both')
 	ax[0][0].tick_params(axis='x', labelsize=8)
 	ax[0][0].tick_params(axis='y', labelsize=8)
+	ax[0][0].set_yticks(args.yticks)
+	ax[0][0].set_ylim(args.yticks[0], args.yticks[-1])
 	if args.show_ylabels:
 		pass
 	else:
@@ -69,6 +70,6 @@ if __name__=="__main__":
 	for idx, hmix in enumerate(U_list):
 		df_subset = df_real [df_real ["U"] == hmix]
 		idx       = idx % len(cols)
-		ax[0][0].plot (df_subset["x"].values, df_subset["SOLVATION"].values, marker='o', c=cols[idx], linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10)
+		ax[0][0].plot (df_subset["x"].values, df_subset["SOLVATION"].values, marker='o', c=cols[idx], linewidth=1, markersize=8/1.3, markeredgecolor='k', label=f"{hmix}", clip_on=False, zorder=10, ls='--')
 
 	plt.savefig ("solvation"+"-"+args.s, bbox_inches='tight', dpi=1200)

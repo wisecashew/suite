@@ -96,9 +96,9 @@ void Simulation::perturb_orientation_sampler_forwards(std::array<double,CONTACT_
 		this->enhanced_flipper.orientations[j] = this->Lattice[lat_idx]->orientation;
 		this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
 		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
-		this->enhanced_flipper.contacts_store[j]  = subtract_arrays(contacts_sys, &(this->enhanced_flipper.initial_contacts));
-		this->enhanced_flipper.contacts_store[j]  = add_arrays     (&(this->enhanced_flipper.contacts_store[j]), &(this->enhanced_flipper.perturbed_contacts));
-		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.contacts_store[j]  = subtract_containers(*contacts_sys, (this->enhanced_flipper.initial_contacts));
+		this->enhanced_flipper.contacts_store[j]  = add_containers     ((this->enhanced_flipper.contacts_store[j]), (this->enhanced_flipper.perturbed_contacts));
+		this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.perturbed_E        = 0;
 	}
 
@@ -140,10 +140,10 @@ void Simulation::perturb_orientation_sampler_backwards_0(std::array<double,CONTA
 	this->Lattice[lat_idx]->orientation = this->enhanced_flipper.initial_orientations[iteration_idx];
 	this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
 	this->enhanced_flipper.energies[0] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
-	this->enhanced_flipper.contacts_store[0]  = subtract_arrays(*contacts_sys, this->enhanced_flipper.initial_contacts);
-	this->enhanced_flipper.contacts_store[0]  = add_arrays     (this->enhanced_flipper.contacts_store[0], this->enhanced_flipper.perturbed_contacts);
+	this->enhanced_flipper.contacts_store[0]  = subtract_containers(*contacts_sys, this->enhanced_flipper.initial_contacts);
+	this->enhanced_flipper.contacts_store[0]  = add_containers     (this->enhanced_flipper.contacts_store[0], this->enhanced_flipper.perturbed_contacts);
 
-	this->enhanced_flipper.perturbed_contacts = {0,0,0,0,0,0,0,0,0,0};
+	this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 	this->enhanced_flipper.perturbed_E        = 0;
 
 	return;
@@ -166,9 +166,9 @@ void Simulation::perturb_orientation_sampler_backwards(std::array<double,CONTACT
 		this->Lattice[lat_idx]->orientation = test_orientations[j];
 		this->neighbor_energetics(lat_idx, &(this->enhanced_flipper.perturbed_contacts), &(this->enhanced_flipper.perturbed_E));
 		this->enhanced_flipper.energies[j] = E_sys - this->enhanced_flipper.initial_E + this->enhanced_flipper.perturbed_E;
-		this->enhanced_flipper.contacts_store [j]  = subtract_arrays (*contacts_sys, this->enhanced_flipper.initial_contacts);
-		this->enhanced_flipper.contacts_store [j]  = add_arrays      (this->enhanced_flipper.contacts_store[j], this->enhanced_flipper.perturbed_contacts);
-		this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.contacts_store [j]  = subtract_containers (*contacts_sys, this->enhanced_flipper.initial_contacts);
+		this->enhanced_flipper.contacts_store [j]  = add_containers      (this->enhanced_flipper.contacts_store[j], this->enhanced_flipper.perturbed_contacts);
+		this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.perturbed_E        = 0;
 	}
 
@@ -190,7 +190,7 @@ void Simulation::perturb_tail_rotation(int p_idx){
 
 	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
-	std::array <double,CONTACT_SIZE> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> final_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// generate a neighbor list 
 	std::array<std::array<int,3>, 26> ne_list = obtain_ne_list(loc_1, this->x, this->y, this->z);
@@ -214,9 +214,9 @@ void Simulation::perturb_tail_rotation(int p_idx){
 
 		final_E = this->sysEnergy - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial);
 		final_E = final_E + (this->rotation_container.E1_final   + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
-		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-		final_contacts = add_arrays(final_contacts, this->rotation_container.cpair_initial);
-		final_contacts = subtract_arrays(final_contacts, this->rotation_container.cpair_final);
+		final_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+		final_contacts = add_containers(final_contacts, this->rotation_container.cpair_initial);
+		final_contacts = subtract_containers(final_contacts, this->rotation_container.cpair_final);
 
 		if (metropolis_acceptance(this->sysEnergy, final_E, this->T)){
 			this->sysEnergy = final_E;
@@ -249,7 +249,7 @@ void Simulation::perturb_head_rotation(int p_idx){
 
 	// define some container for energy and contacts
 	double                final_E        = 0; // energy of the final configuration of the system
-	std::array <double,CONTACT_SIZE> final_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> final_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// generate a neighbor list 
 	std::array<std::array<int,3>, 26> ne_list = obtain_ne_list(loc_1, this->x, this->y, this->z);
@@ -275,9 +275,9 @@ void Simulation::perturb_head_rotation(int p_idx){
 		// doing the quick manipulations to get the final energy and contacts
 		final_E = this->sysEnergy - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial);
 		final_E = final_E + (this->rotation_container.E1_final   + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
-		final_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-		final_contacts = add_arrays(final_contacts, this->rotation_container.cpair_initial);
-		final_contacts = subtract_arrays(final_contacts, this->rotation_container.cpair_final);
+		final_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+		final_contacts = add_containers(final_contacts, this->rotation_container.cpair_initial);
+		final_contacts = subtract_containers(final_contacts, this->rotation_container.cpair_final);
 
 		if (metropolis_acceptance(this->sysEnergy, final_E, this->T)){
 			this->sysEnergy = final_E;
@@ -395,12 +395,12 @@ void Simulation::forward_reptation_with_tail_biting(std::array<double,CONTACT_SI
 	double Epair_f = 0;
 	double Esys    = *E_i;
 
-	std::array <double,CONTACT_SIZE> cm1_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm2_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_i   = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm1_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm2_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_f   = {0,0,0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> cm1_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm2_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_i   = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm1_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm2_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_f   = {0,0,0, 0,0,0, 0,0};
 	std::array <int,3>    loc_m1    = {0,0,0};
 	std::array <int,3>    loc_m2    = {0,0,0};
 	std::array <double,CONTACT_SIZE> contacts  = *contacts_i;
@@ -427,9 +427,9 @@ void Simulation::forward_reptation_with_tail_biting(std::array<double,CONTACT_SI
 		this->selected_pair_interaction(this->Polymers[p_idx].chain[idx], this->Polymers[p_idx].chain[idx+1], &cpair_f, &Epair_f);
 
 		// update energies and contacts
-		contacts = add_arrays(subtract_arrays(contacts, add_arrays(cm1_i, cm2_i)), add_arrays(cm1_f, cm2_f));
-		contacts = add_arrays(contacts, cpair_i);
-		contacts = subtract_arrays(contacts, cpair_f);
+		contacts = add_containers(subtract_containers(contacts, add_containers(cm1_i, cm2_i)), add_containers(cm1_f, cm2_f));
+		contacts = add_containers(contacts, cpair_i);
+		contacts = subtract_containers(contacts, cpair_f);
 		Esys = Esys - (Em1_i+Em2_i-Epair_i) + (Em1_f+Em2_f-Epair_f);
 
 		// std::cout << "Run the debugger..." << std::endl;
@@ -437,12 +437,12 @@ void Simulation::forward_reptation_with_tail_biting(std::array<double,CONTACT_SI
 		// this->debug_checks_energy_contacts(Esys, contacts);
 
 		// resetting everything
-		cpair_i  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cpair_f  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm1_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm1_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm2_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm2_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		cpair_i  = {0,0,0, 0,0,0, 0,0};
+		cpair_f  = {0,0,0, 0,0,0, 0,0};
+		cm1_i    = {0,0,0, 0,0,0, 0,0};
+		cm1_f    = {0,0,0, 0,0,0, 0,0};
+		cm2_i    = {0,0,0, 0,0,0, 0,0};
+		cm2_f    = {0,0,0, 0,0,0, 0,0};
 		Em1_i    = 0;
 		Em2_i    = 0;
 		Em1_f    = 0;
@@ -467,12 +467,12 @@ void Simulation::forward_reptation_without_tail_biting(std::array<double,CONTACT
 	double Epair_f  = 0;
 	double Esys     = *E_i;
 
-	std::array <double,CONTACT_SIZE> cm_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cs_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_i  = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cs_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_f  = {0,0,0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> cm_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cs_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_i  = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cs_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_f  = {0,0,0, 0,0,0, 0,0};
 	std::array <int,3>    loc_m    = {0,0,0};
 	std::array <int,3>    loc_s    = *to_slither;
 	std::array <double,CONTACT_SIZE> contacts = *contacts_i;
@@ -504,9 +504,9 @@ void Simulation::forward_reptation_without_tail_biting(std::array<double,CONTACT
 		this->selected_pair_interaction(this->Lattice[lattice_index(loc_s, this->y, this->z)], this->Lattice[lattice_index(loc_m, this->y, this->z)], &cpair_f, &Epair_f);
 
 		// update energies and contacts
-		contacts = add_arrays(subtract_arrays(contacts, add_arrays(cm_i, cs_i)), add_arrays(cm_f, cs_f));
-		contacts = add_arrays(contacts, cpair_i);
-		contacts = subtract_arrays(contacts, cpair_f);
+		contacts = add_containers(subtract_containers(contacts, add_containers(cm_i, cs_i)), add_containers(cm_f, cs_f));
+		contacts = add_containers(contacts, cpair_i);
+		contacts = subtract_containers(contacts, cpair_f);
 
 		Esys = Esys - (Em_i+Es_i-Epair_i) + (Em_f+Es_f-Epair_f);
 
@@ -518,12 +518,12 @@ void Simulation::forward_reptation_without_tail_biting(std::array<double,CONTACT
 		*to_slither = loc_m; 
 
 		// resetting everything
-		cpair_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cpair_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cs_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cs_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		cpair_i = {0,0,0, 0,0,0, 0,0};
+		cpair_f = {0,0,0, 0,0,0, 0,0};
+		cs_i    = {0,0,0, 0,0,0, 0,0};
+		cs_f    = {0,0,0, 0,0,0, 0,0};
+		cm_i    = {0,0,0, 0,0,0, 0,0};
+		cm_f    = {0,0,0, 0,0,0, 0,0};
 		Em_i    = 0;
 		Es_i    = 0;
 		Em_f    = 0;
@@ -549,12 +549,12 @@ void Simulation::backward_reptation_with_head_butting(std::array<double,CONTACT_
 	double Epair_f     = 0;
 	double Esys        = *E_i;
 
-	std::array <double,CONTACT_SIZE> cm1_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm2_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_i   = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm1_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm2_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_f   = {0,0,0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> cm1_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm2_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_i   = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm1_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm2_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_f   = {0,0,0, 0,0,0, 0,0};
 	std::array <int,3>    loc_m1    = {0,0,0}; 
 	std::array <int,3>    loc_m2    = {0,0,0}; 
 	std::array <double,CONTACT_SIZE> contacts  = *contacts_i;
@@ -581,9 +581,9 @@ void Simulation::backward_reptation_with_head_butting(std::array<double,CONTACT_
 		this->neighbor_energetics(lattice_index(loc_m2, this->y, this->z), &cm2_f, &Em2_f);
 		this->selected_pair_interaction(this->Lattice[lattice_index(loc_m1, this->y, this->z)], this->Lattice[lattice_index(loc_m2, this->y, this->z)], &cpair_f, &Epair_f);
 
-		contacts = add_arrays(subtract_arrays(contacts, add_arrays(cm1_i, cm2_i)), add_arrays(cm1_f, cm2_f));
-		contacts = add_arrays(contacts, cpair_i);
-		contacts = subtract_arrays(contacts, cpair_f);
+		contacts = add_containers(subtract_containers(contacts, add_containers(cm1_i, cm2_i)), add_containers(cm1_f, cm2_f));
+		contacts = add_containers(contacts, cpair_i);
+		contacts = subtract_containers(contacts, cpair_f);
 		Esys = Esys-(Em1_i+Em2_i-Epair_i)+(Em1_f+Em2_f-Epair_f);
 
 		// std::cout << "Run the debugger..." << std::endl;
@@ -591,12 +591,12 @@ void Simulation::backward_reptation_with_head_butting(std::array<double,CONTACT_
 		// this->debug_checks_energy_contacts(Esys, contacts);
 
 		// resetting everything
-		cpair_i  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cpair_f  = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm1_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm1_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm2_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0 ,0};
-		cm2_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		cpair_i  = {0,0,0, 0,0,0, 0,0};
+		cpair_f  = {0,0,0, 0,0,0, 0,0};
+		cm1_i    = {0,0,0, 0,0,0, 0,0};
+		cm1_f    = {0,0,0, 0,0,0, 0,0};
+		cm2_i    = {0,0,0, 0,0,0, 0,0};
+		cm2_f    = {0,0,0, 0,0,0, 0,0};
 		Em1_i    = 0;
 		Em2_i    = 0;
 		Em1_f    = 0;
@@ -622,12 +622,12 @@ void Simulation::backward_reptation_without_head_butting(std::array<double,CONTA
 	double Epair_f     = 0;
 	double Esys        = *E_i; 
 
-	std::array <double,CONTACT_SIZE> cm_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cs_i     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_i  = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cm_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cs_f     = {0,0,0,0,0,0,0,0,0,0};
-	std::array <double,CONTACT_SIZE> cpair_f  = {0,0,0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> cm_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cs_i     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_i  = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cm_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cs_f     = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cpair_f  = {0,0,0, 0,0,0, 0,0};
 	std::array <int,3>    loc_m    = {0,0,0};
 	std::array <int,3>    loc_s    = *to_slither;
 	std::array <double,CONTACT_SIZE> contacts = *contacts_i;
@@ -653,9 +653,9 @@ void Simulation::backward_reptation_without_head_butting(std::array<double,CONTA
 		this->neighbor_energetics(lattice_index(loc_s, this->y, this->z), &cs_f, &Es_f);
 		this->selected_pair_interaction(this->Lattice[lattice_index(loc_m, this->y, this->z)], this->Lattice[lattice_index(loc_s, this->y, this->z)], &cpair_f, &Epair_f);
 
-		contacts = add_arrays(subtract_arrays(contacts, add_arrays(cm_i, cs_i)), add_arrays(cm_f, cs_f));
-		contacts = add_arrays(contacts, cpair_i);
-		contacts = subtract_arrays(contacts, cpair_f);		
+		contacts = add_containers(subtract_containers(contacts, add_containers(cm_i, cs_i)), add_containers(cm_f, cs_f));
+		contacts = add_containers(contacts, cpair_i);
+		contacts = subtract_containers(contacts, cpair_f);		
 		Esys = Esys-(Em_i+Es_i-Epair_i)+(Em_f+Es_f-Epair_f);
 
 		// std::cout << "Run the debugger..." << std::endl;
@@ -665,12 +665,12 @@ void Simulation::backward_reptation_without_head_butting(std::array<double,CONTA
 		*to_slither = loc_m; 
 
 		// resetting everything
-		cpair_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cpair_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cs_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cs_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm_i    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cm_f    = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		cpair_i = {0,0,0, 0,0,0, 0,0};
+		cpair_f = {0,0,0, 0,0,0, 0,0};
+		cs_i    = {0,0,0, 0,0,0, 0,0};
+		cs_f    = {0,0,0, 0,0,0, 0,0};
+		cm_i    = {0,0,0, 0,0,0, 0,0};
+		cm_f    = {0,0,0, 0,0,0, 0,0};
 		Em_i    = 0;
 		Es_i    = 0;
 		Em_f    = 0;
@@ -844,7 +844,7 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 	// some more holders
 	double               E_post        = 0;                                // the energy of the system after final perturbation
 	double               rng_acc       = 0;                                // rng for acceptance at the very end
-	std::array<double,CONTACT_SIZE> contacts_post = {0,0,0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
+	std::array<double,CONTACT_SIZE> contacts_post = {0,0,0, 0,0,0, 0,0}; // the contacts of the system after final perturbation
 
 	// relevant indices variable store
 	int m_lattice_idx = 0; 
@@ -869,7 +869,7 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 		contacts_sys = this->enhanced_flipper.contacts_store[enhanced_flipper.sampler_idx];
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.initial_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.initial_E        =  0;
 		this->enhanced_flipper.rboltzmann       =  0;
 		this->enhanced_flipper.sampler_rsum     =  0;
@@ -881,7 +881,7 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 	contacts_post = contacts_sys;
 
 	// reset
-	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 	this->enhanced_flipper.perturbed_E        = 0;
 
 
@@ -911,7 +911,7 @@ void Simulation::perturb_polymer_orientation_flip(int p_idx){
 		contacts_sys = this->enhanced_flipper.contacts_store[0];
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0, 0, 0};
+		this->enhanced_flipper.initial_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.initial_E        = 0;
 		this->enhanced_flipper.rboltzmann       = 0;
 
@@ -971,7 +971,7 @@ void Simulation::perturb_solvation_shell_flip(){
 	std::array<double,CONTACT_SIZE> contacts_sys = this->contacts;
 
 	double               E_post        = 0; // the energy of the system after final perturbation
-	std::array<double,CONTACT_SIZE> contacts_post = {0,0,0,0,0,0,0,0,0,0}; // the contacts of the system after final perturbation
+	std::array<double,CONTACT_SIZE> contacts_post = {0,0,0, 0,0,0, 0,0}; // the contacts of the system after final perturbation
 	double               rng_acc       = 0; // rng for acceptance at the very end
 
 	for (int i{0}; i < nflip; ++i){
@@ -992,7 +992,7 @@ void Simulation::perturb_solvation_shell_flip(){
 		contacts_sys  = this->enhanced_flipper.contacts_store[this->enhanced_flipper.sampler_idx];
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		this->enhanced_flipper.initial_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.initial_E        = 0;
 		this->enhanced_flipper.rboltzmann       = 0;
 		this->enhanced_flipper.sampler_rsum     = 0;
@@ -1002,7 +1002,7 @@ void Simulation::perturb_solvation_shell_flip(){
 	E_post = E_sys;
 	contacts_post = contacts_sys;
 
-	this->enhanced_flipper.perturbed_contacts = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	this->enhanced_flipper.perturbed_contacts = {0,0,0, 0,0,0, 0,0};
 	this->enhanced_flipper.perturbed_E        = 0;
 
 
@@ -1030,7 +1030,7 @@ void Simulation::perturb_solvation_shell_flip(){
 		contacts_sys = this->enhanced_flipper.contacts_store[0];
 
 		// reset
-		this->enhanced_flipper.initial_contacts = {0, 0, 0, 0, 0, 0, 0 ,0, 0, 0};
+		this->enhanced_flipper.initial_contacts = {0,0,0, 0,0,0, 0,0};
 		this->enhanced_flipper.initial_E        = 0;
 		this->enhanced_flipper.rboltzmann       = 0;
 
@@ -1070,8 +1070,8 @@ void Simulation::perturb_lattice_flip(){
 	std::vector <int> orientations (nflips, 0); 
 
 	// set up the contacts store
-	std::array <double,CONTACT_SIZE> cs_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-	std::array <double,CONTACT_SIZE> cs_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	std::array <double,CONTACT_SIZE> cs_i = {0,0,0, 0,0,0, 0,0};
+	std::array <double,CONTACT_SIZE> cs_f = {0,0,0, 0,0,0, 0,0};
 
 	// set up the energies
 	double Es_i = 0;
@@ -1102,12 +1102,12 @@ void Simulation::perturb_lattice_flip(){
 		this->neighbor_energetics(samples[i], &cs_f, &Es_f); 
 
 		// update the contacts and energy
-		contacts = add_arrays(subtract_arrays(contacts, cs_i), cs_f);
+		contacts = add_containers(subtract_containers(contacts, cs_i), cs_f);
 		Ef += Es_f - Es_i;
 
 		// resetting...
-		cs_i = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-		cs_f = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		cs_i = {0,0,0, 0,0,0, 0,0};
+		cs_f = {0,0,0, 0,0,0, 0,0};
 		Es_i = 0;
 		Es_f = 0;
 
@@ -1146,7 +1146,7 @@ void Simulation::perturb_solvent_exchange_from_shell(){
 	// set up some holders
 	double post_energy = 0;
 	double rng_acc     = 0;
-	std::array <double,CONTACT_SIZE> post_contacts = {0,0,0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> post_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// define the holder to facilitate the swap
 	Particle* tmp_par_ptr {nullptr};
@@ -1171,9 +1171,9 @@ void Simulation::perturb_solvent_exchange_from_shell(){
 			// update energy and contacts
 			post_energy   = this->sysEnergy  - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial); 
 			post_energy   = post_energy + (this->rotation_container.E1_final + this->rotation_container.E2_final  - this->rotation_container.Epair_final);
-			post_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-			post_contacts = add_arrays(post_contacts, this->rotation_container.cpair_initial);
-			post_contacts = subtract_arrays(post_contacts, this->rotation_container.cpair_final);
+			post_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+			post_contacts = add_containers(post_contacts, this->rotation_container.cpair_initial);
+			post_contacts = subtract_containers(post_contacts, this->rotation_container.cpair_final);
 
 			rng_acc = rng_uniform (0.0, 1.0);
 
@@ -1230,9 +1230,9 @@ void Simulation::perturb_solvent_exchange(){
 			
 			post_energy   = this->sysEnergy  - (this->rotation_container.E1_initial + this->rotation_container.E2_initial - this->rotation_container.Epair_initial); 
 			post_energy   = post_energy + (this->rotation_container.E1_final   + this->rotation_container.E2_final   - this->rotation_container.Epair_final);
-			post_contacts = add_arrays(subtract_arrays(this->contacts, add_arrays (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_arrays (this->rotation_container.c1_final, this->rotation_container.c2_final));
-			post_contacts = add_arrays(post_contacts, this->rotation_container.cpair_initial);
-			post_contacts = subtract_arrays(post_contacts, this->rotation_container.cpair_final);
+			post_contacts = add_containers(subtract_containers(this->contacts, add_containers (this->rotation_container.c1_initial, this->rotation_container.c2_initial)), add_containers (this->rotation_container.c1_final, this->rotation_container.c2_final));
+			post_contacts = add_containers(post_contacts, this->rotation_container.cpair_initial);
+			post_contacts = subtract_containers(post_contacts, this->rotation_container.cpair_final);
 
 			rng_acc = rng_uniform (0.0, 1.0); 
 			if (rng_acc < std::exp (-1/this->T * (post_energy - this->sysEnergy))){
@@ -1267,7 +1267,7 @@ void Simulation::perturb_regrowth(int p_idx){
 	int growth          = -1;
 	double forw_energy  =  0;
 	double rng_acc      =  0;
-	std::array <double,CONTACT_SIZE> forw_contacts = {0,0,0,0,0,0,0,0,0,0};
+	std::array <double,CONTACT_SIZE> forw_contacts = {0,0,0, 0,0,0, 0,0};
 
 	// get that reset going
 	this->enhanced_swing.reset(deg_poly);
@@ -1420,7 +1420,7 @@ void Simulation::perturb_forward_head_regrowth(int p_idx, int m_idx){
 
 				if (self_swap_idx < m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1, -1,-1,-1, -1,-1};
 					block_counter                                   += 1;
 				}
 				else {
@@ -1440,8 +1440,8 @@ void Simulation::perturb_forward_head_regrowth(int p_idx, int m_idx){
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 					// revert back to original structure, reswap particles
 					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -1468,8 +1468,8 @@ void Simulation::perturb_forward_head_regrowth(int p_idx, int m_idx){
 
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 				// revert back to original structure, reswap particles
 				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -1618,7 +1618,7 @@ void Simulation::perturb_backward_head_regrowth(int p_idx, int m_idx, int recurs
 
 				if (self_swap_idx <= m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1, -1,-1,-1, -1,-1};
 				}
 				else{
 
@@ -1637,8 +1637,8 @@ void Simulation::perturb_backward_head_regrowth(int p_idx, int m_idx, int recurs
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 					// revert back to original structure, reswap particles
 					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -1663,8 +1663,8 @@ void Simulation::perturb_backward_head_regrowth(int p_idx, int m_idx, int recurs
 
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 				// revert back to original structure, reswap particles
 				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -1741,7 +1741,7 @@ void Simulation::perturb_forward_tail_regrowth(int p_idx, int m_idx){
 
 				if (self_swap_idx > m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1, -1,-1,-1, -1,-1};
 					block_counter                                   += 1;
 				}
 				else{
@@ -1761,8 +1761,8 @@ void Simulation::perturb_forward_tail_regrowth(int p_idx, int m_idx){
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 					// revert back to original structure, reswap particles
 					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -1789,8 +1789,8 @@ void Simulation::perturb_forward_tail_regrowth(int p_idx, int m_idx){
 
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 				// revert back to original structure, reswap particles
 				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -1953,7 +1953,7 @@ void Simulation::perturb_backward_tail_regrowth(int p_idx, int m_idx, int recurs
 
 				if (self_swap_idx > m_idx){
 					this->enhanced_swing.energies[idx_counter]       = 1e+8;
-					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+					this->enhanced_swing.contacts_store[idx_counter] = {-1,-1,-1, -1,-1,-1, -1,-1};
 				}
 
 				else {
@@ -1973,8 +1973,8 @@ void Simulation::perturb_backward_tail_regrowth(int p_idx, int m_idx, int recurs
 
 					// set up the final energies
 					this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-					this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-					this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+					this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+					this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 					// revert back to original structure, reswap particles
 					this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -2001,8 +2001,8 @@ void Simulation::perturb_backward_tail_regrowth(int p_idx, int m_idx, int recurs
 
 				// set up the final energies
 				this->enhanced_swing.energies[idx_counter]       = this->enhanced_swing.current_energy - (this->enhanced_swing.initial_E_part2switch+this->enhanced_swing.initial_E_monomer-this->enhanced_swing.initial_E_pair) + (this->enhanced_swing.final_E_part2switch+this->enhanced_swing.final_E_monomer-this->enhanced_swing.final_E_pair);
-				this->enhanced_swing.contacts_store[idx_counter] = add_arrays(subtract_arrays(this->enhanced_swing.current_contacts, add_arrays (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_arrays (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
-				this->enhanced_swing.contacts_store[idx_counter] = subtract_arrays(add_arrays(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
+				this->enhanced_swing.contacts_store[idx_counter] = add_containers(subtract_containers(this->enhanced_swing.current_contacts, add_containers (this->enhanced_swing.initial_cont_monomer, this->enhanced_swing.initial_cont_part2switch)), add_containers (this->enhanced_swing.final_cont_monomer, this->enhanced_swing.final_cont_part2switch));
+				this->enhanced_swing.contacts_store[idx_counter] = subtract_containers(add_containers(this->enhanced_swing.contacts_store[idx_counter], this->enhanced_swing.initial_cont_pair), this->enhanced_swing.final_cont_pair);
 
 				// revert back to original structure, reswap particles
 				this->perturb_particle_swap(this->enhanced_swing.tmp_par_ptr, lattice_index(ne_list[idx_counter],this->y, this->z), lattice_index(loc_m, this->y, this->z));
@@ -2115,68 +2115,6 @@ void Simulation::perturb_system_straight(){
 
 // ~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%
 
-void Simulation::perturb_system_dry(){
-
-	int r = rng_uniform(0, 5);
-	switch (r) {
-		case 0:
-			this->perturb_tail_rotation(0);
-			break;
-		case 1:
-			this->perturb_head_rotation(0);
-			break;
-		case 2:
-			this->perturb_reptation_forward(0);
-			break;
-		case 3:
-			this->perturb_reptation_backward(0);
-			break;
-		case 4:
-			this->perturb_polymer_orientation_flip_dry(0);
-			break;
-		case 5:
-			this->perturb_regrowth(0);
-			break;
-		default:
-			std::cout << "Bad random number generated. Exiting..." << std::endl;
-			exit(EXIT_FAILURE);
-			break;
-	}
-	return;
-}
-
-void Simulation::perturb_system_dry_debug(){
-	
-	int r = rng_uniform(0, 5);
-	switch (r) {
-		case 0:
-			this->debug_tail_rotation(0);
-			break;
-		case 1:
-			this->debug_head_rotation(0);
-			break;
-		case 2:
-			this->debug_reptation_forward(0);
-			break;
-		case 3:
-			this->debug_reptation_backward(0);
-			break;
-		case 4:
-			this->debug_polymer_orientation_flip_dry(0);
-			break;
-		case 5:
-			this->debug_regrowth(0);
-			break;
-		default:
-			std::cout << "Bad random number generated. Exiting..." << std::endl;
-			exit(EXIT_FAILURE);
-			break;
-	}
-	return;
-}
-
-// ~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%
-
 void Simulation::perturb_system_debug(){
 	std::cout << "Running the debugging-based perturbation." << std::endl;
 	int r = rng_uniform(0,8);
@@ -2239,7 +2177,3 @@ void Simulation::perturb_system_debug(){
 
 // ~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%~%
 
-void Simulation::perturb_potts(){
-	this->perturb_lattice_flip();	
-	return;
-}

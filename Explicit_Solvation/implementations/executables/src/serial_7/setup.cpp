@@ -8,71 +8,43 @@
 
 void Simulation::set_up_energy_calculator(){
 
-	if (this->potts) {
-		this->calculate_energy_ptr = &Simulation::accelerate_calculate_energy_potts;
+	if (this->frac_c > 0.5){
+		// std::cout << "We are running the energy computation by looping over solvent particles." << std::endl;
+		this->calculate_energy_ptr = &Simulation::accelerate_calculate_energy_solvent; 
 	}
-
-	else if (this->dry){
-		this->calculate_energy_ptr = &Simulation::accelerate_calculate_energy_dry;
-	}
-
 	else {
-		if (this->frac_c > 0.5){
-			// std::cout << "We are running the energy computation by looping over solvent particles." << std::endl;
-			this->calculate_energy_ptr = &Simulation::accelerate_calculate_energy_solvent; 
-		}
-		else {
-			// std::cout << "We are running the energy computation by looping over cosolvent particles." << std::endl;
-			this->calculate_energy_ptr = &Simulation::accelerate_calculate_energy_cosolvent; 
-		}
+		// std::cout << "We are running the energy computation by looping over cosolvent particles." << std::endl;
+		this->calculate_energy_ptr = &Simulation::accelerate_calculate_energy_cosolvent; 
 	}
+
 	return;
 }
 
 void Simulation::set_up_local_dump(){
 
-	if (this->potts){
-		this->dump_local_ptr = &Simulation::dump_potts;
-	}
-	else if (this->dry){
-		this->dump_local_ptr = &Simulation::dump_local_dry;
+	if (this->SSfile == "__blank__"){
+		this->dump_local_ptr = &Simulation::dump_local_no_ss;
 	}
 	else {
-		if (this->SSfile == "__blank__"){
-			this->dump_local_ptr = &Simulation::dump_local_no_ss;
-		}
-		else {
-			this->dump_local_ptr = &Simulation::dump_local_all;
-		}
+		this->dump_local_ptr = &Simulation::dump_local_all;
 	}
+
 	return;
 }
 
 void Simulation::set_up_style_of_run(){
-	if (this->potts){
-		this->run_ptr = &Simulation::run_potts;
-	}
 
-	else if (this->dry){
-		if (this->v){
-			this->run_ptr = &Simulation::run_debug;
-		}
-		else {
-			this->run_ptr = &Simulation::run_dry;
-		}
-	}
 
+	if (this->v){
+		this->run_ptr = &Simulation::run_debug;
+	}
+	else if (this->isotropic){
+		this->run_ptr = &Simulation::run_isotropic;
+	}
 	else {
-		if (this->v){
-			this->run_ptr = &Simulation::run_debug;
-		}
-		else if (this->isotropic){
-			this->run_ptr = &Simulation::run_isotropic;
-		}
-		else {
-			this->run_ptr = &Simulation::run_straight;
-		}
+		this->run_ptr = &Simulation::run_straight;
 	}
+
 	return;
 }
 
@@ -80,47 +52,16 @@ void Simulation::set_up_system(){
 
 	// to restart a simulation
 	if (this->r){
-		if (this->potts){
-			this->set_up_lattice_for_restart();
-			this->Polymers.clear   ();
-			this->Polymers.reserve (0);
-			this->Solvent.clear    ();
-			this->Solvent.reserve  (0);
-			this->Cosolvent.clear  ();
-			this->Cosolvent.reserve(0);
-			filter_csv(this->efile, this->step_number);
-		}
-		else if (this->dry){
-			this->set_up_lattice_for_restart();
-			this->set_up_polymers_for_restart();
-			this->set_up_files_for_restart();
-			this->enhanced_flipper.setup(1, 5);
-			this->enhanced_swing.setup(1, 5);			
-		}
-		else {
-			this->set_up_lattice_for_restart();
-			this->set_up_polymers_for_restart();
-			this->set_up_files_for_restart();
-			this->enhanced_flipper.setup(1, 5);
-			this->enhanced_swing.setup(1, 5);
-		}
+		this->set_up_lattice_for_restart();
+		this->set_up_polymers_for_restart();
+		this->set_up_files_for_restart();
+		this->enhanced_flipper.setup(1, 5);
+		this->enhanced_swing.setup(1, 5);
 	}
 	// to set up a simulation from scratch
 	else {
-		if (this->potts){
-			std::cout << "Setting up a Potts simulation." << std::endl;
-			this->set_up_from_scratch_potts();
-		}
-
-		else if (this->dry){
-			std::cout << "Setting up a dry simulation." << std::endl;
-			this->set_up_from_scratch_dry();
-		}
-
-		else {
-			std::cout << "Setting up an FHP simulation." << std::endl;
-			this->set_up_from_scratch();
-		}
+		std::cout << "Setting up an FHP simulation." << std::endl;
+		this->set_up_from_scratch();
 	}
 
 	return;
@@ -220,27 +161,6 @@ void Simulation::set_up_add_cosolvent(){
 
 	std::cout << "Number of solvent particles in the system is " << nsol1 << "." << std::endl;
 
-	return; 
-}
-
-void Simulation::set_up_add_solvent0(){
-
-	int c_idx {-1};
-	std::array <int,3> loc = {0,0,0}; 
-	for (int k{0}; k<z; ++k){
-		for (int j{0}; j<y; ++j){
-			for (int i{0}; i<x; ++i){
-				loc = {i, j, k};
-				if (lattice_index(loc,y,z)-c_idx != 1){
-					std::cerr << "Something is fucked in Lattice creation." << std::endl;
-					exit (EXIT_FAILURE);
-				}
-				c_idx = lattice_index (loc, y, z); 
-				Particle* p_ptr = new Particle ( loc, "s0", rng_uniform (0, 25) ); 
-				this->Lattice.insert( this->Lattice.begin() + lattice_index(loc, y, z), p_ptr) ;
-			}
-		}
-	}
 	return; 
 }
 
@@ -508,23 +428,12 @@ void Simulation::set_up_files_for_restart(){
 
 void Simulation::set_up_for_restart(){
 
-	if (this->potts){
-		this->set_up_lattice_for_restart();
-		this->Polymers.clear   ();
-		this->Polymers.reserve (0);
-		this->Solvent.clear    ();
-		this->Solvent.reserve  (0);
-		this->Cosolvent.clear  ();
-		this->Cosolvent.reserve(0);
-		filter_csv(this->efile, this->step_number);
-	}
-	else {
-		this->set_up_lattice_for_restart();
-		this->set_up_polymers_for_restart();
-		this->set_up_files_for_restart();
-		this->enhanced_flipper.setup(1, 5);
-		this->enhanced_swing.setup(1, 5);
-	}
+	this->set_up_lattice_for_restart();
+	this->set_up_polymers_for_restart();
+	this->set_up_files_for_restart();
+	this->enhanced_flipper.setup(1, 5);
+	this->enhanced_swing.setup(1, 5);
+
 	return;
 }
 
@@ -588,47 +497,6 @@ void Simulation::set_up_from_scratch(){
 
 //////////////////////////////////////////////
 
-void Simulation::set_up_from_scratch_potts(){
-
-	this->Npoly = 0;
-	std::vector <Particle*> Cosolvent;
-	std::vector <Particle*> Solvent  ;
-	std::vector <Polymer>   Polymers ;
-	Polymers.reserve (0);
-	Cosolvent.reserve(0);
-	Solvent.reserve  (0);
-
-	// create the Lattice data structure
-	std::vector <Particle*> Lattice;
-	Lattice.reserve((this->x)*(this->y)*(this->z));
-
-	// update the object
-	this->Lattice   = Lattice;
-	this->Solvent   = Solvent;
-	this->Cosolvent = Cosolvent;
-	this->Polymers  = Polymers; 
-
-	// populate the lattice 
-	int c_idx {-1}; 
-	std::array <int,3> loc = {0, 0, 0};
-	for (int k{0}; k<this->z; ++k){
-		for (int j{0}; j<this->y; ++j){
-			for (int i{0}; i<this->x; ++i){
-				loc = {i, j, k};
-				if (lattice_index(loc, this->y, this->z) - c_idx != 1){
-					std::cerr << "Something is fucked in Lattice creation." << std::endl;
-					exit (EXIT_FAILURE);
-				}
-				c_idx = lattice_index(loc, this->y, this->z);
-				Particle* p_ptr = new Particle (loc, "sp", rng_uniform(0, 25));
-				this->Lattice.insert(this->Lattice.begin() + lattice_index(loc, this->y, this->z), p_ptr);
-			}
-		}
-	}
-
-	return;
-}
-
 //////////////////////////////////////////////
 
 //////////////////////////////////////////////
@@ -653,20 +521,3 @@ void Simulation::set_up_FHP(){
 
 }
 
-void Simulation::set_up_Potts(){
-
-	this->extract_topology_for_potts();       // get the geometry, energies, and composition of the system.
-	this->set_up_system();                    // now that i have the topology, I can now set up the system.
-	this->set_up_local_dump();                // sets up the dump function
-	this->set_up_energy_calculator();         // set up the energy calculator
-	this->set_up_style_of_run();              // set up the run function
-	this->initialize_pairwise_function_map(); // initialize the pairwise function
-	this->initialize_neighbor_function_map(); // initialize the neighbor function
-	this->accelerate_calculate_energy();      // get the energy of the system
-	if (!this->r){
-		this->dump_local();                   // dump out the conditions at step number 0
-	}
-
-	return;
-
-}

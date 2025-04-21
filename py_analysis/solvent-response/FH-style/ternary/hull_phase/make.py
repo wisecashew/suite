@@ -113,8 +113,8 @@ def make(hull_pkl, deposit):
 
 	SINGLE_PHASE       = list()
 	EXTRA_SINGLE_PHASE = list()
-	DOUBLE_PHASE     = [np.empty((0,2)), np.empty((0,2))]
-	TRIPLE_PHASE     = list()
+	DOUBLE_PHASE       = [np.empty((0,2)), np.empty((0,2))]
+	TRIPLE_PHASE       = list()
 
 	npoints = 1000
 

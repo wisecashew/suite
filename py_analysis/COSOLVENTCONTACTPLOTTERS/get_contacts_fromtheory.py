@@ -28,6 +28,7 @@ parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store',
 parser.add_argument('--U', dest='U', action='store', nargs='+', type=str, help='Enter enthalpies you want plotted.')
 parser.add_argument('--frac', dest='frac', action='store', nargs='+', type=float, help='Enter fracs you want probed.')
 parser.add_argument('-s', dest='s', action='store', type=int, help='Enter when to start collecting contacts.')
+parser.add_argument('--dump', dest='dump', action='store', type=str, help='Enter name of contacts dump file.')
 parser.add_argument('--csv-name', dest='cn', action='store', type=str, help='Enter name of CSV file to create.')
 parser.add_argument('-nproc', metavar='N', type=int, dest='nproc', action='store', help='Request these many proccesses.')
 args = parser.parse_args() 
@@ -71,7 +72,7 @@ def loc2lat (location, x, y, z):
 # create a dictionary of all locations 
 def get_contacts (U, dop, f, num, s):
 
-	df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/"+str(f)+"/energydump_"+str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0) 
+	df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/"+str(f)+"/" + args.dump + "_" + str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0) 
 	mm_contacts    = df["mm_tot"].values[-s:]
 	mma_contacts   = df["mm_aligned"].values[-s:]
 	mmn_contacts   = df["mm_naligned"].values[-s:]

@@ -59,12 +59,12 @@ public:
 	void setup(int loc_size, int ntest){
 		this->ntest           = ntest;
 		this->zero_3array     = {0,0,0};
-		this->zero_Narray     = {0,0,0,0,0,0,0,0,0,0};
+		this->zero_Narray     = {0,0,0, 0,0,0, 0,0};
 		this->initial_locations.reserve(loc_size);
 		this->final_locations.reserve(loc_size);
 		this->initial_cont_monomer     = this->zero_Narray;     // initial contacts, prior to perturbation
-		this->initial_cont_part2switch = this->zero_Narray; // initial contacts, prior to perturbation
-		this->final_cont_monomer       = this->zero_Narray;       // 
+		this->initial_cont_part2switch = this->zero_Narray;     // initial contacts, prior to perturbation
+		this->final_cont_monomer       = this->zero_Narray;      
 		this->final_cont_part2switch   = this->zero_Narray;
 		this->initial_cont_pair        = this->zero_Narray;
 		this->final_cont_pair          = this->zero_Narray; 
@@ -91,8 +91,8 @@ public:
 		this->final_locations.clear();
 		this->final_locations.reserve  (loc_size);
 		this->initial_cont_monomer     = this->zero_Narray;     // initial contacts, prior to perturbation
-		this->initial_cont_part2switch = this->zero_Narray; // initial contacts, prior to perturbation
-		this->final_cont_monomer       = this->zero_Narray;       // 
+		this->initial_cont_part2switch = this->zero_Narray;     // initial contacts, prior to perturbation
+		this->final_cont_monomer       = this->zero_Narray;     
 		this->final_cont_part2switch   = this->zero_Narray;
 		this->initial_cont_pair        = this->zero_Narray;
 		this->final_cont_pair          = this->zero_Narray; 
@@ -122,12 +122,13 @@ public:
 		this->final_E_pair          = 0;
 
 		// reset the contacts
-		this->initial_cont_monomer     = {0,0,0,0,0,0,0,0,0,0};
-		this->initial_cont_part2switch = {0,0,0,0,0,0,0,0,0,0};
-		this->initial_cont_pair        = {0,0,0,0,0,0,0,0,0,0};
-		this->final_cont_monomer       = {0,0,0,0,0,0,0,0,0,0};
-		this->final_cont_part2switch   = {0,0,0,0,0,0,0,0,0,0};
-		this->final_cont_pair          = {0,0,0,0,0,0,0,0,0,0};
+		this->initial_cont_monomer     = {0,0,0, 0,0,0, 0,0};
+		this->initial_cont_part2switch = {0,0,0, 0,0,0, 0,0};
+		this->initial_cont_pair        = {0,0,0, 0,0,0, 0,0};
+		this->final_cont_monomer       = {0,0,0, 0,0,0, 0,0};
+		this->final_cont_part2switch   = {0,0,0, 0,0,0, 0,0};
+		this->final_cont_pair          = {0,0,0, 0,0,0, 0,0};
+		return;
 	}
 
 };

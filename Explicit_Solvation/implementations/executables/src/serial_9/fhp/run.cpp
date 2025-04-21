@@ -89,7 +89,7 @@ void FHP::run_straight(){
 		this->dump();
 	}
 
-	this->dump_lattice();
+	this->dump_lattice_end();
 	this->dump_stats();
 
 	// this->debug_checks_energy_contacts(this->sysEnergy, this->contacts);

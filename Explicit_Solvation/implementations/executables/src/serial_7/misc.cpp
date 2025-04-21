@@ -329,243 +329,9 @@ void print ( std::vector <std::vector <std::array<int,3>>> V){
 // functions to perform arithmetic with vectors and arrays 
 //==============================================================================================
 
-template <typename ContainerType>
-auto add_containers(const ContainerType& c1, const ContainerType& c2) {
-	// Ensure both containers have the same size
-	assert(c1.size() == c2.size());
 
-	// Deduce the result type using the common type between the two containers' elements
-	using CommonType = typename ContainerType::value_type;
 
-	// Create a container of the same size for the result
-	ContainerType result;          // Can be array or vector; assumes both containers are the same type
-	result.fill(CommonType(0)); // For arrays
 
-	// Perform element-wise addition
-	for (std::size_t i = 0; i < c1.size(); ++i) {
-		result[i] = static_cast<CommonType>(c1[i]) + static_cast<CommonType>(c2[i]);
-	}
-
-	return result;
-}
-
-template <typename ContainerType>
-auto subtract_containers(const ContainerType& c1, const ContainerType& c2) {
-	// Ensure both containers have the same size
-	assert(c1.size() == c2.size());
-
-	// Deduce the result type using the common type between the two containers' elements
-	using CommonType = typename ContainerType::value_type;
-
-	// Create a container of the same size for the result
-	ContainerType result;          // Can be array or vector; assumes both containers are the same type
-	result.fill(CommonType(0));    // For arrays
-
-	// Perform element-wise addition
-	for (std::size_t i = 0; i < c1.size(); ++i) {
-		result[i] = static_cast<CommonType>(c1[i]) - static_cast<CommonType>(c2[i]);
-	}
-
-	return result;
-}
-
-// Primary template for scaling arrays and vectors
-template <typename Container>
-typename std::conditional<
-	std::is_same<Container, std::array<typename Container::value_type, Container::size()>>::value,
-	std::array<double, Container::size()>,
-	std::vector<double>>::type
-scale_containers(double scalar, const Container& array) {
-	// Create a result of the appropriate type
-	using ResultType = typename std::conditional<
-		std::is_same<Container, std::array<typename Container::value_type, Container::size()>>::value,
-		std::array<double, Container::size()>,
-		std::vector<double>>::type;
-
-	ResultType result(array.size());
-
-	for (std::size_t i = 0; i < array.size(); ++i) {
-		result[i] = static_cast<double>(array[i]) * scalar; // Scale and convert to double
-	}
-	return result;
-}
-
-// Specialization for std::vector
-template <typename T>
-std::vector<double> scale_containers(double scalar, const std::vector<T>& array) {
-	std::vector<double> result(array.size());
-
-	for (std::size_t i = 0; i < array.size(); ++i) {
-		result[i] = static_cast<double>(array[i]) * scalar; // Scale and convert to double
-	}
-	return result;
-}
-
-
-/*
-std::vector <int> add_vectors(std::vector <int>* v1, std::vector <int>* v2){
-	size_t s = (*v1).size(); 
-	std::vector <int> v3 (s,0); 
-	for (int i{0}; i < static_cast<int>(s); i++){
-		v3.at(i) = (*v2).at(i) + (*v1).at(i);
-	}
-
-	return v3; 
-}
-
-std::array <int,3> add_arrays(std::array <int,3>* a1, std::array <int,3>* a2){
-	std::array<int, 3> a3; 
-
-	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,3> add_arrays(std::array <double,3>* a1, std::array <double,3>* a2){
-	std::array<double, 3> a3; 
-
-	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,3> add_arrays(std::array <int,3>* a1, std::array <double,3>* a2){
-	std::array<double, 3> a3; 
-
-	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,CONTACT_SIZE> add_arrays(std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2){
-
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
-	}
-	return a3;
-
-}
-
-std::array <int,CONTACT_SIZE> add_arrays(std::array <int,CONTACT_SIZE>* a1, std::array <int,CONTACT_SIZE>* a2){
-
-	std::array<int,CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] + (*a2)[i]; 
-	}
-	return a3;
-
-}
-
-std::array <double,CONTACT_SIZE> add_arrays (std::array<double,CONTACT_SIZE> a1, std::array <double,CONTACT_SIZE> a2) {
-	
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (a1)[i] + (a2)[i]; 
-	}
-	return a3;
-
-}
-
-
-
-std::vector <int> subtract_vectors(std::vector <int>* v1, std::vector <int>* v2){
-	size_t s = (*v1).size(); 
-	std::vector <int> v3 (s,0); 
-	for (int i{0}; i < static_cast<int>(s); i++){
-		v3.at(i) = (*v1).at(i) -  (*v2).at(i);
-	}
-
-	return v3; 
-}
-
-std::array <int,3> subtract_arrays(std::array <int,3>* a1, std::array <int,3>* a2){
-	std::array<int, 3> a3; 
-
-	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-
-std::array <double,3> subtract_arrays(std::array <double,3>* a1, std::array <double,3>* a2){
-	std::array<double, 3> a3;
-
-	for (int i{0}; i<3; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-
-std::array <int,CONTACT_SIZE> subtract_arrays(std::array <int,CONTACT_SIZE>* a1, std::array <int,CONTACT_SIZE>* a2){
-	std::array<int, CONTACT_SIZE> a3; 
-
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,CONTACT_SIZE> subtract_arrays (std::array<double,CONTACT_SIZE> a1, std::array <double,CONTACT_SIZE> a2) {
-	
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (a1)[i] - (a2)[i]; 
-	}
-
-	return a3;
-
-}
-
-std::array <double,CONTACT_SIZE> subtract_arrays(std::array <double,CONTACT_SIZE>* a1, std::array <double,CONTACT_SIZE>* a2){
-
-	std::array<double, CONTACT_SIZE> a3; 
-	for (int i{0}; i<CONTACT_SIZE; ++i){
-		a3[i] = (*a1)[i] - (*a2)[i]; 
-	}
-	return a3;
-
-}
-*/
-
-/*
-std::array <double,3> scale_arrays ( double scalar, std::array <double,3>* array){
-
-	std::array <double,3> arr_n;
-	for (int i{0}; i<3; ++i){
-		arr_n [i] = (*array)[i]*scalar; 
-	}
-	return arr_n;
-
-}
-
-std::array <double,3> scale_arrays ( double scalar, std::array <int,3>* array){
-
-	std::array <double,3> arr_n;
-	for (int i{0}; i<3; ++i){
-		arr_n [i] = static_cast<double>((*array)[i])*scalar; 
-	}
-	return arr_n;
-	
-}
-*/
 
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
 // ~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~#~
@@ -635,8 +401,8 @@ double take_dot_product (const std::array <double,3>& o1, const std::array <doub
 // function to check for avoidance in the walk 
 //==============================================================================================
 
-bool check_avoidance(const std::vector <int>& to_check, const std::vector<std::vector <int>>& loc_list){
-	for (std::vector <int> v: loc_list){
+bool check_avoidance(std::vector <int>& to_check, std::vector<std::vector <int>>* loc_list){
+	for (std::vector <int> v: *loc_list){
 		if (v==to_check){
 			return false;
 		}
@@ -659,11 +425,11 @@ void sarw(std::vector<std::vector<int>>* loc_list, int dop){
 	// until then 
 	// increment final vector in loc_list in a unit direction 
 	std::vector <int> next(3,0); 
-	for (auto v: drns){
+	for (auto& v: drns){
 		 
-		next = add_vectors(&((*loc_list).at((*loc_list).size()-1)), &v);
+		next = add_containers(((*loc_list).at((*loc_list).size()-1)), v);
 		 
-		if (check_avoidance(next, *loc_list)){
+		if (check_avoidance(next, loc_list)){
 			dop--; // decrease dop now that a monomer unit has been added 
 			(*loc_list).push_back(next); // add monomer to list 
 			return sarw(loc_list, dop); 
@@ -688,14 +454,14 @@ void sarw_pbc(std::vector<std::vector<int>>* loc_list, int dop, int x_len, int y
 	// until then 
 	// increment final vector in loc_list in a unit direction 
 	std::vector <int> next(3,0); 
-	for (auto v: drns){
+	for (std::vector<int>& v: drns){
 
-		next = add_vectors(&((*loc_list).at((*loc_list).size()-1)), &v);
+		next = add_containers(((*loc_list).at((*loc_list).size()-1)), v);
 		
 		impose_pbc(&next, x_len, y_len, z_len); 
 		
 		
-		if (check_avoidance(next, *loc_list)){
+		if (check_avoidance(next, loc_list)){
 			dop--; // decrease dop now that a monomer unit has been added 
 			(*loc_list).push_back(next); // add monomer to list 
 			return sarw_pbc(loc_list, dop, x_len, y_len, z_len); 
@@ -777,8 +543,8 @@ void create_linked_list ( std::vector<std::array<int,3>> v1, std::vector<std::ar
 std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len, int y_len, int z_len){
 	std::vector <std::vector <int>> nl;
 	nl.reserve(6); 
-	for (std::vector <int> d: drns){
-		std::vector <int> v = add_vectors(&loc, &d); 
+	for (std::vector <int>& d: drns){
+		std::vector <int> v = add_containers(loc, d); 
 		impose_pbc(&v, x_len, y_len, z_len); 
 		nl.push_back(v);
 	}
@@ -793,15 +559,12 @@ std::vector <std::vector <int>> obtain_ne_list(std::vector <int> loc, int x_len,
 std::array <std::array <int,3>, 26> obtain_ne_list(std::array <int,3> loc, int x_len, int y_len, int z_len){
 	std::array <std::array <int,3>,26> nl;
 	int i {0}; 
-	for (std::array <int,3> d: adrns) {
-		std::array <int,3>  a = add_arrays(&loc, &d); 
+	for (std::array <int,3>& d: adrns) {
+		std::array <int,3>  a = add_containers(loc, d); 
 		impose_pbc(&a, x_len, y_len, z_len); 
 		nl[i] = a;
 		++i; 
 	}
-
-	// std::sort(nl.begin(), nl.end() );
-	// nl.erase(std::unique (nl.begin(), nl.end() ), nl.end() );  
 
 	return nl; 
 
@@ -829,17 +592,10 @@ bool acceptance(int dE, double kT){
 	generator.seed(std::chrono::system_clock::now().time_since_epoch().count());
 	double num = distribution (generator); 
 
-	//std::cout << "acceptance has been called..." << std::endl; 
-	// std::cout << "dE is " << dE << std::endl; 
-	// std::cout << "probability of move is " << prob << std::endl; 
-	// std::cout << "rng is " << num << std::endl;
-	
-	// std::cout << "random number is " << num << std::endl; 
-	// std::cout << "probability is " << prob << std::endl;
-	if (num <= prob){
+	if (num <= prob) {
 		return true;
 	}
-	else{
+	else {
 		return false; 
 	}
 
@@ -905,141 +661,86 @@ int heads_or_tails(int m_index, int deg_poly){
 
 
 
-void input_parser(int dfreq, int lfreq, int max_iter, bool r, bool potts_bool, bool dry_bool, \
+void input_parser(int dfreq, int lfreq, int max_iter, bool r, \
 	std::string positions, std::string topology, std::string dfile, \
 	std::string efile, std::string mfile, std::string stats_file, \
 	std::string lattice_file_read, std::string lattice_file_write, std::string ssfile){
 
 
-	if (potts_bool){
-		if (!r) {
+	if (!r) {
 
-			if (dfreq == -1 || max_iter == -1) {
-				std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ")" << " and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
-				exit (EXIT_FAILURE);
-			}
+		if (dfreq == -1 || lfreq == -1 || max_iter == -1) {
+			std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ") and/or for option l (ell) (" << lfreq << ") and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
+			exit (EXIT_FAILURE);
+		}
+	
+		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
+			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_write == "__blank__" ){
+			std::cerr << "polymer coords file is " << positions <<
+			",\ntopology is " << topology <<
+			",\npolymer coordinate dump file is " << dfile << 
+			",\nenergy dump file is " << efile << 
+			",\norientation file is " << mfile << 
+			",\nmove statistics file is " << stats_file << 
+			",\nlattice dump file is " << lattice_file_write << 
+			",\nsolvation dump file is " << ssfile << "." << std::endl;
 
-			if ( topology == "__blank__" || efile == "__blank__" || \
-				stats_file == "__blank__" || lattice_file_write == "__blank__" ){
-				std::cerr << "Topology is in " << topology <<
-				",\nenergy dump file is " << efile << 
-				",\nmove statistics file is " << stats_file << 
-				",\nlattice dump file is " << lattice_file_write << std::endl;
-				std::cerr << "ERROR: No value for " <<
-				"for option t (energy and geometry file) and/or\n" <<
-				"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
-				exit (EXIT_FAILURE);    
-			}
-			
-			// set up these files 
-			std::ofstream lattice_dump_file (lattice_file_write);
-			std::ofstream energy_dump_file (efile);
-			std::ofstream statistics_dump_file (stats_file); 
+			std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
+			"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
+			"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
+			exit (EXIT_FAILURE);    
+		}
+		
+		// set up these files 
+		std::ofstream polymer_dump_file (dfile);
+		std::ofstream energy_dump_file (efile);
+		std::ofstream orientation_dump_file (mfile); 
+		std::ofstream statistics_dump_file (stats_file); 
 
-			lattice_dump_file.close();
-			energy_dump_file.close();
-			statistics_dump_file.close();
+		polymer_dump_file.close();
+		energy_dump_file.close();
+		orientation_dump_file.close();
+		statistics_dump_file.close();
 
-			if ( lattice_file_read != "__blank__" ){
-				std::cerr << "Restart has not been requested. Do not provide a lattice file to read. Exiting..." << std::endl;
-				exit (EXIT_FAILURE);
-			}
+		if ( lattice_file_read != "__blank__" ){
+			std::cerr << "Restart has not been requested. Do not provide a lattice file to read. Exiting..." << std::endl;
+			exit (EXIT_FAILURE);
+		} 
+
+		if ( ssfile != "__blank__"){
+			std::ofstream solvation_dump_file(ssfile);
+			solvation_dump_file.close();
 		}
 
-		else {
-			if ( dfreq == -1 || max_iter == -1 ){
-				std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ")" << " and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
-				exit (EXIT_FAILURE);
-			}
-			if ( topology == "__blank__" || efile == "__blank__" || \
-				stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
-				std::cerr << "Topology is " << topology <<
-				",\nenergy dump file is " << efile << 
-				",\nmove statistics file is " << stats_file << 
-				",\nlattice file to read is " << lattice_file_read << std::endl;
-				std::cerr << "ERROR: No value for " <<
-				"for option t (energy and geometry file) and/or\n" <<
-				"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
-				exit(EXIT_FAILURE);
-			}
-		}
 	}
 
 	else {
-		if (!r) {
 
-			if (dfreq == -1 || lfreq == -1 || max_iter == -1) {
-				std::cerr << "ERROR: No value for option f (frequency of dumping) (" << dfreq << ") and/or for option l (ell) (" << lfreq << ") and/or for option M (maximum number of moves to be performed) (" << max_iter << ") was provided. Exiting..." << std::endl;
-				exit (EXIT_FAILURE);
-			}
-		
-			if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
-				mfile == "__blank__" || stats_file == "__blank__" || lattice_file_write == "__blank__" ){
-				std::cerr << "polymer coords file is " << positions <<
-				",\ntopology is " << topology <<
-				",\npolymer coordinate dump file is " << dfile << 
-				",\nenergy dump file is " << efile << 
-				",\norientation file is " << mfile << 
-				",\nmove statistics file is " << stats_file << 
-				",\nlattice dump file is " << lattice_file_write << 
-				",\nsolvation dump file is " << ssfile << "." << std::endl;
-
-				std::cerr << "ERROR: No value for option p (polymer coordinate file) and/or\nfor option S (solvent coordinate file) and/or\n" <<
-				"for option t (energy and geometry file) and/or\nfor option o (name of output dump file) and/or\nfor option e (name of orientation file) and/or\n" <<
-				"for option s (name of move stats file) and/or\n for option u (name of energy dump file). Exiting..." << std::endl;
-				exit (EXIT_FAILURE);    
-			}
-			
-			// set up these files 
-			std::ofstream polymer_dump_file (dfile);
-			std::ofstream energy_dump_file (efile);
-			std::ofstream orientation_dump_file (mfile); 
-			std::ofstream statistics_dump_file (stats_file); 
-
-			polymer_dump_file.close();
-			energy_dump_file.close();
-			orientation_dump_file.close();
-			statistics_dump_file.close();
-
-			if ( lattice_file_read != "__blank__" ){
-				std::cerr << "Restart has not been requested. Do not provide a lattice file to read. Exiting..." << std::endl;
-				exit (EXIT_FAILURE);
-			} 
-
-			if ( ssfile != "__blank__"){
-				std::ofstream solvation_dump_file(ssfile);
-				solvation_dump_file.close();
-			}
-
+		if ( dfreq == -1 || lfreq == -1 || max_iter == -1 ){
+			std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option l (ell) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
+			exit (EXIT_FAILURE);	
 		}
-
-		else {
-
-			if ( dfreq == -1 || lfreq == -1 || max_iter == -1 ){
-				std::cerr << "ERROR: No value for option f (frequency of dumping) and/or for option l (ell) and/or for option M (maximum number of moves to be performed) was provided. Exiting..." << std::endl;
-				exit (EXIT_FAILURE);	
-			}
-			if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
-				mfile == "__blank__" || stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
-				std::cerr << "polymer coords file is " << positions <<
-				",\ntopology is " << topology <<
-				",\npolymer coordinate dump file is " << dfile << 
-				",\nenergy dump file is " << efile << 
-				",\norientation file is " << mfile << 
-				",\nmove statistics file is " << stats_file << 
-				",\nlattice file to read is " << lattice_file_read << 
-				",\nsolvation dump file is " << ssfile << "." << std::endl;
-				std::cerr << 
-				"ERROR: No value for option p (polymer coordinate file) and/or\n" << 
-				"for option t (energy and geometry file) and/or\n" << 
-				"for option o (name of output dump file) and/or\n" << 
-				"for option e (name of orientation file) and/or\n" <<
-				"for option s (name of move stats file) and/or\n" << 
-				"for option u (name of energy dump file) was provided. Exiting..." << std::endl;
-				exit(EXIT_FAILURE);
-			}
+		if ( positions== "__blank__" || topology == "__blank__" || dfile== "__blank__" || efile == "__blank__" || \
+			mfile == "__blank__" || stats_file == "__blank__" || lattice_file_read == "__blank__" ) {
+			std::cerr << "polymer coords file is " << positions <<
+			",\ntopology is " << topology <<
+			",\npolymer coordinate dump file is " << dfile << 
+			",\nenergy dump file is " << efile << 
+			",\norientation file is " << mfile << 
+			",\nmove statistics file is " << stats_file << 
+			",\nlattice file to read is " << lattice_file_read << 
+			",\nsolvation dump file is " << ssfile << "." << std::endl;
+			std::cerr << 
+			"ERROR: No value for option p (polymer coordinate file) and/or\n" << 
+			"for option t (energy and geometry file) and/or\n" << 
+			"for option o (name of output dump file) and/or\n" << 
+			"for option e (name of orientation file) and/or\n" <<
+			"for option s (name of move stats file) and/or\n" << 
+			"for option u (name of energy dump file) was provided. Exiting..." << std::endl;
+			exit(EXIT_FAILURE);
 		}
 	}
+	
 
 	return;
 }

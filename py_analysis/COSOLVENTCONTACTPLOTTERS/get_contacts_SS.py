@@ -46,7 +46,7 @@ v = [np.asarray(u) for u in v]
 
 def get_starting_ind ( U, f, num, dop, dumpfile):
 	filename = U + "/DOP_" + str(dop) + "/" + str(f) + "/" + dumpfile + "_" + str(num) + ".mc"
-	df = pd.read_csv(filename, sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0)
+	df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(f)+"/"+args.dump+"_"+str(num)+".mc", sep=' \| ', names=["total", "total_s", "total_c", "aligned_sc", "misaligned_sc", "timestep"], engine='python', skiprows=1)
 	L = len(df["energy"])
 	return int(df["time_step"].values[L-2000])
 
@@ -72,27 +72,14 @@ def loc2lat (location, x, y, z):
 # create a dictionary of all locations 
 def get_contacts (U, dop, f, num, s):
 
-	df = pd.read_csv(str(U)+"/DOP_"+str(dop)+"/"+str(f)+"/" + args.dump + "_" + str(num)+".mc", sep=' \| ', names=["energy", "mm_tot", "mm_aligned", "mm_naligned", "ms1_tot", "ms1_aligned", "ms1_naligned", "ms2_tot", "ms2_aligned", "ms2_naligned", "ms1s2_tot",  "ms1s2_aligned", "ms1s2_naligned", "time_step"], engine='python', skiprows=0) 
-	mm_contacts    = df["mm_tot"].values[-s:]
-	mma_contacts   = df["mm_aligned"].values[-s:]
-	mmn_contacts   = df["mm_naligned"].values[-s:]
-	ms_contacts    = df["ms1_tot"].values[-s:]+df["ms2_tot"].values[-s:]
-	ms1_contacts   = df["ms1_tot"].values[-s:]
-	ms1a_contacts  = df["ms1_aligned"].values[-s:]
-	ms1n_contacts  = df["ms1_naligned"].values[-s:]
-	ms2_contacts   = df["ms2_tot"].values[-s:]
-	ms2a_contacts  = df["ms2_aligned"].values[-s:]
-	ms2n_contacts  = df["ms2_naligned"].values[-s:]
-	s1s2_contacts  = df["ms1s2_tot"].values[-s:]
-	s1s2a_contacts = df["ms1s2_aligned"].values[-s:]
-	s1s2n_contacts = df["ms1s2_naligned"].values[-s:]
+	df = pd.read_csv(str(U)+"/DOP_"+str(args.dop)+"/"+str(f)+"/"+args.dump+"_"+str(num)+".mc", sep=' \| ', names=["total", "total_s", "total_c", "aligned_sc", "misaligned_sc", "timestep"], engine='python', skiprows=1)
+	total         = df["total"].values[-s:]
+	total_s       = df["total_s"].values[-s:]
+	total_c       = df["total_c"].values[-s:]
+	aligned_sc    = df["aligned_sc"].values[-s:]
+	misaligned_sc = df["misaligned_sc"].values[-s:]
 
-	return np.array([np.mean(mm_contacts), np.mean(mma_contacts), np.mean(mmn_contacts), \
-	np.mean(ms_contacts), \
-	np.mean(ms1_contacts),  np.mean(ms1a_contacts),  np.mean(ms1n_contacts), \
-	np.mean(ms2_contacts),  np.mean(ms2a_contacts),  np.mean(ms2n_contacts), \
-	np.mean(s1s2_contacts), np.mean(s1s2a_contacts), np.mean(s1s2n_contacts)])
-	
+	return np.array([total, total_s, total_c, aligned_sc, misaligned_sc])
 
 #######################################################################
 #######################################################################
@@ -111,19 +98,11 @@ if __name__=="__main__":
 	CONTACTS_DICT      = {}
 	CONTACTS_DICT["U"] = []
 	CONTACTS_DICT["x"] = []
-	CONTACTS_DICT["M1-M1"]   = []
-	CONTACTS_DICT["M1-M1-A"] = []
-	CONTACTS_DICT["M1-M1-N"] = []
-	CONTACTS_DICT["M1-S"]    = []
-	CONTACTS_DICT["M1-S1"]   = []
-	CONTACTS_DICT["M1-S1-A"] = []
-	CONTACTS_DICT["M1-S1-N"] = []
-	CONTACTS_DICT["M1-S2"]   = []
-	CONTACTS_DICT["M1-S2-A"] = []
-	CONTACTS_DICT["M1-S2-N"] = []
-	CONTACTS_DICT["S1-S2"]   = []
-	CONTACTS_DICT["S1-S2-A"] = []
-	CONTACTS_DICT["S1-S2-N"] = []
+	CONTACTS_DICT["total"]   = []
+	CONTACTS_DICT["total_s"] = []
+	CONTACTS_DICT["total_c"] = []
+	CONTACTS_DICT["aligned_sc"]    = []
+	CONTACTS_DICT["misaligned_sc"]   = []
 
 	for U in U_list:
 		print ( "We are in U = "+str(U)+", and N = " + str(dop) + "...", flush=True)
@@ -157,19 +136,11 @@ if __name__=="__main__":
 		CONTACTS_DICT["x"].extend( frac_list )
 		# print(contacts_dict)
 		for f in frac_list:
-			CONTACTS_DICT["M1-M1"].append   ( np.mean( np.array (contacts_dict[f])[:,0] ) )
-			CONTACTS_DICT["M1-M1-A"].append ( np.mean( np.array (contacts_dict[f])[:,1] ) )
-			CONTACTS_DICT["M1-M1-N"].append ( np.mean( np.array (contacts_dict[f])[:,2] ) )
-			CONTACTS_DICT["M1-S"].append    ( np.mean( np.array (contacts_dict[f])[:,3] ) )
-			CONTACTS_DICT["M1-S1"].append   ( np.mean( np.array (contacts_dict[f])[:,4] ) )
-			CONTACTS_DICT["M1-S1-A"].append ( np.mean( np.array (contacts_dict[f])[:,5] ) )
-			CONTACTS_DICT["M1-S1-N"].append ( np.mean( np.array (contacts_dict[f])[:,6] ) )
-			CONTACTS_DICT["M1-S2"].append   ( np.mean( np.array (contacts_dict[f])[:,7] ) )
-			CONTACTS_DICT["M1-S2-A"].append ( np.mean( np.array (contacts_dict[f])[:,8] ) )
-			CONTACTS_DICT["M1-S2-N"].append ( np.mean( np.array (contacts_dict[f])[:,9] ) )
-			CONTACTS_DICT["S1-S2"].append   ( np.mean( np.array (contacts_dict[f])[:,10] ) )
-			CONTACTS_DICT["S1-S2-A"].append ( np.mean( np.array (contacts_dict[f])[:,11] ) )
-			CONTACTS_DICT["S1-S2-N"].append ( np.mean( np.array (contacts_dict[f])[:,12] ) )
+			CONTACTS_DICT["total"].append   ( np.mean( np.array (contacts_dict[f])[:,0] ) )
+			CONTACTS_DICT["total_s"].append ( np.mean( np.array (contacts_dict[f])[:,1] ) )
+			CONTACTS_DICT["total_c"].append ( np.mean( np.array (contacts_dict[f])[:,2] ) )
+			CONTACTS_DICT["aligned_sc"].append    ( np.mean( np.array (contacts_dict[f])[:,3] ) )
+			CONTACTS_DICT["misaligned_sc"].append   ( np.mean( np.array (contacts_dict[f])[:,4] ) )
 
 	pool.close()
 	pool.join ()

@@ -63,8 +63,8 @@ def infiltrate_coords_get_rg ( U, frac, num, dop, coords_files, starting_index )
 	edge = aux.edge_length (dop)
 	master_dict = aux.get_pdict (filename, starting_index, dop, edge, edge, edge)
 	rg = aux.get_Rg(master_dict, edge, edge, edge) 
-	if num == 5:
-		print(rg)
+	# if num == 5:
+	# 	print(rg)
 	return rg 
 
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
 		ax.minorticks_on()
 		ax.set_xlim((0.0, 1.0))
 		ax.set_ylim((args.yllim, args.yulim))
-		ax.set_xticks (np.linspace (0, 1, 6))
+		ax.set_xticks ([0, 0.5, 1.0])
 		ax.set_yticks (np.linspace (args.yllim, args.yulim, 5))
 		ax.set_xticklabels ([])
 		if args.syticks:

@@ -5,7 +5,7 @@ import numpy as np
 import re 
 import matplotlib.pyplot as plt
 import matplotlib 
-matplotlib.use('Agg')
+matplotlib.use("agg")
 import scipy 
 import scipy.spatial
 import sys
@@ -75,6 +75,7 @@ if __name__=="__main__":
 	ypads   = [3, 1, 1, 1, 1, 3]
 	yticks  = [np.linspace(0, 0.20, 5), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6), np.linspace(0, 0.5, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 1, 6), np.linspace(0, 0.5, 6)]
 	norms   = [M*z, M*z, (M+2)**3*z, M*z, M*z, M*z, M*z, (M+2)**3*z]
+	norm    = [1]*len(norms)
 
 	df_real = pd.read_csv (args.real, sep='|', names=["H", "x", "M1-M1", "M1-M1-A", "M1-M1-N", "M1-S", "M1-S1", "M1-S1-A", "M1-S1-N", "M1-S2", "M1-S2-A", "M1-S2-N", "S1-S2", "S1-S2-A", "S1-S2-N"], engine='python', skiprows=1)
 	x_real  = df_real["x"]

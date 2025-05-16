@@ -16,7 +16,6 @@ parser = argparse.ArgumentParser(description="Read a trajectory file and obtain 
 parser.add_argument('-dop', metavar='DOP', dest='dop', type=int, action='store', help='enter a degree of polymerization.')
 parser.add_argument('-s', metavar='S', type=int, dest='s', action='store', help='start parsing after this index.', default=100)
 parser.add_argument('--lat', dest='lat', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
-parser.add_argument('-c', dest='c', metavar='coords.txt', action='store', type=str, help='Name of energy dump file to parse information.', default='coords.txt')
 parser.add_argument('-ff', dest='ff', action='store', type=str, help='Address to geom_and_esurf.txt')
 parser.add_argument('-x', dest='x', metavar='X', action='store', type=float, help='Enter x-dimension of box.')
 parser.add_argument('-y', dest='y', metavar='Y', action='store', type=float, help='Enter y-dimension of box.')
@@ -42,9 +41,8 @@ if __name__ == "__main__":
 	y = args.y
 	z = args.z
 	frac = float(aux.get_frac(args.ff))
-	print(type(x), type(args.dop), type(frac))
 	nsol2 = int(np.floor(((x**3)-args.dop)*frac))
-	nsol1 = int(x**3 - args.dop - nsol2)
+	nsol1 = int(x**3 - args.dop -nsol2)
 	print ("nsol1 = ",nsol1, ", nsol2 =", nsol2)
 	step_bool = False
 
@@ -65,9 +63,8 @@ if __name__ == "__main__":
 		elif step_bool:
 			info = line.strip().split() 
 			if info[1] == "m1,":
-				# polymer[m_num] = location   (int(info[2]), x, y, z)
-				# m_num  += 1
-				continue
+				polymer[m_num] = location   (int(info[2]), x, y, z)
+				m_num  += 1
 			elif info[1] == "s1,":
 				solvent1[s1_num] = location (int(info[2]), x, y, z)
 				s1_num += 1
@@ -78,39 +75,33 @@ if __name__ == "__main__":
 		print ("step not found. exiting...", flush=True)
 		print (step_bool)
 		exit()
-	
+
 	f.close()
-	######################################
-	pdict = aux.get_pdict (args.c, int(step), 32, x, y, z)
-	polymer = pdict[int(step)][0]
-	polymer = aux.unfuck_polymer(polymer, x, y, z)
-
-
-	#######################################
-	# polymer = aux.unfuck_polymer (polymer, x, y, z)
-	# com = np.mean(polymer, axis=0)
-	# print ("com = ", com)
-	# polymer = polymer-com
-	# solvent1 = solvent1-com
-	# solvent2 = solvent2-com
+	polymer = aux.unfuck_polymer (polymer, x, y, z)
+	mid = polymer[16]
+	box = np.array([17.0, 17.0, 17.0])
+	shift = box-mid
+	polymer = polymer+shift
+	solvent1 = (solvent1+shift) % 34
+	solvent2 = (solvent2+shift) % 34
 	f = open (args.pdb, 'w')
 
 	f.write("COMPND    MY_POLYMER\n")
 	f.write("AUTHOR    SAT\n")
 	count = 1 
 	for row in polymer:
-		f.write ("ATOM  {:>5} {:>2}{:<2} POL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( count, "M", " ", 1, row[0]*1, row[1]*1, row[2]*1, 1.00, 1.00, "M", "M" ) )
+		f.write ("ATOM  {:>5} {:>2}{:<2} POL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( count, "M", " ", 1, row[0], row[1], row[2], 1.00, 1.00, "M", "M" ) )
 		count+=1
 
 	j = 2
 	scount = copy.copy(count)
 	for sol in solvent1:
-		f.write ("ATOM  {:>5} {:>2}{:<2} SOL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( scount, "S", "1", j, sol[0]*1, sol[1]*1, sol[2]*1, 1.00, 1.00, "S", "1" ) )
+		f.write ("ATOM  {:>5} {:>2}{:<2} SOL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( scount, "S", "1", j, sol[0], sol[1], sol[2], 1.00, 1.00, "S", "1" ) )
 		scount += 1
 	j += 1
 	
 	for sol in solvent2:
-		f.write ("ATOM  {:>5} {:>2}{:<2} SOL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( scount, "S", "2", j, sol[0]*1, sol[1]*1, sol[2]*1, 1.00, 1.00, "S", "2" ) )
+		f.write ("ATOM  {:>5} {:>2}{:<2} SOL  {:>4} {:>8}{:>8}{:>8}{:>6}{:>6}      {:>4}{:<1}\n".format( scount, "S", "2", j, sol[0], sol[1], sol[2], 1.00, 1.00, "S", "2" ) )
 		scount += 1
 	j += 1
 

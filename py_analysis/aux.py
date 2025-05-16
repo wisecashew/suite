@@ -528,12 +528,12 @@ def get_Rg (master_dict, xlen, ylen, zlen):
 	rg    = 0
 
 	for key in master_dict: 
-		print(f"key = {key}")
+		# print(f"key = {key}")
 		coord_arr = unfuck_polymer(master_dict[key][0], xlen, ylen, zlen)
 		r_com = np.mean(coord_arr, axis=0) # get center of mass 
 		offset = coord_arr - r_com
 		rg += np.sqrt(np.sum (np.square (offset) )/ N) # added the np.sqrt
-		print(f"Rg = {np.sqrt(np.sum (np.square (offset) )/ N)}")
+		# print(f"Rg = {np.sqrt(np.sum (np.square (offset) )/ N)}")
 		count += 1
 
 	return rg/count
